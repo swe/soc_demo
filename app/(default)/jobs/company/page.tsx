@@ -121,7 +121,7 @@ export default function Jobs() {
             {/* Company name and info */}
             <div className="mb-4">
               <h2 className="text-2xl text-gray-800 dark:text-gray-100 font-bold mb-2">Revolut Ltd</h2>
-              <p>We're building a financial superapp that combines all the best tools into one place 🚀</p>
+                              <p>We&apos;re building a financial superapp that combines all the best tools into one place 🚀</p>
             </div>
 
             {/* Meta */}

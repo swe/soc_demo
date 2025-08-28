@@ -82,7 +82,7 @@ export default function FintechCard14() {
   const chartData: ChartData[] = []
   
   const buildChartData = (chart: MiniChart): ChartData => {
-    var obj = {
+    const obj = {
       labels: [
         '12-01-2022', '01-01-2023', '02-01-2023',
         '03-01-2023', '04-01-2023', '05-01-2023',

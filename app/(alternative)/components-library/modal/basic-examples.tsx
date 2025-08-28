@@ -23,7 +23,7 @@ export default function BasicExamples() {
             {/* Modal content */}
             <div className="px-5 pt-4 pb-1">
               <div className="text-sm">
-                <div className="font-medium text-gray-800 dark:text-gray-100 mb-2">Let's Talk Paragraph</div>
+                <div className="font-medium text-gray-800 dark:text-gray-100 mb-2">Let&apos;s Talk Paragraph</div>
                 <div className="space-y-2">
                   <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
                   <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
@@ -49,7 +49,7 @@ export default function BasicExamples() {
             {/* Modal content */}
             <div className="px-5 py-4">
               <div className="text-sm">
-                <div className="font-medium text-gray-800 dark:text-gray-100 mb-2">Let's Talk Paragraph</div>
+                <div className="font-medium text-gray-800 dark:text-gray-100 mb-2">Let&apos;s Talk Paragraph</div>
                 <div className="space-y-2">
                   <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
                   <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>

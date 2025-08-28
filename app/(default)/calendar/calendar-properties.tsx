@@ -44,20 +44,20 @@ export const CalendarProperties = () => {
 
     // starting empty cells (previous month)
     const startingDayOfWeek: number = new Date(currentYear, currentMonth).getDay()
-    let startingBlankDaysArray: number[] = []
+    const startingBlankDaysArray: number[] = []
     for (let i = 1; i <= startingDayOfWeek; i++) {
       startingBlankDaysArray.push(i)
     }
 
     // ending empty cells (next month)
     const endingDayOfWeek: number = new Date(currentYear, currentMonth + 1, 0).getDay()
-    let endingBlankDaysArray: number[] = []
+    const endingBlankDaysArray: number[] = []
     for (let i = 1; i < 7 - endingDayOfWeek; i++) {
       endingBlankDaysArray.push(i)
     }
 
     // current month cells
-    let daysArray: number[] = []
+    const daysArray: number[] = []
     for (let i = 1; i <= days; i++) {
       daysArray.push(i)
     }
