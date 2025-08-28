@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from 'react'
 export const useScroll = (threshold: number = 100) => {
   const [isScrolled, setIsScrolled] = useState<boolean>(false)
   const [isMounted, setIsMounted] = useState<boolean>(false)
-  const scrollContainerRef = useRef<HTMLElement | null>(null)
+  const scrollContainerRef = useRef<HTMLElement | Window | null>(null)
 
   useEffect(() => {
     setIsMounted(true)
@@ -35,7 +35,7 @@ export const useScroll = (threshold: number = 100) => {
       let scrollTop = 0
       if (container === window) {
         scrollTop = window.scrollY || document.documentElement.scrollTop
-      } else {
+      } else if (container instanceof HTMLElement) {
         scrollTop = container.scrollTop
       }
       
@@ -43,23 +43,25 @@ export const useScroll = (threshold: number = 100) => {
     }
 
     // Add event listener to the correct container
-    scrollContainerRef.current.addEventListener('scroll', handleScroll, { passive: true })
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.addEventListener('scroll', handleScroll, { passive: true })
+    }
     
-    // Set initial state
-    handleScroll()
+    // Set initial state after a small delay to ensure DOM is ready
+    const timer = setTimeout(() => {
+      handleScroll()
+    }, 0)
 
     // Remove event listener on cleanup
     return () => {
+      clearTimeout(timer)
       if (scrollContainerRef.current) {
         scrollContainerRef.current.removeEventListener('scroll', handleScroll)
       }
     }
   }, [threshold, isMounted])
   
-  // Return false during SSR and initial mount to prevent hydration mismatch
-  if (!isMounted) {
-    return false
-  }
-  
-  return isScrolled
+  // Always return false during SSR and initial mount to prevent hydration mismatch
+  // Only return the actual scroll state after the component has mounted on the client
+  return isMounted ? isScrolled : false
 }
