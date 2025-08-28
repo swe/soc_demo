@@ -135,70 +135,26 @@
   ::file-selector-button {
     border-color: var(--color-gray-200, currentColor);
   }
-}
-
-/* Remove focus outline from Leaflet interactive features */
-.leaflet-interactive:focus {
-  outline: none;
-}
-
-/* Override Leaflet tooltip background for custom-tooltip */
-.leaflet-tooltip.custom-tooltip {
-  background: transparent !important;
-  color: #fff !important;
-  border: none !important;
-  box-shadow: none !important;
-}
-
-/* Additional cursor pointer styles for specific components */
-/* Chart.js canvas elements */
-.react-chartjs-2 canvas {
-  cursor: pointer;
-}
-
-/* Alert list items */
-.alert-item,
-[data-alert-item] {
-  cursor: pointer;
-}
-
-/* Pagination buttons */
-.pagination button,
-[data-pagination] button {
-  cursor: pointer;
-}
-
-/* Filter dropdowns */
-.filter-dropdown,
-[data-filter] {
-  cursor: pointer;
-}
-
-/* Action buttons in alerts */
-.alert-action,
-[data-action] {
-  cursor: pointer;
-}
-
-/* Map country interactions */
-.country-interactive {
-  cursor: pointer;
-}
-
-/* Legend toggle buttons */
-.legend-toggle,
-[data-legend-toggle] {
-  cursor: pointer;
-}
-
-/* Close buttons */
-.close-btn,
-[data-close] {
-  cursor: pointer;
-}
-
-/* Retry buttons */
-.retry-btn,
-[data-retry] {
-  cursor: pointer;
+  
+  /* Add cursor pointer to all clickable elements */
+  a[href],
+  button,
+  [role="button"],
+  [tabindex]:not([tabindex="-1"]),
+  input[type="button"],
+  input[type="submit"],
+  input[type="reset"],
+  input[type="file"],
+  select,
+  summary {
+    cursor: pointer;
+  }
+  
+  /* Disable cursor pointer for disabled elements */
+  button:disabled,
+  input:disabled,
+  select:disabled,
+  [aria-disabled="true"] {
+    cursor: not-allowed;
+  }
 }

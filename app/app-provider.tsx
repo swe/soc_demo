@@ -1,6 +1,7 @@
 'use client'
 
 import { createContext, Dispatch, SetStateAction, useContext, useState } from 'react'
+import { PageTitleProvider } from './page-title-context'
 
 interface ContextProps {
   sidebarOpen: boolean
@@ -24,9 +25,11 @@ export default function AppProvider({
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false)
   const [sidebarExpanded, setSidebarExpanded] = useState<boolean>(false)
   return (
-    <AppContext.Provider value={{ sidebarOpen, setSidebarOpen, sidebarExpanded, setSidebarExpanded }}>
-      {children}
-    </AppContext.Provider>
+    <PageTitleProvider>
+      <AppContext.Provider value={{ sidebarOpen, setSidebarOpen, sidebarExpanded, setSidebarExpanded }}>
+        {children}
+      </AppContext.Provider>
+    </PageTitleProvider>
   )
 }
 

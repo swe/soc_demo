@@ -45,70 +45,33 @@ export const chartAreaGradient = (
   return gradient;
 };
 
-// Lazy-load chart colors to prevent SSR hydration issues
-export const getChartColors = () => {
-  if (typeof window === 'undefined') {
-    // Return fallback colors for SSR
-    return {
-      textColor: {
-        light: '#9ca3af',
-        dark: '#6b7280'
-      },  
-      gridColor: {
-        light: '#f3f4f6',
-        dark: 'rgba(55, 65, 81, 0.6)'
-      },
-      backdropColor: {
-        light: '#ffffff',
-        dark: '#1f2937'
-      },
-      tooltipTitleColor: {
-        light: '#1f2937',
-        dark: '#f3f4f6'
-      },
-      tooltipBodyColor: {
-        light: '#6b7280',
-        dark: '#9ca3af'
-      },
-      tooltipBgColor: {
-        light: '#ffffff',
-        dark: '#374151'
-      },
-      tooltipBorderColor: {
-        light: '#e5e7eb',
-        dark: '#4b5563'
-      },
-    };
-  }
-  
-  return {
-    textColor: {
-      light: getCssVariable('--color-gray-400'),
-      dark: getCssVariable('--color-gray-500')
-    },  
-    gridColor: {
-      light: getCssVariable('--color-gray-100'),
-      dark: adjustColorOpacity(getCssVariable('--color-gray-700'), 0.6)
-    },
-    backdropColor: {
-      light: getCssVariable('--color-white'),
-      dark: getCssVariable('--color-gray-800')
-    },
-    tooltipTitleColor: {
-      light: getCssVariable('--color-gray-800'),
-      dark: getCssVariable('--color-gray-100')
-    },
-    tooltipBodyColor: {
-      light: getCssVariable('--color-gray-500'),
-      dark: getCssVariable('--color-gray-400')
-    },
-    tooltipBgColor: {
-      light: getCssVariable('--color-white'),
-      dark: getCssVariable('--color-gray-700')
-    },
-    tooltipBorderColor: {
-      light: getCssVariable('--color-gray-200'),
-      dark: getCssVariable('--color-gray-600')
-    },
-  };
+export const chartColors = {
+  textColor: {
+    light: getCssVariable('--color-gray-400'),
+    dark: getCssVariable('--color-gray-500')
+  },  
+  gridColor: {
+    light: getCssVariable('--color-gray-100'),
+    dark: adjustColorOpacity(getCssVariable('--color-gray-700'), 0.6)
+  },
+  backdropColor: {
+    light: getCssVariable('--color-white'),
+    dark: getCssVariable('--color-gray-800')
+  },
+  tooltipTitleColor: {
+    light: getCssVariable('--color-gray-800'),
+    dark: getCssVariable('--color-gray-100')
+  },
+  tooltipBodyColor: {
+    light: getCssVariable('--color-gray-500'),
+    dark: getCssVariable('--color-gray-400')
+  },
+  tooltipBgColor: {
+    light: getCssVariable('--color-white'),
+    dark: getCssVariable('--color-gray-700')
+  },
+  tooltipBorderColor: {
+    light: getCssVariable('--color-gray-200'),
+    dark: getCssVariable('--color-gray-600')
+  },
 };
