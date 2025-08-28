@@ -155,7 +155,7 @@ export default function BarChart01({
             label.classList.add('text-gray-500', 'dark:text-gray-400')
             label.style.fontSize = '14px'
             label.style.lineHeight = 'calc(1.25 / 0.875)'
-            // @ts-ignore
+            // @ts-expect-error
             const theValue: number = c.data.datasets[item.datasetIndex!].data.reduce((a, b) => a + b, 0)
             const valueText = document.createTextNode(formatValue(theValue))
             const labelText = document.createTextNode(item.text)
