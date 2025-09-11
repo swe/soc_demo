@@ -3,14 +3,17 @@
 import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 import { Icon } from 'leaflet'
+import { useEffect, useState } from 'react'
 
 // Fix for default markers in react-leaflet
-delete (Icon.Default.prototype as any)._getIconUrl
-Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-})
+if (typeof window !== 'undefined') {
+  delete (Icon.Default.prototype as any)._getIconUrl
+  Icon.Default.mergeOptions({
+    iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+    iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+  })
+}
 
 interface AttackLocation {
   id: string
@@ -54,6 +57,20 @@ const getThreatRadius = (attacks: number) => {
 }
 
 export default function AttackMap() {
+  const [isClient, setIsClient] = useState(false)
+
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
+
+  if (!isClient) {
+    return (
+      <div className="w-full h-full overflow-hidden bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center">
+        <div className="text-gray-500 dark:text-gray-400">Loading map...</div>
+      </div>
+    )
+  }
+
   return (
     <div className="w-full h-full overflow-hidden">
       <MapContainer
