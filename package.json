@@ -11,6 +11,7 @@
   "dependencies": {
     "@headlessui/react": "^2.2.0",
     "@radix-ui/react-popover": "^1.1.5",
+    "@types/leaflet": "^1.9.20",
     "@types/node": "^22.13.0",
     "@types/react": "19.0.8",
     "@types/react-dom": "19.0.3",
@@ -18,11 +19,14 @@
     "chartjs-adapter-moment": "^1.0.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
+    "leaflet": "^1.9.4",
+    "moment": "^2.30.1",
     "next": "15.1.6",
     "next-themes": "^0.4.4",
     "react": "19.0.0",
     "react-day-picker": "^9.5.1",
     "react-dom": "19.0.0",
+    "react-leaflet": "^5.0.0",
     "tailwind-merge": "^3.0.1",
     "typescript": "^5.7.3"
   },
