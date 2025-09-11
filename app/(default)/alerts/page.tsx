@@ -3,7 +3,16 @@
 import { useEffect, useState } from 'react'
 import { usePageTitle } from '@/app/page-title-context'
 import AlertsLineChart from '@/components/charts/alerts-line-chart'
-import AttackMap from '@/components/attack-map'
+import dynamic from 'next/dynamic'
+
+const AttackMap = dynamic(() => import('@/components/attack-map'), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-full bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center">
+      <div className="text-gray-500 dark:text-gray-400">Loading map...</div>
+    </div>
+  )
+})
 import type { ChartData } from 'chart.js'
 
 interface AlertData {
@@ -559,7 +568,7 @@ export default function AlertsPage() {
                           fill="#10b981"
                           className="dark:fill-green-400 opacity-0 hover:opacity-100 cursor-pointer"
                         >
-                          <title>Day {index + 1}: {times[index]}</title>
+                          <title>{`Day ${index + 1}: ${times[index]}`}</title>
                         </circle>
                       )
                     })}
