@@ -26,7 +26,15 @@ export default function Icon({ name, className = '' }: IconProps) {
   if (!icon) {
     // Default icon if not found
     return (
-      <svg className={`inline-block ${className}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <svg 
+        className={`inline-block ${className}`} 
+        width="1em" 
+        height="1em" 
+        fill="none" 
+        stroke="currentColor" 
+        viewBox="0 0 24 24" 
+        xmlns="http://www.w3.org/2000/svg"
+      >
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
     )
@@ -34,7 +42,9 @@ export default function Icon({ name, className = '' }: IconProps) {
 
   return (
     <svg 
-      className={`inline-block ${className}`} 
+      className={`inline-block ${className}`}
+      width="1em"
+      height="1em"
       fill={icon.filled ? "currentColor" : "none"}
       stroke={icon.filled ? "none" : "currentColor"}
       viewBox="0 0 24 24" 
