@@ -65,7 +65,7 @@ export default function ThreatMap() {
       critical: 'bg-rose-600 dark:bg-rose-700/20 text-red-700 dark:text-red-400 border-red-500',
       high: 'bg-orange-600 dark:bg-orange-700/20 text-orange-700 dark:text-orange-400 border-orange-500',
       medium: 'bg-amber-600 dark:bg-amber-700/20 text-yellow-700 dark:text-yellow-400 border-yellow-500',
-      low: 'bg-sky-600 dark:bg-sky-700/20 text-blue-700 dark:text-blue-400 border-blue-500'
+      low: 'bg-indigo-600 dark:bg-indigo-600/20 text-blue-700 dark:text-blue-400 border-blue-500'
     }
     return colors[severity as keyof typeof colors]
   }
@@ -97,15 +97,15 @@ export default function ThreatMap() {
           <div className="bg-white dark:bg-gray-800 shadow-sm rounded-xl p-5">
             <div className="flex items-center justify-between mb-2">
               <div className="text-sm text-gray-600 dark:text-gray-400">Total Attacks</div>
-              <div className="w-10 h-10 bg-slate-700 dark:bg-slate-600/20 rounded-lg flex items-center justify-center">
-                <svg className="w-5 h-5 text-slate-700 dark:text-slate-400" fill="currentColor" viewBox="0 0 20 20">
+              <div className="w-10 h-10 bg-indigo-600 dark:bg-indigo-500/20 rounded-lg flex items-center justify-center">
+                <svg className="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
                   <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd" />
                 </svg>
               </div>
             </div>
             <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">{stats.total}</div>
-            <div className="text-sm text-slate-700 dark:text-slate-400 mt-1">Last 5 minutes</div>
+            <div className="text-sm text-indigo-600 dark:text-indigo-400 mt-1">Last 5 minutes</div>
           </div>
         </div>
 
@@ -240,7 +240,7 @@ export default function ThreatMap() {
                     <div className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">{count}</div>
                     <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                       <div 
-                        className="bg-slate-700 dark:bg-slate-600 h-2 rounded-full transition-all duration-200" 
+                        className="bg-indigo-600 dark:bg-indigo-500 h-2 rounded-full transition-all duration-200" 
                         style={{ width: `${percentage}%` }}
                       ></div>
                     </div>

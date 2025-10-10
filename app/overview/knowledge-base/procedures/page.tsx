@@ -129,7 +129,7 @@ export default function ProceduresPage() {
       'incident-response': 'bg-rose-600 dark:bg-rose-700/20 text-red-700 dark:text-red-400',
       'threat-hunting': 'bg-orange-600 dark:bg-orange-700/20 text-orange-700 dark:text-orange-400',
       'vulnerability': 'bg-amber-600 dark:bg-amber-700/20 text-yellow-700 dark:text-yellow-400',
-      'compliance': 'bg-sky-600 dark:bg-sky-700/20 text-blue-700 dark:text-blue-400'
+      'compliance': 'bg-indigo-600 dark:bg-indigo-600/20 text-blue-700 dark:text-blue-400'
     }
     return colors[type as keyof typeof colors]
   }
@@ -139,7 +139,7 @@ export default function ProceduresPage() {
       critical: 'bg-rose-600 dark:bg-rose-700/20 text-red-700 dark:text-red-400',
       high: 'bg-orange-600 dark:bg-orange-700/20 text-orange-700 dark:text-orange-400',
       medium: 'bg-amber-600 dark:bg-amber-700/20 text-yellow-700 dark:text-yellow-400',
-      low: 'bg-sky-600 dark:bg-sky-700/20 text-blue-700 dark:text-blue-400'
+      low: 'bg-indigo-600 dark:bg-indigo-600/20 text-blue-700 dark:text-blue-400'
     }
     return colors[priority as keyof typeof colors]
   }
@@ -168,8 +168,8 @@ export default function ProceduresPage() {
           <div className="bg-white dark:bg-gray-800 shadow-sm rounded-xl p-5">
             <div className="flex items-center justify-between mb-2">
               <div className="text-sm text-gray-600 dark:text-gray-400">Total Procedures</div>
-              <div className="w-10 h-10 bg-slate-700 dark:bg-slate-600/20 rounded-lg flex items-center justify-center">
-                <svg className="w-5 h-5 text-slate-700 dark:text-slate-400" fill="currentColor" viewBox="0 0 20 20">
+              <div className="w-10 h-10 bg-indigo-600 dark:bg-indigo-500/20 rounded-lg flex items-center justify-center">
+                <svg className="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
                   <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd" />
                 </svg>
@@ -217,7 +217,7 @@ export default function ProceduresPage() {
               onClick={() => setSelectedType(type)}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                 selectedType === type
-                  ? 'bg-slate-700 dark:bg-slate-600 text-white shadow-sm'
+                  ? 'bg-indigo-600 dark:bg-indigo-500 text-white shadow-sm'
                   : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700/50'
               }`}
             >

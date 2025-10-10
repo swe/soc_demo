@@ -2,6 +2,12 @@
 
 import { useEffect, useState } from 'react'
 import { usePageTitle } from '@/app/page-title-context'
+import { format } from 'date-fns'
+
+// Format date consistently for SSR/CSR
+const formatDate = (dateString: string) => {
+  return format(new Date(dateString), 'MMM d, yyyy')
+}
 
 interface ComplianceFramework {
   id: string
@@ -219,7 +225,7 @@ export default function CompliancePage() {
                 onClick={() => setActiveTab(tab)}
                 className={`py-4 px-1 border-b-2 font-medium text-sm transition-all duration-200 ${
                   activeTab === tab
-                    ? 'border-indigo-600 text-slate-700 dark:text-slate-400'
+                    ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
                 }`}
               >
@@ -263,8 +269,8 @@ export default function CompliancePage() {
                     ></div>
                   </div>
                   <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-                    <span>Last Audit: {new Date(framework.lastAudit).toLocaleDateString()}</span>
-                    <span>Next: {new Date(framework.nextAudit).toLocaleDateString()}</span>
+                    <span>Last Audit: {formatDate(framework.lastAudit)}</span>
+                    <span>Next: {formatDate(framework.nextAudit)}</span>
                   </div>
                 </div>
               </div>
@@ -309,12 +315,12 @@ export default function CompliancePage() {
                     </td>
                     <td className="px-4 py-3">
                       <span className="text-gray-600 dark:text-gray-400">
-                        {new Date(framework.lastAudit).toLocaleDateString()}
+                        {formatDate(framework.lastAudit)}
                       </span>
                     </td>
                     <td className="px-4 py-3">
                       <span className="text-gray-600 dark:text-gray-400">
-                        {new Date(framework.nextAudit).toLocaleDateString()}
+                        {formatDate(framework.nextAudit)}
                       </span>
                     </td>
                   </tr>
@@ -341,13 +347,13 @@ export default function CompliancePage() {
                   <div>
                     <span className="text-gray-600 dark:text-gray-400">Last Audit: </span>
                     <span className="font-medium text-gray-800 dark:text-gray-100">
-                      {new Date(framework.lastAudit).toLocaleDateString()}
+                      {formatDate(framework.lastAudit)}
                     </span>
                   </div>
                   <div>
                     <span className="text-gray-600 dark:text-gray-400">Next Audit: </span>
                     <span className="font-medium text-gray-800 dark:text-gray-100">
-                      {new Date(framework.nextAudit).toLocaleDateString()}
+                      {formatDate(framework.nextAudit)}
                     </span>
                   </div>
                 </div>
@@ -371,7 +377,7 @@ export default function CompliancePage() {
                 <div className="flex-1">
                   <h3 className="font-medium text-gray-800 dark:text-gray-100 mb-1">{report.name}</h3>
                   <div className="flex items-center gap-3 text-xs text-gray-600 dark:text-gray-400">
-                    <span>{new Date(report.date).toLocaleDateString()}</span>
+                    <span>{formatDate(report.date)}</span>
                     <span>•</span>
                     <span>{report.type}</span>
                   </div>
@@ -436,11 +442,11 @@ export default function CompliancePage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">Last Audit</div>
-                    <div className="text-gray-800 dark:text-gray-100">{new Date(selectedFramework.lastAudit).toLocaleDateString()}</div>
+                    <div className="text-gray-800 dark:text-gray-100">{formatDate(selectedFramework.lastAudit)}</div>
                   </div>
                   <div>
                     <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">Next Audit</div>
-                    <div className="text-gray-800 dark:text-gray-100">{new Date(selectedFramework.nextAudit).toLocaleDateString()}</div>
+                    <div className="text-gray-800 dark:text-gray-100">{formatDate(selectedFramework.nextAudit)}</div>
                   </div>
                 </div>
 

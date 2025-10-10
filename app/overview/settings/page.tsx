@@ -38,13 +38,13 @@ export default function SettingsPage() {
           <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Profile Picture</h3>
           <div className="flex items-center gap-4">
             <div className="w-24 h-24 bg-slate-100 dark:bg-slate-900/40 rounded-full flex items-center justify-center">
-              <span className="text-3xl font-bold text-slate-700 dark:text-slate-400">
+              <span className="text-3xl font-bold text-indigo-600 dark:text-indigo-400">
                 {profile.name.split(' ').map(n => n[0]).join('')}
               </span>
             </div>
             <div>
               <div className="flex gap-2 mb-2">
-                <button className="btn-sm bg-slate-700 hover:bg-slate-800 dark:bg-slate-600 dark:hover:bg-slate-700 text-white">
+                <button className="btn-sm bg-indigo-600 hover:bg-slate-800 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white">
                   Upload Photo
                 </button>
                 <button className="btn-sm bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100 hover:bg-gray-300 dark:hover:bg-gray-600">
@@ -220,7 +220,7 @@ export default function SettingsPage() {
 
         {/* Save Button */}
         <div className="flex gap-3">
-          <button className="btn bg-slate-700 hover:bg-slate-800 dark:bg-slate-600 dark:hover:bg-slate-700 text-white">
+          <button className="btn bg-indigo-600 hover:bg-slate-800 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white">
             Save Changes
           </button>
           <button className="btn bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100 hover:bg-gray-300 dark:hover:bg-gray-600">

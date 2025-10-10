@@ -143,7 +143,7 @@ export default function ThreatAnalytics() {
       critical: 'bg-rose-600 dark:bg-rose-700/20 text-red-700 dark:text-red-400',
       high: 'bg-orange-600 dark:bg-orange-700/20 text-orange-700 dark:text-orange-400',
       medium: 'bg-amber-600 dark:bg-amber-700/20 text-yellow-700 dark:text-yellow-400',
-      low: 'bg-sky-600 dark:bg-sky-700/20 text-blue-700 dark:text-blue-400'
+      low: 'bg-indigo-600 dark:bg-indigo-600/20 text-blue-700 dark:text-blue-400'
     }
     return colors[severity as keyof typeof colors]
   }
@@ -230,7 +230,7 @@ export default function ThreatAnalytics() {
               onClick={() => setSelectedTactic('all')}
               className={`p-4 rounded-lg text-sm font-medium transition-all ${
                 selectedTactic === 'all'
-                  ? 'bg-slate-700 dark:bg-slate-600 text-white shadow-sm shadow-lg scale-105'
+                  ? 'bg-indigo-600 dark:bg-indigo-500 text-white shadow-sm shadow-lg scale-105'
                   : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
               }`}
             >
@@ -248,7 +248,7 @@ export default function ThreatAnalytics() {
                   onClick={() => setSelectedTactic(tactic)}
                   className={`p-4 rounded-lg text-sm font-medium transition-all relative overflow-hidden ${
                     selectedTactic === tactic
-                      ? 'bg-slate-700 dark:bg-slate-600 text-white shadow-sm shadow-lg scale-105'
+                      ? 'bg-indigo-600 dark:bg-indigo-500 text-white shadow-sm shadow-lg scale-105'
                       : 'bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-indigo-600 dark:hover:border-indigo-600'
                   }`}
                   style={{
@@ -349,7 +349,7 @@ export default function ThreatAnalytics() {
                       </div>
                       <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                         <div 
-                          className="bg-slate-700 dark:bg-slate-600 h-2 rounded-full" 
+                          className="bg-indigo-600 dark:bg-indigo-500 h-2 rounded-full" 
                           style={{ width: `${(technique.detections / stats.totalDetections) * 100}%` }}
                         ></div>
                       </div>
@@ -379,7 +379,7 @@ export default function ThreatAnalytics() {
                     </div>
                     <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                       <div 
-                        className="bg-sky-600 dark:bg-sky-700 h-2 rounded-full" 
+                        className="bg-indigo-600 dark:bg-indigo-600 h-2 rounded-full" 
                         style={{ width: `${(count / stats.totalDetections) * 100}%` }}
                       ></div>
                     </div>

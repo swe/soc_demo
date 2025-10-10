@@ -135,8 +135,8 @@ export default function TrainingsPage() {
 
   const getCategoryColor = (category: string) => {
     const colors = {
-      'security-awareness': 'bg-sky-600 dark:bg-sky-700/20 text-blue-700 dark:text-blue-400',
-      'technical': 'bg-purple-500/20 text-purple-700 dark:text-purple-400',
+      'security-awareness': 'bg-indigo-600 dark:bg-indigo-600/20 text-blue-700 dark:text-blue-400',
+      'technical': 'bg-indigo-500/20 text-purple-700 dark:text-purple-400',
       'incident-response': 'bg-rose-600 dark:bg-rose-700/20 text-red-700 dark:text-red-400',
       'compliance': 'bg-emerald-600 dark:bg-emerald-700/20 text-green-700 dark:text-green-400'
     }
@@ -176,8 +176,8 @@ export default function TrainingsPage() {
           <div className="bg-white dark:bg-gray-800 shadow-sm rounded-xl p-5">
             <div className="flex items-center justify-between mb-2">
               <div className="text-sm text-gray-600 dark:text-gray-400">Available Courses</div>
-              <div className="w-10 h-10 bg-slate-700 dark:bg-slate-600/20 rounded-lg flex items-center justify-center">
-                <svg className="w-5 h-5 text-slate-700 dark:text-slate-400" fill="currentColor" viewBox="0 0 20 20">
+              <div className="w-10 h-10 bg-indigo-600 dark:bg-indigo-500/20 rounded-lg flex items-center justify-center">
+                <svg className="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.487 2.494zM18 14a1 1 0 100-2 1 1 0 000 2z" />
                 </svg>
               </div>
@@ -190,13 +190,13 @@ export default function TrainingsPage() {
           <div className="bg-white dark:bg-gray-800 shadow-sm rounded-xl p-5">
             <div className="flex items-center justify-between mb-2">
               <div className="text-sm text-gray-600 dark:text-gray-400">Total Enrolled</div>
-              <div className="w-10 h-10 bg-sky-600 dark:bg-sky-700/20 rounded-lg flex items-center justify-center">
-                <svg className="w-5 h-5 text-sky-800 dark:text-sky-300" fill="currentColor" viewBox="0 0 20 20">
+              <div className="w-10 h-10 bg-indigo-600 dark:bg-indigo-600/20 rounded-lg flex items-center justify-center">
+                <svg className="w-5 h-5 text-indigo-700 dark:text-indigo-300" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
                 </svg>
               </div>
             </div>
-            <div className="text-3xl font-bold text-sky-800 dark:text-sky-300">{stats.totalEnrolled}</div>
+            <div className="text-3xl font-bold text-indigo-700 dark:text-indigo-300">{stats.totalEnrolled}</div>
           </div>
         </div>
 
@@ -224,7 +224,7 @@ export default function TrainingsPage() {
               onClick={() => setSelectedCategory(category)}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                 selectedCategory === category
-                  ? 'bg-slate-700 dark:bg-slate-600 text-white shadow-sm'
+                  ? 'bg-indigo-600 dark:bg-indigo-500 text-white shadow-sm'
                   : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700/50'
               }`}
             >
@@ -385,7 +385,7 @@ export default function TrainingsPage() {
                   <div className="flex items-center gap-3">
                     <div className="flex-1">
                       <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
-                        <div className="bg-slate-700 dark:bg-slate-600 h-3 rounded-full" style={{ width: `${selectedTraining.completionRate}%` }}></div>
+                        <div className="bg-indigo-600 dark:bg-indigo-500 h-3 rounded-full" style={{ width: `${selectedTraining.completionRate}%` }}></div>
                       </div>
                     </div>
                     <span className="text-lg font-bold text-gray-900 dark:text-gray-100">{selectedTraining.completionRate}%</span>

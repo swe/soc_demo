@@ -96,7 +96,7 @@ export default function IncidentsPage() {
     const colors = {
       new: 'bg-rose-100 dark:bg-rose-900/40 text-rose-800 dark:text-rose-300',
       investigating: 'bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300',
-      contained: 'bg-sky-100 dark:bg-sky-900/40 text-sky-800 dark:text-sky-300',
+      contained: 'bg-sky-100 dark:bg-sky-900/40 text-indigo-700 dark:text-indigo-300',
       resolved: 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300',
       closed: 'bg-slate-100 dark:bg-slate-900/40 text-slate-800 dark:text-slate-300'
     }
@@ -170,7 +170,7 @@ export default function IncidentsPage() {
               onClick={() => setFilterStatus(status)}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                 filterStatus === status
-                  ? 'bg-slate-700 dark:bg-slate-600 text-white shadow-sm'
+                  ? 'bg-indigo-600 dark:bg-indigo-500 text-white shadow-sm'
                   : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700/50'
               }`}
             >
@@ -216,7 +216,7 @@ export default function IncidentsPage() {
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
                           {incident.affectedAssets} assets affected
                         </span>
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-sky-100 dark:bg-sky-900/40 text-sky-800 dark:text-sky-300">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-sky-100 dark:bg-sky-900/40 text-indigo-700 dark:text-indigo-300">
                           {incident.assignedTo}
                         </span>
                       </div>
@@ -242,8 +242,8 @@ export default function IncidentsPage() {
                 { name: 'Malware', count: 1, color: 'bg-rose-600 dark:bg-rose-700' },
                 { name: 'Data Breach', count: 1, color: 'bg-orange-600 dark:bg-orange-700' },
                 { name: 'Unauthorized Access', count: 1, color: 'bg-amber-600 dark:bg-amber-700' },
-                { name: 'Network Attack', count: 1, color: 'bg-sky-600 dark:bg-sky-700' },
-                { name: 'Social Engineering', count: 1, color: 'bg-slate-600 dark:bg-slate-700' }
+                { name: 'Network Attack', count: 1, color: 'bg-indigo-600 dark:bg-indigo-600' },
+                { name: 'Social Engineering', count: 1, color: 'bg-indigo-500 dark:bg-indigo-600' }
               ].map((category, idx) => (
                 <div key={idx}>
                   <div className="flex items-center justify-between mb-1">
@@ -358,7 +358,7 @@ export default function IncidentsPage() {
 
                 <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
                   <div className="grid grid-cols-2 gap-3">
-                    <button className="btn bg-slate-700 hover:bg-slate-800 dark:bg-slate-600 dark:hover:bg-slate-700 text-white">
+                    <button className="btn bg-indigo-600 hover:bg-slate-800 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white">
                       Update Status
                     </button>
                     <button className="btn bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100 hover:bg-gray-300 dark:hover:bg-gray-600">

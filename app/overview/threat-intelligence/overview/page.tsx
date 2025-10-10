@@ -75,14 +75,14 @@ export default function ThreatIntelligenceOverview() {
           <div className="bg-white dark:bg-gray-800 shadow-sm rounded-xl p-5">
             <div className="flex items-center justify-between mb-2">
               <div className="text-sm text-gray-600 dark:text-gray-400">Critical CVEs</div>
-              <div className="w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center">
-                <svg className="w-5 h-5 text-purple-600 dark:text-purple-400" fill="currentColor" viewBox="0 0 20 20">
+              <div className="w-10 h-10 bg-indigo-500/20 rounded-lg flex items-center justify-center">
+                <svg className="w-5 h-5 text-indigo-600 dark:text-purple-400" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1h4v1a2 2 0 11-4 0zM12 14c.015-.34.208-.646.477-.859a4 4 0 10-4.954 0c.27.213.462.519.476.859h4.002z" />
                 </svg>
               </div>
             </div>
             <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">12</div>
-            <div className="text-sm text-purple-600 dark:text-purple-400 mt-1">3 exploited</div>
+            <div className="text-sm text-indigo-600 dark:text-purple-400 mt-1">3 exploited</div>
           </div>
         </div>
 
@@ -90,14 +90,14 @@ export default function ThreatIntelligenceOverview() {
           <div className="bg-white dark:bg-gray-800 shadow-sm rounded-xl p-5">
             <div className="flex items-center justify-between mb-2">
               <div className="text-sm text-gray-600 dark:text-gray-400">Threat Feeds</div>
-              <div className="w-10 h-10 bg-sky-600 dark:bg-sky-700/20 rounded-lg flex items-center justify-center">
-                <svg className="w-5 h-5 text-sky-800 dark:text-sky-300" fill="currentColor" viewBox="0 0 20 20">
+              <div className="w-10 h-10 bg-indigo-600 dark:bg-indigo-600/20 rounded-lg flex items-center justify-center">
+                <svg className="w-5 h-5 text-indigo-700 dark:text-indigo-300" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
                 </svg>
               </div>
             </div>
             <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">15</div>
-            <div className="text-sm text-sky-800 dark:text-sky-300 mt-1">All active</div>
+            <div className="text-sm text-indigo-700 dark:text-indigo-300 mt-1">All active</div>
           </div>
         </div>
       </div>
@@ -162,7 +162,7 @@ export default function ThreatIntelligenceOverview() {
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-700 dark:bg-slate-600/20 text-indigo-700 dark:text-indigo-500">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-600 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-500">
                           {ioc.type}
                         </span>
                         <span className="text-sm font-mono text-gray-800 dark:text-gray-100">{ioc.value}</span>

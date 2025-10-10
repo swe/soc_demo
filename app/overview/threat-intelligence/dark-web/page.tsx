@@ -112,14 +112,14 @@ export default function DarkWebMonitoring() {
       critical: 'bg-rose-600 dark:bg-rose-700/20 text-red-700 dark:text-red-400',
       high: 'bg-orange-600 dark:bg-orange-700/20 text-orange-700 dark:text-orange-400',
       medium: 'bg-amber-600 dark:bg-amber-700/20 text-yellow-700 dark:text-yellow-400',
-      low: 'bg-sky-600 dark:bg-sky-700/20 text-blue-700 dark:text-blue-400'
+      low: 'bg-indigo-600 dark:bg-indigo-600/20 text-blue-700 dark:text-blue-400'
     }
     return colors[severity as keyof typeof colors]
   }
 
   const getStatusColor = (status: string) => {
     const colors = {
-      new: 'bg-purple-500/20 text-purple-700 dark:text-purple-400',
+      new: 'bg-indigo-500/20 text-purple-700 dark:text-purple-400',
       investigating: 'bg-amber-600 dark:bg-amber-700/20 text-yellow-700 dark:text-yellow-400',
       mitigated: 'bg-emerald-600 dark:bg-emerald-700/20 text-green-700 dark:text-green-400',
       'false-positive': 'bg-gray-500/20 text-gray-700 dark:text-gray-400'
@@ -177,7 +177,7 @@ export default function DarkWebMonitoring() {
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                <div className="w-2 h-2 bg-indigo-500 rounded-full"></div>
                 <span className="font-semibold text-gray-900 dark:text-gray-100">
                   {darkWebMentions.filter(m => m.status === 'new').length} New Findings
                 </span>
@@ -205,7 +205,7 @@ export default function DarkWebMonitoring() {
                 onClick={() => setActiveTab(tab.id as any)}
                 className={`py-4 px-1 border-b-2 font-medium text-sm transition-all duration-200 ${
                   activeTab === tab.id
-                    ? 'border-indigo-600 text-slate-700 dark:text-slate-400'
+                    ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
                 }`}
               >
@@ -258,7 +258,7 @@ export default function DarkWebMonitoring() {
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(mention.status)}`}>
                         {mention.status.replace('-', ' ').toUpperCase()}
                       </span>
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-500/20 text-purple-700 dark:text-purple-400">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-500/20 text-purple-700 dark:text-purple-400">
                         {mention.category.replace('-', ' ').toUpperCase()}
                       </span>
                     </div>
@@ -354,8 +354,8 @@ export default function DarkWebMonitoring() {
             <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Threat Categories</h2>
             <div className="space-y-3">
               {[
-                { name: 'Credentials', count: darkWebMentions.filter(m => m.category === 'credentials').length, color: 'bg-sky-600 dark:bg-sky-700', icon: '🔑' },
-                { name: 'Data Leaks', count: darkWebMentions.filter(m => m.category === 'data-leak').length, color: 'bg-purple-500', icon: '💾' },
+                { name: 'Credentials', count: darkWebMentions.filter(m => m.category === 'credentials').length, color: 'bg-indigo-600 dark:bg-indigo-600', icon: '🔑' },
+                { name: 'Data Leaks', count: darkWebMentions.filter(m => m.category === 'data-leak').length, color: 'bg-indigo-500', icon: '💾' },
                 { name: 'Exploits', count: darkWebMentions.filter(m => m.category === 'exploit').length, color: 'bg-rose-600 dark:bg-rose-700', icon: '⚠️' },
                 { name: 'Ransomware', count: darkWebMentions.filter(m => m.category === 'ransomware').length, color: 'bg-orange-600 dark:bg-orange-700', icon: '🔒' },
                 { name: 'Marketplace', count: darkWebMentions.filter(m => m.category === 'marketplace').length, color: 'bg-emerald-600 dark:bg-emerald-700', icon: '🛒' }
