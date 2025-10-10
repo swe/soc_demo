@@ -117,19 +117,24 @@ export default function CompliancePage() {
 
       {/* Overview Stats */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        <Card padding="lg">
-          <div className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2">Overall Score</div>
-          <div className="text-5xl font-light text-gray-900 dark:text-gray-100">{overallScore}%</div>
+        <Card>
+          <div className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Overall Score</div>
+          <div className="text-4xl font-bold text-gray-900 dark:text-gray-100">{overallScore}%</div>
+          <div className="mt-4 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+            <div className="h-full bg-emerald-500" style={{ width: `${overallScore}%` }}></div>
+          </div>
         </Card>
 
-        <Card padding="lg">
-          <div className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2">Total Controls</div>
-          <div className="text-5xl font-light text-gray-900 dark:text-gray-100">{totalControls}</div>
+        <Card>
+          <div className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Total Controls</div>
+          <div className="text-4xl font-bold text-gray-900 dark:text-gray-100">{totalControls}</div>
+          <div className="text-sm text-gray-500 dark:text-gray-400 mt-2">{frameworks.length} frameworks</div>
         </Card>
 
-        <Card padding="lg">
-          <div className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2">Implemented</div>
-          <div className="text-5xl font-light text-emerald-600 dark:text-emerald-400">{implementedControls}</div>
+        <Card>
+          <div className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Implemented</div>
+          <div className="text-4xl font-bold text-emerald-600 dark:text-emerald-400">{implementedControls}</div>
+          <div className="text-sm text-gray-500 dark:text-gray-400 mt-2">{Math.round((implementedControls / totalControls) * 100)}% complete</div>
         </Card>
       </div>
 

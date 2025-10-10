@@ -17,9 +17,9 @@ export function Card({ children, className = '', hover = false, padding = 'md', 
     lg: 'p-8',
   }
 
-  const baseClasses = 'bg-white dark:bg-gray-800'
+  const baseClasses = 'bg-white dark:bg-gray-800 rounded-lg shadow-sm'
   const borderClasses = border ? 'border border-gray-200 dark:border-gray-700/60' : ''
-  const hoverClasses = hover ? 'hover:border-gray-300 dark:hover:border-gray-600 transition-colors duration-150 cursor-pointer' : ''
+  const hoverClasses = hover ? 'hover:shadow-md hover:border-gray-300 dark:hover:border-gray-600 transition-all duration-200 cursor-pointer' : ''
   
   return (
     <div 
@@ -46,24 +46,24 @@ interface StatCardProps {
 export function StatCard({ title, value, icon, trend, color = 'indigo', onClick }: StatCardProps) {
   const colorClasses = {
     rose: {
+      iconBg: 'bg-rose-50 dark:bg-rose-900/20',
       iconText: 'text-rose-600 dark:text-rose-400',
-      trend: 'text-rose-600 dark:text-rose-400',
     },
     orange: {
+      iconBg: 'bg-orange-50 dark:bg-orange-900/20',
       iconText: 'text-orange-600 dark:text-orange-400',
-      trend: 'text-orange-600 dark:text-orange-400',
     },
     amber: {
+      iconBg: 'bg-amber-50 dark:bg-amber-900/20',
       iconText: 'text-amber-600 dark:text-amber-400',
-      trend: 'text-amber-600 dark:text-amber-400',
     },
     emerald: {
+      iconBg: 'bg-emerald-50 dark:bg-emerald-900/20',
       iconText: 'text-emerald-600 dark:text-emerald-400',
-      trend: 'text-emerald-600 dark:text-emerald-400',
     },
     indigo: {
+      iconBg: 'bg-indigo-50 dark:bg-indigo-900/20',
       iconText: 'text-indigo-600 dark:text-indigo-400',
-      trend: 'text-indigo-600 dark:text-indigo-400',
     },
   }
 
@@ -72,21 +72,22 @@ export function StatCard({ title, value, icon, trend, color = 'indigo', onClick 
 
   return (
     <Card hover={!!onClick} onClick={onClick} padding="md">
-      <div className="flex items-start justify-between">
-        <div className="flex-1">
-          <div className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 font-medium mb-2">{title}</div>
-          <div className="text-3xl font-light text-gray-900 dark:text-gray-100 mb-1">{value}</div>
-          {trend && (
-            <div className={`flex items-center text-xs font-medium ${trendColor}`}>
-              <span>{trend.direction === 'up' ? '↑' : '↓'} {trend.value}%</span>
-            </div>
-          )}
-        </div>
+      <div className="flex items-start justify-between mb-3">
         {icon && (
-          <div className={`${colors.iconText} opacity-40`}>
+          <div className={`w-12 h-12 rounded-lg ${colors.iconBg} ${colors.iconText} flex items-center justify-center`}>
             {icon}
           </div>
         )}
+        {trend && (
+          <div className={`flex items-center gap-1 text-sm font-medium ${trendColor}`}>
+            <span>{trend.direction === 'up' ? '↑' : '↓'}</span>
+            <span>{trend.value}%</span>
+          </div>
+        )}
+      </div>
+      <div>
+        <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">{title}</div>
+        <div className="text-2xl font-semibold text-gray-900 dark:text-gray-100">{value}</div>
       </div>
     </Card>
   )
@@ -101,11 +102,11 @@ interface PageHeaderProps {
 export function PageHeader({ title, description, action }: PageHeaderProps) {
   return (
     <div className="mb-8">
-      <div className="flex items-start justify-between">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-light text-gray-900 dark:text-gray-100 mb-1">{title}</h1>
+          <h1 className="text-3xl font-semibold text-gray-900 dark:text-gray-100 mb-2">{title}</h1>
           {description && (
-            <p className="text-sm text-gray-500 dark:text-gray-400">{description}</p>
+            <p className="text-gray-600 dark:text-gray-400">{description}</p>
           )}
         </div>
         {action && <div className="ml-4">{action}</div>}
@@ -130,7 +131,7 @@ export function Badge({ children, variant = 'default' }: BadgeProps) {
   }
 
   return (
-    <span className={`inline-flex items-center px-2 py-0.5 text-xs font-medium ${variants[variant]}`}>
+    <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium ${variants[variant]}`}>
       {children}
     </span>
   )
