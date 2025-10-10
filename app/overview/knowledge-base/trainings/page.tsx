@@ -1,4 +1,6 @@
 'use client'
+import { formatDate, formatDateTime } from '@/lib/utils'
+
 
 import { useEffect, useState } from 'react'
 import { usePageTitle } from '@/app/page-title-context'
@@ -293,7 +295,7 @@ export default function TrainingsPage() {
                 {/* Footer */}
                 <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-4">
                   <span>{training.instructor}</span>
-                  <span>{new Date(training.lastUpdated).toLocaleDateString()}</span>
+                  <span>{formatDate(training.lastUpdated)}</span>
                 </div>
 
                 {/* Action Buttons */}
