@@ -209,7 +209,7 @@ export default function DevicesPage() {
               onClick={() => setActiveTab(type)}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                 activeTab === type
-                  ? 'bg-slate-700 dark:bg-slate-600 text-white shadow-sm'
+                  ? 'bg-indigo-600 dark:bg-indigo-500 text-white shadow-sm'
                   : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700/50'
               }`}
             >
@@ -298,7 +298,7 @@ export default function DevicesPage() {
                 >
                   Details
                 </button>
-                <button className="flex-1 btn-sm bg-sky-600 dark:bg-sky-600 hover:bg-sky-700 dark:hover:bg-sky-700 text-white text-xs">
+                <button className="flex-1 btn-sm bg-indigo-600 dark:bg-indigo-600 hover:bg-indigo-600 dark:hover:bg-indigo-600 text-white text-xs">
                   Scan
                 </button>
                 {device.vulnerabilities > 0 && (

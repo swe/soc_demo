@@ -570,7 +570,7 @@ export default function AllAlerts() {
           <button 
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
               activeFilter === 'all'
-                ? 'bg-slate-700 dark:bg-slate-600 text-white shadow-sm'
+                ? 'bg-indigo-600 dark:bg-indigo-500 text-white shadow-sm'
                 : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700/50'
             }`}
             onClick={() => handleFilterChange('all')}
@@ -580,7 +580,7 @@ export default function AllAlerts() {
           <button 
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
               activeFilter === 'critical'
-                ? 'bg-slate-700 dark:bg-slate-600 text-white shadow-sm'
+                ? 'bg-indigo-600 dark:bg-indigo-500 text-white shadow-sm'
                 : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700/50'
             }`}
             onClick={() => handleFilterChange('critical')}
@@ -590,7 +590,7 @@ export default function AllAlerts() {
           <button 
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
               activeFilter === 'high'
-                ? 'bg-slate-700 dark:bg-slate-600 text-white shadow-sm'
+                ? 'bg-indigo-600 dark:bg-indigo-500 text-white shadow-sm'
                 : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700/50'
             }`}
             onClick={() => handleFilterChange('high')}
@@ -600,7 +600,7 @@ export default function AllAlerts() {
           <button 
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
               activeFilter === 'active'
-                ? 'bg-slate-700 dark:bg-slate-600 text-white shadow-sm'
+                ? 'bg-indigo-600 dark:bg-indigo-500 text-white shadow-sm'
                 : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700/50'
             }`}
             onClick={() => handleFilterChange('active')}

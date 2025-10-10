@@ -59,7 +59,7 @@ export default function CloudIntegrations() {
       resources: { total: 843, monitored: 821 },
       alerts: { critical: 1, high: 8, medium: 23, low: 67 },
       logo: '☁️',
-      color: 'bg-sky-600 dark:bg-sky-700'
+      color: 'bg-indigo-600 dark:bg-indigo-600'
     },
     {
       id: 'gcp-1',

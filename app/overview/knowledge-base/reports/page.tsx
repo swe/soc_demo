@@ -114,8 +114,8 @@ export default function ReportsPage() {
 
   const getTypeColor = (type: string) => {
     const colors = {
-      security: 'bg-slate-700 dark:bg-slate-600/20 text-indigo-700 dark:text-indigo-500',
-      compliance: 'bg-sky-600 dark:bg-sky-700/20 text-blue-700 dark:text-blue-400',
+      security: 'bg-indigo-600 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-500',
+      compliance: 'bg-indigo-600 dark:bg-indigo-600/20 text-blue-700 dark:text-blue-400',
       incident: 'bg-rose-600 dark:bg-rose-700/20 text-red-700 dark:text-red-400',
       threat: 'bg-orange-600 dark:bg-orange-700/20 text-orange-700 dark:text-orange-400',
       vulnerability: 'bg-amber-600 dark:bg-amber-700/20 text-yellow-700 dark:text-yellow-400'
@@ -156,8 +156,8 @@ export default function ReportsPage() {
           <div className="bg-white dark:bg-gray-800 shadow-sm rounded-xl p-5">
             <div className="flex items-center justify-between mb-2">
               <div className="text-sm text-gray-600 dark:text-gray-400">Total Reports</div>
-              <div className="w-10 h-10 bg-slate-700 dark:bg-slate-600/20 rounded-lg flex items-center justify-center">
-                <svg className="w-5 h-5 text-slate-700 dark:text-slate-400" fill="currentColor" viewBox="0 0 20 20">
+              <div className="w-10 h-10 bg-indigo-600 dark:bg-indigo-500/20 rounded-lg flex items-center justify-center">
+                <svg className="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M9 2a2 2 0 00-2 2v8a2 2 0 002 2h6a2 2 0 002-2V6.414A2 2 0 0016.414 5L14 2.586A2 2 0 0012.586 2H9z" />
                   <path d="M3 8a2 2 0 012-2v10h8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z" />
                 </svg>
@@ -185,13 +185,13 @@ export default function ReportsPage() {
           <div className="bg-white dark:bg-gray-800 shadow-sm rounded-xl p-5">
             <div className="flex items-center justify-between mb-2">
               <div className="text-sm text-gray-600 dark:text-gray-400">This Month</div>
-              <div className="w-10 h-10 bg-sky-600 dark:bg-sky-700/20 rounded-lg flex items-center justify-center">
-                <svg className="w-5 h-5 text-sky-800 dark:text-sky-300" fill="currentColor" viewBox="0 0 20 20">
+              <div className="w-10 h-10 bg-indigo-600 dark:bg-indigo-600/20 rounded-lg flex items-center justify-center">
+                <svg className="w-5 h-5 text-indigo-700 dark:text-indigo-300" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
                 </svg>
               </div>
             </div>
-            <div className="text-3xl font-bold text-sky-800 dark:text-sky-300">{stats.thisMonth}</div>
+            <div className="text-3xl font-bold text-indigo-700 dark:text-indigo-300">{stats.thisMonth}</div>
           </div>
         </div>
       </div>
@@ -205,7 +205,7 @@ export default function ReportsPage() {
               onClick={() => setSelectedType(type)}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                 selectedType === type
-                  ? 'bg-slate-700 dark:bg-slate-600 text-white shadow-sm'
+                  ? 'bg-indigo-600 dark:bg-indigo-500 text-white shadow-sm'
                   : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700/50'
               }`}
             >

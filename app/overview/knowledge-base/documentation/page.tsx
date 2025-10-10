@@ -128,8 +128,8 @@ export default function DocumentationPage() {
   const getCategoryColor = (category: string) => {
     const colors = {
       security: 'bg-rose-600 dark:bg-rose-700/20 text-red-700 dark:text-red-400',
-      technical: 'bg-sky-600 dark:bg-sky-700/20 text-blue-700 dark:text-blue-400',
-      policy: 'bg-purple-500/20 text-purple-700 dark:text-purple-400',
+      technical: 'bg-indigo-600 dark:bg-indigo-600/20 text-blue-700 dark:text-blue-400',
+      policy: 'bg-indigo-500/20 text-purple-700 dark:text-purple-400',
       guide: 'bg-emerald-600 dark:bg-emerald-700/20 text-green-700 dark:text-green-400'
     }
     return colors[category as keyof typeof colors]
@@ -172,8 +172,8 @@ export default function DocumentationPage() {
           <div className="bg-white dark:bg-gray-800 shadow-sm rounded-xl p-5">
             <div className="flex items-center justify-between mb-2">
               <div className="text-sm text-gray-600 dark:text-gray-400">Total Documents</div>
-              <div className="w-10 h-10 bg-slate-700 dark:bg-slate-600/20 rounded-lg flex items-center justify-center">
-                <svg className="w-5 h-5 text-slate-700 dark:text-slate-400" fill="currentColor" viewBox="0 0 20 20">
+              <div className="w-10 h-10 bg-indigo-600 dark:bg-indigo-500/20 rounded-lg flex items-center justify-center">
+                <svg className="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
                 </svg>
               </div>
@@ -200,13 +200,13 @@ export default function DocumentationPage() {
           <div className="bg-white dark:bg-gray-800 shadow-sm rounded-xl p-5">
             <div className="flex items-center justify-between mb-2">
               <div className="text-sm text-gray-600 dark:text-gray-400">Total Downloads</div>
-              <div className="w-10 h-10 bg-sky-600 dark:bg-sky-700/20 rounded-lg flex items-center justify-center">
-                <svg className="w-5 h-5 text-sky-800 dark:text-sky-300" fill="currentColor" viewBox="0 0 20 20">
+              <div className="w-10 h-10 bg-indigo-600 dark:bg-indigo-600/20 rounded-lg flex items-center justify-center">
+                <svg className="w-5 h-5 text-indigo-700 dark:text-indigo-300" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
                 </svg>
               </div>
             </div>
-            <div className="text-3xl font-bold text-sky-800 dark:text-sky-300">{stats.totalDownloads}</div>
+            <div className="text-3xl font-bold text-indigo-700 dark:text-indigo-300">{stats.totalDownloads}</div>
           </div>
         </div>
       </div>
@@ -231,7 +231,7 @@ export default function DocumentationPage() {
               onClick={() => setSelectedCategory(category)}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                 selectedCategory === category
-                  ? 'bg-slate-700 dark:bg-slate-600 text-white shadow-sm'
+                  ? 'bg-indigo-600 dark:bg-indigo-500 text-white shadow-sm'
                   : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700/50'
               }`}
             >

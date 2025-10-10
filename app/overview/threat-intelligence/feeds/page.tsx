@@ -123,8 +123,8 @@ export default function ThreatFeeds() {
 
   const getTypeColor = (type: string) => {
     const colors = {
-      'open-source': 'bg-sky-600 dark:bg-sky-700/20 text-blue-700 dark:text-blue-400',
-      'commercial': 'bg-purple-500/20 text-purple-700 dark:text-purple-400',
+      'open-source': 'bg-indigo-600 dark:bg-indigo-600/20 text-blue-700 dark:text-blue-400',
+      'commercial': 'bg-indigo-500/20 text-purple-700 dark:text-purple-400',
       'internal': 'bg-orange-600 dark:bg-orange-700/20 text-orange-700 dark:text-orange-400'
     }
     return colors[type as keyof typeof colors]
@@ -155,8 +155,8 @@ export default function ThreatFeeds() {
           <div className="bg-white dark:bg-gray-800 shadow-sm rounded-xl p-5">
             <div className="flex items-center justify-between mb-2">
               <div className="text-sm text-gray-600 dark:text-gray-400">Total Feeds</div>
-              <div className="w-10 h-10 bg-slate-700 dark:bg-slate-600/20 rounded-lg flex items-center justify-center">
-                <svg className="w-5 h-5 text-slate-700 dark:text-slate-400" fill="currentColor" viewBox="0 0 20 20">
+              <div className="w-10 h-10 bg-indigo-600 dark:bg-indigo-500/20 rounded-lg flex items-center justify-center">
+                <svg className="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
                 </svg>
               </div>
@@ -183,8 +183,8 @@ export default function ThreatFeeds() {
           <div className="bg-white dark:bg-gray-800 shadow-sm rounded-xl p-5">
             <div className="flex items-center justify-between mb-2">
               <div className="text-sm text-gray-600 dark:text-gray-400">Total Indicators</div>
-              <div className="w-10 h-10 bg-sky-600 dark:bg-sky-700/20 rounded-lg flex items-center justify-center">
-                <svg className="w-5 h-5 text-sky-800 dark:text-sky-300" fill="currentColor" viewBox="0 0 20 20">
+              <div className="w-10 h-10 bg-indigo-600 dark:bg-indigo-600/20 rounded-lg flex items-center justify-center">
+                <svg className="w-5 h-5 text-indigo-700 dark:text-indigo-300" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11 4a1 1 0 10-2 0v4a1 1 0 102 0V7zm-3 1a1 1 0 10-2 0v3a1 1 0 102 0V8zM8 9a1 1 0 00-2 0v2a1 1 0 102 0V9z" clipRule="evenodd" />
                 </svg>
               </div>
@@ -197,8 +197,8 @@ export default function ThreatFeeds() {
           <div className="bg-white dark:bg-gray-800 shadow-sm rounded-xl p-5">
             <div className="flex items-center justify-between mb-2">
               <div className="text-sm text-gray-600 dark:text-gray-400">Avg Reliability</div>
-              <div className="w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center">
-                <svg className="w-5 h-5 text-purple-600 dark:text-purple-400" fill="currentColor" viewBox="0 0 20 20">
+              <div className="w-10 h-10 bg-indigo-500/20 rounded-lg flex items-center justify-center">
+                <svg className="w-5 h-5 text-indigo-600 dark:text-purple-400" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                 </svg>
               </div>
@@ -217,7 +217,7 @@ export default function ThreatFeeds() {
               onClick={() => setFilterType(type)}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                 filterType === type
-                  ? 'bg-slate-700 dark:bg-slate-600 text-white shadow-sm'
+                  ? 'bg-indigo-600 dark:bg-indigo-500 text-white shadow-sm'
                   : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700/50'
               }`}
             >

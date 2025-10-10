@@ -191,9 +191,9 @@ export default function UserManagementPage() {
               <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">User Distribution</h3>
               <div className="space-y-3">
                 {[
-                  { role: 'SOC Analysts', count: 45, color: 'bg-slate-700 dark:bg-slate-600' },
-                  { role: 'Security Engineers', count: 23, color: 'bg-sky-600 dark:bg-sky-700' },
-                  { role: 'Managers', count: 12, color: 'bg-purple-500' },
+                  { role: 'SOC Analysts', count: 45, color: 'bg-indigo-600 dark:bg-indigo-500' },
+                  { role: 'Security Engineers', count: 23, color: 'bg-indigo-600 dark:bg-indigo-600' },
+                  { role: 'Managers', count: 12, color: 'bg-indigo-500' },
                   { role: 'Administrators', count: 8, color: 'bg-orange-600 dark:bg-orange-700' },
                   { role: 'Others', count: 34, color: 'bg-gray-500' }
                 ].map((item, idx) => (
@@ -222,8 +222,8 @@ export default function UserManagementPage() {
                   { user: 'Sarah Williams', action: 'enabled MFA', time: '2 hours ago' }
                 ].map((activity, idx) => (
                   <div key={idx} className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-900/20 rounded-lg">
-                    <div className="w-8 h-8 bg-slate-700 dark:bg-slate-600/20 rounded-full flex items-center justify-center flex-shrink-0">
-                      <span className="text-xs font-semibold text-slate-700 dark:text-slate-400">
+                    <div className="w-8 h-8 bg-indigo-600 dark:bg-indigo-500/20 rounded-full flex items-center justify-center flex-shrink-0">
+                      <span className="text-xs font-semibold text-indigo-600 dark:text-indigo-400">
                         {activity.user.split(' ').map(n => n[0]).join('')}
                       </span>
                     </div>
@@ -247,7 +247,7 @@ export default function UserManagementPage() {
                 </div>
                 <div className="bg-gray-50 dark:bg-gray-900/20 rounded-lg p-4">
                   <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Password Policy Compliance</div>
-                  <div className="text-2xl font-bold text-sky-800 dark:text-sky-300">98%</div>
+                  <div className="text-2xl font-bold text-indigo-700 dark:text-indigo-300">98%</div>
                 </div>
                 <div className="bg-gray-50 dark:bg-gray-900/20 rounded-lg p-4">
                   <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Inactive Accounts</div>
