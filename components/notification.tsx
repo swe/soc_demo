@@ -38,7 +38,7 @@ export default function Notification({
         )
       default:
         return (
-          <svg className="shrink-0 fill-current text-violet-500 mt-[3px] mr-3" width="16" height="16" viewBox="0 0 16 16">
+          <svg className="shrink-0 fill-current text-indigo-600 mt-[3px] mr-3" width="16" height="16" viewBox="0 0 16 16">
             <path d="M8 0C3.6 0 0 3.6 0 8s3.6 8 8 8 8-3.6 8-8-3.6-8-8-8zm1 12H7V7h2v5zM8 6c-.6 0-1-.4-1-1s.4-1 1-1 1 .4 1 1-.4 1-1 1z" />
           </svg>
         )
@@ -65,7 +65,7 @@ export default function Notification({
               </button>
             </div>
             <div className="text-right mt-1">
-              <a className="font-medium text-violet-500 hover:text-violet-600 dark:hover:text-violet-400" href="#0">Action -&gt;</a>
+              <a className="font-medium text-indigo-600 hover:text-indigo-600 dark:hover:text-indigo-500" href="#0">Action -&gt;</a>
             </div>
           </div>
         </div>

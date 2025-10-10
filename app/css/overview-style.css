@@ -1,0 +1,75 @@
+/* Dashboard/Overview specific styles */
+@import 'tailwindcss';
+@import './additional-styles/utility-patterns.css' layer(components);
+
+@plugin "@tailwindcss/forms" {
+  strategy: base;
+}
+
+/* Dashboard theme variables */
+@theme {
+  --font-inter: "Inter", "sans-serif";
+  --font-uncut-sans: "Uncut Sans", "sans-serif";
+
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1.5;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.5715;
+  --text-base: 1rem;
+  --text-base--line-height: 1.5;
+  --text-base--letter-spacing: -0.01em;
+  --text-lg: 1.125rem;
+  --text-lg--line-height: 1.5;
+  --text-lg--letter-spacing: -0.01em;
+  --text-xl: 1.25rem;
+  --text-xl--line-height: 1.5;
+  --text-xl--letter-spacing: -0.01em;
+  --text-2xl: 1.5rem;
+  --text-2xl--line-height: 1.33;
+  --text-2xl--letter-spacing: -0.01em;
+  --text-3xl: 1.88rem;
+  --text-3xl--line-height: 1.33;
+  --text-3xl--letter-spacing: -0.01em;
+  --text-4xl: 2.25rem;
+  --text-4xl--line-height: 1.25;
+  --text-4xl--letter-spacing: -0.02em;
+  --text-5xl: 3rem;
+  --text-5xl--line-height: 1.25;
+  --text-5xl--letter-spacing: -0.02em;
+  --text-6xl: 3.75rem;
+  --text-6xl--line-height: 1.2;
+  --text-6xl--letter-spacing: -0.02em;
+
+  --breakpoint-xs: 480px;
+}
+
+/* Override landing styles for dashboard */
+.overview-dashboard {
+  background-color: rgb(249 250 251) !important; /* light mode */
+  color: rgb(75 85 99) !important;
+  letter-spacing: normal !important;
+}
+
+.dark .overview-dashboard {
+  background-color: rgb(17 24 39) !important; /* dark mode */
+  color: rgb(156 163 175) !important;
+}
+
+/* Ensure proper cursor behavior */
+.overview-dashboard a[href],
+.overview-dashboard button,
+.overview-dashboard [role="button"] {
+  cursor: pointer;
+}
+
+.overview-dashboard button:disabled {
+  cursor: not-allowed;
+}
+
+/* Ionicons alignment */
+.overview-dashboard ion-icon {
+  display: inline-block;
+  vertical-align: middle;
+  pointer-events: none;
+}
+

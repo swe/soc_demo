@@ -48,13 +48,13 @@ export default function Toast({
   const typeColor = (type: string): string => {
     switch (type) {
       case 'warning':
-        return 'bg-yellow-500'
+        return 'bg-amber-500'
       case 'error':
-        return 'bg-red-500'
+        return 'bg-rose-500'
       case 'success':
-        return 'bg-green-500'
+        return 'bg-emerald-500'
       default:
-        return 'bg-violet-500'
+        return 'bg-indigo-600'
     }
   }
 

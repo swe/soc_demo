@@ -24,6 +24,7 @@ export default function AppProvider({
 }) {  
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false)
   const [sidebarExpanded, setSidebarExpanded] = useState<boolean>(false)
+
   return (
     <PageTitleProvider>
       <AppContext.Provider value={{ sidebarOpen, setSidebarOpen, sidebarExpanded, setSidebarExpanded }}>
