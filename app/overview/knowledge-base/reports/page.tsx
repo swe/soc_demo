@@ -1,4 +1,6 @@
 'use client'
+import { formatDate, formatDateTime } from '@/lib/utils'
+
 
 import { useEffect, useState } from 'react'
 import { usePageTitle } from '@/app/page-title-context'
@@ -256,7 +258,7 @@ export default function ReportsPage() {
                   </td>
                   <td className="px-4 py-3">
                     <div>
-                      <div className="text-gray-700 dark:text-gray-300">{new Date(report.generatedAt).toLocaleDateString()}</div>
+                      <div className="text-gray-700 dark:text-gray-300">{formatDate(report.generatedAt)}</div>
                       <div className="text-xs text-gray-500 dark:text-gray-400">{report.generatedBy}</div>
                     </div>
                   </td>

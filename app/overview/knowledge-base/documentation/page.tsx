@@ -1,4 +1,6 @@
 'use client'
+import { formatDate, formatDateTime } from '@/lib/utils'
+
 
 import { useEffect, useState } from 'react'
 import { usePageTitle } from '@/app/page-title-context'
@@ -271,7 +273,7 @@ export default function DocumentationPage() {
                 <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
                   <span>v{doc.version}</span>
                   <span>•</span>
-                  <span>{new Date(doc.lastUpdated).toLocaleDateString()}</span>
+                  <span>{formatDate(doc.lastUpdated)}</span>
                   <span>•</span>
                   <span>{doc.downloads} downloads</span>
                 </div>
@@ -343,7 +345,7 @@ export default function DocumentationPage() {
 
                 <div>
                   <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">Last Updated</div>
-                  <div className="text-gray-800 dark:text-gray-100">{new Date(selectedDoc.lastUpdated).toLocaleDateString()}</div>
+                  <div className="text-gray-800 dark:text-gray-100">{formatDate(selectedDoc.lastUpdated)}</div>
                 </div>
 
                 <div>

@@ -1,4 +1,6 @@
 'use client'
+import { formatDate, formatDateTime } from '@/lib/utils'
+
 
 import { useEffect, useState } from 'react'
 import { usePageTitle } from '@/app/page-title-context'
@@ -268,7 +270,7 @@ export default function ProceduresPage() {
 
               <div className="flex items-center justify-between pt-3 border-t border-gray-200 dark:border-gray-700 text-sm">
                 <span className="text-gray-600 dark:text-gray-400">{procedure.owner}</span>
-                <span className="text-gray-500 dark:text-gray-400">Reviewed: {new Date(procedure.lastReviewed).toLocaleDateString()}</span>
+                <span className="text-gray-500 dark:text-gray-400">Reviewed: {formatDate(procedure.lastReviewed)}</span>
               </div>
             </div>
           </div>
@@ -339,7 +341,7 @@ export default function ProceduresPage() {
 
                 <div>
                   <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">Last Reviewed</div>
-                  <div className="text-gray-800 dark:text-gray-100">{new Date(selectedProcedure.lastReviewed).toLocaleDateString()}</div>
+                  <div className="text-gray-800 dark:text-gray-100">{formatDate(selectedProcedure.lastReviewed)}</div>
                 </div>
 
                 <div>
