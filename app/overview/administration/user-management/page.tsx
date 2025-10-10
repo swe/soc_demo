@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { usePageTitle } from '@/app/page-title-context'
 import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/react'
 
@@ -31,7 +31,7 @@ export default function UserManagementPage() {
 
   const handleOptionClick = (optionId: string) => {
     console.log(`Selected option: ${optionId}`)
-    setIsOpen(false)
+    // Menu closes automatically on item click
   }
 
   return (
