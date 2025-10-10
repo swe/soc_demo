@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 interface SidebarLinkGroupProps {
   children: (handleClick: () => void, openGroup: boolean) => React.ReactNode
@@ -10,6 +10,11 @@ export default function SidebarLinkGroup({
   open = false
 }: SidebarLinkGroupProps) {
   const [openGroup, setOpenGroup] = useState<boolean>(open)
+
+  // Sync state with prop when it changes (e.g., navigation)
+  useEffect(() => {
+    setOpenGroup(open)
+  }, [open])
 
   const handleClick = () => {
     setOpenGroup(!openGroup);
