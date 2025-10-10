@@ -4,6 +4,7 @@ import { formatDate, formatDateTime } from '@/lib/utils'
 
 import { useEffect, useState } from 'react'
 import { usePageTitle } from '@/app/page-title-context'
+import { PageHeader, Card, Badge } from '@/components/ui/card'
 import dynamic from 'next/dynamic'
 
 const AttackMap = dynamic(() => import('@/components/attack-map'), {
@@ -86,12 +87,11 @@ export default function ThreatMap() {
   const attackTypes = ['DDoS', 'Brute Force', 'SQL Injection', 'Phishing', 'Malware', 'Ransomware']
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-[96rem] mx-auto">
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold mb-2">Global Threat Map</h1>
-        <p className="text-gray-600  dark:text-gray-400">Real-time visualization of global cyber threats and attack patterns</p>
-      </div>
+    <div className="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-7xl mx-auto">
+      <PageHeader 
+        title="Global Threat Map" 
+        description="Real-time visualization of global cyber threats and attack patterns" 
+      />
 
       {/* Stats Cards */}
       <div className="grid grid-cols-12 gap-4 mb-6">

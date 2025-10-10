@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { usePageTitle } from '@/app/page-title-context'
+import { PageHeader, Card, Badge } from '@/components/ui/card'
 
 interface Incident {
   id: string
@@ -115,12 +116,11 @@ export default function IncidentsPage() {
     : incidents.filter(i => i.status === filterStatus)
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-[96rem] mx-auto">
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold mb-2">Security Incidents</h1>
-        <p className="text-gray-600 dark:text-gray-400">Monitor and manage security incidents and response activities</p>
-      </div>
+    <div className="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-7xl mx-auto">
+      <PageHeader 
+        title="Security Incidents" 
+        description="Monitor and manage security incidents and response activities" 
+      />
 
       {/* Sticky Status Bar - Consolidated metrics */}
       <div className="sticky top-16 z-40 before:absolute before:inset-0 before:backdrop-blur-md before:bg-white/90 dark:before:bg-gray-800/90 before:-z-10 border-b border-gray-200 dark:border-gray-700/60 mb-6 -mx-4 sm:-mx-6 lg:-mx-8">

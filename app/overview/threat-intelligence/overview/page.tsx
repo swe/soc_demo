@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react'
 import { usePageTitle } from '@/app/page-title-context'
+import { PageHeader, Card, Badge } from '@/components/ui/card'
 import Link from 'next/link'
 
 export default function ThreatIntelligenceOverview() {
@@ -32,12 +33,11 @@ export default function ThreatIntelligenceOverview() {
   ]
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-[96rem] mx-auto">
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold mb-2">Threat Intelligence</h1>
-        <p className="text-gray-600  dark:text-gray-400">Monitor emerging threats, indicators of compromise, and threat actor activities</p>
-      </div>
+    <div className="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-7xl mx-auto">
+      <PageHeader 
+        title="Threat Intelligence" 
+        description="Monitor emerging threats, indicators of compromise, and threat actor activities" 
+      />
 
       {/* Stats Row */}
       <div className="grid grid-cols-12 gap-4 mb-6">
