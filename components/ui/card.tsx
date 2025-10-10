@@ -6,9 +6,10 @@ interface CardProps {
   hover?: boolean
   padding?: 'none' | 'sm' | 'md' | 'lg'
   onClick?: () => void
+  border?: boolean
 }
 
-export function Card({ children, className = '', hover = false, padding = 'md', onClick }: CardProps) {
+export function Card({ children, className = '', hover = false, padding = 'md', onClick, border = true }: CardProps) {
   const paddingClasses = {
     none: '',
     sm: 'p-4',
@@ -16,12 +17,13 @@ export function Card({ children, className = '', hover = false, padding = 'md', 
     lg: 'p-8',
   }
 
-  const baseClasses = 'bg-white dark:bg-gray-800 rounded-xl shadow-sm'
-  const hoverClasses = hover ? 'hover:shadow-md transition-shadow duration-200 cursor-pointer' : ''
+  const baseClasses = 'bg-white dark:bg-gray-800'
+  const borderClasses = border ? 'border border-gray-200 dark:border-gray-700/60' : ''
+  const hoverClasses = hover ? 'hover:border-gray-300 dark:hover:border-gray-600 transition-colors duration-150 cursor-pointer' : ''
   
   return (
     <div 
-      className={`${baseClasses} ${paddingClasses[padding]} ${hoverClasses} ${className}`}
+      className={`${baseClasses} ${borderClasses} ${paddingClasses[padding]} ${hoverClasses} ${className}`}
       onClick={onClick}
     >
       {children}
@@ -44,63 +46,47 @@ interface StatCardProps {
 export function StatCard({ title, value, icon, trend, color = 'indigo', onClick }: StatCardProps) {
   const colorClasses = {
     rose: {
-      iconBg: 'bg-rose-100 dark:bg-rose-900/50',
-      iconText: 'text-rose-800 dark:text-rose-200',
-      trendUp: 'text-rose-700 dark:text-rose-400',
-      trendDown: 'text-emerald-700 dark:text-emerald-400',
+      iconText: 'text-rose-600 dark:text-rose-400',
+      trend: 'text-rose-600 dark:text-rose-400',
     },
     orange: {
-      iconBg: 'bg-orange-100 dark:bg-orange-900/50',
-      iconText: 'text-orange-800 dark:text-orange-200',
-      trendUp: 'text-rose-700 dark:text-rose-400',
-      trendDown: 'text-emerald-700 dark:text-emerald-400',
+      iconText: 'text-orange-600 dark:text-orange-400',
+      trend: 'text-orange-600 dark:text-orange-400',
     },
     amber: {
-      iconBg: 'bg-amber-100 dark:bg-amber-900/50',
-      iconText: 'text-amber-800 dark:text-amber-200',
-      trendUp: 'text-rose-700 dark:text-rose-400',
-      trendDown: 'text-emerald-700 dark:text-emerald-400',
+      iconText: 'text-amber-600 dark:text-amber-400',
+      trend: 'text-amber-600 dark:text-amber-400',
     },
     emerald: {
-      iconBg: 'bg-emerald-100 dark:bg-emerald-900/50',
-      iconText: 'text-emerald-800 dark:text-emerald-200',
-      trendUp: 'text-emerald-700 dark:text-emerald-400',
-      trendDown: 'text-rose-700 dark:text-rose-400',
+      iconText: 'text-emerald-600 dark:text-emerald-400',
+      trend: 'text-emerald-600 dark:text-emerald-400',
     },
     indigo: {
-      iconBg: 'bg-indigo-100 dark:bg-indigo-900/50',
-      iconText: 'text-indigo-800 dark:text-indigo-200',
-      trendUp: 'text-emerald-700 dark:text-emerald-400',
-      trendDown: 'text-rose-700 dark:text-rose-400',
+      iconText: 'text-indigo-600 dark:text-indigo-400',
+      trend: 'text-indigo-600 dark:text-indigo-400',
     },
   }
 
   const colors = colorClasses[color]
+  const trendColor = trend ? (trend.direction === 'up' ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400') : ''
 
   return (
-    <Card hover={!!onClick} onClick={onClick} className="border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600">
-      <div className="flex items-center justify-between mb-3">
+    <Card hover={!!onClick} onClick={onClick} padding="md">
+      <div className="flex items-start justify-between">
+        <div className="flex-1">
+          <div className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 font-medium mb-2">{title}</div>
+          <div className="text-3xl font-light text-gray-900 dark:text-gray-100 mb-1">{value}</div>
+          {trend && (
+            <div className={`flex items-center text-xs font-medium ${trendColor}`}>
+              <span>{trend.direction === 'up' ? '↑' : '↓'} {trend.value}%</span>
+            </div>
+          )}
+        </div>
         {icon && (
-          <div className={`flex items-center justify-center w-10 h-10 rounded-lg ${colors.iconBg} ${colors.iconText} group-hover:scale-110 transition-transform duration-200`}>
+          <div className={`${colors.iconText} opacity-40`}>
             {icon}
           </div>
         )}
-        {trend && (
-          <div className={`flex items-center text-xs font-semibold ${trend.direction === 'up' ? colors.trendUp : colors.trendDown}`}>
-            {trend.direction === 'up' ? '+' : ''}{trend.value}%
-            <svg className="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              {trend.direction === 'up' ? (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-              ) : (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
-              )}
-            </svg>
-          </div>
-        )}
-      </div>
-      <div>
-        <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">{title}</div>
-        <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">{value}</div>
       </div>
     </Card>
   )
@@ -114,14 +100,67 @@ interface PageHeaderProps {
 
 export function PageHeader({ title, description, action }: PageHeaderProps) {
   return (
-    <div className="mb-6">
-      <div className="flex items-center justify-between mb-2">
-        <h1 className="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold">{title}</h1>
-        {action}
+    <div className="mb-8">
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-light text-gray-900 dark:text-gray-100 mb-1">{title}</h1>
+          {description && (
+            <p className="text-sm text-gray-500 dark:text-gray-400">{description}</p>
+          )}
+        </div>
+        {action && <div className="ml-4">{action}</div>}
       </div>
-      {description && (
-        <p className="text-gray-600 dark:text-gray-400">{description}</p>
-      )}
+    </div>
+  )
+}
+
+interface BadgeProps {
+  children: ReactNode
+  variant?: 'default' | 'critical' | 'high' | 'medium' | 'low' | 'success'
+}
+
+export function Badge({ children, variant = 'default' }: BadgeProps) {
+  const variants = {
+    default: 'bg-gray-100 dark:bg-gray-700/50 text-gray-700 dark:text-gray-300',
+    critical: 'bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300',
+    high: 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300',
+    medium: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300',
+    low: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300',
+    success: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300',
+  }
+
+  return (
+    <span className={`inline-flex items-center px-2 py-0.5 text-xs font-medium ${variants[variant]}`}>
+      {children}
+    </span>
+  )
+}
+
+interface TableProps {
+  headers: string[]
+  children: ReactNode
+}
+
+export function Table({ headers, children }: TableProps) {
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full">
+        <thead>
+          <tr className="border-b border-gray-200 dark:border-gray-700/60">
+            {headers.map((header, idx) => (
+              <th 
+                key={idx}
+                className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400"
+              >
+                {header}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-gray-200 dark:divide-gray-700/60">
+          {children}
+        </tbody>
+      </table>
     </div>
   )
 }
