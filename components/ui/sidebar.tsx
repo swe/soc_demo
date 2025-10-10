@@ -106,7 +106,10 @@ export default function Sidebar({
                 </SidebarLink>
               </li>
               {/* Alerts & Incidents */}
-              <SidebarLinkGroup open={segments.includes('alerts') || segments.includes('incidents')}>
+              <SidebarLinkGroup 
+                open={segments.includes('alerts') || segments.includes('incidents')}
+                active={segments.includes('alerts') || segments.includes('incidents')}
+              >
                 {(handleClick, open) => {
                   return (
                     <>
@@ -160,7 +163,10 @@ export default function Sidebar({
                 }}
               </SidebarLinkGroup>
               {/* Assets */}
-              <SidebarLinkGroup open={segments.includes('assets')}>
+              <SidebarLinkGroup 
+                open={segments.includes('assets')}
+                active={segments.includes('assets')}
+              >
                 {(handleClick, open) => {
                   return (
                     <>
@@ -214,7 +220,10 @@ export default function Sidebar({
                 }}
               </SidebarLinkGroup>
               {/* Vulnerabilities */}
-              <SidebarLinkGroup open={segments.includes('vulnerability')}>
+              <SidebarLinkGroup 
+                open={segments.includes('vulnerability')}
+                active={segments.includes('vulnerability')}
+              >
                 {(handleClick, open) => {
                   return (
                     <>
@@ -296,7 +305,10 @@ export default function Sidebar({
                 }}
               </SidebarLinkGroup>
               {/* Threat Hunting */}
-              <SidebarLinkGroup open={segments.includes('threat-hunting')}>
+              <SidebarLinkGroup 
+                open={segments.includes('threat-hunting')}
+                active={segments.includes('threat-hunting')}
+              >
                 {(handleClick, open) => {
                   return (
                     <>
@@ -350,7 +362,10 @@ export default function Sidebar({
                 }}
               </SidebarLinkGroup>
               {/* Threat Intelligence */}
-              <SidebarLinkGroup open={segments.includes('threat-intelligence')}>
+              <SidebarLinkGroup 
+                open={segments.includes('threat-intelligence')}
+                active={segments.includes('threat-intelligence')}
+              >
                 {(handleClick, open) => {
                   return (
                     <>
@@ -422,7 +437,10 @@ export default function Sidebar({
                 </SidebarLink>
               </li>
               {/* Knowledge Base */}
-              <SidebarLinkGroup open={segments.includes('knowledge-base')}>
+              <SidebarLinkGroup 
+                open={segments.includes('knowledge-base')}
+                active={segments.includes('knowledge-base')}
+              >
                 {(handleClick, open) => {
                   return (
                     <>
@@ -490,7 +508,10 @@ export default function Sidebar({
                 }}
               </SidebarLinkGroup>
               {/* Administration */}
-              <SidebarLinkGroup open={segments.includes('administration')}>
+              <SidebarLinkGroup 
+                open={segments.includes('administration')}
+                active={segments.includes('administration')}
+              >
                 {(handleClick, open) => {
                   return (
                     <>
