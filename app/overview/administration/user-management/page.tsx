@@ -50,16 +50,19 @@ export default function UserManagementPage() {
 
       <div className="grid grid-cols-3 gap-6 mb-8">
         <Card>
-          <div className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2">Active Users</div>
-          <div className="text-3xl font-light text-gray-900 dark:text-gray-100">1,247</div>
+          <div className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Active Users</div>
+          <div className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-1">1,247</div>
+          <div className="text-xs text-gray-500 dark:text-gray-400">83% of total</div>
         </Card>
         <Card>
-          <div className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2">Total Users</div>
-          <div className="text-3xl font-light text-gray-900 dark:text-gray-100">1,500</div>
+          <div className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Total Users</div>
+          <div className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-1">1,500</div>
+          <div className="text-xs text-gray-500 dark:text-gray-400">Across all departments</div>
         </Card>
         <Card>
-          <div className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2">MFA Enabled</div>
-          <div className="text-3xl font-light text-emerald-600 dark:text-emerald-400">95%</div>
+          <div className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">MFA Enabled</div>
+          <div className="text-3xl font-bold text-emerald-600 dark:text-emerald-400 mb-1">95%</div>
+          <div className="text-xs text-gray-500 dark:text-gray-400">1,425 users</div>
         </Card>
       </div>
 
