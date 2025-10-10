@@ -35,8 +35,8 @@ export default function DropdownNotifications({ align }: {
             }`}
           >
             <div className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase pt-1.5 pb-2 px-4">Notifications</div>
-            <MenuItem className="border-b border-gray-200 dark:border-gray-700/60 last:border-0">
-              <Link className="block py-2 px-4 data-[focus]:bg-gray-50 dark:data-[focus]:bg-gray-700/20" href="#0">
+            <MenuItem>
+              <Link className="block py-2 px-4 data-[focus]:bg-gray-50 dark:data-[focus]:bg-gray-700/20 border-b border-gray-200 dark:border-gray-700/60" href="#0">
                 <span className="block text-sm mb-2">
                   📣 <span className="font-medium text-gray-800 dark:text-gray-100">Edit your information in a swipe</span> Sint occaecat cupidatat non proident,
                   sunt in culpa qui officia deserunt mollit anim.
@@ -44,8 +44,8 @@ export default function DropdownNotifications({ align }: {
                 <span className="block text-xs font-medium text-gray-400 dark:text-gray-500">Feb 12, 2024</span>
               </Link>
             </MenuItem>
-            <MenuItem className="border-b border-gray-200 dark:border-gray-700/60 last:border-0">
-              <Link className="block py-2 px-4 data-[focus]:bg-gray-50 dark:data-[focus]:bg-gray-700/20" href="#0">
+            <MenuItem>
+              <Link className="block py-2 px-4 data-[focus]:bg-gray-50 dark:data-[focus]:bg-gray-700/20 border-b border-gray-200 dark:border-gray-700/60" href="#0">
                 <span className="block text-sm mb-2">
                   📣 <span className="font-medium text-gray-800 dark:text-gray-100">Edit your information in a swipe</span> Sint occaecat cupidatat non proident,
                   sunt in culpa qui officia deserunt mollit anim.
@@ -53,7 +53,7 @@ export default function DropdownNotifications({ align }: {
                 <span className="block text-xs font-medium text-gray-400 dark:text-gray-500">Feb 9, 2024</span>
               </Link>
             </MenuItem>
-            <MenuItem className="border-b border-gray-200 dark:border-gray-700/60 last:border-0">
+            <MenuItem>
               <Link className="block py-2 px-4 data-[focus]:bg-gray-50 dark:data-[focus]:bg-gray-700/20" href="#0">
                 <span className="block text-sm mb-2">
                   🚀<span className="font-medium text-gray-800 dark:text-gray-100">Say goodbye to paper receipts!</span> Sint occaecat cupidatat non proident, sunt

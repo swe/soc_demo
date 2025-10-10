@@ -43,15 +43,21 @@ export default function Hero() {
 
                 <ul className="text-base text-gray-400 mb-10 space-y-3" data-aos="zoom-out" data-aos-delay="200">
                   <li className="flex items-center">
-                    <ion-icon name="checkmark-circle" class="text-xl text-emerald-500 mr-3"></ion-icon>
+                    <svg className="w-6 h-6 text-emerald-500 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
                     <span>Threat analytics</span>
                   </li>
                   <li className="flex items-center">
-                    <ion-icon name="checkmark-circle" class="text-xl text-emerald-500 mr-3"></ion-icon>
+                    <svg className="w-6 h-6 text-emerald-500 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
                     <span>Vulnerability management</span>
                   </li>
                   <li className="flex items-center">
-                    <ion-icon name="checkmark-circle" class="text-xl text-emerald-500 mr-3"></ion-icon>
+                    <svg className="w-6 h-6 text-emerald-500 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
                     <span>Attack surface management</span>
                   </li>
                 </ul>

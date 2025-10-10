@@ -1,5 +1,5 @@
 import Image from 'next/image'
-import Header from '@/components/ui/header'
+import Header from '../../components/ui/header'
 import Illustration01 from '@/public/images/hero-illustration.svg'
 import Illustration02 from '@/public/images/auth-illustration.svg'
 
