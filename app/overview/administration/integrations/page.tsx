@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { usePageTitle } from '@/app/page-title-context'
+import { PageHeader, Card, Badge } from '@/components/ui/card'
 
 export default function IntegrationsPage() {
   const { setPageTitle } = usePageTitle()
@@ -14,7 +15,7 @@ export default function IntegrationsPage() {
   return (
     <div>
       {/* Content container */}
-      <div className="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-[96rem] mx-auto">
+      <div className="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-7xl mx-auto">
         {/* Integrations header */}
         <div className="mb-6">
           {/* Main title */}

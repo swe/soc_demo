@@ -4,6 +4,7 @@ import { formatDate, formatDateTime } from '@/lib/utils'
 
 import { useEffect, useState } from 'react'
 import { usePageTitle } from '@/app/page-title-context'
+import { PageHeader, Card, Badge } from '@/components/ui/card'
 
 interface ThreatFeed {
   id: string
@@ -144,12 +145,11 @@ export default function ThreatFeeds() {
   }
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-[96rem] mx-auto">
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold mb-2">Threat Intelligence Feeds</h1>
-        <p className="text-gray-600  dark:text-gray-400">Manage and monitor threat intelligence data sources</p>
-      </div>
+    <div className="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-7xl mx-auto">
+      <PageHeader 
+        title="Threat Intelligence Feeds" 
+        description="Manage and monitor threat intelligence data sources" 
+      />
 
       {/* Stats Cards */}
       <div className="grid grid-cols-12 gap-4 mb-6">
