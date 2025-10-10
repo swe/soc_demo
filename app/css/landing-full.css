@@ -1,0 +1,300 @@
+/* Landing page complete styles */
+@import 'tailwindcss';
+
+/* Smooth scrolling for anchor links */
+html {
+  scroll-behavior: smooth;
+}
+
+.landing-wrapper {
+  scroll-behavior: smooth;
+}
+
+/* Scroll margin for anchor targets to account for fixed header */
+.landing-wrapper section[id] {
+  scroll-margin-top: 80px;
+}
+
+/* Ensure smooth scroll even on webkit */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  .landing-wrapper {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Additional landing styles */
+@import './landing-additional-styles/utility-patterns.css' layer(components);
+@import './landing-additional-styles/range-slider.css' layer(components);
+@import './landing-additional-styles/toggle-switch.css' layer(components);
+@import './landing-additional-styles/theme.css';
+
+@plugin "@tailwindcss/forms" {
+  strategy: base;
+}
+
+/* Landing theme variables */
+@theme {
+  --font-inter: Inter, sans-serif;
+  --font-uncut-sans: Uncut Sans, sans-serif;
+
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1.5;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.5715;
+  --text-base: 1rem;
+  --text-base--line-height: 1.5;
+  --text-base--letter-spacing: -0.01em;
+  --text-lg: 1.125rem;
+  --text-lg--line-height: 1.5;
+  --text-lg--letter-spacing: -0.01em;
+  --text-xl: 1.25rem;
+  --text-xl--line-height: 1.5;
+  --text-xl--letter-spacing: -0.01em;
+  --text-2xl: 1.5rem;
+  --text-2xl--line-height: 1.415;
+  --text-2xl--letter-spacing: -0.01em;
+  --text-3xl: 1.875rem;
+  --text-3xl--line-height: 1.333;
+  --text-3xl--letter-spacing: -0.01em;
+  --text-4xl: 2.25rem;
+  --text-4xl--line-height: 1.277;
+  --text-4xl--letter-spacing: -0.01em;
+  --text-5xl: 3rem;
+  --text-5xl--line-height: 1.2;
+  --text-5xl--letter-spacing: -0.01em;
+  --text-6xl: 3.75rem;
+  --text-6xl--line-height: 1.166;
+  --text-6xl--letter-spacing: -0.01em;
+  --text-7xl: 5rem;
+  --text-7xl--line-height: 1;
+  --text-7xl--letter-spacing: -0.01em;
+
+  --tracking-tighter: -0.02em;
+  --tracking-tight: -0.01em;
+}
+
+/* Landing page wrapper - enforce dark theme */
+.landing-wrapper {
+  min-height: 100vh;
+  background-color: rgb(17, 24, 39) !important; /* gray-900 */
+  color: rgb(243, 244, 246) !important; /* gray-100 */
+}
+
+/* Ensure proper text and background colors throughout */
+.landing-wrapper,
+.landing-wrapper * {
+  letter-spacing: -0.025em; /* tracking-tight */
+}
+
+/* Override text-white and text-gray specifically */
+.landing-wrapper .text-white,
+.landing-wrapper a.text-white {
+  color: rgb(255, 255, 255) !important;
+}
+
+.landing-wrapper .text-gray-300 {
+  color: rgb(209, 213, 219) !important;
+}
+
+.landing-wrapper .text-gray-400 {
+  color: rgb(156, 163, 175) !important;
+}
+
+.landing-wrapper .text-blue-200 {
+  color: rgb(191, 219, 254) !important;
+}
+
+.landing-wrapper .text-emerald-500 {
+  color: rgb(16, 185, 129) !important;
+}
+
+.landing-wrapper .text-blue-500 {
+  color: rgb(59, 130, 246) !important;
+}
+
+/* Reset borders to dark theme */
+.landing-wrapper * {
+  border-color: rgb(31, 41, 55); /* gray-800 */
+}
+
+/* Preserve hover and focus states */
+.landing-wrapper a {
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+/* Button styles - with proper colors */
+.landing-wrapper .btn,
+.landing-wrapper .btn-sm,
+.landing-wrapper a.btn,
+.landing-wrapper a.btn-sm {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  padding: 0.625rem 1.5rem;
+  cursor: pointer;
+  transition: all 150ms ease-in-out;
+  text-decoration: none;
+}
+
+.landing-wrapper .btn-sm,
+.landing-wrapper a.btn-sm {
+  padding: 0.5rem 1.25rem;
+  font-size: 0.875rem;
+}
+
+/* Ensure white text on buttons */
+.landing-wrapper .btn.text-white,
+.landing-wrapper a.btn.text-white {
+  color: #ffffff !important;
+}
+
+/* Gradient backgrounds - support for bg-linear-to-* classes */
+.landing-wrapper .bg-linear-to-t {
+  background-image: linear-gradient(to top, var(--tw-gradient-stops));
+}
+
+.landing-wrapper .from-blue-600 {
+  --tw-gradient-from: #2563eb;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(37, 99, 235, 0));
+}
+
+.landing-wrapper .to-blue-400 {
+  --tw-gradient-to: #60a5fa;
+}
+
+.landing-wrapper .to-blue-500 {
+  --tw-gradient-to: #3b82f6;
+}
+
+.landing-wrapper .from-gray-800 {
+  --tw-gradient-from: #1f2937;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(31, 41, 55, 0));
+}
+
+.landing-wrapper .to-gray-700 {
+  --tw-gradient-to: #374151;
+}
+
+.landing-wrapper .to-gray-800 {
+  --tw-gradient-to: #1f2937;
+}
+
+.landing-wrapper .from-gray-800.to-gray-900 {
+  background-image: linear-gradient(to top, #111827, #1f2937);
+}
+
+/* Hover effects for gradient buttons */
+.landing-wrapper .bg-linear-to-t.from-blue-600.to-blue-400:hover {
+  --tw-gradient-to: #3b82f6; /* to-blue-500 */
+}
+
+.landing-wrapper .bg-linear-to-t.from-gray-800.to-gray-700:hover {
+  --tw-gradient-to: #1f2937; /* to-gray-800 */
+}
+
+/* Form styles */
+.landing-wrapper input,
+.landing-wrapper textarea,
+.landing-wrapper select {
+  background-color: rgb(31, 41, 55) !important; /* gray-800 */
+  border: 1px solid rgb(55, 65, 81) !important; /* gray-700 */
+  color: rgb(243, 244, 246) !important; /* gray-100 */
+  border-radius: 0.5rem;
+}
+
+.landing-wrapper input::placeholder,
+.landing-wrapper textarea::placeholder {
+  color: rgb(156, 163, 175) !important; /* gray-400 */
+}
+
+.landing-wrapper input:focus,
+.landing-wrapper textarea:focus,
+.landing-wrapper select:focus {
+  outline: 2px solid rgb(59, 130, 246) !important; /* blue-500 */
+  outline-offset: 2px;
+  border-color: rgb(59, 130, 246) !important;
+}
+
+/* Preserve checkbox styles */
+.landing-wrapper input[type="checkbox"] {
+  width: 1rem;
+  height: 1rem;
+  cursor: pointer;
+  background-color: rgb(31, 41, 55) !important;
+  border-color: rgb(55, 65, 81) !important;
+}
+
+.landing-wrapper input[type="checkbox"]:checked {
+  background-color: rgb(59, 130, 246) !important;
+  border-color: rgb(59, 130, 246) !important;
+}
+
+/* Link colors */
+.landing-wrapper a:not(.btn):not(.btn-sm) {
+  color: rgb(156, 163, 175); /* gray-400 */
+}
+
+.landing-wrapper a:not(.btn):not(.btn-sm):hover {
+  color: rgb(243, 244, 246); /* gray-100 */
+}
+
+/* Preserve svg fill colors */
+.landing-wrapper svg {
+  fill: currentColor;
+}
+
+/* Ensure images are visible */
+.landing-wrapper img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Shadow utilities */
+.landing-wrapper .shadow-lg {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+}
+
+/* Ionicon styles */
+.landing-wrapper ion-icon {
+  display: inline-block;
+  vertical-align: middle;
+  pointer-events: none;
+}
+
+.landing-wrapper ion-icon.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Color utilities for ionicons */
+.landing-wrapper ion-icon.text-emerald-500 {
+  color: rgb(16, 185, 129) !important;
+}
+
+.landing-wrapper ion-icon.text-blue-500 {
+  color: rgb(59, 130, 246) !important;
+}
+
+.landing-wrapper ion-icon.text-gray-400 {
+  color: rgb(156, 163, 175) !important;
+}
+
+.landing-wrapper ion-icon.text-white {
+  color: rgb(255, 255, 255) !important;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

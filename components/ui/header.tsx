@@ -1,11 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+// import { useState } from 'react'
 import { useAppProvider } from '@/app/app-provider'
 import { usePageTitle } from '@/app/page-title-context'
 import { useScroll } from '@/components/utils/use-scroll'
 
-import SearchModal from '@/components/search-modal'
+// import SearchModal from '@/components/search-modal'
 import ThemeToggle from '@/components/theme-toggle'
 import DropdownProfile from '@/components/dropdown-profile'
 
@@ -18,10 +18,10 @@ export default function Header({
   const { sidebarOpen, setSidebarOpen } = useAppProvider()
   const { pageTitle } = usePageTitle()
   const isScrolled = useScroll(100)
-  const [searchModalOpen, setSearchModalOpen] = useState<boolean>(false)
+  // const [searchModalOpen, setSearchModalOpen] = useState<boolean>(false)
 
   return (
-    <header className={`sticky top-0 z-30 before:absolute before:inset-0 before:backdrop-blur-md before:bg-white/80 dark:before:bg-gray-800/80 before:-z-10`}>
+    <header className={`sticky top-0 z-30 before:absolute before:inset-0 before:backdrop-blur-md before:bg-white/90 dark:before:bg-gray-800/90 before:-z-10 border-b border-gray-200 dark:border-gray-700`}>
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
 
@@ -58,25 +58,16 @@ export default function Header({
 
           {/* Header: Right side */}
           <div className="flex items-center space-x-3">
-            <div>
+            {/* <div>
               <button
                 className={`w-8 h-8 flex items-center justify-center hover:bg-gray-100 lg:hover:bg-gray-200 dark:hover:bg-gray-700/50 dark:lg:hover:bg-gray-800 rounded-full ml-3 cursor-pointer ${searchModalOpen && 'bg-gray-200 dark:bg-gray-800'}`}
                 onClick={() => { setSearchModalOpen(true) }}
               >
                 <span className="sr-only">Search</span>
-                <svg
-                  className="fill-current text-gray-500/80 dark:text-gray-400/80"
-                  width={16}
-                  height={16}
-                  viewBox="0 0 16 16"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path d="M7 14c-3.86 0-7-3.14-7-7s3.14-7 7-7 7 3.14 7 7-3.14 7-7 7ZM7 2C4.243 2 2 4.243 2 7s2.243 5 5 5 5-2.243 5-5-2.243-5-5-5Z" />
-                  <path d="m13.314 11.9 2.393 2.393a.999.999 0 1 1-1.414 1.414L11.9 13.314a8.019 8.019 0 0 0 1.414-1.414Z" />
-                </svg>
+                <ion-icon name="search-outline" class="text-lg text-gray-500 dark:text-gray-400"></ion-icon>
               </button>
               <SearchModal isOpen={searchModalOpen} setIsOpen={setSearchModalOpen} />
-            </div>
+            </div> */}
             <ThemeToggle />
             {/*  Divider */}
             <hr className="w-px h-6 bg-gray-200 dark:bg-gray-700/60 border-none" />

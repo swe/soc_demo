@@ -37,7 +37,7 @@ export default function ModalCookies({
           leaveFrom="opacity-100 translate-y-0"
           leaveTo="opacity-0 translate-y-4"
         >
-          <DialogPanel className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-auto max-w-lg w-full max-h-full">
+          <DialogPanel className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-auto max-w-lg w-full max-h-full">
             <div className="p-5">
               {/* Modal header */}
               <div className="mb-2">

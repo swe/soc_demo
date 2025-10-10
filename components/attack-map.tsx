@@ -2,7 +2,7 @@
 
 import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 
 // Fix for default markers in react-leaflet will be applied in useEffect
 
@@ -48,7 +48,12 @@ const getThreatRadius = (attacks: number) => {
 }
 
 export default function AttackMap() {
+  const [mounted, setMounted] = useState(false)
+  const mapRef = useRef<any>(null)
+
   useEffect(() => {
+    setMounted(true)
+    
     // Fix for default markers in react-leaflet
     import('leaflet').then((L) => {
       delete (L.default.Icon.Default.prototype as any)._getIconUrl
@@ -58,11 +63,28 @@ export default function AttackMap() {
         shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
       })
     })
+
+    return () => {
+      // Cleanup map on unmount
+      if (mapRef.current) {
+        mapRef.current.remove()
+        mapRef.current = null
+      }
+    }
   }, [])
 
+  if (!mounted) {
+    return (
+      <div className="w-full h-full flex items-center justify-center bg-gray-50 dark:bg-gray-900/20 rounded-lg">
+        <div className="text-gray-500 dark:text-gray-400">Loading map...</div>
+      </div>
+    )
+  }
+
   return (
-    <div className="w-full h-full overflow-hidden">
+    <div className="w-full h-full overflow-hidden" key="attack-map-container">
       <MapContainer
+        ref={mapRef}
         center={[20, 0]}
         zoom={2}
         style={{ height: '100%', width: '100%', minHeight: '380px' }}

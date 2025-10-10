@@ -11,13 +11,13 @@ export default function PaginationNumeric02() {
         <div className="grow text-center">
           <ul className="inline-flex text-sm font-medium -space-x-px">
             <li>
-              <span className="inline-flex items-center justify-center rounded-full leading-5 px-2 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700/60 text-violet-500 shadow-sm">
+              <span className="inline-flex items-center justify-center rounded-full leading-5 px-2 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700/60 text-indigo-600 shadow-sm">
                 <span className="w-5">1</span>
               </span>
             </li>
             <li>
               <a
-                className="inline-flex items-center justify-center leading-5 px-2 py-2 text-gray-600 dark:text-gray-300 hover:text-violet-500 dark:hover:text-violet-500 border border-transparent cursor-pointer"
+                className="inline-flex items-center justify-center leading-5 px-2 py-2 text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-600 border border-transparent cursor-pointer"
                 href="#0"
               >
                 <span className="w-5">2</span>
@@ -25,7 +25,7 @@ export default function PaginationNumeric02() {
             </li>
             <li>
               <a
-                className="inline-flex items-center justify-center leading-5 px-2 py-2 text-gray-600 dark:text-gray-300 hover:text-violet-500 dark:hover:text-violet-500 border border-transparent cursor-pointer"
+                className="inline-flex items-center justify-center leading-5 px-2 py-2 text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-600 border border-transparent cursor-pointer"
                 href="#0"
               >
                 <span className="w-5">3</span>
@@ -36,7 +36,7 @@ export default function PaginationNumeric02() {
             </li>
             <li>
               <a
-                className="inline-flex items-center justify-center rounded-r leading-5 px-2 py-2 text-gray-600 dark:text-gray-300 hover:text-violet-500 dark:hover:text-violet-500 border border-transparent cursor-pointer"
+                className="inline-flex items-center justify-center rounded-r leading-5 px-2 py-2 text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-600 border border-transparent cursor-pointer"
                 href="#0"
               >
                 <span className="w-5">9</span>

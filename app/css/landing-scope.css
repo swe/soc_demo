@@ -1,0 +1,31 @@
+/* Landing page specific styles - scoped to .landing-page */
+.landing-page {
+  background-color: #111827; /* gray-900 */
+  color: #f3f4f6; /* gray-100 */
+  letter-spacing: -0.025em; /* tracking-tight */
+}
+
+/* Ensure all landing children have proper dark theme */
+.landing-page * {
+  border-color: rgba(31, 41, 55, 1); /* gray-800 for borders */
+}
+
+/* Preserve button styles */
+.landing-page .btn {
+  cursor: pointer;
+}
+
+/* Preserve form input styles */
+.landing-page input,
+.landing-page textarea,
+.landing-page select {
+  background-color: #1f2937; /* gray-800 */
+  border-color: #374151; /* gray-700 */
+  color: #f3f4f6; /* gray-100 */
+}
+
+.landing-page input::placeholder,
+.landing-page textarea::placeholder {
+  color: #9ca3af; /* gray-400 */
+}
+

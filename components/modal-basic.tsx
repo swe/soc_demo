@@ -37,7 +37,7 @@ export default function ModalBasic({
           leaveFrom="opacity-100 translate-y-0"
           leaveTo="opacity-0 translate-y-4"
         >
-          <DialogPanel className="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-auto max-w-lg w-full max-h-full">
+          <DialogPanel className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-auto max-w-lg w-full max-h-full">
             {/* Modal header */}
             <div className="px-5 py-3 border-b border-gray-200 dark:border-gray-700/60">
               <div className="flex justify-between items-center">

@@ -38,7 +38,7 @@ export default function Banner02({
         )
       default:
         return (
-          <svg className="shrink-0 fill-current text-violet-500 mt-[3px] mr-3" width="16" height="16" viewBox="0 0 16 16">
+          <svg className="shrink-0 fill-current text-indigo-600 mt-[3px] mr-3" width="16" height="16" viewBox="0 0 16 16">
             <path d="M8 0C3.6 0 0 3.6 0 8s3.6 8 8 8 8-3.6 8-8-3.6-8-8-8zm1 12H7V7h2v5zM8 6c-.6 0-1-.4-1-1s.4-1 1-1 1 .4 1 1-.4 1-1 1z" />
           </svg>
         )
@@ -54,7 +54,7 @@ export default function Banner02({
       case 'success':
         return 'bg-green-100 text-gray-700'
       default:
-        return 'bg-violet-100 text-gray-700'
+        return 'bg-indigo-100 text-gray-700'
     }
   }
 

@@ -48,7 +48,7 @@ export default function DateSelect() {
           </MenuButton>
           <Transition
             as="div"
-            className="z-10 absolute top-full right-0 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700/60 py-1.5 rounded-lg shadow-lg overflow-hidden mt-1"
+            className="z-10 absolute top-full right-0 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700/60 py-1.5 rounded-xl shadow-lg overflow-hidden mt-1"
             enter="transition ease-out duration-100 transform"
             enterFrom="opacity-0 -translate-y-2"
             enterTo="opacity-100 translate-y-0"
@@ -61,10 +61,10 @@ export default function DateSelect() {
                 <MenuItem key={optionIndex}>
                   {({ active }) => (
                     <button
-                      className={`flex items-center w-full py-1 px-3 cursor-pointer ${active ? 'bg-gray-50 dark:bg-gray-700/20' : ''} ${option.id === selected && 'text-violet-500'}`}
+                      className={`flex items-center w-full py-1 px-3 cursor-pointer ${active ? 'bg-gray-50 dark:bg-gray-700/20' : ''} ${option.id === selected && 'text-indigo-600'}`}
                       onClick={() => { setSelected(option.id) }}
                     >
-                      <svg className={`shrink-0 mr-2 fill-current text-violet-500 ${option.id !== selected && 'invisible'}`} width="12" height="9" viewBox="0 0 12 9">
+                      <svg className={`shrink-0 mr-2 fill-current text-indigo-600 ${option.id !== selected && 'invisible'}`} width="12" height="9" viewBox="0 0 12 9">
                         <path d="M10.28.28L3.989 6.575 1.695 4.28A1 1 0 00.28 5.695l3 3a1 1 0 001.414 0l7-7A1 1 0 0010.28.28z" />
                       </svg>
                       <span>{option.period}</span>

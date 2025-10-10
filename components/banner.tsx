@@ -54,7 +54,7 @@ export default function Banner({
       case 'success':
         return 'bg-green-500'
       default:
-        return 'bg-violet-500'
+        return 'bg-indigo-600'
     }
   }
 
