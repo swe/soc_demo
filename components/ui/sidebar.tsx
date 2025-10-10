@@ -106,7 +106,7 @@ export default function Sidebar({
                 </SidebarLink>
               </li>
               {/* Alerts & Incidents */}
-              <SidebarLinkGroup open={false}>
+              <SidebarLinkGroup open={segments.includes('alerts') || segments.includes('incidents')}>
                 {(handleClick, open) => {
                   return (
                     <>
@@ -160,7 +160,7 @@ export default function Sidebar({
                 }}
               </SidebarLinkGroup>
               {/* Assets */}
-              <SidebarLinkGroup open={false}>
+              <SidebarLinkGroup open={segments.includes('assets')}>
                 {(handleClick, open) => {
                   return (
                     <>
@@ -214,7 +214,7 @@ export default function Sidebar({
                 }}
               </SidebarLinkGroup>
               {/* Vulnerabilities */}
-              <SidebarLinkGroup open={false}>
+              <SidebarLinkGroup open={segments.includes('vulnerability')}>
                 {(handleClick, open) => {
                   return (
                     <>
@@ -296,7 +296,7 @@ export default function Sidebar({
                 }}
               </SidebarLinkGroup>
               {/* Threat Hunting */}
-              <SidebarLinkGroup open={false}>
+              <SidebarLinkGroup open={segments.includes('threat-hunting')}>
                 {(handleClick, open) => {
                   return (
                     <>
@@ -350,7 +350,7 @@ export default function Sidebar({
                 }}
               </SidebarLinkGroup>
               {/* Threat Intelligence */}
-              <SidebarLinkGroup open={false}>
+              <SidebarLinkGroup open={segments.includes('threat-intelligence')}>
                 {(handleClick, open) => {
                   return (
                     <>
@@ -422,7 +422,7 @@ export default function Sidebar({
                 </SidebarLink>
               </li>
               {/* Knowledge Base */}
-              <SidebarLinkGroup open={false}>
+              <SidebarLinkGroup open={segments.includes('knowledge-base')}>
                 {(handleClick, open) => {
                   return (
                     <>
@@ -490,7 +490,7 @@ export default function Sidebar({
                 }}
               </SidebarLinkGroup>
               {/* Administration */}
-              <SidebarLinkGroup open={false}>
+              <SidebarLinkGroup open={segments.includes('administration')}>
                 {(handleClick, open) => {
                   return (
                     <>
