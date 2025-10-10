@@ -21,7 +21,7 @@ export default function SidebarLinkGroup({
   }
 
   return (
-    <li className="pl-4 pr-3 py-2 rounded-lg mb-0.5 last:mb-0 group is-link-group">
+    <li className={`pl-4 pr-3 py-2 rounded-lg mb-0.5 last:mb-0 bg-linear-to-r group is-link-group ${openGroup && 'from-indigo-600/[0.12] dark:from-indigo-600/[0.24] to-indigo-600/[0.04]'}`}>
       {children(handleClick, openGroup)}
     </li>
   )
