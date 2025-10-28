@@ -46,17 +46,24 @@ export default function Sidebar({
     <div className={`min-w-fit ${sidebarExpanded ? 'sidebar-expanded' : ''}`}>
       {/* Sidebar backdrop (mobile only) */}
       <div
-        className={`fixed inset-0 bg-gray-900/30 z-40 lg:hidden lg:z-auto transition-opacity duration-200 ${
+        className={`fixed inset-0 bg-gray-900/30 z-50 lg:hidden lg:z-auto transition-opacity duration-200 ${
           sidebarOpen ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
         aria-hidden="true"
       ></div>    
 
+      {/* Sidebar shadow */}
+      <div
+        className={`absolute z-60 left-64 top-0 w-4 h-full bg-gradient-to-r from-black/10 to-transparent pointer-events-none transition-opacity duration-200 ${
+          sidebarOpen ? "opacity-100" : "opacity-0"
+        } lg:hidden`}
+      ></div>
+
       {/* Sidebar */}
       <div
         id="sidebar"
         ref={sidebar}
-        className={`flex lg:flex! flex-col absolute z-40 left-0 top-0 lg:static lg:left-auto lg:top-auto lg:translate-x-0 h-[100dvh] overflow-hidden no-scrollbar w-64 lg:w-20 lg:sidebar-expanded:!w-64 2xl:w-64! shrink-0 bg-white dark:bg-gray-800 transition-all duration-200 ease-in-out ${sidebarOpen ? "translate-x-0" : "-translate-x-64"} ${variant === 'v2' ? 'border-r border-gray-200 dark:border-gray-700/60' : 'shadow-sm'}`}
+        className={`flex lg:flex! flex-col absolute z-50 left-0 top-0 lg:static lg:left-auto lg:top-auto lg:translate-x-0 h-[100dvh] overflow-hidden no-scrollbar w-64 lg:w-20 lg:sidebar-expanded:!w-64 2xl:w-64! shrink-0 bg-white dark:bg-gray-800 transition-all duration-200 ease-in-out ${sidebarOpen ? "translate-x-0" : "-translate-x-64"} border-r border-gray-200 dark:border-gray-700/60 shadow-xl`}
       >      
         {/* Sidebar header - Fixed */}
         <div className="sticky top-0 z-10 before:absolute before:inset-0 before:backdrop-blur-md before:bg-white/90 dark:before:bg-gray-800/90 before:-z-10">

@@ -252,117 +252,93 @@ export default function OverviewPage() {
             <h1 className="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold mb-2">Security Operations Center</h1>
             <p className="text-gray-600 dark:text-gray-400">Real-time security posture and threat intelligence dashboard</p>
           </div>
-          <button 
-            onClick={handleAddIncident}
-            className="btn bg-indigo-600 hover:bg-indigo-700 text-white"
-          >
-            <Icon name="add-outline" className="text-lg mr-2" />
-            New Incident
-          </button>
+          <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            <span className="text-emerald-600 dark:text-emerald-400 font-medium">Live</span>
+          </div>
         </div>
       </div>
 
-      {/* Critical Security Metrics - Compact */}
-      <div className="grid grid-cols-12 gap-4 mb-6">
-        {/* Active Threats - Most Critical */}
-        <div className="col-span-12 sm:col-span-6 lg:col-span-3">
-          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-md transition-all duration-200 group relative overflow-hidden">
-            <div className="flex items-center justify-between mb-3 relative">
-              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-rose-100 dark:bg-rose-900/50 text-rose-800 dark:text-rose-200 group-hover:scale-110 transition-transform duration-200">
-                <Icon name="warning-outline" className="text-xl" />
-              </div>
-              <div className={`flex items-center text-xs font-semibold ${parseFloat(metrics.threatChange as any) > 0 ? 'text-rose-700 dark:text-rose-400' : 'text-emerald-700 dark:text-emerald-400'}`}>
-                {parseFloat(metrics.threatChange as any) > 0 ? '+' : ''}{metrics.threatChange}%
-                <Icon name={parseFloat(metrics.threatChange as any) > 0 ? "trending-up-outline" : "trending-down-outline"} className="text-sm ml-1" />
-              </div>
+      {/* Security Metrics - New Design */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+        {/* Active Threats */}
+        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+              {metrics.activeThreats}
             </div>
-            <div className="relative">
-              <div className="text-xs text-gray-600 dark:text-gray-400 mb-1 font-medium">Active Threats</div>
-              <div className="text-2xl font-bold text-gray-800 dark:text-gray-100 group-hover:scale-105 transition-transform duration-200 inline-block">
-                {metrics.activeThreats}
-              </div>
-              <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                Critical: {Math.floor(metrics.activeThreats * 0.17)} • High: {Math.floor(metrics.activeThreats * 0.32)} • Medium: {Math.floor(metrics.activeThreats * 0.51)}
-              </div>
+            <div className={`flex items-center text-sm font-medium ${parseFloat(metrics.threatChange as any) > 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
+              {parseFloat(metrics.threatChange as any) > 0 ? '+' : ''}{metrics.threatChange}%
+              <Icon name={parseFloat(metrics.threatChange as any) > 0 ? "trending-up-outline" : "trending-down-outline"} className="text-sm ml-1" />
             </div>
-            <div className="absolute top-3 right-3">
-              <span className="flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-600 dark:bg-rose-500"></span>
-              </span>
-            </div>
+          </div>
+          <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+            Active threats
+          </div>
+          <div className="text-xs text-gray-500 dark:text-gray-400">
+            <span className="text-rose-600 font-medium">{Math.floor(metrics.activeThreats * 0.17)} critical</span> • 
+            <span className="text-orange-600 font-medium"> {Math.floor(metrics.activeThreats * 0.32)} high</span> • 
+            <span className="text-amber-600 font-medium"> {Math.floor(metrics.activeThreats * 0.51)} medium</span>
           </div>
         </div>
 
         {/* Security Incidents */}
-        <div className="col-span-12 sm:col-span-6 lg:col-span-3">
-          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-md transition-all duration-200 group">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-200 group-hover:scale-110 transition-transform duration-200">
-                <Icon name="alert-circle-outline" className="text-xl" />
-              </div>
-              <div className={`flex items-center text-xs font-semibold ${parseFloat(metrics.incidentChange as any) > 0 ? 'text-rose-700 dark:text-rose-400' : 'text-emerald-700 dark:text-emerald-400'}`}>
-                {parseFloat(metrics.incidentChange as any) > 0 ? '+' : ''}{metrics.incidentChange}%
-                <Icon name={parseFloat(metrics.incidentChange as any) > 0 ? "trending-up-outline" : "trending-down-outline"} className="text-sm ml-1" />
-              </div>
+        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+              {metrics.incidents}
             </div>
-            <div className="relative">
-              <div className="text-xs text-gray-600 dark:text-gray-400 mb-1 font-medium">Security Incidents</div>
-              <div className="text-2xl font-bold text-gray-800 dark:text-gray-100 group-hover:scale-105 transition-transform duration-200 inline-block">
-                {metrics.incidents}
-              </div>
-              <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                Investigating: {Math.floor(metrics.incidents * 0.3)} • Resolved: {Math.floor(metrics.incidents * 0.7)}
-              </div>
+            <div className={`flex items-center text-sm font-medium ${parseFloat(metrics.incidentChange as any) > 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
+              {parseFloat(metrics.incidentChange as any) > 0 ? '+' : ''}{metrics.incidentChange}%
+              <Icon name={parseFloat(metrics.incidentChange as any) > 0 ? "trending-up-outline" : "trending-down-outline"} className="text-sm ml-1" />
             </div>
+          </div>
+          <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+            Security incidents
+          </div>
+          <div className="text-xs text-gray-500 dark:text-gray-400">
+            <span className="text-amber-600 font-medium">{Math.floor(metrics.incidents * 0.3)} investigating</span> • 
+            <span className="text-emerald-600 font-medium"> {Math.floor(metrics.incidents * 0.7)} resolved</span>
           </div>
         </div>
 
         {/* Vulnerabilities */}
-        <div className="col-span-12 sm:col-span-6 lg:col-span-3">
-          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-md transition-all duration-200 group">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-orange-100 dark:bg-orange-900/50 text-orange-800 dark:text-orange-200 group-hover:scale-110 transition-transform duration-200">
-                <Icon name="bug-outline" className="text-xl" />
-              </div>
-              <div className={`flex items-center text-xs font-semibold ${parseFloat(metrics.vulnChange as any) > 0 ? 'text-rose-700 dark:text-rose-400' : 'text-emerald-700 dark:text-emerald-400'}`}>
-                {parseFloat(metrics.vulnChange as any) > 0 ? '+' : ''}{metrics.vulnChange}%
-                <Icon name={parseFloat(metrics.vulnChange as any) > 0 ? "trending-up-outline" : "trending-down-outline"} className="text-sm ml-1" />
-              </div>
+        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+              {metrics.vulnerabilities}
             </div>
-            <div className="relative">
-              <div className="text-xs text-gray-600 dark:text-gray-400 mb-1 font-medium">Vulnerabilities</div>
-              <div className="text-2xl font-bold text-gray-800 dark:text-gray-100 group-hover:scale-105 transition-transform duration-200 inline-block">
-                {metrics.vulnerabilities}
-              </div>
-              <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                Critical: {Math.floor(metrics.vulnerabilities * 0.018)} • High: {Math.floor(metrics.vulnerabilities * 0.125)} • Medium: {Math.floor(metrics.vulnerabilities * 0.715)}
-              </div>
+            <div className={`flex items-center text-sm font-medium ${parseFloat(metrics.vulnChange as any) > 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
+              {parseFloat(metrics.vulnChange as any) > 0 ? '+' : ''}{metrics.vulnChange}%
+              <Icon name={parseFloat(metrics.vulnChange as any) > 0 ? "trending-up-outline" : "trending-down-outline"} className="text-sm ml-1" />
             </div>
+          </div>
+          <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+            Vulnerabilities
+          </div>
+          <div className="text-xs text-gray-500 dark:text-gray-400">
+            <span className="text-rose-600 font-medium">{Math.floor(metrics.vulnerabilities * 0.018)} critical</span> • 
+            <span className="text-orange-600 font-medium"> {Math.floor(metrics.vulnerabilities * 0.125)} high</span> • 
+            <span className="text-amber-600 font-medium"> {Math.floor(metrics.vulnerabilities * 0.715)} medium</span>
           </div>
         </div>
 
         {/* Assets Protected */}
-        <div className="col-span-12 sm:col-span-6 lg:col-span-3">
-          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-4 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-md transition-all duration-200 group">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-emerald-100 dark:bg-emerald-900/50 text-emerald-800 dark:text-emerald-200 group-hover:scale-110 transition-transform duration-200">
-                <Icon name="shield-checkmark-outline" className="text-xl" />
-              </div>
-              <div className="flex items-center text-xs font-semibold text-emerald-700 dark:text-emerald-400">
-                +{metrics.assetChange}%
-                <Icon name="trending-up-outline" className="text-sm ml-1" />
-              </div>
+        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+          <div className="mb-3">
+            <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+              {metrics.assets}
             </div>
-            <div className="relative">
-              <div className="text-xs text-gray-600 dark:text-gray-400 mb-1 font-medium">Assets Protected</div>
-              <div className="text-2xl font-bold text-gray-800 dark:text-gray-100 group-hover:scale-105 transition-transform duration-200 inline-block">
-                {metrics.assets}
-              </div>
-              <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                Devices: {Math.floor(metrics.assets * 0.433)} • Users: {Math.floor(metrics.assets * 0.567)}
-              </div>
-            </div>
+          </div>
+          <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+            Assets protected
+          </div>
+          <div className="text-xs text-gray-500 dark:text-gray-400">
+            <span className="text-blue-600 font-medium">{Math.floor(metrics.assets * 0.433)} devices</span> • 
+            <span className="text-indigo-600 font-medium"> {Math.floor(metrics.assets * 0.567)} users</span>
           </div>
         </div>
       </div>
@@ -371,26 +347,22 @@ export default function OverviewPage() {
       <div className="sticky top-16 z-40 before:absolute before:inset-0 before:backdrop-blur-md before:bg-white/90 dark:before:bg-gray-800/90 before:-z-10 border-b border-gray-200 dark:border-gray-700/60 mb-6 -mx-4 sm:-mx-6 lg:-mx-8">
         <div className="px-4 sm:px-6 lg:px-8 py-3">
           <div className="flex items-center justify-between text-sm">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2 px-3 py-1 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-lg">
-                <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-                <span className="text-xs font-medium text-emerald-700 dark:text-emerald-400">All Systems Operational</span>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-medium">Systems Status:</span>
+              <div className="flex items-center gap-4">
+                <span className="text-xs text-gray-500 dark:text-gray-400">
+                  SIEM: <span className="text-emerald-600 dark:text-emerald-400 font-medium">99.9%</span>
+                </span>
+                <span className="text-xs text-gray-500 dark:text-gray-400">
+                  Threat Intel: <span className="text-emerald-600 dark:text-emerald-400 font-medium">100%</span>
+                </span>
+                <span className="text-xs text-gray-500 dark:text-gray-400">
+                  Endpoints: <span className="text-emerald-600 dark:text-emerald-400 font-medium">99.8%</span>
+                </span>
+                <span className="text-xs text-gray-500 dark:text-gray-400">
+                  Network Monitoring: <span className="text-emerald-600 dark:text-emerald-400 font-medium">99.7%</span>
+                </span>
               </div>
-              <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-                <span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
-                <span>Last updated: {formatRelativeTime(lastUpdateTime)}</span>
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <span className="text-xs text-gray-500 dark:text-gray-400">
-                SIEM: <span className="text-emerald-600 dark:text-emerald-400 font-medium">99.9%</span>
-              </span>
-              <span className="text-xs text-gray-500 dark:text-gray-400">
-                Threat Intel: <span className="text-emerald-600 dark:text-emerald-400 font-medium">100%</span>
-              </span>
-              <span className="text-xs text-gray-500 dark:text-gray-400">
-                Endpoints: <span className="text-emerald-600 dark:text-emerald-400 font-medium">99.8%</span>
-              </span>
             </div>
           </div>
         </div>
@@ -400,7 +372,7 @@ export default function OverviewPage() {
       <div className="grid grid-cols-12 gap-4 mb-6">
         {/* SOC Performance */}
         <div className="col-span-12 sm:col-span-6 lg:col-span-4">
-          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-md transition-all duration-200">
+          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">SOC Performance</h3>
               <div className="flex items-center gap-2">
@@ -432,7 +404,7 @@ export default function OverviewPage() {
 
         {/* Threat Landscape */}
         <div className="col-span-12 sm:col-span-6 lg:col-span-4">
-          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-md transition-all duration-200">
+          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Threat Landscape</h3>
               <Link href="/overview/threat-intelligence/overview" className="text-xs text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 font-medium">
@@ -463,7 +435,7 @@ export default function OverviewPage() {
 
         {/* Business Impact */}
         <div className="col-span-12 sm:col-span-6 lg:col-span-4">
-          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-md transition-all duration-200">
+          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Business Impact</h3>
               <div className="flex items-center gap-2">
@@ -498,16 +470,16 @@ export default function OverviewPage() {
       <div className="grid grid-cols-12 gap-4 mb-6">
         {/* Recent Security Incidents */}
         <div className="col-span-12 lg:col-span-8">
-          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-md transition-all duration-200">
+          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Recent Security Incidents</h3>
               <div className="flex items-center gap-3">
                 <button 
                   onClick={handleAddIncident}
-                  className="text-sm text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 font-medium flex items-center gap-1"
+                  className="btn bg-indigo-600 hover:bg-indigo-700 text-white text-sm px-3 py-1.5"
                 >
-                  <Icon name="add-outline" className="text-base" />
-                  Add New
+                  <Icon name="add-outline" className="text-base mr-1" />
+                  New Incident
                 </button>
                 <Link href="/overview/incidents" className="text-sm text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 font-medium">
                   View All →
@@ -553,32 +525,11 @@ export default function OverviewPage() {
           </div>
         </div>
 
-        {/* Quick Actions & Status */}
+        {/* Quick Actions & Compliance */}
         <div className="col-span-12 lg:col-span-4">
-          <div className="space-y-4">
-            {/* System Status */}
-            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-md transition-all duration-200">
-              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">System Status</h3>
-              <div className="space-y-3">
-                {[
-                  { name: 'SIEM Platform', status: 'operational', uptime: '99.9%' },
-                  { name: 'Threat Intelligence', status: 'operational', uptime: '100%' },
-                  { name: 'Endpoint Protection', status: 'operational', uptime: '99.8%' },
-                  { name: 'Network Monitoring', status: 'operational', uptime: '99.7%' }
-                ].map((system, idx) => (
-                  <div key={idx} className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                      <span className="text-sm text-gray-700 dark:text-gray-300">{system.name}</span>
-                    </div>
-                    <span className="text-xs text-gray-500 dark:text-gray-400">{system.uptime}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
+          <div className="space-y-4 h-full">
             {/* Quick Actions */}
-            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-md transition-all duration-200">
+            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6">
               <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Quick Actions</h3>
               <div className="space-y-3">
                 <Link href="/overview/alerts" className="block w-full text-left px-4 py-3 bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800 rounded-xl hover:bg-rose-100 dark:hover:bg-rose-950/50 transition-all duration-200">
@@ -589,13 +540,45 @@ export default function OverviewPage() {
                   <div className="text-sm font-medium text-amber-800 dark:text-amber-200">Manage Incidents</div>
                   <div className="text-xs text-amber-600 dark:text-amber-400">{Math.floor(metrics.incidents * 0.3)} investigating</div>
                 </Link>
-                <button 
-                  onClick={handleAddVulnerability}
-                  className="block w-full text-left px-4 py-3 bg-orange-50 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-800 rounded-xl hover:bg-orange-100 dark:hover:bg-orange-950/50 transition-all duration-200"
-                >
-                  <div className="text-sm font-medium text-orange-800 dark:text-orange-200">Add Vulnerability</div>
-                  <div className="text-xs text-orange-600 dark:text-orange-400">{metrics.vulnerabilities} detected</div>
-                </button>
+              </div>
+            </div>
+
+            {/* Compliance */}
+            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6">
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Compliance</h3>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Overall Score</span>
+                  <div className="flex items-center gap-2">
+                    <div className="w-16 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                      <div className="w-4/5 h-full bg-emerald-500 rounded-full"></div>
+                    </div>
+                    <span className="text-sm font-semibold text-emerald-600 dark:text-emerald-400">94.2%</span>
+                  </div>
+                </div>
+                
+                <div className="space-y-3">
+                  {[
+                    { name: 'GDPR', score: 96, status: 'compliant' },
+                    { name: 'SOC 2', score: 92, status: 'compliant' },
+                    { name: 'ISO 27001', score: 89, status: 'in-progress' },
+                    { name: 'HIPAA', score: 98, status: 'compliant' }
+                  ].map((item, idx) => (
+                    <div key={idx} className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className={`w-2 h-2 rounded-full ${item.status === 'compliant' ? 'bg-emerald-500' : 'bg-amber-500'}`}></div>
+                        <span className="text-sm text-gray-700 dark:text-gray-300">{item.name}</span>
+                      </div>
+                      <span className="text-xs font-medium text-gray-600 dark:text-gray-400">{item.score}%</span>
+                    </div>
+                  ))}
+                </div>
+                
+                <div className="pt-2 border-t border-gray-100 dark:border-gray-700">
+                  <Link href="/overview/compliance" className="text-sm text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 font-medium">
+                    View Full Report →
+                  </Link>
+                </div>
               </div>
             </div>
           </div>
@@ -605,7 +588,7 @@ export default function OverviewPage() {
       {/* Threat Map - Large */}
       <div className="grid grid-cols-12 gap-4">
         <div className="col-span-12">
-          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-md transition-all duration-200">
+          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Global Threat Map</h2>
               <Link href="/overview/threat-hunting/map" className="text-sm text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 font-medium">

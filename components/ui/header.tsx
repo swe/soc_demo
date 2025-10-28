@@ -21,7 +21,7 @@ export default function Header({
   // const [searchModalOpen, setSearchModalOpen] = useState<boolean>(false)
 
   return (
-    <header className={`sticky top-0 z-30 before:absolute before:inset-0 before:backdrop-blur-md before:bg-white/90 dark:before:bg-gray-800/90 before:-z-10 border-b border-gray-200 dark:border-gray-700`}>
+    <header className={`sticky top-0 z-40 before:absolute before:inset-0 before:backdrop-blur-md before:bg-white/90 dark:before:bg-gray-800/90 before:-z-10 border-b border-gray-200 dark:border-gray-700`}>
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
 
@@ -45,10 +45,20 @@ export default function Header({
 
             {/* Page Title - shown when scrolled */}
             {isScrolled && pageTitle && (
-              <div className="ml-2 lg:ml-0">
+              <div className="ml-2 lg:ml-0 flex items-center gap-3">
                 <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100 truncate max-w-xs lg:max-w-md">
                   {pageTitle}
                 </h1>
+                {/* Live indicator - only show on Overview page */}
+                {pageTitle === 'Security Operations Center' && (
+                  <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                    <span className="text-emerald-600 dark:text-emerald-400 font-medium">Live</span>
+                  </div>
+                )}
               </div>
             )}
             
