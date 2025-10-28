@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { usePageTitle } from '@/app/page-title-context'
-import { formatDate } from '../../../lib/utils'
+import { formatDate } from '@/lib/utils'
 import { PageHeader, Card, Badge } from '@/components/ui/card'
 
 interface ComplianceFramework {
