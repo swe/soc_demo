@@ -4,6 +4,22 @@ import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 import { useEffect, useState, useRef } from 'react'
 
+// Custom CSS to fix z-index issues with Leaflet
+const leafletStyles = `
+  .leaflet-container {
+    z-index: 10 !important;
+  }
+  .leaflet-control-container {
+    z-index: 11 !important;
+  }
+  .leaflet-popup {
+    z-index: 12 !important;
+  }
+  .leaflet-tooltip {
+    z-index: 13 !important;
+  }
+`
+
 // Fix for default markers in react-leaflet will be applied in useEffect
 
 interface AttackLocation {
@@ -54,6 +70,12 @@ export default function AttackMap() {
   useEffect(() => {
     setMounted(true)
     
+    // Add custom styles to fix z-index issues
+    const styleElement = document.createElement('style')
+    styleElement.setAttribute('data-leaflet-zindex', 'true')
+    styleElement.textContent = leafletStyles
+    document.head.appendChild(styleElement)
+    
     // Fix for default markers in react-leaflet
     import('leaflet').then((L) => {
       delete (L.default.Icon.Default.prototype as any)._getIconUrl
@@ -70,6 +92,11 @@ export default function AttackMap() {
         mapRef.current.remove()
         mapRef.current = null
       }
+      // Remove custom styles
+      const existingStyle = document.querySelector('style[data-leaflet-zindex]')
+      if (existingStyle) {
+        existingStyle.remove()
+      }
     }
   }, [])
 
@@ -82,12 +109,12 @@ export default function AttackMap() {
   }
 
   return (
-    <div className="w-full h-full overflow-hidden" key="attack-map-container">
+    <div className="w-full h-full overflow-hidden relative z-10" key="attack-map-container">
       <MapContainer
         ref={mapRef}
         center={[20, 0]}
         zoom={2}
-        style={{ height: '100%', width: '100%', minHeight: '380px' }}
+        style={{ height: '100%', width: '100%', minHeight: '380px', zIndex: 10 }}
         className="rounded-lg"
         dragging={true}
         zoomControl={true}
