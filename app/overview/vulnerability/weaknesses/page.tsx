@@ -1,5 +1,5 @@
 'use client'
-import { formatDate, formatDateTime } from '../../../../lib/utils'
+import { formatDate, formatDateTime } from '@/lib/utils'
 
 
 import { useEffect, useState } from 'react'
