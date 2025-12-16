@@ -67,7 +67,9 @@ export default function AlertsLineChart({
           tooltip: {
             callbacks: {
               title: (context) => {
-                const date = new Date(context[0].parsed.x)
+                const x = context[0].parsed.x
+                if (x == null) return ''
+                const date = new Date(x)
                 return date.toLocaleDateString('en-US', { 
                   month: 'short', 
                   day: 'numeric' 
