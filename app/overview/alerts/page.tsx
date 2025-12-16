@@ -1,10 +1,7 @@
 'use client'
 import { formatDate, formatDateTime } from '@/lib/utils'
-
-
 import { useEffect, useState } from 'react'
 import { usePageTitle } from '@/app/page-title-context'
-import { PageHeader, Card, Badge } from '@/components/ui/card'
 
 interface AlertData {
   id: string
@@ -88,6 +85,7 @@ export default function AllAlerts() {
   const [dateRange, setDateRange] = useState<'all' | 'today' | 'week' | 'month'>('all')
   const [selectedAlert, setSelectedAlert] = useState<AlertData | null>(null)
   const [isPanelOpen, setIsPanelOpen] = useState(false)
+  const [expandedAlertId, setExpandedAlertId] = useState<string | null>(null)
   const itemsPerPage = 15
 
   useEffect(() => {
@@ -343,39 +341,32 @@ export default function AllAlerts() {
     setTimeout(() => setSelectedAlert(null), 300)
   }
 
-  const getSeverityColor = (severity: string) => {
-    switch (severity.toUpperCase()) {
-      case 'CRITICAL':
-        return 'bg-rose-100 dark:bg-rose-900/40 text-rose-800 dark:text-rose-300'
-      case 'HIGH':
-        return 'bg-orange-100 dark:bg-orange-900/40 text-orange-800 dark:text-orange-300'
-      case 'MEDIUM':
-        return 'bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300'
-      case 'LOW':
-        return 'bg-slate-100 dark:bg-slate-900/40 text-slate-800 dark:text-slate-300'
-      default:
-        return 'bg-slate-100 dark:bg-slate-900/40 text-slate-800 dark:text-slate-300'
-    }
+  const handleExpandAlert = (alertId: string) => {
+    setExpandedAlertId(expandedAlertId === alertId ? null : alertId)
   }
 
-  const getStatusColor = (status: string) => {
-    switch (status.toUpperCase()) {
-      case 'NEW':
-        return 'bg-rose-100 dark:bg-rose-900/40 text-rose-800 dark:text-rose-300'
-      case 'ACTIVE':
-        return 'bg-rose-100 dark:bg-rose-900/40 text-rose-800 dark:text-rose-300'
-      case 'INVESTIGATING':
-        return 'bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300'
-      case 'RESOLVED':
-        return 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300'
-      case 'CLOSED':
-        return 'bg-slate-100 dark:bg-slate-900/40 text-slate-800 dark:text-slate-300'
-      default:
-        return 'bg-slate-100 dark:bg-slate-900/40 text-slate-800 dark:text-slate-300'
+  const getSeverityColor = (severity: string): string => {
+    const colors: Record<string, string> = {
+      'CRITICAL': '#FF3B30',  // System red
+      'HIGH': '#FF9500',      // System orange
+      'MEDIUM': '#FFCC00',    // System yellow
+      'LOW': '#007AFF'        // System blue
     }
+    return colors[severity.toUpperCase()] || '#8E8E93'
   }
 
-  const formatDate = (dateString: string) => {
+  const getStatusColor = (status: string): string => {
+    const colors: Record<string, string> = {
+      'NEW': '#FF3B30',        // System red
+      'ACTIVE': '#FF3B30',     // System red
+      'INVESTIGATING': '#FF9500', // System orange
+      'RESOLVED': '#34C759',   // System green
+      'CLOSED': '#8E8E93'      // System gray
+    }
+    return colors[status.toUpperCase()] || '#8E8E93'
+  }
+
+  const formatAlertDate = (dateString: string) => {
     const date = new Date(dateString)
     return date.toLocaleString('en-US', {
       month: '2-digit',
@@ -387,108 +378,78 @@ export default function AllAlerts() {
   }
 
   const renderPagination = () => {
-    const pageNumbers = []
-    const maxVisiblePages = 5
-
-    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2))
-    const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1)
-
-    if (endPage - startPage < maxVisiblePages - 1) {
-      startPage = Math.max(1, endPage - maxVisiblePages + 1)
-    }
-
-    for (let i = startPage; i <= endPage; i++) {
-      pageNumbers.push(i)
-    }
+    const startIndex = (currentPage - 1) * itemsPerPage
+    const endIndex = Math.min(startIndex + itemsPerPage, filteredAlerts.length)
 
     return (
-      <div>
-        <nav className="flex justify-between" role="navigation" aria-label="Navigation">
-          <div className="flex-1 mr-2">
+      <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700/60">
+        <div className="flex items-center justify-between">
+          <div className="hig-caption text-gray-600 dark:text-gray-400">
+            Showing <span className="font-semibold text-gray-900 dark:text-gray-100">{startIndex + 1}</span> to{' '}
+            <span className="font-semibold text-gray-900 dark:text-gray-100">{endIndex}</span> of{' '}
+            <span className="font-semibold text-gray-900 dark:text-gray-100">{filteredAlerts.length}</span> results
+          </div>
+          <nav className="flex items-center gap-2" role="navigation">
             <button
-              className={`btn ${currentPage === 1 ? 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700/60 text-gray-300 dark:text-gray-600' : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700/60 hover:border-gray-300 dark:hover:border-gray-600 text-gray-800 dark:text-gray-300'}`}
-              onClick={() => handlePageChange(currentPage - 1)}
+              className={`hig-button hig-button-secondary ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
+              onClick={() => {
+                handlePageChange(currentPage - 1)
+                setExpandedAlertId(null)
+              }}
               disabled={currentPage === 1}
             >
-              &lt;-<span className="hidden sm:inline">&nbsp;Previous</span>
+              Previous
             </button>
+            <div className="flex items-center gap-1">
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                let pageNum
+                if (totalPages <= 5) {
+                  pageNum = i + 1
+                } else if (currentPage <= 3) {
+                  pageNum = i + 1
+                } else if (currentPage >= totalPages - 2) {
+                  pageNum = totalPages - 4 + i
+                } else {
+                  pageNum = currentPage - 2 + i
+                }
+                return (
+                    <button
+                    key={pageNum}
+                    className={`hig-button ${currentPage === pageNum ? 'hig-button-primary' : 'hig-button-secondary'}`}
+                    onClick={() => {
+                      handlePageChange(pageNum)
+                      setExpandedAlertId(null)
+                    }}
+                  >
+                    {pageNum}
+                    </button>
+                )
+              })}
           </div>
-          <div className="grow text-center">
-            <ul className="inline-flex text-sm font-medium -space-x-px">
-              {startPage > 1 && (
-                <>
-                  <li>
-                    <button
-                      className="inline-flex items-center justify-center leading-5 px-2 py-2 text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-600 border border-transparent"
-                      onClick={() => handlePageChange(1)}
-                    >
-                      <span className="w-5">1</span>
-                    </button>
-                  </li>
-                  {startPage > 2 && (
-                    <li>
-                      <span className="inline-flex items-center justify-center leading-5 px-2 py-2 text-gray-400 dark:text-gray-500">…</span>
-                    </li>
-                  )}
-                </>
-              )}
-              {pageNumbers.map(page => (
-                <li key={page}>
-                  {page === currentPage ? (
-                    <span className="inline-flex items-center justify-center rounded-full leading-5 px-2 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700/60 text-indigo-600 shadow-sm">
-                      <span className="w-5">{page}</span>
-                    </span>
-                  ) : (
-                    <button
-                      className="inline-flex items-center justify-center leading-5 px-2 py-2 text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-600 border border-transparent"
-                      onClick={() => handlePageChange(page)}
-                    >
-                      <span className="w-5">{page}</span>
-                    </button>
-                  )}
-                </li>
-              ))}
-              {endPage < totalPages && (
-                <>
-                  {endPage < totalPages - 1 && (
-                    <li>
-                      <span className="inline-flex items-center justify-center leading-5 px-2 py-2 text-gray-400 dark:text-gray-500">…</span>
-                    </li>
-                  )}
-                  <li>
-                    <button
-                      className="inline-flex items-center justify-center leading-5 px-2 py-2 text-gray-600 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-600 border border-transparent"
-                      onClick={() => handlePageChange(totalPages)}
-                    >
-                      <span className="w-5">{totalPages}</span>
-                    </button>
-                  </li>
-                </>
-              )}
-            </ul>
-          </div>
-          <div className="flex-1 ml-2 text-right">
             <button
-              className={`btn ${currentPage === totalPages ? 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700/60 text-gray-300 dark:text-gray-600' : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700/60 hover:border-gray-300 dark:hover:border-gray-600 text-gray-800 dark:text-gray-300'}`}
-              onClick={() => handlePageChange(currentPage + 1)}
+              className={`hig-button hig-button-secondary ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : ''}`}
+              onClick={() => {
+                handlePageChange(currentPage + 1)
+                setExpandedAlertId(null)
+              }}
               disabled={currentPage === totalPages}
             >
-              <span className="hidden sm:inline">Next&nbsp;</span>-&gt;
+              Next
             </button>
-          </div>
         </nav>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-7xl mx-auto">
+    <div className="py-8 w-full max-w-7xl mx-auto">
       {/* Page header */}
-      <div className="sm:flex sm:justify-between sm:items-center mb-5">
+      <div className="sm:flex sm:justify-between sm:items-center mb-6 px-4 hig-fade-in">
         {/* Left: Title */}
         <div className="mb-4 sm:mb-0">
-          <h1 className="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold">All Alerts</h1>
-          <p className="text-gray-600 dark:text-gray-400">Complete list of security alerts and detections</p>
+          <h1 className="hig-title-large text-gray-900 dark:text-gray-100 mb-2">All Alerts</h1>
+          <p className="hig-body text-gray-600 dark:text-gray-400">Complete list of security alerts and detections</p>
         </div>
 
         {/* Right: Actions */}
@@ -498,7 +459,7 @@ export default function AllAlerts() {
             <label htmlFor="alert-search" className="sr-only">Search</label>
             <input 
               id="alert-search" 
-              className="form-input pl-9 bg-white dark:bg-gray-800" 
+              className="hig-input pl-9" 
               type="search" 
               placeholder="Search alerts…"
               value={searchQuery}
@@ -507,16 +468,10 @@ export default function AllAlerts() {
                 setCurrentPage(1) // Reset to first page on search
               }}
             />
-            <button className="absolute inset-0 right-auto group" type="submit" aria-label="Search" onClick={(e) => e.preventDefault()}>
-              <svg className="shrink-0 fill-current text-gray-400 dark:text-gray-500 group-hover:text-gray-500 dark:group-hover:text-gray-400 ml-3 mr-2" width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
-                <path d="M7 14c-3.86 0-7-3.14-7-7s3.14-7 7-7 7 3.14 7 7-3.14 7-7 7zM7 2C4.243 2 2 4.243 2 7s2.243 5 5 5 5-2.243 5-5-2.243-5-5-5z" />
-                <path d="M15.707 14.293L13.314 11.9a8.019 8.019 0 01-1.414 1.414l2.393 2.393a.997.997 0 001.414 0 .999.999 0 000-1.414z" />
-              </svg>
-            </button>
           </form>
           {/* Date range select */}
           <select 
-            className="form-select bg-white dark:bg-gray-800"
+            className="hig-input"
             value={dateRange}
             onChange={(e) => {
               setDateRange(e.target.value as 'all' | 'today' | 'week' | 'month')
@@ -532,34 +487,34 @@ export default function AllAlerts() {
       </div>
 
       {/* Sticky Status Bar */}
-      <div className="sticky top-16 z-40 before:absolute before:inset-0 before:backdrop-blur-md before:bg-white/90 dark:before:bg-gray-800/90 before:-z-10 border-b border-gray-200 dark:border-gray-700/60 mb-5 -mx-4 sm:-mx-6 lg:-mx-8">
+      <div className="sticky top-16 z-40 before:absolute before:inset-0 before:backdrop-blur-xl before:bg-white/80 dark:before:bg-[#0F172A]/80 before:-z-10 border-b border-gray-200 dark:border-gray-700/60 mb-6 -mx-4 sm:-mx-6 lg:-mx-8">
         <div className="px-4 sm:px-6 lg:px-8 py-3">
           <div className="flex items-center justify-between text-sm">
             <div className="flex items-center space-x-6">
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-rose-600 dark:bg-rose-500 rounded-full animate-pulse"></div>
-                <span className="font-semibold text-gray-900 dark:text-gray-100">
+                <div className="w-2 h-2 bg-[#FF3B30] rounded-full animate-pulse"></div>
+                <span className="hig-caption font-semibold text-gray-900 dark:text-gray-100">
                   Critical: {alertsData.filter(a => a.severity === 'CRITICAL').length}
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-orange-600 dark:bg-orange-500 rounded-full"></div>
-                <span className="font-semibold text-gray-900 dark:text-gray-100">
+                <div className="w-2 h-2 bg-[#FF9500] rounded-full"></div>
+                <span className="hig-caption font-semibold text-gray-900 dark:text-gray-100">
                   High: {alertsData.filter(a => a.severity === 'HIGH').length}
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-emerald-600 dark:bg-emerald-500 rounded-full"></div>
-                <span className="font-semibold text-gray-900 dark:text-gray-100">
+                <div className="w-2 h-2 bg-[#34C759] rounded-full"></div>
+                <span className="hig-caption font-semibold text-gray-900 dark:text-gray-100">
                   Active: {alertsData.filter(a => a.status === 'ACTIVE').length}
                 </span>
               </div>
-              <div className="text-gray-500 dark:text-gray-400">
+              <div className="hig-caption">
                 Total: {alertsData.length} alerts
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <span className="text-gray-500 dark:text-gray-400">
+              <span className="hig-caption">
                 Showing: {filteredAlerts.length} results
               </span>
             </div>
@@ -568,184 +523,211 @@ export default function AllAlerts() {
       </div>
 
       {/* More actions */}
-      <div className="mb-5">
+      <div className="mb-6 px-4">
         <div className="flex flex-wrap gap-2">
           <button 
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-              activeFilter === 'all'
-                ? 'bg-indigo-600 dark:bg-indigo-500 text-white shadow-sm'
-                : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700/50'
-            }`}
+            className={`hig-button ${activeFilter === 'all' ? 'hig-button-primary' : 'hig-button-secondary'}`}
             onClick={() => handleFilterChange('all')}
           >
-            All <span className={`ml-2 ${activeFilter === 'all' ? 'text-slate-200' : 'text-gray-500 dark:text-gray-400'}`}>{alertsData.length}</span>
+            All <span className={`ml-2 ${activeFilter === 'all' ? 'text-white/80' : 'text-gray-500 dark:text-gray-400'}`}>{alertsData.length}</span>
           </button>
           <button 
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-              activeFilter === 'critical'
-                ? 'bg-indigo-600 dark:bg-indigo-500 text-white shadow-sm'
-                : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700/50'
-            }`}
+            className={`hig-button ${activeFilter === 'critical' ? 'hig-button-primary' : 'hig-button-secondary'}`}
             onClick={() => handleFilterChange('critical')}
           >
-            Critical <span className={`ml-2 ${activeFilter === 'critical' ? 'text-slate-200' : 'text-gray-500 dark:text-gray-400'}`}>{alertsData.filter(a => a.severity === 'CRITICAL').length}</span>
+            Critical <span className={`ml-2 ${activeFilter === 'critical' ? 'text-white/80' : 'text-gray-500 dark:text-gray-400'}`}>{alertsData.filter(a => a.severity === 'CRITICAL').length}</span>
           </button>
           <button 
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-              activeFilter === 'high'
-                ? 'bg-indigo-600 dark:bg-indigo-500 text-white shadow-sm'
-                : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700/50'
-            }`}
+            className={`hig-button ${activeFilter === 'high' ? 'hig-button-primary' : 'hig-button-secondary'}`}
             onClick={() => handleFilterChange('high')}
           >
-            High <span className={`ml-2 ${activeFilter === 'high' ? 'text-slate-200' : 'text-gray-500 dark:text-gray-400'}`}>{alertsData.filter(a => a.severity === 'HIGH').length}</span>
+            High <span className={`ml-2 ${activeFilter === 'high' ? 'text-white/80' : 'text-gray-500 dark:text-gray-400'}`}>{alertsData.filter(a => a.severity === 'HIGH').length}</span>
           </button>
           <button 
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-              activeFilter === 'active'
-                ? 'bg-indigo-600 dark:bg-indigo-500 text-white shadow-sm'
-                : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700/50'
-            }`}
+            className={`hig-button ${activeFilter === 'active' ? 'hig-button-primary' : 'hig-button-secondary'}`}
             onClick={() => handleFilterChange('active')}
           >
-            Active <span className={`ml-2 ${activeFilter === 'active' ? 'text-slate-200' : 'text-gray-500 dark:text-gray-400'}`}>{alertsData.filter(a => a.status === 'ACTIVE').length}</span>
+            Active <span className={`ml-2 ${activeFilter === 'active' ? 'text-white/80' : 'text-gray-500 dark:text-gray-400'}`}>{alertsData.filter(a => a.status === 'ACTIVE').length}</span>
           </button>
         </div>
       </div>
 
-      {/* Table */}
-      <div className="bg-white dark:bg-gray-800 shadow-sm rounded-xl relative">
-        <header className="px-5 py-4">
-          <h2 className="font-semibold text-gray-800 dark:text-gray-100">
-            Security Alerts <span className="text-gray-400 dark:text-gray-500 font-medium">{filteredAlerts.length}</span>
-          </h2>
-        </header>
-        <div>
-          {/* Table */}
-          <div className="overflow-x-auto">
-            <table className="table-auto w-full dark:text-gray-300">
-              {/* Table header */}
-              <thead className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-900/20 border-t border-b border-gray-100 dark:border-gray-700/60">
-                <tr>
-                  <th className="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
-                    <div className="font-semibold text-left">Alert ID</div>
-                  </th>
-                  <th className="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
-                    <div className="font-semibold text-left">Title</div>
-                  </th>
-                  <th className="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
-                    <div className="font-semibold text-left">Severity</div>
-                  </th>
-                  <th className="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
-                    <div className="font-semibold text-left">Status</div>
-                  </th>
-                  <th className="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
-                    <div className="font-semibold text-left">Source</div>
-                  </th>
-                  <th className="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
-                    <div className="font-semibold text-left">Detected At</div>
-                  </th>
-                  <th className="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
-                    <div className="font-semibold text-left">Actions</div>
-                  </th>
-                </tr>
-              </thead>
-              {/* Table body */}
-              <tbody className="text-sm divide-y divide-gray-100 dark:divide-gray-700/60">
+      {/* Alerts List with Expandable Details */}
+      <div className="px-4">
+        <div className="hig-card relative">
+          <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200 dark:border-gray-700/60">
+            <h2 className="hig-headline text-gray-900 dark:text-gray-100">Security Alerts</h2>
+            <span className="hig-caption text-gray-600 dark:text-gray-400">{filteredAlerts.length} total</span>
+          </div>
+
               {loading ? (
-                <tr>
-                  <td colSpan={7} className="px-2 first:pl-5 last:pr-5 py-8 text-center">
-                    <div className="flex items-center justify-center">
-                      <div className="text-gray-500 dark:text-gray-400">Loading alerts...</div>
+          <div className="py-8 text-center">
+            <div className="hig-body text-gray-500 dark:text-gray-400">Loading alerts...</div>
                     </div>
-                  </td>
-                </tr>
               ) : currentPageAlerts.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="px-2 first:pl-5 last:pr-5 py-8 text-center">
-                    <div className="flex items-center justify-center">
-                      <div className="text-gray-500 dark:text-gray-400">No alerts found</div>
+          <div className="py-8 text-center">
+            <div className="hig-body text-gray-500 dark:text-gray-400">No alerts found</div>
                     </div>
-                  </td>
-                </tr>
-              ) : (
-                currentPageAlerts.map(alert => (
-                  <tr key={alert.id}>
-                    <td className="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
-                      <button 
-                        className="font-medium text-indigo-600 hover:text-indigo-700 dark:hover:text-indigo-500 cursor-pointer"
-                        onClick={() => handleAlertClick(alert)}
-                      >
+        ) : (
+          <div className="space-y-0">
+            {currentPageAlerts.map((alert, idx) => {
+              const isExpanded = expandedAlertId === alert.id
+              const severityColor = getSeverityColor(alert.severity)
+              const statusColor = getStatusColor(alert.status)
+              
+              return (
+                <div key={alert.id}>
+                  <div 
+                    className={`flex items-center gap-4 p-4 cursor-pointer transition-colors ${
+                      idx !== currentPageAlerts.length - 1 ? 'border-b border-gray-200 dark:border-gray-700/60' : ''
+                    } ${isExpanded ? 'bg-gray-50 dark:bg-[#334155]/30' : 'hover:bg-gray-50 dark:hover:bg-[#334155]/20'}`}
+                    onClick={() => handleExpandAlert(alert.id)}
+                  >
+                    {/* Severity Indicator */}
+                    <div 
+                      className="w-1 h-12 rounded-full flex-shrink-0"
+                      style={{ 
+                        backgroundColor: severityColor,
+                        boxShadow: `0 0 8px ${severityColor}40`
+                      }}
+                    />
+                    
+                    {/* Alert ID */}
+                    <div className="w-32 flex-shrink-0">
+                      <span className="hig-caption font-mono text-gray-600 dark:text-gray-400">
                         {alert.id}
-                      </button>
-                    </td>
-                    <td className="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
-                      <div className="font-medium text-gray-800 dark:text-gray-100">{alert.title}</div>
-                    </td>
-                    <td className="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
-                      <div className={`inline-flex font-medium rounded-full text-center px-2 py-0.5 text-xs ${getSeverityColor(alert.severity)}`}>
-                        {alert.severity}
+                      </span>
                       </div>
-                    </td>
-                    <td className="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
-                      <div className={`inline-flex font-medium rounded-full text-center px-2 py-0.5 text-xs ${getStatusColor(alert.status)}`}>
-                        {alert.status}
-                      </div>
-                    </td>
-                    <td className="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
-                      <div className="text-left">{alert.source}</div>
-                    </td>
-                    <td className="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
-                      <div className="text-left text-gray-500">{formatDate(alert.detectedAt)}</div>
-                    </td>
-                    <td className="px-2 first:pl-5 last:pr-5 py-3 whitespace-nowrap">
-                      <div className="flex items-center space-x-2">
-                        <button 
-                          className="text-gray-400 hover:text-indigo-600 dark:text-gray-500 dark:hover:text-indigo-400 transition-all duration-200 cursor-pointer"
-                          onClick={() => handleAlertClick(alert)}
+                    
+                    {/* Title and Info */}
+                    <div className="flex-1 min-w-0">
+                      <h3 className="hig-body font-semibold text-gray-900 dark:text-gray-100 mb-1 line-clamp-2" title={alert.title}>
+                        {alert.title}
+                      </h3>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span 
+                          className="hig-badge"
+                          style={{
+                            backgroundColor: `${severityColor}20`,
+                            color: severityColor
+                          }}
                         >
-                          <span className="sr-only">View</span>
-                          <svg className="w-8 h-8 fill-current" viewBox="0 0 32 32">
-                            <path d="M16 12c-2.2 0-4 1.8-4 4s1.8 4 4 4 4-1.8 4-4-1.8-4-4-4zm0 6c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/>
-                            <path d="M16 6C9.4 6 3.8 9.9 1.3 15.6c-.2.4-.2.8 0 1.2C3.8 22.1 9.4 26 16 26s12.2-3.9 14.7-9.2c.2-.4.2-.8 0-1.2C28.2 9.9 22.6 6 16 6zm0 18c-5.5 0-10.3-3.2-12.5-8 2.2-4.8 7-8 12.5-8s10.3 3.2 12.5 8c-2.2 4.8-7 8-12.5 8z"/>
-                          </svg>
+                          {alert.severity}
+                        </span>
+                        <span 
+                          className="hig-badge"
+                          style={{
+                            backgroundColor: `${statusColor}20`,
+                            color: statusColor
+                          }}
+                        >
+                        {alert.status}
+                        </span>
+                        <span className="hig-caption text-gray-600 dark:text-gray-400">{alert.source}</span>
+                      </div>
+                    </div>
+                    
+                    {/* Metrics */}
+                    <div className="flex items-center gap-6 flex-shrink-0">
+                      <div className="text-right">
+                        <div className="hig-caption text-gray-600 dark:text-gray-400">Detected</div>
+                        <div className="hig-caption text-gray-900 dark:text-gray-100 font-medium mt-1">
+                          {formatAlertDate(alert.detectedAt)}
+                        </div>
+                      </div>
+                        <button 
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleAlertClick(alert)
+                        }}
+                        className="hig-caption hig-link-hover transition-colors"
+                      >
+                        View Details →
                         </button>
                       </div>
-                    </td>
-                  </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                  </div>
+
+                  {/* Expanded Details */}
+                  {isExpanded && (
+                    <div className="px-4 pb-4 bg-gray-50 dark:bg-[#334155]/30 border-b border-gray-200 dark:border-gray-700/60">
+                      <div className="pt-4 space-y-4">
+                        {/* Description */}
+                        {alert.description && (
+                          <div>
+                            <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2 font-semibold">Description</div>
+                            <div className="hig-body text-gray-700 dark:text-gray-300 leading-relaxed">
+                              {alert.description}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Technical Details */}
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <div className="hig-caption text-gray-600 dark:text-gray-400 mb-1">Source IP</div>
+                            <div className="hig-body text-gray-900 dark:text-gray-100 font-mono">{alert.sourceIp}</div>
           </div>
+                          <div>
+                            <div className="hig-caption text-gray-600 dark:text-gray-400 mb-1">Location</div>
+                            <div className="hig-body text-gray-900 dark:text-gray-100">{alert.geolocation.city}, {alert.geolocation.country}</div>
+                          </div>
+                          <div>
+                            <div className="hig-caption text-gray-600 dark:text-gray-400 mb-1">Assigned To</div>
+                            <div className="hig-body text-gray-900 dark:text-gray-100">{alert.assignedTo.analyst}</div>
+                          </div>
+                          <div>
+                            <div className="hig-caption text-gray-600 dark:text-gray-400 mb-1">Last Updated</div>
+                            <div className="hig-body text-gray-900 dark:text-gray-100">{formatAlertDate(alert.lastUpdated)}</div>
+        </div>
+      </div>
+
+                        {/* Action Button */}
+                        <div className="flex gap-3 pt-2">
+                          <button 
+                            className="hig-button hig-button-primary flex-1"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleAlertClick(alert)
+                            }}
+                          >
+                            View Full Details
+                          </button>
+                        </div>
+                      </div>
+        </div>
+      )}
+                </div>
+              )
+            })}
+          </div>
+        )}
         </div>
       </div>
 
       {/* Pagination */}
-      {!loading && filteredAlerts.length > 0 && (
-        <div className="mt-8">
+      {!loading && filteredAlerts.length > 0 && totalPages > 1 && (
+        <div className="px-4">
           {renderPagination()}
         </div>
       )}
 
-      {/* Sliding Panel for Alert Details */}
+      {/* Modal for Alert Details */}
       {selectedAlert && (
-        <>
-          {/* Backdrop */}
-          <div 
-            className={`fixed inset-0 bg-gray-900/50 z-40 transition-opacity duration-200 ${isPanelOpen ? 'opacity-100' : 'opacity-0'}`}
-            onClick={handleClosePanel}
-          />
-          
-          {/* Sliding Panel */}
-          <div className={`fixed inset-y-0 right-0 w-full md:w-4/5 lg:w-3/4 xl:w-2/3 2xl:w-1/2 bg-white dark:bg-gray-800 shadow-xl z-50 transform transition-transform duration-200 ease-in-out ${isPanelOpen ? 'translate-x-0' : 'translate-x-full'}`}>
-            <div className="h-full flex flex-col">
-              {/* Header */}
-              <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-                <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">Alert Details</h2>
+        <div className="hig-modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="hig-modal p-0 max-w-4xl w-full flex flex-col max-h-[90vh]">
+            {/* Fixed Header */}
+            <div 
+              className="sticky top-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-[#1E293B]/80 border-b border-gray-200 dark:border-gray-700/60 p-6 pb-4"
+              style={{
+                WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+                backdropFilter: 'blur(20px) saturate(180%)'
+              }}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <h2 className="hig-headline text-gray-900 dark:text-gray-100">Alert Details</h2>
                 <button
                   onClick={handleClosePanel}
-                  className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 transition-all duration-200"
+                  className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 transition-colors"
                 >
                   <span className="sr-only">Close</span>
                   <svg className="w-6 h-6 fill-current" viewBox="0 0 24 24">
@@ -753,127 +735,157 @@ export default function AllAlerts() {
                   </svg>
                 </button>
               </div>
+              {/* Risk Indicator Bar */}
+              <div 
+                className="h-1 rounded-full" 
+                style={{ backgroundColor: getSeverityColor(selectedAlert.severity) }}
+              />
+              </div>
 
-              {/* Content */}
-              <div className="flex-1 overflow-y-auto p-6 space-y-4">
-                  {/* Alert ID and Status */}
-                  <div>
-                    <div className="flex items-center justify-between mb-4">
-                      <div>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Alert ID</p>
-                        <p className="text-lg font-semibold text-indigo-600">{selectedAlert.id}</p>
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto px-6 py-6">
+              {/* Metric Cards */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+                  <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Confidence</div>
+                  <div className="hig-metric-value text-3xl text-gray-900 dark:text-gray-100">
+                    {selectedAlert.confidence}%
                       </div>
-                      <div className={`inline-flex font-medium rounded-full text-center px-3 py-1 text-sm ${getStatusColor(selectedAlert.status)}`}>
-                        {selectedAlert.status}
                       </div>
+                <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+                  <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">False Positive Risk</div>
+                  <div className="hig-metric-value text-3xl text-gray-900 dark:text-gray-100">
+                    {selectedAlert.falsePositiveRisk}%
+                    </div>
+                  </div>
+                <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+                  <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Escalation Level</div>
+                  <div className="hig-metric-value text-3xl text-gray-900 dark:text-gray-100">
+                    {selectedAlert.escalationLevel}
+                  </div>
+                </div>
+                <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+                  <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Affected Devices</div>
+                  <div className="hig-metric-value text-3xl text-gray-900 dark:text-gray-100">
+                    {selectedAlert.affectedDevices.length}
+                  </div>
                     </div>
                   </div>
 
-                  {/* Title */}
+              {/* Alert Information */}
+              <div className="space-y-4 pb-4 border-b border-gray-200 dark:border-gray-700/60 mb-4">
                   <div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Title</p>
-                    <p className="text-lg font-semibold text-gray-800 dark:text-gray-100">{selectedAlert.title}</p>
+                  <div className="hig-caption text-gray-600 dark:text-gray-400 mb-1">Alert ID</div>
+                  <div className="hig-body font-mono text-gray-900 dark:text-gray-100">{selectedAlert.id}</div>
                   </div>
-
-                  {/* Severity */}
-                  <div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">Severity</p>
-                    <div className={`inline-flex font-medium rounded-full text-center px-3 py-1 text-sm ${getSeverityColor(selectedAlert.severity)}`}>
+                    <div>
+                  <div className="hig-caption text-gray-600 dark:text-gray-400 mb-1">Title</div>
+                  <div className="hig-headline text-gray-900 dark:text-gray-100">{selectedAlert.title}</div>
+                    </div>
+                <div className="flex items-center gap-3">
+                    <div>
+                    <div className="hig-caption text-gray-600 dark:text-gray-400 mb-1">Severity</div>
+                    <span 
+                      className="hig-badge"
+                      style={{
+                        backgroundColor: `${getSeverityColor(selectedAlert.severity)}20`,
+                        color: getSeverityColor(selectedAlert.severity)
+                      }}
+                    >
                       {selectedAlert.severity}
+                    </span>
                     </div>
-                  </div>
-
-                  {/* Description */}
                   <div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Description</p>
-                    <p className="text-sm text-gray-700 dark:text-gray-300">{selectedAlert.description}</p>
-                  </div>
-
-                  {/* Timestamps */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Detected At</p>
-                      <p className="text-sm text-gray-700 dark:text-gray-300">{formatDate(selectedAlert.detectedAt)}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Last Updated</p>
-                      <p className="text-sm text-gray-700 dark:text-gray-300">{formatDate(selectedAlert.lastUpdated)}</p>
-                    </div>
-                  </div>
-
-                  {/* Source Information */}
+                    <div className="hig-caption text-gray-600 dark:text-gray-400 mb-1">Status</div>
+                    <span 
+                      className="hig-badge"
+                      style={{
+                        backgroundColor: `${getStatusColor(selectedAlert.status)}20`,
+                        color: getStatusColor(selectedAlert.status)
+                      }}
+                    >
+                      {selectedAlert.status}
+                    </span>
+                      </div>
+                      </div>
+                {selectedAlert.description && (
                   <div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">Source</p>
-                    <div className="bg-gray-50 dark:bg-gray-900/20 rounded-lg p-4 space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-sm text-gray-600 dark:text-gray-400">Type:</span>
-                        <span className="text-sm font-medium text-gray-800 dark:text-gray-100">{selectedAlert.source}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm text-gray-600 dark:text-gray-400">IP:</span>
-                        <span className="text-sm font-medium text-gray-800 dark:text-gray-100">{selectedAlert.sourceIp}</span>
-                      </div>
+                    <div className="hig-caption text-gray-600 dark:text-gray-400 mb-1">Description</div>
+                    <div className="hig-body text-gray-700 dark:text-gray-300 leading-relaxed">{selectedAlert.description}</div>
                     </div>
+                )}
                   </div>
 
-                  {/* Geolocation */}
+              {/* Detailed Information */}
+              <div className="space-y-4 pb-4 border-b border-gray-200 dark:border-gray-700/60 mb-4">
+                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">Geolocation</p>
-                    <div className="bg-gray-50 dark:bg-gray-900/20 rounded-lg p-4 space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-sm text-gray-600 dark:text-gray-400">Country:</span>
-                        <span className="text-sm font-medium text-gray-800 dark:text-gray-100">{selectedAlert.geolocation.country}</span>
+                    <div className="hig-caption text-gray-600 dark:text-gray-400 mb-1">Detected At</div>
+                    <div className="hig-body text-gray-900 dark:text-gray-100">{formatAlertDate(selectedAlert.detectedAt)}</div>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm text-gray-600 dark:text-gray-400">City:</span>
-                        <span className="text-sm font-medium text-gray-800 dark:text-gray-100">{selectedAlert.geolocation.city}</span>
+                  <div>
+                    <div className="hig-caption text-gray-600 dark:text-gray-400 mb-1">Last Updated</div>
+                    <div className="hig-body text-gray-900 dark:text-gray-100">{formatAlertDate(selectedAlert.lastUpdated)}</div>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm text-gray-600 dark:text-gray-400">ASN:</span>
-                        <span className="text-sm font-medium text-gray-800 dark:text-gray-100">{selectedAlert.geolocation.asn}</span>
+                  <div>
+                    <div className="hig-caption text-gray-600 dark:text-gray-400 mb-1">Source</div>
+                    <div className="hig-body text-gray-900 dark:text-gray-100">{selectedAlert.source}</div>
                       </div>
+                  <div>
+                    <div className="hig-caption text-gray-600 dark:text-gray-400 mb-1">Source IP</div>
+                    <div className="hig-body font-mono text-gray-900 dark:text-gray-100">{selectedAlert.sourceIp}</div>
                     </div>
-                  </div>
-
-                  {/* Assigned To */}
                   <div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">Assigned To</p>
-                    <div className="bg-gray-50 dark:bg-gray-900/20 rounded-lg p-4 space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-sm text-gray-600 dark:text-gray-400">Analyst:</span>
-                        <span className="text-sm font-medium text-gray-800 dark:text-gray-100">{selectedAlert.assignedTo.analyst}</span>
+                    <div className="hig-caption text-gray-600 dark:text-gray-400 mb-1">Location</div>
+                    <div className="hig-body text-gray-900 dark:text-gray-100">{selectedAlert.geolocation.city}, {selectedAlert.geolocation.country}</div>
+                  </div>
+                  <div>
+                    <div className="hig-caption text-gray-600 dark:text-gray-400 mb-1">ASN</div>
+                    <div className="hig-body font-mono text-gray-900 dark:text-gray-100">{selectedAlert.geolocation.asn}</div>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm text-gray-600 dark:text-gray-400">Team:</span>
-                        <span className="text-sm font-medium text-gray-800 dark:text-gray-100">{selectedAlert.assignedTo.team}</span>
+                  <div>
+                    <div className="hig-caption text-gray-600 dark:text-gray-400 mb-1">Assigned To</div>
+                    <div className="hig-body text-gray-900 dark:text-gray-100">{selectedAlert.assignedTo.analyst}</div>
+                  </div>
+                  <div>
+                    <div className="hig-caption text-gray-600 dark:text-gray-400 mb-1">Team</div>
+                    <div className="hig-body text-gray-900 dark:text-gray-100">{selectedAlert.assignedTo.team}</div>
                       </div>
                     </div>
                   </div>
 
                   {/* Affected Devices */}
                   {selectedAlert.affectedDevices.length > 0 && (
-                    <div>
-                      <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">Affected Devices</p>
-                      <div className="space-y-2">
+                <div className="pb-4 border-b border-gray-200 dark:border-gray-700/60 mb-4">
+                  <h3 className="hig-headline mb-4">Affected Devices</h3>
+                  <div className="space-y-3">
                         {selectedAlert.affectedDevices.map((device, index) => (
-                          <div key={index} className="bg-gray-50 dark:bg-gray-900/20 rounded-lg p-4 space-y-2">
-                            <div className="flex justify-between">
-                              <span className="text-sm text-gray-600 dark:text-gray-400">Hostname:</span>
-                              <span className="text-sm font-medium text-gray-800 dark:text-gray-100">{device.hostname}</span>
+                      <div key={index} className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <div className="hig-caption text-gray-600 dark:text-gray-400 mb-1">Hostname</div>
+                            <div className="hig-body text-gray-900 dark:text-gray-100">{device.hostname}</div>
                             </div>
-                            <div className="flex justify-between">
-                              <span className="text-sm text-gray-600 dark:text-gray-400">IP:</span>
-                              <span className="text-sm font-medium text-gray-800 dark:text-gray-100">{device.ip}</span>
+                          <div>
+                            <div className="hig-caption text-gray-600 dark:text-gray-400 mb-1">IP Address</div>
+                            <div className="hig-body font-mono text-gray-900 dark:text-gray-100">{device.ip}</div>
                             </div>
-                            <div className="flex justify-between">
-                              <span className="text-sm text-gray-600 dark:text-gray-400">User:</span>
-                              <span className="text-sm font-medium text-gray-800 dark:text-gray-100">{device.user}</span>
+                          <div>
+                            <div className="hig-caption text-gray-600 dark:text-gray-400 mb-1">User</div>
+                            <div className="hig-body text-gray-900 dark:text-gray-100">{device.user}</div>
                             </div>
-                            <div className="flex justify-between">
-                              <span className="text-sm text-gray-600 dark:text-gray-400">Risk Score:</span>
-                              <span className={`text-sm font-medium ${device.riskScore > 70 ? 'text-red-600 dark:text-red-400' : device.riskScore > 40 ? 'text-yellow-600 dark:text-yellow-400' : 'text-green-600 dark:text-green-400'}`}>
+                          <div>
+                            <div className="hig-caption text-gray-600 dark:text-gray-400 mb-1">Risk Score</div>
+                            <div 
+                              className="hig-body font-semibold"
+                              style={{
+                                color: device.riskScore >= 70 ? '#FF3B30' : device.riskScore >= 40 ? '#FF9500' : '#34C759',
+                                WebkitTextFillColor: device.riskScore >= 70 ? '#FF3B30' : device.riskScore >= 40 ? '#FF9500' : '#34C759'
+                              }}
+                            >
                                 {device.riskScore}
-                              </span>
+                            </div>
+                          </div>
                             </div>
                           </div>
                         ))}
@@ -882,36 +894,47 @@ export default function AllAlerts() {
                   )}
 
                   {/* Business Impact */}
+              <div className="pb-4 border-b border-gray-200 dark:border-gray-700/60 mb-4">
+                <h3 className="hig-headline mb-4">Business Impact</h3>
+                <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4">
+                  <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">Business Impact</p>
-                    <div className="bg-gray-50 dark:bg-gray-900/20 rounded-lg p-4 space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-sm text-gray-600 dark:text-gray-400">Level:</span>
-                        <span className="text-sm font-medium text-gray-800 dark:text-gray-100">{selectedAlert.businessImpact.level}</span>
+                      <div className="hig-caption text-gray-600 dark:text-gray-400 mb-1">Impact Level</div>
+                      <div className="hig-body text-gray-900 dark:text-gray-100">{selectedAlert.businessImpact.level}</div>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-sm text-gray-600 dark:text-gray-400">Data Exposure:</span>
-                        <span className="text-sm font-medium text-gray-800 dark:text-gray-100">{selectedAlert.businessImpact.potentialDataExposure}</span>
+                    <div>
+                      <div className="hig-caption text-gray-600 dark:text-gray-400 mb-1">Potential Data Exposure</div>
+                      <div className="hig-body text-gray-900 dark:text-gray-100">{selectedAlert.businessImpact.potentialDataExposure}</div>
+                    </div>
                       </div>
                     </div>
                   </div>
 
                   {/* Containment Status */}
-                  <div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">Containment Status</p>
-                    <div className="bg-gray-50 dark:bg-gray-900/20 rounded-lg p-4 space-y-2">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-600 dark:text-gray-400">Contained:</span>
-                        <span className={`text-sm font-medium ${selectedAlert.containmentStatus.isContained ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+              <div className="pb-4 border-b border-gray-200 dark:border-gray-700/60 mb-4">
+                <h3 className="hig-headline mb-4">Containment Status</h3>
+                <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="hig-caption text-gray-600 dark:text-gray-400">Contained</div>
+                    <div 
+                      className="hig-body font-semibold"
+                      style={{
+                        color: selectedAlert.containmentStatus.isContained ? '#34C759' : '#FF3B30',
+                        WebkitTextFillColor: selectedAlert.containmentStatus.isContained ? '#34C759' : '#FF3B30'
+                      }}
+                    >
                           {selectedAlert.containmentStatus.isContained ? 'Yes' : 'No'}
-                        </span>
+                    </div>
                       </div>
                       {selectedAlert.containmentStatus.actions.length > 0 && (
                         <div>
-                          <span className="text-sm text-gray-600 dark:text-gray-400">Actions:</span>
-                          <ul className="mt-1 space-y-1">
+                      <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Actions Taken</div>
+                      <ul className="space-y-1">
                             {selectedAlert.containmentStatus.actions.map((action, index) => (
-                              <li key={index} className="text-sm text-gray-700 dark:text-gray-300 ml-4">• {action}</li>
+                          <li key={index} className="hig-body text-gray-700 dark:text-gray-300 flex items-start gap-2">
+                            <span>•</span>
+                            <span>{action}</span>
+                          </li>
                             ))}
                           </ul>
                         </div>
@@ -920,20 +943,29 @@ export default function AllAlerts() {
                   </div>
 
                   {/* Recommended Action */}
-                  <div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Recommended Action</p>
-                    <p className="text-sm text-gray-700 dark:text-gray-300 bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 p-3 rounded">
-                      {selectedAlert.recommendedAction}
-                    </p>
+              {selectedAlert.recommendedAction && (
+                <div className="pb-4 border-b border-gray-200 dark:border-gray-700/60 mb-4">
+                  <h3 className="hig-headline mb-4">Recommended Action</h3>
+                  <div className="hig-card bg-[#007AFF]/10 dark:bg-[#007AFF]/20 border border-[#007AFF]/30 p-4">
+                    <div className="hig-body text-gray-900 dark:text-gray-100">{selectedAlert.recommendedAction}</div>
                   </div>
+                </div>
+              )}
 
                   {/* Tags */}
                   {selectedAlert.tags.length > 0 && (
-                    <div>
-                      <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">Tags</p>
+                <div className="pb-4 border-b border-gray-200 dark:border-gray-700/60 mb-4">
+                  <h3 className="hig-headline mb-4">Tags</h3>
                       <div className="flex flex-wrap gap-2">
                         {selectedAlert.tags.map((tag, index) => (
-                          <span key={index} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200">
+                      <span 
+                        key={index} 
+                        className="hig-badge"
+                        style={{
+                          backgroundColor: 'rgba(142, 142, 147, 0.2)',
+                          color: '#8E8E93'
+                        }}
+                      >
                             {tag}
                           </span>
                         ))}
@@ -943,21 +975,45 @@ export default function AllAlerts() {
 
                   {/* MITRE Techniques */}
                   {selectedAlert.mitreTechniques.length > 0 && (
-                    <div>
-                      <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">MITRE ATT&CK Techniques</p>
+                <div className="pb-4 border-b border-gray-200 dark:border-gray-700/60 mb-4">
+                  <h3 className="hig-headline mb-4">MITRE ATT&CK Techniques</h3>
                       <div className="flex flex-wrap gap-2">
                         {selectedAlert.mitreTechniques.map((technique, index) => (
-                          <span key={index} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-400">
+                      <span 
+                        key={index} 
+                        className="hig-badge font-mono"
+                        style={{
+                          backgroundColor: '#FF3B3020',
+                          color: '#FF3B30'
+                        }}
+                      >
                             {technique}
                           </span>
                         ))}
                       </div>
                     </div>
                   )}
+            </div>
+
+            {/* Fixed Footer */}
+            <div 
+              className="sticky bottom-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-[#1E293B]/80 border-t border-gray-200 dark:border-gray-700/60 p-6 pt-4"
+              style={{
+                WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+                backdropFilter: 'blur(20px) saturate(180%)'
+              }}
+            >
+              <div className="flex gap-3">
+                <button className="hig-button hig-button-primary flex-1">
+                  Update Status
+                </button>
+                <button className="hig-button hig-button-secondary flex-1" onClick={handleClosePanel}>
+                  Close
+                </button>
               </div>
             </div>
           </div>
-        </>
+        </div>
       )}
     </div>
   )

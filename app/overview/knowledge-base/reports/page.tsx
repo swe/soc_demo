@@ -1,10 +1,7 @@
 'use client'
 import { formatDate, formatDateTime } from '@/lib/utils'
-
-
 import { useEffect, useState } from 'react'
 import { usePageTitle } from '@/app/page-title-context'
-import { PageHeader, Card, Badge } from '@/components/ui/card'
 
 interface Report {
   id: string
@@ -115,24 +112,24 @@ export default function ReportsPage() {
     }
   ]
 
-  const getTypeColor = (type: string) => {
-    const colors = {
-      security: 'bg-indigo-600 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-500',
-      compliance: 'bg-indigo-600 dark:bg-indigo-600/20 text-blue-700 dark:text-blue-400',
-      incident: 'bg-rose-600 dark:bg-rose-700/20 text-red-700 dark:text-red-400',
-      threat: 'bg-orange-600 dark:bg-orange-700/20 text-orange-700 dark:text-orange-400',
-      vulnerability: 'bg-amber-600 dark:bg-amber-700/20 text-yellow-700 dark:text-yellow-400'
+  const getTypeColor = (type: string): string => {
+    const colors: Record<string, string> = {
+      security: '#007AFF',
+      compliance: '#007AFF',
+      incident: '#FF3B30',
+      threat: '#FF9500',
+      vulnerability: '#FFCC00'
     }
-    return colors[type as keyof typeof colors]
+    return colors[type] || '#8E8E93'
   }
 
-  const getStatusColor = (status: string) => {
-    const colors = {
-      final: 'bg-emerald-600 dark:bg-emerald-700/20 text-green-700 dark:text-green-400',
-      review: 'bg-amber-600 dark:bg-amber-700/20 text-yellow-700 dark:text-yellow-400',
-      draft: 'bg-gray-500/20 text-gray-700 dark:text-gray-400'
+  const getStatusColor = (status: string): string => {
+    const colors: Record<string, string> = {
+      final: '#34C759',
+      review: '#FF9500',
+      draft: '#8E8E93'
     }
-    return colors[status as keyof typeof colors]
+    return colors[status] || '#8E8E93'
   }
 
   const filteredReports = selectedType === 'all' 
@@ -146,69 +143,45 @@ export default function ReportsPage() {
   }
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-7xl mx-auto">
-      <PageHeader 
-        title="Security Reports" 
-        description="Access security reports, compliance documents, and incident analyses" 
-      />
+    <div className="py-8 w-full max-w-7xl mx-auto">
+      <div className="mb-6 px-4 hig-fade-in">
+        <h1 className="hig-title-large text-gray-900 dark:text-gray-100 mb-2">Security Reports</h1>
+        <p className="hig-body text-gray-600 dark:text-gray-400">Access security reports, compliance documents, and incident analyses</p>
+      </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-12 gap-4 mb-6">
-        <div className="col-span-12 sm:col-span-4">
-          <div className="bg-white dark:bg-gray-800 shadow-sm rounded-xl p-5">
-            <div className="flex items-center justify-between mb-2">
-              <div className="text-sm text-gray-600 dark:text-gray-400">Total Reports</div>
-              <div className="w-10 h-10 bg-indigo-600 dark:bg-indigo-500/20 rounded-lg flex items-center justify-center">
-                <svg className="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M9 2a2 2 0 00-2 2v8a2 2 0 002 2h6a2 2 0 002-2V6.414A2 2 0 0016.414 5L14 2.586A2 2 0 0012.586 2H9z" />
-                  <path d="M3 8a2 2 0 012-2v10h8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z" />
-                </svg>
-              </div>
-            </div>
-            <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">{stats.total}</div>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6 px-4">
+        <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+          <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Total Reports</div>
+          <div className="hig-metric-value text-4xl text-gray-900 dark:text-gray-100">{stats.total}</div>
+        </div>
+
+        <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+          <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Final Reports</div>
+          <div className="hig-metric-value text-4xl" style={{ color: '#34C759', WebkitTextFillColor: '#34C759' }}>
+            {stats.final}
           </div>
         </div>
 
-        <div className="col-span-12 sm:col-span-4">
-          <div className="bg-white dark:bg-gray-800 shadow-sm rounded-xl p-5">
-            <div className="flex items-center justify-between mb-2">
-              <div className="text-sm text-gray-600 dark:text-gray-400">Final Reports</div>
-              <div className="w-10 h-10 bg-emerald-600 dark:bg-emerald-700/20 rounded-lg flex items-center justify-center">
-                <svg className="w-5 h-5 text-emerald-700 dark:text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-              </div>
-            </div>
-            <div className="text-3xl font-bold text-emerald-700 dark:text-emerald-400">{stats.final}</div>
-          </div>
-        </div>
-
-        <div className="col-span-12 sm:col-span-4">
-          <div className="bg-white dark:bg-gray-800 shadow-sm rounded-xl p-5">
-            <div className="flex items-center justify-between mb-2">
-              <div className="text-sm text-gray-600 dark:text-gray-400">This Month</div>
-              <div className="w-10 h-10 bg-indigo-600 dark:bg-indigo-600/20 rounded-lg flex items-center justify-center">
-                <svg className="w-5 h-5 text-indigo-700 dark:text-indigo-300" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
-                </svg>
-              </div>
-            </div>
-            <div className="text-3xl font-bold text-indigo-700 dark:text-indigo-300">{stats.thisMonth}</div>
+        <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+          <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">This Month</div>
+          <div className="hig-metric-value text-4xl" style={{ color: '#007AFF', WebkitTextFillColor: '#007AFF' }}>
+            {stats.thisMonth}
           </div>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="mb-6">
+      <div className="mb-6 px-4">
         <div className="flex flex-wrap gap-2">
           {['all', 'security', 'compliance', 'incident', 'threat', 'vulnerability'].map(type => (
             <button
               key={type}
               onClick={() => setSelectedType(type)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+              className={`hig-button ${
                 selectedType === type
-                  ? 'bg-indigo-600 dark:bg-indigo-500 text-white shadow-sm'
-                  : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700/50'
+                  ? 'hig-button-primary'
+                  : 'hig-button-secondary'
               }`}
             >
               {type === 'all' ? 'All Types' : type.charAt(0).toUpperCase() + type.slice(1)}
@@ -218,57 +191,75 @@ export default function ReportsPage() {
       </div>
 
       {/* Reports Table */}
-      <div className="bg-white dark:bg-gray-800 shadow-sm rounded-xl overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-900/20">
-              <tr>
-                <th className="px-4 py-3 text-left">Report</th>
-                <th className="px-4 py-3 text-left">Type</th>
-                <th className="px-4 py-3 text-left">Period</th>
-                <th className="px-4 py-3 text-left">Pages</th>
-                <th className="px-4 py-3 text-left">Format</th>
-                <th className="px-4 py-3 text-left">Generated</th>
-                <th className="px-4 py-3 text-left">Status</th>
-                <th className="px-4 py-3 text-left">Actions</th>
+      <div className="px-4">
+        <div className="hig-card p-0">
+          <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200 dark:border-gray-700/60 px-6 pt-6">
+            <h2 className="hig-headline text-gray-900 dark:text-gray-100">Reports</h2>
+            <span className="hig-caption text-gray-600 dark:text-gray-400">{filteredReports.length} total</span>
+          </div>
+
+          <div className="overflow-x-auto">
+          <table className="hig-table w-full">
+            <thead>
+              <tr className="border-b border-gray-200 dark:border-gray-700/60">
+                <th className="px-6 py-3 text-left hig-caption font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Report</th>
+                <th className="px-6 py-3 text-left hig-caption font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Type</th>
+                <th className="px-6 py-3 text-left hig-caption font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Period</th>
+                <th className="px-6 py-3 text-left hig-caption font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Pages</th>
+                <th className="px-6 py-3 text-left hig-caption font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Format</th>
+                <th className="px-6 py-3 text-left hig-caption font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Generated</th>
+                <th className="px-6 py-3 text-left hig-caption font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Status</th>
+                <th className="px-6 py-3 text-left hig-caption font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Actions</th>
               </tr>
             </thead>
-            <tbody className="text-sm divide-y divide-gray-200 dark:divide-gray-700">
+            <tbody className="divide-y divide-gray-200 dark:divide-gray-700/60">
               {filteredReports.map((report) => (
-                <tr key={report.id} className="hover:bg-gray-50 dark:hover:bg-gray-900/20">
-                  <td className="px-4 py-3">
+                <tr key={report.id} className="hover:bg-gray-50 dark:hover:bg-[#334155]/20">
+                  <td className="px-6 py-4">
                     <div>
-                      <div className="font-medium text-gray-800 dark:text-gray-100">{report.title}</div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{report.id}</div>
+                      <div className="hig-body font-semibold text-gray-900 dark:text-gray-100">{report.title}</div>
+                      <div className="hig-caption text-gray-600 dark:text-gray-400 font-mono mt-0.5">{report.id}</div>
                     </div>
                   </td>
-                  <td className="px-4 py-3">
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getTypeColor(report.type)}`}>
+                  <td className="px-6 py-4">
+                    <span 
+                      className="hig-badge"
+                      style={{
+                        backgroundColor: `${getTypeColor(report.type)}20`,
+                        color: getTypeColor(report.type)
+                      }}
+                    >
                       {report.type.toUpperCase()}
                     </span>
                   </td>
-                  <td className="px-4 py-3">
-                    <span className="text-gray-700 dark:text-gray-300">{report.period}</span>
+                  <td className="px-6 py-4">
+                    <span className="hig-body text-gray-700 dark:text-gray-300">{report.period}</span>
                   </td>
-                  <td className="px-4 py-3">
-                    <span className="text-gray-700 dark:text-gray-300">{report.pages}</span>
+                  <td className="px-6 py-4">
+                    <span className="hig-body text-gray-700 dark:text-gray-300">{report.pages}</span>
                   </td>
-                  <td className="px-4 py-3">
-                    <span className="text-gray-700 dark:text-gray-300">{report.format}</span>
+                  <td className="px-6 py-4">
+                    <span className="hig-body text-gray-700 dark:text-gray-300">{report.format}</span>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-6 py-4">
                     <div>
-                      <div className="text-gray-700 dark:text-gray-300">{formatDate(report.generatedAt)}</div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400">{report.generatedBy}</div>
+                      <div className="hig-body text-gray-700 dark:text-gray-300">{formatDate(report.generatedAt)}</div>
+                      <div className="hig-caption text-gray-500 dark:text-gray-400">{report.generatedBy}</div>
                     </div>
                   </td>
-                  <td className="px-4 py-3">
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getStatusColor(report.status)}`}>
+                  <td className="px-6 py-4">
+                    <span 
+                      className="hig-badge"
+                      style={{
+                        backgroundColor: `${getStatusColor(report.status)}20`,
+                        color: getStatusColor(report.status)
+                      }}
+                    >
                       {report.status.toUpperCase()}
                     </span>
                   </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-3">
                       <button 
                         onClick={(e) => {
                           e.stopPropagation()
@@ -280,19 +271,18 @@ export default function ReportsPage() {
                           document.body.removeChild(link)
                           alert(`Downloading ${report.title}...`)
                         }}
-                        className="text-indigo-600 hover:text-indigo-700 dark:hover:text-indigo-500 font-medium"
+                        className="hig-caption hover:text-[#AF52DE] hig-link-hover"
                       >
-                        Download
+                        Download →
                       </button>
-                      <span className="text-gray-300 dark:text-gray-600">|</span>
                       <button 
                         onClick={(e) => {
                           e.stopPropagation()
                           setSelectedReport(report)
                         }}
-                        className="text-blue-500 hover:text-blue-600 font-medium"
+                        className="hig-caption hover:text-[#AF52DE] hig-link-hover"
                       >
-                        Share
+                        Share →
                       </button>
                     </div>
                   </td>
@@ -300,71 +290,96 @@ export default function ReportsPage() {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       </div>
 
-      {/* Share Modal (Only for sharing) */}
+      {/* Share Modal */}
       {selectedReport && (
         <>
           <div 
-            className="fixed inset-0 bg-gray-900/50 z-40"
+            className="hig-modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4"
             onClick={() => setSelectedReport(null)}
-          />
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-md w-full p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">Share Report</h2>
-                <button
-                  onClick={() => setSelectedReport(null)}
-                  className="text-gray-400 hover:text-gray-500"
-                >
-                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
+          >
+            <div 
+              className="hig-modal p-0 max-w-4xl w-full flex flex-col max-h-[90vh]"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Fixed Header */}
+              <div 
+                className="sticky top-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-[#1E293B]/80 border-b border-gray-200 dark:border-gray-700/60 p-6 pb-4"
+                style={{
+                  WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+                  backdropFilter: 'blur(20px) saturate(180%)'
+                }}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <h2 className="hig-headline text-gray-900 dark:text-gray-100">Share Report</h2>
+                  <button
+                    onClick={() => setSelectedReport(null)}
+                    className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
+                  >
+                    <span className="sr-only">Close</span>
+                    <svg className="w-6 h-6 fill-current" viewBox="0 0 24 24">
+                      <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+                    </svg>
+                  </button>
+                </div>
               </div>
 
-              <div className="space-y-4">
-                <div>
-                  <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{selectedReport.title}</div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">{selectedReport.id}</div>
-                </div>
+              {/* Scrollable Content */}
+              <div className="flex-1 overflow-y-auto px-6 py-6">
+                <div className="space-y-6">
+                  <div>
+                    <div className="hig-body font-semibold text-gray-900 dark:text-gray-100 mb-1">{selectedReport.title}</div>
+                    <div className="hig-caption text-gray-600 dark:text-gray-400 font-mono">{selectedReport.id}</div>
+                  </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Email addresses (comma separated)
-                  </label>
-                  <textarea 
-                    placeholder="email1@company.com, email2@company.com"
-                    rows={3}
-                    className="form-input w-full bg-white dark:bg-gray-800"
-                  />
-                </div>
+                  <div>
+                    <label className="block hig-caption text-gray-600 dark:text-gray-400 mb-2 font-semibold">
+                      Email addresses (comma separated)
+                    </label>
+                    <textarea 
+                      placeholder="email1@company.com, email2@company.com"
+                      rows={3}
+                      className="hig-input w-full min-h-[100px] resize-none"
+                    />
+                  </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Message (optional)
-                  </label>
-                  <textarea 
-                    placeholder="Add a message..."
-                    rows={3}
-                    className="form-input w-full bg-white dark:bg-gray-800"
-                  />
+                  <div>
+                    <label className="block hig-caption text-gray-600 dark:text-gray-400 mb-2 font-semibold">
+                      Message (optional)
+                    </label>
+                    <textarea 
+                      placeholder="Add a message..."
+                      rows={3}
+                      className="hig-input w-full min-h-[100px] resize-none"
+                    />
+                  </div>
                 </div>
+              </div>
 
-                <div className="flex gap-3 pt-4">
+              {/* Fixed Footer */}
+              <div 
+                className="sticky bottom-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-[#1E293B]/80 border-t border-gray-200 dark:border-gray-700/60 p-6 pt-4"
+                style={{
+                  WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+                  backdropFilter: 'blur(20px) saturate(180%)'
+                }}
+              >
+                <div className="flex gap-3">
                   <button 
                     onClick={() => {
                       alert('Report shared successfully!')
                       setSelectedReport(null)
                     }}
-                    className="flex-1 btn bg-indigo-600 dark:bg-indigo-600 hover:bg-indigo-700 dark:hover:bg-indigo-700 text-white"
+                    className="flex-1 hig-button hig-button-primary"
                   >
                     Send Report
                   </button>
                   <button 
                     onClick={() => setSelectedReport(null)}
-                    className="flex-1 btn bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100 hover:bg-gray-300 dark:hover:bg-gray-600"
+                    className="flex-1 hig-button hig-button-secondary"
                   >
                     Cancel
                   </button>

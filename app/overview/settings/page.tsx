@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import { usePageTitle } from '@/app/page-title-context'
 import { useTheme } from 'next-themes'
-import { PageHeader, Card } from '@/components/ui/card'
 
 export default function SettingsPage() {
   const { setPageTitle } = usePageTitle()
@@ -25,18 +24,18 @@ export default function SettingsPage() {
   const [mfaEnabled, setMfaEnabled] = useState(true)
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-4xl mx-auto">
-      <PageHeader 
-        title="Settings" 
-        description="Manage your profile and preferences" 
-      />
+    <div className="py-8 w-full max-w-4xl mx-auto">
+      <div className="mb-6 px-4 hig-fade-in">
+        <h1 className="hig-title-large text-gray-900 dark:text-gray-100 mb-2">Settings</h1>
+        <p className="hig-body text-gray-600 dark:text-gray-400">Manage your profile and preferences</p>
+      </div>
 
-      <div className="space-y-6">
+      <div className="space-y-6 px-4">
         
         {/* Profile */}
-        <Card>
+        <div className="hig-card">
           <div className="border-b border-gray-200 dark:border-gray-700/60 pb-4 mb-6">
-            <h2 className="text-sm font-medium text-gray-900 dark:text-gray-100 uppercase tracking-wide">Profile</h2>
+            <h2 className="hig-headline text-gray-900 dark:text-gray-100">Profile</h2>
           </div>
           
           <div className="flex items-center gap-6 mb-8">
@@ -46,11 +45,11 @@ export default function SettingsPage() {
               </span>
             </div>
             <div className="space-y-2">
-              <button className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm font-medium">
+              <button className="hig-button hig-button-primary">
                 Upload Photo
               </button>
               <div>
-                <button className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 transition-colors">
+                <button className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200">
                   Remove
                 </button>
               </div>
@@ -59,12 +58,12 @@ export default function SettingsPage() {
 
           <div className="space-y-5">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Full Name</label>
+              <label className="block hig-body font-medium text-gray-700 dark:text-gray-300 mb-2">Full Name</label>
               <input 
                 type="text" 
                 value={profile.name}
                 onChange={(e) => setProfile(prev => ({ ...prev, name: e.target.value }))}
-                className="w-full px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:focus:ring-indigo-400 dark:focus:border-indigo-400 outline-none transition-all text-gray-900 dark:text-gray-100"
+                className="hig-input w-full"
               />
             </div>
 
@@ -76,7 +75,7 @@ export default function SettingsPage() {
                 readOnly
                 className="w-full px-4 py-2.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg outline-none text-gray-500 dark:text-gray-500 cursor-not-allowed"
               />
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Email cannot be changed</p>
+              <p className="hig-caption text-gray-500 dark:text-gray-400 mt-1">Email cannot be changed</p>
             </div>
 
             <div>
@@ -85,7 +84,7 @@ export default function SettingsPage() {
                 type="tel" 
                 value={profile.phone}
                 onChange={(e) => setProfile(prev => ({ ...prev, phone: e.target.value }))}
-                className="w-full px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:focus:ring-indigo-400 dark:focus:border-indigo-400 outline-none transition-all text-gray-900 dark:text-gray-100"
+                className="hig-input w-full"
               />
             </div>
 
@@ -94,7 +93,7 @@ export default function SettingsPage() {
               <select 
                 value={profile.timezone}
                 onChange={(e) => setProfile(prev => ({ ...prev, timezone: e.target.value }))}
-                className="w-full px-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:focus:ring-indigo-400 dark:focus:border-indigo-400 outline-none transition-all text-gray-900 dark:text-gray-100"
+                className="hig-input w-full"
               >
                 <option value="UTC">UTC (GMT+0)</option>
                 <option value="EST">Eastern Time (GMT-5)</option>
@@ -104,12 +103,12 @@ export default function SettingsPage() {
               </select>
             </div>
           </div>
-        </Card>
+        </div>
 
         {/* Theme */}
-        <Card>
+        <div className="hig-card">
           <div className="border-b border-gray-200 dark:border-gray-700/60 pb-4 mb-6">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Appearance</h2>
+            <h2 className="hig-headline text-gray-900 dark:text-gray-100">Appearance</h2>
           </div>
           
           <div className="grid grid-cols-3 gap-4">
@@ -117,36 +116,36 @@ export default function SettingsPage() {
               <button
                 key={t}
                 onClick={() => mounted && setTheme(t)}
-                className={`px-6 py-4 rounded-lg border-2 text-sm font-medium transition-all ${
+                className={`px-6 py-4 rounded-lg border-2 hig-body font-medium ${
                   theme === t
-                    ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400'
-                    : 'border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-900/20'
+                    ? 'border-[#393A84] bg-[#393A84]/10 dark:bg-[#393A84]/20 text-[#393A84] dark:text-[#393A84]'
+                    : 'border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-[#334155]/20'
                 }`}
               >
                 {t.charAt(0).toUpperCase() + t.slice(1)}
               </button>
             ))}
           </div>
-        </Card>
+        </div>
 
         {/* Security */}
-        <Card>
+        <div className="hig-card">
           <div className="border-b border-gray-200 dark:border-gray-700/60 pb-4 mb-6">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Security</h2>
+            <h2 className="hig-headline text-gray-900 dark:text-gray-100">Security</h2>
           </div>
           
           <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900/20 rounded-lg">
             <div>
-              <div className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-1">Multi-Factor Authentication</div>
-              <div className="text-xs text-gray-600 dark:text-gray-400">
+              <div className="hig-body font-medium text-gray-900 dark:text-gray-100 mb-1">Multi-Factor Authentication</div>
+              <div className="hig-caption text-gray-600 dark:text-gray-400">
                 {mfaEnabled ? 'Additional security layer is active' : 'Enable for better account protection'}
               </div>
             </div>
             <button 
               onClick={() => setMfaEnabled(!mfaEnabled)}
-              className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${
+              className={`relative inline-flex h-7 w-12 items-center rounded-full ${
                 mfaEnabled 
-                  ? 'bg-indigo-600 dark:bg-indigo-600' 
+                  ? 'bg-[#393A84] dark:bg-[#393A84]' 
                   : 'bg-gray-300 dark:bg-gray-600'
               }`}
             >
@@ -158,19 +157,19 @@ export default function SettingsPage() {
           
           {mfaEnabled && (
             <div className="mt-4">
-              <button className="px-4 py-2 text-sm text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors">
+              <button className="hig-button hig-button-secondary">
                 View Backup Codes
               </button>
             </div>
           )}
-        </Card>
+        </div>
 
         {/* Actions */}
-        <div className="flex justify-end gap-3 mt-8">
-          <button className="px-6 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900/20 transition-colors">
+          <div className="flex justify-end gap-3 mt-8">
+          <button className="hig-button hig-button-secondary">
             Cancel
           </button>
-          <button className="px-6 py-2.5 text-sm font-medium bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 shadow-sm hover:shadow-md transition-all">
+          <button className="hig-button hig-button-primary">
             Save Changes
           </button>
         </div>

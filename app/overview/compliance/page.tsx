@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import { usePageTitle } from '@/app/page-title-context'
 import { formatDate } from '@/lib/utils'
-import { PageHeader, Card, Badge } from '@/components/ui/card'
 
 interface ComplianceFramework {
   id: string
@@ -22,7 +21,6 @@ interface ComplianceFramework {
 
 export default function CompliancePage() {
   const { setPageTitle } = usePageTitle()
-  const [activeTab, setActiveTab] = useState<string>('overview')
   const [selectedFramework, setSelectedFramework] = useState<ComplianceFramework | null>(null)
 
   useEffect(() => {
@@ -87,12 +85,20 @@ export default function CompliancePage() {
   ]
 
   const getStatusColor = (status: string) => {
-    const colors = {
-      compliant: 'bg-emerald-600 dark:bg-emerald-700/20 text-green-700 dark:text-green-400',
-      partial: 'bg-amber-600 dark:bg-amber-700/20 text-yellow-700 dark:text-yellow-400',
-      'non-compliant': 'bg-rose-600 dark:bg-rose-700/20 text-red-700 dark:text-red-400'
+    const colors: Record<string, string> = {
+      compliant: '#34C759',
+      partial: '#FF9500',
+      'non-compliant': '#FF3B30'
     }
-    return colors[status as keyof typeof colors]
+    return colors[status] || '#8E8E93'
+  }
+
+  const getStatusBadgeColor = (status: string) => {
+    const color = getStatusColor(status)
+    return {
+      backgroundColor: `${color}20`,
+      color: color
+    }
   }
 
   const getScoreColor = (score: number) => {
@@ -109,209 +115,181 @@ export default function CompliancePage() {
   const implementedControls = frameworks.reduce((sum, f) => sum + f.controls.implemented, 0)
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-7xl mx-auto">
-      <PageHeader 
-        title="Compliance" 
-        description="Monitor compliance with security standards and regulations" 
-      />
+    <div className="py-8 w-full max-w-7xl mx-auto">
+      <div className="mb-6 px-4 hig-fade-in">
+        <h1 className="hig-title-large text-gray-900 dark:text-gray-100 mb-2">Compliance</h1>
+        <p className="hig-body text-gray-600 dark:text-gray-400">Monitor compliance with security standards and regulations</p>
+      </div>
 
       {/* Overview Stats */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        <Card>
-          <div className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Overall Score</div>
-          <div className="text-4xl font-bold text-gray-900 dark:text-gray-100">{overallScore}%</div>
-          <div className="mt-4 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-            <div className="h-full bg-emerald-500" style={{ width: `${overallScore}%` }}></div>
-          </div>
-        </Card>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 mb-8 px-4">
+        <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+          <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Overall Score</div>
+          <div className="hig-metric-value text-4xl text-gray-900 dark:text-gray-100 mb-2">{overallScore}%</div>
+        </div>
 
-        <Card>
-          <div className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Total Controls</div>
-          <div className="text-4xl font-bold text-gray-900 dark:text-gray-100">{totalControls}</div>
-          <div className="text-sm text-gray-500 dark:text-gray-400 mt-2">{frameworks.length} frameworks</div>
-        </Card>
+        <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+          <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Total Controls</div>
+          <div className="hig-metric-value text-4xl text-gray-900 dark:text-gray-100 mb-2">{totalControls.toLocaleString()}</div>
+          <div className="hig-caption text-gray-600 dark:text-gray-400">{frameworks.length} frameworks</div>
+        </div>
 
-        <Card>
-          <div className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Implemented</div>
-          <div className="text-4xl font-bold text-emerald-600 dark:text-emerald-400">{implementedControls}</div>
-          <div className="text-sm text-gray-500 dark:text-gray-400 mt-2">{Math.round((implementedControls / totalControls) * 100)}% complete</div>
-        </Card>
-      </div>
-
-      {/* Tabs */}
-      <div className="mb-8">
-        <div className="border-b border-gray-200 dark:border-gray-700/60">
-          <nav className="flex gap-8">
-            {['overview', 'frameworks', 'audits'].map(tab => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`pb-3 text-sm transition-colors ${
-                  activeTab === tab
-                    ? 'border-b-2 border-indigo-600 text-gray-900 dark:text-gray-100'
-                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
-                }`}
-              >
-                {tab.charAt(0).toUpperCase() + tab.slice(1)}
-              </button>
-            ))}
-          </nav>
+        <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+          <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Implemented</div>
+          <div className="hig-metric-value text-4xl text-gray-900 dark:text-gray-100 mb-2">{implementedControls.toLocaleString()}</div>
+          <div className="hig-caption text-gray-600 dark:text-gray-400">{Math.round((implementedControls / totalControls) * 100)}% complete</div>
         </div>
       </div>
 
-      {/* Tab Content */}
-      {activeTab === 'overview' && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {frameworks.map((framework) => (
-            <Card 
-              key={framework.id} 
-              hover
-              onClick={() => setSelectedFramework(framework)}
-            >
-              <div className="flex items-start justify-between mb-6">
-                <div>
-                  <h3 className="text-lg font-light text-gray-900 dark:text-gray-100 mb-2">{framework.name}</h3>
-                  <Badge variant={framework.status === 'compliant' ? 'success' : 'medium'}>
-                    {framework.status.replace('-', ' ').toUpperCase()}
-                  </Badge>
-                </div>
-                <div className={`text-4xl font-light ${getScoreColor(framework.score)}`}>{framework.score}%</div>
+      {/* Frameworks List */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 px-4">
+        {frameworks.map((framework) => (
+          <div 
+            key={framework.id} 
+            className="hig-card cursor-pointer hover:bg-gray-50 dark:hover:bg-[#334155]/30"
+            onClick={() => setSelectedFramework(framework)}
+          >
+            <div className="flex items-start justify-between mb-6">
+              <div>
+                <h3 className="hig-headline text-gray-900 dark:text-gray-100 mb-2">{framework.name}</h3>
+                <span 
+                  className="hig-badge"
+                  style={getStatusBadgeColor(framework.status)}
+                >
+                  {framework.status.replace('-', ' ').toUpperCase()}
+                </span>
               </div>
+              <div className={`hig-metric-value-accent ${getScoreColor(framework.score)}`}>{framework.score}%</div>
+            </div>
 
-              <div className="space-y-3">
-                <div className="flex items-center justify-between text-sm pb-2 border-b border-gray-100 dark:border-gray-700/60">
-                  <span className="text-gray-500 dark:text-gray-400">Controls</span>
-                  <span className="text-gray-900 dark:text-gray-100">
-                    {framework.controls.implemented} / {framework.controls.total}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-gray-500 dark:text-gray-400">Last: {formatDate(framework.lastAudit)}</span>
-                  <span className="text-gray-500 dark:text-gray-400">Next: {formatDate(framework.nextAudit)}</span>
-                </div>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between text-sm pb-2 border-b border-gray-100 dark:border-gray-700/60">
+                <span className="text-gray-500 dark:text-gray-400">Controls</span>
+                <span className="text-gray-900 dark:text-gray-100">
+                  {framework.controls.implemented} / {framework.controls.total}
+                </span>
               </div>
-            </Card>
-          ))}
-        </div>
-      )}
-
-      {activeTab === 'frameworks' && (
-        <Card padding="none">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-gray-200 dark:border-gray-700/60">
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Framework</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Score</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Controls</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Last Audit</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200 dark:divide-gray-700/60">
-                {frameworks.map((framework) => (
-                  <tr key={framework.id} className="hover:bg-gray-50 dark:hover:bg-gray-900/20 transition-colors">
-                    <td className="px-6 py-4 text-sm text-gray-900 dark:text-gray-100">{framework.name}</td>
-                    <td className="px-6 py-4 text-sm font-light text-gray-900 dark:text-gray-100">{framework.score}%</td>
-                    <td className="px-6 py-4">
-                      <Badge variant={framework.status === 'compliant' ? 'success' : 'medium'}>
-                        {framework.status.toUpperCase()}
-                      </Badge>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
-                      {framework.controls.implemented}/{framework.controls.total}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
-                      {formatDate(framework.lastAudit)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-gray-500 dark:text-gray-400">Last: {formatDate(framework.lastAudit)}</span>
+                <span className="text-gray-500 dark:text-gray-400">Next: {formatDate(framework.nextAudit)}</span>
+              </div>
+            </div>
           </div>
-        </Card>
-      )}
-
-      {activeTab === 'audits' && (
-        <div className="space-y-4">
-          {frameworks.map((framework) => (
-            <Card key={framework.id} padding="md">
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <div className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-1">{framework.name}</div>
-                  <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
-                    <span>Last: {formatDate(framework.lastAudit)}</span>
-                    <span>•</span>
-                    <span>Next: {formatDate(framework.nextAudit)}</span>
-                  </div>
-                </div>
-                <Badge variant={framework.status === 'compliant' ? 'success' : 'medium'}>
-                  {framework.status.toUpperCase()}
-                </Badge>
-              </div>
-            </Card>
-          ))}
-        </div>
-      )}
+        ))}
+      </div>
 
       {/* Framework Detail Panel */}
       {selectedFramework && (
         <>
           <div 
-            className="fixed inset-0 bg-gray-900/50 z-40"
+            className="hig-modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4"
             onClick={() => setSelectedFramework(null)}
-          />
-          <div className="fixed inset-y-0 right-0 w-full md:w-96 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700/60 z-50 overflow-y-auto">
-            <div className="p-6">
-              <div className="flex items-start justify-between mb-8 pb-6 border-b border-gray-200 dark:border-gray-700/60">
-                <div>
-                  <h2 className="text-xl font-light text-gray-900 dark:text-gray-100 mb-1">{selectedFramework.name}</h2>
-                  <div className={`text-3xl font-light ${getScoreColor(selectedFramework.score)}`}>{selectedFramework.score}%</div>
+          >
+            <div 
+              className="hig-modal p-0 max-w-4xl w-full flex flex-col max-h-[90vh]"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Fixed Header */}
+              <div 
+                className="sticky top-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-[#1E293B]/80 border-b border-gray-200 dark:border-gray-700/60 p-6 pb-4"
+                style={{
+                  WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+                  backdropFilter: 'blur(20px) saturate(180%)'
+                }}
+              >
+                <div className="flex items-start justify-between mb-2">
+                  <div>
+                    <h2 className="hig-headline text-gray-900 dark:text-gray-100 mb-1">{selectedFramework.name}</h2>
+                    <div className={`hig-metric-value-accent ${getScoreColor(selectedFramework.score)}`}>{selectedFramework.score}%</div>
+                  </div>
+                  <button
+                    onClick={() => setSelectedFramework(null)}
+                    className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
+                  >
+                    <span className="sr-only">Close</span>
+                    <svg className="w-6 h-6 fill-current" viewBox="0 0 24 24">
+                      <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+                    </svg>
+                  </button>
                 </div>
-                <button
-                  onClick={() => setSelectedFramework(null)}
-                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
-                >
-                  ×
-                </button>
+                {/* Compliance Status Indicator Bar */}
+                <div 
+                  className="h-1 rounded-full mt-3" 
+                  style={{ 
+                    backgroundColor: selectedFramework.status === 'compliant' ? '#34C759' : selectedFramework.status === 'partial' ? '#FF9500' : '#FF3B30'
+                  }}
+                />
               </div>
 
-              <div className="space-y-6">
-                <div>
-                  <div className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2">Status</div>
-                  <Badge variant={selectedFramework.status === 'compliant' ? 'success' : 'medium'}>
-                    {selectedFramework.status.replace('-', ' ').toUpperCase()}
-                  </Badge>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="border border-gray-200 dark:border-gray-700/60 p-4">
-                    <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Implemented</div>
-                    <div className="text-2xl font-light text-emerald-600 dark:text-emerald-400">{selectedFramework.controls.implemented}</div>
+              {/* Scrollable Content */}
+              <div className="flex-1 overflow-y-auto px-6 py-6">
+                <div className="space-y-6">
+                  <div>
+                    <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2 font-semibold">Status</div>
+                    <span 
+                      className="hig-badge"
+                      style={getStatusBadgeColor(selectedFramework.status)}
+                    >
+                      {selectedFramework.status.replace('-', ' ').toUpperCase()}
+                    </span>
                   </div>
-                  <div className="border border-gray-200 dark:border-gray-700/60 p-4">
-                    <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">In Progress</div>
-                    <div className="text-2xl font-light text-amber-600 dark:text-amber-400">{selectedFramework.controls.inProgress}</div>
-                  </div>
-                </div>
 
-                <div>
-                  <div className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-3">Audit Schedule</div>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between py-2 border-b border-gray-100 dark:border-gray-700/60">
-                      <span className="text-gray-500 dark:text-gray-400">Last Audit</span>
-                      <span className="text-gray-900 dark:text-gray-100">{formatDate(selectedFramework.lastAudit)}</span>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+                      <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Implemented</div>
+                      <div className="hig-metric-value text-3xl" style={{ color: '#34C759', WebkitTextFillColor: '#34C759' }}>
+                        {selectedFramework.controls.implemented}
+                      </div>
                     </div>
-                    <div className="flex justify-between py-2">
-                      <span className="text-gray-500 dark:text-gray-400">Next Audit</span>
-                      <span className="text-gray-900 dark:text-gray-100">{formatDate(selectedFramework.nextAudit)}</span>
+                    <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+                      <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">In Progress</div>
+                      <div className="hig-metric-value text-3xl" style={{ color: '#FF9500', WebkitTextFillColor: '#FF9500' }}>
+                        {selectedFramework.controls.inProgress}
+                      </div>
                     </div>
                   </div>
-                </div>
 
+                  <div className="pb-4 border-b border-gray-200 dark:border-gray-700/60">
+                    <div className="hig-headline mb-4">Controls Overview</div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <div className="hig-caption text-gray-600 dark:text-gray-400 mb-1">Total Controls</div>
+                        <div className="hig-body font-semibold text-gray-900 dark:text-gray-100">{selectedFramework.controls.total}</div>
+                      </div>
+                      <div>
+                        <div className="hig-caption text-gray-600 dark:text-gray-400 mb-1">Not Implemented</div>
+                        <div className="hig-body font-semibold text-gray-900 dark:text-gray-100">{selectedFramework.controls.notImplemented}</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="hig-headline mb-4">Audit Schedule</div>
+                    <div className="space-y-3">
+                      <div className="flex justify-between py-2 border-b border-gray-200 dark:border-gray-700/60">
+                        <span className="hig-body text-gray-600 dark:text-gray-400">Last Audit</span>
+                        <span className="hig-body font-semibold text-gray-900 dark:text-gray-100">{formatDate(selectedFramework.lastAudit)}</span>
+                      </div>
+                      <div className="flex justify-between py-2">
+                        <span className="hig-body text-gray-600 dark:text-gray-400">Next Audit</span>
+                        <span className="hig-body font-semibold text-gray-900 dark:text-gray-100">{formatDate(selectedFramework.nextAudit)}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Fixed Footer */}
+              <div 
+                className="sticky bottom-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-[#1E293B]/80 border-t border-gray-200 dark:border-gray-700/60 p-6 pt-4"
+                style={{
+                  WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+                  backdropFilter: 'blur(20px) saturate(180%)'
+                }}
+              >
                 <button 
                   onClick={() => setSelectedFramework(null)}
-                  className="w-full px-4 py-2.5 text-sm border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-900/20 transition-colors"
+                  className="hig-button hig-button-secondary w-full"
                 >
                   Close
                 </button>

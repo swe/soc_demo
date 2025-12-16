@@ -1,10 +1,7 @@
 'use client'
 import { formatDate, formatDateTime } from '@/lib/utils'
-
-
 import { useEffect, useState } from 'react'
 import { usePageTitle } from '@/app/page-title-context'
-import { PageHeader, Card, Badge } from '@/components/ui/card'
 
 interface Document {
   id: string
@@ -128,23 +125,23 @@ export default function DocumentationPage() {
     }
   ]
 
-  const getCategoryColor = (category: string) => {
-    const colors = {
-      security: 'bg-rose-600 dark:bg-rose-700/20 text-red-700 dark:text-red-400',
-      technical: 'bg-indigo-600 dark:bg-indigo-600/20 text-blue-700 dark:text-blue-400',
-      policy: 'bg-indigo-500/20 text-purple-700 dark:text-purple-400',
-      guide: 'bg-emerald-600 dark:bg-emerald-700/20 text-green-700 dark:text-green-400'
+  const getCategoryColor = (category: string): string => {
+    const colors: Record<string, string> = {
+      security: '#FF3B30',
+      technical: '#007AFF',
+      policy: '#AF52DE',
+      guide: '#34C759'
     }
-    return colors[category as keyof typeof colors]
+    return colors[category] || '#8E8E93'
   }
 
-  const getStatusColor = (status: string) => {
-    const colors = {
-      published: 'bg-emerald-600 dark:bg-emerald-700/20 text-green-700 dark:text-green-400',
-      draft: 'bg-amber-600 dark:bg-amber-700/20 text-yellow-700 dark:text-yellow-400',
-      archived: 'bg-gray-500/20 text-gray-700 dark:text-gray-400'
+  const getStatusColor = (status: string): string => {
+    const colors: Record<string, string> = {
+      published: '#34C759',
+      draft: '#FF9500',
+      archived: '#8E8E93'
     }
-    return colors[status as keyof typeof colors]
+    return colors[status] || '#8E8E93'
   }
 
   const filteredDocs = documents.filter(doc => {
@@ -162,59 +159,34 @@ export default function DocumentationPage() {
   }
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-7xl mx-auto">
-      <PageHeader 
-        title="Documentation" 
-        description="Access security documentation, guides, and technical resources" 
-      />
+    <div className="py-8 w-full max-w-7xl mx-auto">
+      <div className="mb-6 px-4 hig-fade-in">
+        <h1 className="hig-title-large text-gray-900 dark:text-gray-100 mb-2">Documentation</h1>
+        <p className="hig-body text-gray-600 dark:text-gray-400">Access security documentation, guides, and technical resources</p>
+      </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-12 gap-4 mb-6">
-        <div className="col-span-12 sm:col-span-4">
-          <div className="bg-white dark:bg-gray-800 shadow-sm rounded-xl p-5">
-            <div className="flex items-center justify-between mb-2">
-              <div className="text-sm text-gray-600 dark:text-gray-400">Total Documents</div>
-              <div className="w-10 h-10 bg-indigo-600 dark:bg-indigo-500/20 rounded-lg flex items-center justify-center">
-                <svg className="w-5 h-5 text-indigo-600 dark:text-indigo-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
-                </svg>
-              </div>
-            </div>
-            <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">{stats.total}</div>
-          </div>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6 px-4">
+        <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+          <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Total Documents</div>
+          <div className="hig-metric-value text-4xl text-gray-900 dark:text-gray-100">{stats.total}</div>
         </div>
 
-        <div className="col-span-12 sm:col-span-4">
-          <div className="bg-white dark:bg-gray-800 shadow-sm rounded-xl p-5">
-            <div className="flex items-center justify-between mb-2">
-              <div className="text-sm text-gray-600 dark:text-gray-400">Published</div>
-              <div className="w-10 h-10 bg-emerald-600 dark:bg-emerald-700/20 rounded-lg flex items-center justify-center">
-                <svg className="w-5 h-5 text-emerald-700 dark:text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-              </div>
-            </div>
-            <div className="text-3xl font-bold text-emerald-700 dark:text-emerald-400">{stats.published}</div>
-          </div>
+        <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+          <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Published</div>
+          <div className="hig-metric-value text-4xl text-gray-900 dark:text-gray-100">{stats.published}</div>
         </div>
 
-        <div className="col-span-12 sm:col-span-4">
-          <div className="bg-white dark:bg-gray-800 shadow-sm rounded-xl p-5">
-            <div className="flex items-center justify-between mb-2">
-              <div className="text-sm text-gray-600 dark:text-gray-400">Total Downloads</div>
-              <div className="w-10 h-10 bg-indigo-600 dark:bg-indigo-600/20 rounded-lg flex items-center justify-center">
-                <svg className="w-5 h-5 text-indigo-700 dark:text-indigo-300" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
-                </svg>
-              </div>
-            </div>
-            <div className="text-3xl font-bold text-indigo-700 dark:text-indigo-300">{stats.totalDownloads}</div>
+        <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+          <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Total Downloads</div>
+          <div className="hig-metric-value text-4xl" style={{ color: '#007AFF', WebkitTextFillColor: '#007AFF' }}>
+            {stats.totalDownloads}
           </div>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="mb-6">
+      <div className="mb-6 px-4">
         <div className="flex flex-col sm:flex-row gap-4 mb-4">
           <div className="flex-1">
             <input 
@@ -222,7 +194,7 @@ export default function DocumentationPage() {
               placeholder="Search documentation..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="form-input w-full bg-white dark:bg-gray-800"
+              className="hig-input w-full"
             />
           </div>
         </div>
@@ -231,10 +203,10 @@ export default function DocumentationPage() {
             <button
               key={category}
               onClick={() => setSelectedCategory(category)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+              className={`hig-button ${
                 selectedCategory === category
-                  ? 'bg-indigo-600 dark:bg-indigo-500 text-white shadow-sm'
-                  : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700/50'
+                  ? 'hig-button-primary'
+                  : 'hig-button-secondary'
               }`}
             >
               {category === 'all' ? 'All Categories' : category.charAt(0).toUpperCase() + category.slice(1)}
@@ -244,40 +216,54 @@ export default function DocumentationPage() {
       </div>
 
       {/* Documents Grid */}
-      <div className="grid grid-cols-12 gap-4">
+      <div className="grid grid-cols-12 gap-4 px-4">
         {filteredDocs.map((doc) => (
           <div key={doc.id} className="col-span-12 lg:col-span-6">
             <div 
               onClick={() => setSelectedDoc(doc)}
-              className="bg-white dark:bg-gray-800 shadow-sm rounded-xl p-6 hover:shadow-md transition-shadow cursor-pointer"
+              className="hig-card cursor-pointer"
             >
               <div className="flex items-start justify-between mb-3">
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-2">{doc.title}</h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">{doc.description}</p>
+                <div className="flex-1 min-w-0">
+                  <h3 className="hig-body font-semibold text-gray-900 dark:text-gray-100 mb-2 line-clamp-2" title={doc.title}>
+                    {doc.title}
+                  </h3>
+                  <p className="hig-caption text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">{doc.description}</p>
                 </div>
-                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getCategoryColor(doc.category)}`}>
+                <span 
+                  className="hig-badge flex-shrink-0 ml-2"
+                  style={{
+                    backgroundColor: `${getCategoryColor(doc.category)}20`,
+                    color: getCategoryColor(doc.category)
+                  }}
+                >
                   {doc.category.toUpperCase()}
                 </span>
               </div>
 
               <div className="flex flex-wrap gap-2 mb-4">
                 {doc.tags.map((tag, idx) => (
-                  <span key={idx} className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
+                  <span key={idx} className="hig-badge bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
                     {tag}
                   </span>
                 ))}
               </div>
 
-              <div className="flex items-center justify-between pt-3 border-t border-gray-200 dark:border-gray-700">
-                <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+              <div className="flex items-center justify-between pt-3 border-t border-gray-200 dark:border-gray-700/60">
+                <div className="flex items-center gap-4 hig-caption text-gray-600 dark:text-gray-400">
                   <span>v{doc.version}</span>
                   <span>•</span>
                   <span>{formatDate(doc.lastUpdated)}</span>
                   <span>•</span>
                   <span>{doc.downloads} downloads</span>
                 </div>
-                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(doc.status)}`}>
+                <span 
+                  className="hig-badge"
+                  style={{
+                    backgroundColor: `${getStatusColor(doc.status)}20`,
+                    color: getStatusColor(doc.status)
+                  }}
+                >
                   {doc.status.toUpperCase()}
                 </span>
               </div>
@@ -290,89 +276,125 @@ export default function DocumentationPage() {
       {selectedDoc && (
         <>
           <div 
-            className="fixed inset-0 bg-gray-900/50 z-40"
+            className="hig-modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4"
             onClick={() => setSelectedDoc(null)}
-          />
-          <div className="fixed inset-y-0 right-0 w-full md:w-2/3 lg:w-1/2 bg-white dark:bg-gray-800 shadow-xl z-50 overflow-y-auto">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">Document Details</h2>
-                <button
-                  onClick={() => setSelectedDoc(null)}
-                  className="text-gray-400 hover:text-gray-500"
-                >
-                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
+          >
+            <div 
+              className="hig-modal p-0 max-w-4xl w-full flex flex-col max-h-[90vh]"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Fixed Header */}
+              <div 
+                className="sticky top-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-[#1E293B]/80 border-b border-gray-200 dark:border-gray-700/60 p-6 pb-4"
+                style={{
+                  WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+                  backdropFilter: 'blur(20px) saturate(180%)'
+                }}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <h2 className="hig-headline text-gray-900 dark:text-gray-100">Document Details</h2>
+                  <button
+                    onClick={() => setSelectedDoc(null)}
+                    className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
+                  >
+                    <span className="sr-only">Close</span>
+                    <svg className="w-6 h-6 fill-current" viewBox="0 0 24 24">
+                      <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+                    </svg>
+                  </button>
+                </div>
               </div>
 
-              <div className="space-y-4">
-                <div>
-                  <div className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-2">{selectedDoc.title}</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">{selectedDoc.id}</div>
-                </div>
-
-                <div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400 mb-2">Category</div>
-                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getCategoryColor(selectedDoc.category)}`}>
-                    {selectedDoc.category.toUpperCase()}
-                  </span>
-                </div>
-
-                <div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">Description</div>
-                  <div className="text-gray-800 dark:text-gray-100">{selectedDoc.description}</div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
+              {/* Scrollable Content */}
+              <div className="flex-1 overflow-y-auto px-6 py-6">
+                <div className="space-y-6">
                   <div>
-                    <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">Version</div>
-                    <div className="text-gray-800 dark:text-gray-100">v{selectedDoc.version}</div>
+                    <div className="hig-headline text-gray-900 dark:text-gray-100 mb-2">{selectedDoc.title}</div>
+                    <div className="hig-caption text-gray-600 dark:text-gray-400 font-mono">{selectedDoc.id}</div>
                   </div>
+
+                  <div className="pb-4 border-b border-gray-200 dark:border-gray-700/60">
+                    <div className="hig-headline mb-4">Overview</div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Category</div>
+                        <span 
+                          className="hig-badge"
+                          style={{
+                            backgroundColor: `${getCategoryColor(selectedDoc.category)}20`,
+                            color: getCategoryColor(selectedDoc.category)
+                          }}
+                        >
+                          {selectedDoc.category.toUpperCase()}
+                        </span>
+                      </div>
+                      <div>
+                        <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Status</div>
+                        <span 
+                          className="hig-badge"
+                          style={{
+                            backgroundColor: `${getStatusColor(selectedDoc.status)}20`,
+                            color: getStatusColor(selectedDoc.status)
+                          }}
+                        >
+                          {selectedDoc.status.toUpperCase()}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pb-4 border-b border-gray-200 dark:border-gray-700/60">
+                    <div className="hig-headline mb-4">Description</div>
+                    <div className="hig-body text-gray-700 dark:text-gray-300 leading-relaxed">{selectedDoc.description}</div>
+                  </div>
+
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+                      <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Version</div>
+                      <div className="hig-metric-value text-3xl text-gray-900 dark:text-gray-100">v{selectedDoc.version}</div>
+                    </div>
+                    <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+                      <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Downloads</div>
+                      <div className="hig-metric-value text-3xl text-gray-900 dark:text-gray-100">{selectedDoc.downloads}</div>
+                    </div>
+                    <div>
+                      <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Author</div>
+                      <div className="hig-body font-semibold text-gray-900 dark:text-gray-100">{selectedDoc.author}</div>
+                    </div>
+                    <div>
+                      <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Last Updated</div>
+                      <div className="hig-body font-semibold text-gray-900 dark:text-gray-100">{formatDate(selectedDoc.lastUpdated)}</div>
+                    </div>
+                  </div>
+
                   <div>
-                    <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">Status</div>
-                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(selectedDoc.status)}`}>
-                      {selectedDoc.status.toUpperCase()}
-                    </span>
+                    <div className="hig-headline mb-4">Tags</div>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedDoc.tags.map((tag, idx) => (
+                        <span key={idx} className="hig-badge bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
                   </div>
                 </div>
+              </div>
 
-                <div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">Author</div>
-                  <div className="text-gray-800 dark:text-gray-100">{selectedDoc.author}</div>
-                </div>
-
-                <div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">Last Updated</div>
-                  <div className="text-gray-800 dark:text-gray-100">{formatDate(selectedDoc.lastUpdated)}</div>
-                </div>
-
-                <div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">Downloads</div>
-                  <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">{selectedDoc.downloads}</div>
-                </div>
-
-                <div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400 mb-2">Tags</div>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedDoc.tags.map((tag, idx) => (
-                      <span key={idx} className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-                  <div className="grid grid-cols-2 gap-3">
-                    <button className="btn bg-indigo-600 dark:bg-indigo-600 hover:bg-indigo-700 dark:hover:bg-indigo-700 text-white">
-                      Download PDF
-                    </button>
-                    <button className="btn bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100 hover:bg-gray-300 dark:hover:bg-gray-600">
-                      View Online
-                    </button>
-                  </div>
+              {/* Fixed Footer */}
+              <div 
+                className="sticky bottom-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-[#1E293B]/80 border-t border-gray-200 dark:border-gray-700/60 p-6 pt-4"
+                style={{
+                  WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+                  backdropFilter: 'blur(20px) saturate(180%)'
+                }}
+              >
+                <div className="grid grid-cols-2 gap-3">
+                  <button className="hig-button hig-button-primary">
+                    Download PDF
+                  </button>
+                  <button className="hig-button hig-button-secondary">
+                    View Online
+                  </button>
                 </div>
               </div>
             </div>

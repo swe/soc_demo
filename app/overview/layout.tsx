@@ -1,4 +1,5 @@
 import '../css/overview-style.css'
+import '../css/overview-hig-style.css'
 import Sidebar from '@/components/ui/sidebar'
 import Header from '@/components/ui/header'
 
