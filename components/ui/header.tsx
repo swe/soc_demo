@@ -46,9 +46,6 @@ export default function Header({
             {/* Page Title - shown when scrolled */}
             {isScrolled && pageTitle && (
               <div className="ml-2 lg:ml-0 flex items-center gap-3">
-                <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100 truncate max-w-xs lg:max-w-md">
-                  {pageTitle}
-                </h1>
                 {/* Live indicator - only show on Overview page */}
                 {pageTitle === 'Security Operations Center' && (
                   <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
@@ -57,8 +54,12 @@ export default function Header({
                       <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                     </span>
                     <span className="text-emerald-600 dark:text-emerald-400 font-medium">Live</span>
+                    <span className="text-gray-200 dark:text-gray-400 font-medium">|</span>
                   </div>
                 )}
+                <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100 truncate">
+                  {pageTitle}
+                </h1>
               </div>
             )}
             

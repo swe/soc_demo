@@ -26,12 +26,12 @@ export default function DropdownProfile({ align }: {
           <div className="text-xs text-gray-500 dark:text-gray-400 italic">peter.pan@neverlands.art</div>
         </div>
         <MenuItem>
-          <Link className="font-medium text-sm flex items-center py-1 px-3 text-indigo-600 hover:bg-gray-50 dark:hover:bg-gray-700/50 data-[focus]:bg-gray-50 dark:data-[focus]:bg-gray-700/50" href="/settings/account">
+          <Link className="font-medium text-sm flex items-center py-1 px-3 text-indigo-600 hover:bg-gray-50 dark:hover:bg-gray-700/50 data-[focus]:bg-gray-50 dark:data-[focus]:bg-gray-700/50" href="/overview/settings">
             Settings
           </Link>
         </MenuItem>
         <MenuItem>
-          <Link className="font-medium text-sm flex items-center py-1 px-3 text-indigo-600 hover:bg-gray-50 dark:hover:bg-gray-700/50 data-[focus]:bg-gray-50 dark:data-[focus]:bg-gray-700/50" href="#0">
+          <Link className="font-medium text-sm flex items-center py-1 px-3 text-indigo-600 hover:bg-gray-50 dark:hover:bg-gray-700/50 data-[focus]:bg-gray-50 dark:data-[focus]:bg-gray-700/50" href="https://svalbard.ca/contact" target="_blank" rel="noopener noreferrer">
             Support
           </Link>
         </MenuItem>

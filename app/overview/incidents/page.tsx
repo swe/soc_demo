@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import { usePageTitle } from '@/app/page-title-context'
-import { PageHeader, Card, Badge } from '@/components/ui/card'
 
 interface Incident {
   id: string
@@ -19,7 +18,9 @@ interface Incident {
 export default function IncidentsPage() {
   const { setPageTitle } = usePageTitle()
   const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null)
+  const [expandedIncidentId, setExpandedIncidentId] = useState<string | null>(null)
   const [filterStatus, setFilterStatus] = useState<string>('all')
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
   useEffect(() => {
     setPageTitle('Incidents')
@@ -83,25 +84,25 @@ export default function IncidentsPage() {
     }
   ]
 
-  const getSeverityColor = (severity: string) => {
-    const colors = {
-      critical: 'bg-rose-100 dark:bg-rose-900/40 text-rose-800 dark:text-rose-300',
-      high: 'bg-orange-100 dark:bg-orange-900/40 text-orange-800 dark:text-orange-300',
-      medium: 'bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300',
-      low: 'bg-slate-100 dark:bg-slate-900/40 text-slate-800 dark:text-slate-300'
+  const getSeverityColor = (severity: string): string => {
+    const colors: Record<string, string> = {
+      'critical': '#FF3B30',  // System red
+      'high': '#FF9500',      // System orange
+      'medium': '#FFCC00',    // System yellow
+      'low': '#007AFF'        // System blue
     }
-    return colors[severity as keyof typeof colors]
+    return colors[severity.toLowerCase()] || '#8E8E93'
   }
 
-  const getStatusColor = (status: string) => {
-    const colors = {
-      new: 'bg-rose-100 dark:bg-rose-900/40 text-rose-800 dark:text-rose-300',
-      investigating: 'bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300',
-      contained: 'bg-sky-100 dark:bg-sky-900/40 text-indigo-700 dark:text-indigo-300',
-      resolved: 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300',
-      closed: 'bg-slate-100 dark:bg-slate-900/40 text-slate-800 dark:text-slate-300'
+  const getStatusColor = (status: string): string => {
+    const colors: Record<string, string> = {
+      'new': '#FF3B30',        // System red
+      'investigating': '#FF9500', // System orange
+      'contained': '#007AFF',   // System blue
+      'resolved': '#34C759',    // System green
+      'closed': '#8E8E93'      // System gray
     }
-    return colors[status as keyof typeof colors]
+    return colors[status.toLowerCase()] || '#8E8E93'
   }
 
   const stats = {
@@ -116,45 +117,45 @@ export default function IncidentsPage() {
     : incidents.filter(i => i.status === filterStatus)
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-7xl mx-auto">
-      <PageHeader 
-        title="Security Incidents" 
-        description="Monitor and manage security incidents and response activities" 
-      />
+    <div className="py-8 w-full max-w-7xl mx-auto">
+      <div className="mb-6 px-4 hig-fade-in">
+        <h1 className="hig-title-large text-gray-900 dark:text-gray-100 mb-2">Security Incidents</h1>
+        <p className="hig-body text-gray-600 dark:text-gray-400">Monitor and manage security incidents and response activities</p>
+      </div>
 
       {/* Sticky Status Bar - Consolidated metrics */}
-      <div className="sticky top-16 z-40 before:absolute before:inset-0 before:backdrop-blur-md before:bg-white/90 dark:before:bg-gray-800/90 before:-z-10 border-b border-gray-200 dark:border-gray-700/60 mb-6 -mx-4 sm:-mx-6 lg:-mx-8">
+      <div className="sticky top-16 z-40 before:absolute before:inset-0 before:backdrop-blur-xl before:bg-white/80 dark:before:bg-[#0F172A]/80 before:-z-10 border-b border-gray-200 dark:border-gray-700/60 mb-6 -mx-4 sm:-mx-6 lg:-mx-8">
         <div className="px-4 sm:px-6 lg:px-8 py-3">
           <div className="flex items-center justify-between text-sm">
             <div className="flex items-center space-x-6">
               <div className="flex items-center gap-2">
-                <svg className="w-4 h-4 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-4 h-4 text-[#007AFF]" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                 </svg>
-                <span className="font-semibold text-gray-900 dark:text-gray-100">
+                <span className="hig-caption font-semibold text-gray-900 dark:text-gray-100">
                   {stats.total} Total
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-rose-600 dark:bg-rose-500 rounded-full animate-pulse"></div>
-                <span className="font-semibold text-gray-900 dark:text-gray-100">
+                <div className="w-2 h-2 bg-[#FF3B30] rounded-full animate-pulse"></div>
+                <span className="hig-caption font-semibold text-gray-900 dark:text-gray-100">
                   {stats.critical} Critical
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-amber-600 dark:bg-amber-500 rounded-full"></div>
-                <span className="font-semibold text-gray-900 dark:text-gray-100">
+                <div className="w-2 h-2 bg-[#FF9500] rounded-full"></div>
+                <span className="hig-caption font-semibold text-gray-900 dark:text-gray-100">
                   {stats.investigating} Investigating
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-emerald-600 dark:bg-emerald-500 rounded-full"></div>
-                <span className="font-semibold text-gray-900 dark:text-gray-100">
+                <div className="w-2 h-2 bg-[#34C759] rounded-full"></div>
+                <span className="hig-caption font-semibold text-gray-900 dark:text-gray-100">
                   {stats.resolved} Resolved Today
                 </span>
               </div>
             </div>
-            <div className="text-gray-500 dark:text-gray-400">
+            <div className="hig-caption">
               MTTR: <span className="font-semibold text-gray-900 dark:text-gray-100">3.8h</span>
             </div>
           </div>
@@ -162,17 +163,13 @@ export default function IncidentsPage() {
       </div>
 
       {/* Filters */}
-      <div className="mb-6">
+      <div className="mb-6 px-4">
         <div className="flex flex-wrap gap-2">
           {['all', 'investigating', 'contained', 'resolved'].map(status => (
             <button
               key={status}
               onClick={() => setFilterStatus(status)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                filterStatus === status
-                  ? 'bg-indigo-600 dark:bg-indigo-500 text-white shadow-sm'
-                  : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700/50'
-              }`}
+              className={`hig-button ${filterStatus === status ? 'hig-button-primary' : 'hig-button-secondary'}`}
             >
               {status.charAt(0).toUpperCase() + status.slice(1)}
             </button>
@@ -180,75 +177,172 @@ export default function IncidentsPage() {
         </div>
       </div>
 
-      {/* Incidents Table */}
-      <div className="grid grid-cols-12 gap-4">
-        <div className="col-span-12 lg:col-span-8">
-          <div className="bg-white dark:bg-gray-800 shadow-sm rounded-xl">
-            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-              <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Active Incidents</h2>
+      {/* Incidents List with Expandable Details */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 px-4">
+        <div className="lg:col-span-8">
+          <div className="hig-card">
+            <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200 dark:border-gray-700/60">
+              <h2 className="hig-headline text-gray-900 dark:text-gray-100">Active Incidents</h2>
+              <span className="hig-caption text-gray-600 dark:text-gray-400">{filteredIncidents.length} total</span>
             </div>
-            <div className="divide-y divide-gray-200 dark:divide-gray-700">
-              {filteredIncidents.map((incident) => (
-                <div
-                  key={incident.id}
-                  onClick={() => setSelectedIncident(incident)}
-                  className="p-6 hover:bg-gray-50 dark:hover:bg-gray-900/20 cursor-pointer transition-all duration-200"
-                >
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <h3 className="text-base font-semibold text-gray-800 dark:text-gray-100">{incident.title}</h3>
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getSeverityColor(incident.severity)}`}>
-                          {incident.severity.toUpperCase()}
+
+            <div className="space-y-0">
+              {filteredIncidents.map((incident, idx) => {
+                const isExpanded = expandedIncidentId === incident.id
+                const severityColor = getSeverityColor(incident.severity)
+                const statusColor = getStatusColor(incident.status)
+                
+                return (
+                  <div key={incident.id}>
+                    <div 
+                      className={`flex items-center gap-4 p-4 cursor-pointer transition-colors ${
+                        idx !== filteredIncidents.length - 1 ? 'border-b border-gray-200 dark:border-gray-700/60' : ''
+                      } ${isExpanded ? 'bg-gray-50 dark:bg-[#334155]/30' : 'hover:bg-gray-50 dark:hover:bg-[#334155]/20'}`}
+                      onClick={() => setExpandedIncidentId(isExpanded ? null : incident.id)}
+                    >
+                      {/* Severity Indicator */}
+                      <div 
+                        className="w-1 h-12 rounded-full flex-shrink-0"
+                        style={{ 
+                          backgroundColor: severityColor,
+                          boxShadow: `0 0 8px ${severityColor}40`
+                        }}
+                      />
+                      
+                      {/* Incident ID */}
+                      <div className="w-32 flex-shrink-0">
+                        <span className="hig-caption font-mono text-gray-600 dark:text-gray-400">
+                          {incident.id}
                         </span>
                       </div>
-                      <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400 mb-2">
-                        <span className="font-mono text-indigo-600">{incident.id}</span>
-                        <span>•</span>
-                        <span>{incident.category}</span>
-                        <span>•</span>
-                        <span>{incident.detectedAt}</span>
+                      
+                      {/* Title and Info */}
+                      <div className="flex-1 min-w-0">
+                        <h3 className="hig-body font-semibold text-gray-900 dark:text-gray-100 mb-1 line-clamp-2" title={incident.title}>
+                          {incident.title}
+                        </h3>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span 
+                            className="hig-badge"
+                            style={{
+                              backgroundColor: `${severityColor}20`,
+                              color: severityColor
+                            }}
+                          >
+                            {incident.severity.toUpperCase()}
+                          </span>
+                          <span 
+                            className="hig-badge"
+                            style={{
+                              backgroundColor: `${statusColor}20`,
+                              color: statusColor
+                            }}
+                          >
+                            {incident.status.toUpperCase()}
+                          </span>
+                          <span className="hig-caption text-gray-600 dark:text-gray-400">{incident.category}</span>
+                          <span className="hig-caption text-gray-600 dark:text-gray-400">•</span>
+                          <span className="hig-caption text-gray-600 dark:text-gray-400">{incident.affectedAssets} assets</span>
+                        </div>
                       </div>
-                      <div className="flex flex-wrap gap-2">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(incident.status)}`}>
-                          {incident.status.toUpperCase()}
-                        </span>
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
-                          {incident.affectedAssets} assets affected
-                        </span>
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-sky-100 dark:bg-sky-900/40 text-indigo-700 dark:text-indigo-300">
-                          {incident.assignedTo}
-                        </span>
+                      
+                      {/* Metrics */}
+                      <div className="flex items-center gap-6 flex-shrink-0">
+                        <div className="text-right">
+                          <div className="hig-caption text-gray-600 dark:text-gray-400">Detected</div>
+                          <div className="hig-caption text-gray-900 dark:text-gray-100 font-medium mt-1">
+                            {incident.detectedAt}
+                          </div>
+                        </div>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setSelectedIncident(incident)
+                            setTimeout(() => setIsModalOpen(true), 10)
+                          }}
+                          className="hig-caption hig-link-hover transition-colors"
+                        >
+                          View Details →
+                        </button>
                       </div>
                     </div>
-                    <button className="text-indigo-600 hover:text-indigo-700 dark:hover:text-indigo-500 ml-4">
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </button>
+
+                    {/* Expanded Details */}
+                    {isExpanded && (
+                      <div className="px-4 pb-4 bg-gray-50 dark:bg-[#334155]/30 border-b border-gray-200 dark:border-gray-700/60">
+                        <div className="pt-4 space-y-4">
+                          {/* Category and Assignment */}
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <div className="hig-caption text-gray-600 dark:text-gray-400 mb-1">Category</div>
+                              <div className="hig-body text-gray-900 dark:text-gray-100">{incident.category}</div>
+                            </div>
+                            <div>
+                              <div className="hig-caption text-gray-600 dark:text-gray-400 mb-1">Assigned To</div>
+                              <div className="hig-body text-gray-900 dark:text-gray-100">{incident.assignedTo}</div>
+                            </div>
+                          </div>
+
+                          {/* MITRE Techniques */}
+                          {incident.mitreTechniques.length > 0 && (
+                            <div>
+                              <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">MITRE ATT&CK Techniques</div>
+                              <div className="flex flex-wrap gap-2">
+                                {incident.mitreTechniques.map((technique, idx) => (
+                                  <span 
+                                    key={idx}
+                                    className="hig-badge font-mono"
+                                    style={{
+                                      backgroundColor: '#FF3B3020',
+                                      color: '#FF3B30'
+                                    }}
+                                  >
+                                    {technique}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Action Button */}
+                          <div className="flex gap-3 pt-2">
+                            <button 
+                              className="hig-button hig-button-primary flex-1"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                setSelectedIncident(incident)
+                                setTimeout(() => setIsModalOpen(true), 10)
+                              }}
+                            >
+                              View Full Details
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           </div>
         </div>
 
         {/* Incident Categories & Response Times */}
         <div className="col-span-12 lg:col-span-4 space-y-4">
-          <div className="bg-white dark:bg-gray-800 shadow-sm rounded-xl p-6">
-            <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Incident Categories</h2>
+          <div className="hig-card">
+            <h2 className="hig-headline text-gray-900 dark:text-gray-100 mb-4">Incident Categories</h2>
             <div className="space-y-3">
               {[
-                { name: 'Malware', count: 1, color: 'bg-rose-600 dark:bg-rose-700' },
-                { name: 'Data Breach', count: 1, color: 'bg-orange-600 dark:bg-orange-700' },
-                { name: 'Unauthorized Access', count: 1, color: 'bg-amber-600 dark:bg-amber-700' },
-                { name: 'Network Attack', count: 1, color: 'bg-indigo-600 dark:bg-indigo-600' },
-                { name: 'Social Engineering', count: 1, color: 'bg-indigo-500 dark:bg-indigo-600' }
+                { name: 'Malware', count: 1, color: 'bg-[#FF3B30] dark:bg-[#FF3B30]' },
+                { name: 'Data Breach', count: 1, color: 'bg-[#FF9500] dark:bg-[#FF9500]' },
+                { name: 'Unauthorized Access', count: 1, color: 'bg-[#FFCC00] dark:bg-[#FFCC00]' },
+                { name: 'Network Attack', count: 1, color: 'bg-[#393A84] dark:bg-[#393A84]' },
+                { name: 'Social Engineering', count: 1, color: 'bg-[#393A84] dark:bg-[#393A84]' }
               ].map((category, idx) => (
                 <div key={idx}>
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm text-gray-700 dark:text-gray-300">{category.name}</span>
-                    <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">{category.count}</span>
+                    <span className="hig-body text-gray-700 dark:text-gray-300">{category.name}</span>
+                    <span className="hig-body font-semibold text-gray-900 dark:text-gray-100">{category.count}</span>
                   </div>
                   <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                     <div className={`${category.color} h-2 rounded-full`} style={{ width: `${(category.count / incidents.length) * 100}%` }}></div>
@@ -258,118 +352,178 @@ export default function IncidentsPage() {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 shadow-sm rounded-xl p-6">
-            <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Response Metrics</h2>
+          <div className="hig-card">
+            <h2 className="hig-headline text-gray-900 dark:text-gray-100 mb-4">Response Metrics</h2>
             <div className="space-y-4">
-              <div className="bg-gray-50 dark:bg-gray-900/20 rounded-lg p-4">
-                <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Avg Response Time</div>
-                <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">12m</div>
+              <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+                <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Avg Response Time</div>
+                <div className="hig-metric-value text-3xl text-gray-900 dark:text-gray-100">12m</div>
               </div>
-              <div className="bg-gray-50 dark:bg-gray-900/20 rounded-lg p-4">
-                <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Avg Resolution Time</div>
-                <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">4.2h</div>
+              <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+                <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Avg Resolution Time</div>
+                <div className="hig-metric-value text-3xl text-gray-900 dark:text-gray-100">4.2h</div>
               </div>
-              <div className="bg-gray-50 dark:bg-gray-900/20 rounded-lg p-4">
-                <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">MTTR (Mean Time to Resolve)</div>
-                <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">3.8h</div>
+              <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+                <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">MTTR (Mean Time to Resolve)</div>
+                <div className="hig-metric-value text-3xl text-gray-900 dark:text-gray-100">3.8h</div>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Detail Panel */}
+      {/* Modal for Incident Details */}
       {selectedIncident && (
-        <>
-          <div 
-            className="fixed inset-0 bg-gray-900/50 z-40"
-            onClick={() => setSelectedIncident(null)}
-          />
-          <div className="fixed inset-y-0 right-0 w-full md:w-2/3 lg:w-1/2 bg-white dark:bg-gray-800 shadow-xl z-50 overflow-y-auto">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">Incident Details</h2>
+        <div className="hig-modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="hig-modal p-0 max-w-4xl w-full flex flex-col max-h-[90vh]">
+            {/* Fixed Header */}
+            <div 
+              className="sticky top-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-[#1E293B]/80 border-b border-gray-200 dark:border-gray-700/60 p-6 pb-4"
+              style={{
+                WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+                backdropFilter: 'blur(20px) saturate(180%)'
+              }}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <h2 className="hig-headline text-gray-900 dark:text-gray-100">Incident Details</h2>
                 <button
-                  onClick={() => setSelectedIncident(null)}
-                  className="text-gray-400 hover:text-gray-500"
+                  onClick={() => {
+                    setIsModalOpen(false)
+                    setTimeout(() => setSelectedIncident(null), 300)
+                  }}
+                  className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 transition-colors"
                 >
-                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <span className="sr-only">Close</span>
+                  <svg className="w-6 h-6 fill-current" viewBox="0 0 24 24">
+                    <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
                   </svg>
                 </button>
               </div>
+              {/* Risk Indicator Bar */}
+              <div 
+                className="h-1 rounded-full" 
+                style={{ backgroundColor: getSeverityColor(selectedIncident.severity) }}
+              />
+            </div>
 
-              <div className="space-y-4">
-                <div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">Incident ID</div>
-                  <div className="text-lg font-mono text-indigo-600">{selectedIncident.id}</div>
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto px-6 py-6">
+              {/* Metric Cards */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+                  <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Affected Assets</div>
+                  <div className="hig-metric-value text-3xl text-gray-900 dark:text-gray-100">
+                    {selectedIncident.affectedAssets}
+                  </div>
                 </div>
-
-                <div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">Title</div>
-                  <div className="text-lg font-semibold text-gray-800 dark:text-gray-100">{selectedIncident.title}</div>
+                <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+                  <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">MITRE Techniques</div>
+                  <div className="hig-metric-value text-3xl text-gray-900 dark:text-gray-100">
+                    {selectedIncident.mitreTechniques.length}
+                  </div>
                 </div>
+              </div>
 
-                <div className="grid grid-cols-2 gap-4">
+              {/* Incident Information */}
+              <div className="space-y-4 pb-4 border-b border-gray-200 dark:border-gray-700/60 mb-4">
+                <div>
+                  <div className="hig-caption text-gray-600 dark:text-gray-400 mb-1">Incident ID</div>
+                  <div className="hig-body font-mono text-gray-900 dark:text-gray-100">{selectedIncident.id}</div>
+                </div>
+                <div>
+                  <div className="hig-caption text-gray-600 dark:text-gray-400 mb-1">Title</div>
+                  <div className="hig-headline text-gray-900 dark:text-gray-100">{selectedIncident.title}</div>
+                </div>
+                <div className="flex items-center gap-3">
                   <div>
-                    <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">Severity</div>
-                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getSeverityColor(selectedIncident.severity)}`}>
+                    <div className="hig-caption text-gray-600 dark:text-gray-400 mb-1">Severity</div>
+                    <span 
+                      className="hig-badge"
+                      style={{
+                        backgroundColor: `${getSeverityColor(selectedIncident.severity)}20`,
+                        color: getSeverityColor(selectedIncident.severity)
+                      }}
+                    >
                       {selectedIncident.severity.toUpperCase()}
                     </span>
                   </div>
                   <div>
-                    <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">Status</div>
-                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(selectedIncident.status)}`}>
+                    <div className="hig-caption text-gray-600 dark:text-gray-400 mb-1">Status</div>
+                    <span 
+                      className="hig-badge"
+                      style={{
+                        backgroundColor: `${getStatusColor(selectedIncident.status)}20`,
+                        color: getStatusColor(selectedIncident.status)
+                      }}
+                    >
                       {selectedIncident.status.toUpperCase()}
                     </span>
                   </div>
                 </div>
+              </div>
 
-                <div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">Category</div>
-                  <div className="text-gray-800 dark:text-gray-100">{selectedIncident.category}</div>
+              {/* Detailed Information */}
+              <div className="space-y-4 pb-4 border-b border-gray-200 dark:border-gray-700/60 mb-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <div className="hig-caption text-gray-600 dark:text-gray-400 mb-1">Category</div>
+                    <div className="hig-body text-gray-900 dark:text-gray-100">{selectedIncident.category}</div>
+                  </div>
+                  <div>
+                    <div className="hig-caption text-gray-600 dark:text-gray-400 mb-1">Detected</div>
+                    <div className="hig-body text-gray-900 dark:text-gray-100">{selectedIncident.detectedAt}</div>
+                  </div>
+                  <div>
+                    <div className="hig-caption text-gray-600 dark:text-gray-400 mb-1">Assigned To</div>
+                    <div className="hig-body text-gray-900 dark:text-gray-100">{selectedIncident.assignedTo}</div>
+                  </div>
                 </div>
+              </div>
 
-                <div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">Detected</div>
-                  <div className="text-gray-800 dark:text-gray-100">{selectedIncident.detectedAt}</div>
-                </div>
-
-                <div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">Assigned To</div>
-                  <div className="text-gray-800 dark:text-gray-100">{selectedIncident.assignedTo}</div>
-                </div>
-
-                <div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">Affected Assets</div>
-                  <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">{selectedIncident.affectedAssets}</div>
-                </div>
-
-                <div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400 mb-2">MITRE ATT&CK Techniques</div>
+              {/* MITRE Techniques */}
+              {selectedIncident.mitreTechniques.length > 0 && (
+                <div className="pb-4 border-b border-gray-200 dark:border-gray-700/60 mb-4">
+                  <h3 className="hig-headline mb-4">MITRE ATT&CK Techniques</h3>
                   <div className="flex flex-wrap gap-2">
                     {selectedIncident.mitreTechniques.map((technique, idx) => (
-                      <span key={idx} className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-rose-100 dark:bg-rose-900/40 text-red-700 dark:text-red-400 font-mono">
+                      <span 
+                        key={idx}
+                        className="hig-badge font-mono"
+                        style={{
+                          backgroundColor: '#FF3B3020',
+                          color: '#FF3B30'
+                        }}
+                      >
                         {technique}
                       </span>
                     ))}
                   </div>
                 </div>
+              )}
+            </div>
 
-                <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-                  <div className="grid grid-cols-2 gap-3">
-                    <button className="btn bg-indigo-600 hover:bg-slate-800 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white">
-                      Update Status
-                    </button>
-                    <button className="btn bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100 hover:bg-gray-300 dark:hover:bg-gray-600">
-                      Assign to Me
-                    </button>
-                  </div>
-                </div>
+            {/* Fixed Footer */}
+            <div 
+              className="sticky bottom-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-[#1E293B]/80 border-t border-gray-200 dark:border-gray-700/60 p-6 pt-4"
+              style={{
+                WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+                backdropFilter: 'blur(20px) saturate(180%)'
+              }}
+            >
+              <div className="flex gap-3">
+                <button className="hig-button hig-button-primary flex-1">
+                  Update Status
+                </button>
+                <button className="hig-button hig-button-secondary flex-1" onClick={() => {
+                  setIsModalOpen(false)
+                  setTimeout(() => setSelectedIncident(null), 300)
+                }}>
+                  Close
+                </button>
               </div>
             </div>
           </div>
-        </>
+        </div>
       )}
     </div>
   )

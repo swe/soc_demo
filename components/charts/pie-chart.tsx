@@ -39,9 +39,37 @@ export default function DoughnutChart({
     const ctx = canvas.current
     if (!ctx) return
     
-    const newChart = new Chart(ctx, {
+    // Check if canvas is in DOM
+    if (!ctx.ownerDocument || !ctx.ownerDocument.body.contains(ctx)) {
+      return
+    }
+    
+    // Validate data before creating chart - must have valid data
+    if (!data || !data.labels || !Array.isArray(data.labels) || data.labels.length === 0 ||
+        !data.datasets || !Array.isArray(data.datasets) || data.datasets.length === 0) {
+      return
+    }
+    
+    // Ensure data is properly structured
+    const chartData = {
+      labels: data.labels || [],
+      datasets: data.datasets.map(dataset => ({
+        ...dataset,
+        data: Array.isArray(dataset.data) ? dataset.data : []
+      }))
+    }
+    
+    // Double check that we have valid data
+    if (!chartData.labels || chartData.labels.length === 0 || 
+        !chartData.datasets || chartData.datasets.length === 0) {
+      return
+    }
+    
+    let newChart: Chart | null = null
+    try {
+      newChart = new Chart(ctx, {
       type: 'pie',
-      data: data,
+      data: chartData,
       options: {
         layout: {
           padding: {
@@ -54,6 +82,31 @@ export default function DoughnutChart({
         plugins: {
           legend: {
             display: false,
+            labels: {
+              generateLabels: (chart) => {
+                // Safe generateLabels that handles missing data
+                try {
+                  if (!chart || !chart.data) {
+                    return []
+                  }
+                  const chartData = chart.data as any
+                  if (!chartData.labels || !Array.isArray(chartData.labels) || 
+                      !chartData.datasets || !Array.isArray(chartData.datasets) || 
+                      chartData.datasets.length === 0) {
+                    return []
+                  }
+                  // Use default generateLabels if data exists
+                  const defaultGenerateLabels = Chart.defaults.plugins.legend.labels.generateLabels
+                  if (defaultGenerateLabels && typeof defaultGenerateLabels === 'function') {
+                    return defaultGenerateLabels(chart) || []
+                  }
+                  return []
+                } catch (e) {
+                  console.warn('Error in generateLabels:', e)
+                  return []
+                }
+              }
+            }
           },
           tooltip: {
             titleColor: darkMode ? tooltipTitleColor.dark : tooltipTitleColor.light,
@@ -70,6 +123,7 @@ export default function DoughnutChart({
           duration: 200,
         },
         maintainAspectRatio: false,
+        responsive: false,
       },
       plugins: [
         {
@@ -77,13 +131,38 @@ export default function DoughnutChart({
           afterUpdate(c, args, options) {
             const ul = legend.current
             if (!ul) return
+            
+            // Check if canvas is still in DOM
+            const canvas = c.canvas
+            if (!canvas || !canvas.ownerDocument || !canvas.ownerDocument.body.contains(canvas)) {
+              return
+            }
+            
+            // Check if data exists
+            if (!c.data || !c.data.labels || !c.data.datasets || c.data.datasets.length === 0) {
+              // Clear legend if no data
+              while (ul.firstChild) {
+                ul.firstChild.remove()
+              }
+              return
+            }
             // Remove old legend items
             while (ul.firstChild) {
               ul.firstChild.remove()
             }
-            // Reuse the built-in legendItems generator
-            const items = c.options.plugins?.legend?.labels?.generateLabels?.(c)
-            items?.forEach((item) => {
+            // Safely get legend items
+            let items: any[] = []
+            try {
+              const generateLabels = c.options.plugins?.legend?.labels?.generateLabels
+              if (generateLabels) {
+                items = generateLabels(c) || []
+              }
+            } catch (e) {
+              console.warn('Error generating legend labels:', e)
+              return
+            }
+            if (!items || items.length === 0) return
+            items.forEach((item) => {
               const li = document.createElement('li')
               li.style.margin = '6px'
               // Button element
@@ -121,26 +200,70 @@ export default function DoughnutChart({
         },
       ],
     })
+    } catch (e) {
+      console.warn('Error creating chart:', e)
+      return
+    }
+    
+    if (!newChart) return
+    
     setChart(newChart)
-    return () => newChart.destroy()
-  }, [])
+    return () => {
+      if (newChart) {
+        try {
+          newChart.destroy()
+        } catch (e) {
+          console.warn('Error destroying chart:', e)
+        }
+      }
+    }
+  }, [data])
 
+  // Update chart data when it changes
+  useEffect(() => {
+    if (!chart || !data || !data.labels || !data.datasets || data.datasets.length === 0) return
+    
+    // Check if canvas is still in DOM
+    const ctx = canvas.current
+    if (!ctx || !ctx.ownerDocument || !ctx.ownerDocument.body.contains(ctx)) {
+      return
+    }
+    
+    try {
+      chart.data = data
+      chart.update('none')
+    } catch (e) {
+      console.warn('Error updating chart data:', e)
+    }
+  }, [chart, data])
+
+  // Update theme colors
   useEffect(() => {
     if (!chart) return
 
-    if (darkMode) {
-      chart.options.plugins!.tooltip!.titleColor = tooltipTitleColor.dark
-      chart.options.plugins!.tooltip!.bodyColor = tooltipBodyColor.dark
-      chart.options.plugins!.tooltip!.backgroundColor = tooltipBgColor.dark
-      chart.options.plugins!.tooltip!.borderColor = tooltipBorderColor.dark
-    } else {
-      chart.options.plugins!.tooltip!.titleColor = tooltipTitleColor.light
-      chart.options.plugins!.tooltip!.bodyColor = tooltipBodyColor.light
-      chart.options.plugins!.tooltip!.backgroundColor = tooltipBgColor.light
-      chart.options.plugins!.tooltip!.borderColor = tooltipBorderColor.light
+    // Check if canvas is still in DOM
+    const ctx = canvas.current
+    if (!ctx || !ctx.ownerDocument || !ctx.ownerDocument.body.contains(ctx)) {
+      return
     }
-    chart.update('none')
-  }, [theme])    
+
+    try {
+      if (darkMode) {
+        chart.options.plugins!.tooltip!.titleColor = tooltipTitleColor.dark
+        chart.options.plugins!.tooltip!.bodyColor = tooltipBodyColor.dark
+        chart.options.plugins!.tooltip!.backgroundColor = tooltipBgColor.dark
+        chart.options.plugins!.tooltip!.borderColor = tooltipBorderColor.dark
+      } else {
+        chart.options.plugins!.tooltip!.titleColor = tooltipTitleColor.light
+        chart.options.plugins!.tooltip!.bodyColor = tooltipBodyColor.light
+        chart.options.plugins!.tooltip!.backgroundColor = tooltipBgColor.light
+        chart.options.plugins!.tooltip!.borderColor = tooltipBorderColor.light
+      }
+      chart.update('none')
+    } catch (e) {
+      console.warn('Error updating chart theme:', e)
+    }
+  }, [chart, theme, darkMode, tooltipTitleColor, tooltipBodyColor, tooltipBgColor, tooltipBorderColor])    
 
   return (
     <div className="grow flex flex-col justify-center">

@@ -105,7 +105,7 @@ export default function Sidebar({
               <li className={`pl-4 pr-3 py-2 rounded-lg mb-0.5 last:mb-0 bg-linear-to-r ${segments.length === 0 && 'from-indigo-500/[0.12] dark:from-indigo-500/[0.24] to-indigo-500/[0.04]'}`}>
                 <SidebarLink href="/overview">
                   <div className="flex items-center">
-                    <Icon name="pie-chart-outline" className={`text-base ${segments.length === 0 ? 'text-indigo-600' : 'text-gray-400 dark:text-gray-500'}`} />
+                    <Icon name="pie-chart-outline" className={`text-base flex-shrink-0 ${segments.length === 0 ? 'text-indigo-600' : 'text-gray-400 dark:text-gray-500'}`} />
                     <span className="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
                       Overview
                     </span>
@@ -131,7 +131,7 @@ export default function Sidebar({
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center">
-                            <Icon name="notifications-outline" className={`text-base ${segments.includes('alerts') || segments.includes('incidents') ? 'text-indigo-600' : 'text-gray-400 dark:text-gray-500'}`} />
+                            <Icon name="notifications-outline" className={`text-base flex-shrink-0 ${segments.includes('alerts') || segments.includes('incidents') ? 'text-indigo-600' : 'text-gray-400 dark:text-gray-500'}`} />
                             <span className="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
                               Alerts & Incidents
                             </span>
@@ -188,7 +188,7 @@ export default function Sidebar({
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center">
-                            <Icon name="hardware-chip-outline" className={`text-base ${segments.includes('assets') ? 'text-indigo-600' : 'text-gray-400 dark:text-gray-500'}`} />
+                            <Icon name="hardware-chip-outline" className={`text-base flex-shrink-0 ${segments.includes('assets') ? 'text-indigo-600' : 'text-gray-400 dark:text-gray-500'}`} />
                             <span className="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
                               Assets
                             </span>
@@ -245,7 +245,7 @@ export default function Sidebar({
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center">
-                            <Icon name="shield-checkmark-outline" className={`text-base ${segments.includes('vulnerability') ? 'text-indigo-600' : 'text-gray-400 dark:text-gray-500'}`} />
+                            <Icon name="shield-checkmark-outline" className={`text-base flex-shrink-0 ${segments.includes('vulnerability') ? 'text-indigo-600' : 'text-gray-400 dark:text-gray-500'}`} />
                             <span className="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
                               Vulnerabilities
                             </span>
@@ -330,7 +330,7 @@ export default function Sidebar({
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center">
-                            <Icon name="search-outline" className={`text-base ${segments.includes('threat-hunting') ? 'text-indigo-600' : 'text-gray-400 dark:text-gray-500'}`} />
+                            <Icon name="search-outline" className={`text-base flex-shrink-0 ${segments.includes('threat-hunting') ? 'text-indigo-600' : 'text-gray-400 dark:text-gray-500'}`} />
                             <span className="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
                               Threat Hunting
                             </span>
@@ -387,7 +387,7 @@ export default function Sidebar({
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center">
-                            <Icon name="analytics-outline" className={`text-base ${segments.includes('threat-intelligence') ? 'text-indigo-600' : 'text-gray-400 dark:text-gray-500'}`} />
+                            <Icon name="analytics-outline" className={`text-base flex-shrink-0 ${segments.includes('threat-intelligence') ? 'text-indigo-600' : 'text-gray-400 dark:text-gray-500'}`} />
                             <span className="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
                               Threat Intelligence
                             </span>
@@ -436,7 +436,7 @@ export default function Sidebar({
               <li className={`pl-4 pr-3 py-2 rounded-lg mb-0.5 last:mb-0 bg-linear-to-r ${segments.includes('compliance') && 'from-indigo-600/[0.12] dark:from-indigo-600/[0.24] to-indigo-600/[0.04]'}`}>
                 <SidebarLink href="/overview/compliance">
                   <div className="flex items-center">
-                    <Icon name="document-text-outline" className={`text-base ${segments.includes('compliance') ? 'text-indigo-600' : 'text-gray-400 dark:text-gray-500'}`} />
+                    <Icon name="document-text-outline" className={`text-base flex-shrink-0 ${segments.includes('compliance') ? 'text-indigo-600' : 'text-gray-400 dark:text-gray-500'}`} />
                     <span className="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
                       Compliance
                     </span>
@@ -462,7 +462,7 @@ export default function Sidebar({
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center">
-                            <Icon name="library-outline" className={`text-base ${segments.includes('knowledge-base') ? 'text-indigo-600' : 'text-gray-400 dark:text-gray-500'}`} />
+                            <Icon name="library-outline" className={`text-base flex-shrink-0 ${segments.includes('knowledge-base') ? 'text-indigo-600' : 'text-gray-400 dark:text-gray-500'}`} />
                             <span className="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
                               Knowledge Base
                             </span>
@@ -533,7 +533,7 @@ export default function Sidebar({
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center">
-                            <Icon name="settings-outline" className={`text-base ${segments.includes('administration') ? 'text-indigo-600' : 'text-gray-400 dark:text-gray-500'}`} />
+                            <Icon name="settings-outline" className={`text-base flex-shrink-0 ${segments.includes('administration') ? 'text-indigo-600' : 'text-gray-400 dark:text-gray-500'}`} />
                             <span className="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
                               Administration
                             </span>
@@ -582,7 +582,7 @@ export default function Sidebar({
               <li className={`pl-4 pr-3 py-2 rounded-lg mb-0.5 last:mb-0 bg-linear-to-r ${segments.includes('settings') && 'from-indigo-600/[0.12] dark:from-indigo-600/[0.24] to-indigo-600/[0.04]'}`}>
                 <SidebarLink href="/overview/settings">
                   <div className="flex items-center">
-                    <Icon name="person-circle-outline" className={`text-base ${segments.includes('settings') ? 'text-indigo-600' : 'text-gray-400 dark:text-gray-500'}`} />
+                    <Icon name="person-circle-outline" className={`text-base flex-shrink-0 ${segments.includes('settings') ? 'text-indigo-600' : 'text-gray-400 dark:text-gray-500'}`} />
                     <span className="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
                       Profile Settings
                     </span>

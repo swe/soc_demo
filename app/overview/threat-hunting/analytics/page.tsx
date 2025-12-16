@@ -1,8 +1,6 @@
 'use client'
-
 import { useEffect, useState } from 'react'
 import { usePageTitle } from '@/app/page-title-context'
-import { PageHeader, Card, Badge } from '@/components/ui/card'
 
 interface MitreTechnique {
   id: string
@@ -139,14 +137,14 @@ export default function ThreatAnalytics() {
     }
   ]
 
-  const getSeverityColor = (severity: string) => {
-    const colors = {
-      critical: 'bg-rose-600 dark:bg-rose-700/20 text-red-700 dark:text-red-400',
-      high: 'bg-orange-600 dark:bg-orange-700/20 text-orange-700 dark:text-orange-400',
-      medium: 'bg-amber-600 dark:bg-amber-700/20 text-yellow-700 dark:text-yellow-400',
-      low: 'bg-indigo-600 dark:bg-indigo-600/20 text-blue-700 dark:text-blue-400'
+  const getSeverityColor = (severity: string): string => {
+    const colors: Record<string, string> = {
+      critical: '#FF3B30',  // System red
+      high: '#FF9500',      // System orange
+      medium: '#FFCC00',    // System yellow
+      low: '#007AFF'        // System blue
     }
-    return colors[severity as keyof typeof colors]
+    return colors[severity] || '#8E8E93'
   }
 
   const getTrendIcon = (trend: string) => {
@@ -182,38 +180,36 @@ export default function ThreatAnalytics() {
   }
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-7xl mx-auto">
-      <PageHeader 
-        title="Threat Analytics" 
-        description="MITRE ATT&CK framework-based threat detection and analysis" 
-      />
+    <div className="py-8 w-full max-w-7xl mx-auto">
+      <div className="mb-6 px-4 hig-fade-in">
+        <h1 className="hig-title-large text-gray-900 dark:text-gray-100 mb-2">Threat Analytics</h1>
+        <p className="hig-body text-gray-600 dark:text-gray-400">MITRE ATT&CK framework-based threat detection and analysis</p>
+      </div>
 
       {/* Sticky Status Bar */}
-      <div className="sticky top-16 z-40 before:absolute before:inset-0 before:backdrop-blur-md before:bg-white/90 dark:before:bg-gray-800/90 before:-z-10 border-b border-gray-200 dark:border-gray-700/60 mb-6 -mx-4 sm:-mx-6 lg:-mx-8">
+      <div className="sticky top-16 z-40 before:absolute before:inset-0 before:backdrop-blur-xl before:bg-white/80 dark:before:bg-[#0F172A]/80 before:-z-10 border-b border-gray-200 dark:border-gray-700/60 mb-6 -mx-4 sm:-mx-6 lg:-mx-8">
         <div className="px-4 sm:px-6 lg:px-8 py-3">
-          <div className="flex items-center justify-between text-sm">
+          <div className="flex items-center justify-between hig-caption">
             <div className="flex items-center space-x-6">
               <div className="flex items-center gap-2">
-                <svg className="w-4 h-4 text-indigo-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
-                </svg>
-                <span className="font-semibold text-gray-900 dark:text-gray-100">
+                <div className="w-2 h-2 bg-[#007AFF] rounded-full"></div>
+                <span className="hig-caption font-semibold text-gray-900 dark:text-gray-100">
                   {techniques.reduce((sum, t) => sum + t.detections, 0)} Total Detections
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-rose-600 dark:bg-rose-700 rounded-full animate-pulse"></div>
-                <span className="font-semibold text-gray-900 dark:text-gray-100">
+                <div className="w-2 h-2 bg-[#FF3B30] rounded-full animate-pulse"></div>
+                <span className="hig-caption font-semibold text-gray-900 dark:text-gray-100">
                   {techniques.filter(t => t.severity === 'critical').length} Critical Techniques
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-orange-600 dark:bg-orange-700 rounded-full"></div>
-                <span className="font-semibold text-gray-900 dark:text-gray-100">
+                <div className="w-2 h-2 bg-[#FF9500] rounded-full"></div>
+                <span className="hig-caption font-semibold text-gray-900 dark:text-gray-100">
                   {techniques.filter(t => t.trend === 'up').length} Trending Up
                 </span>
               </div>
-              <div className="text-gray-500 dark:text-gray-400">
+              <div className="hig-caption text-gray-600 dark:text-gray-400">
                 {new Set(techniques.map(t => t.tactic)).size} Active Tactics
               </div>
             </div>
@@ -222,48 +218,44 @@ export default function ThreatAnalytics() {
       </div>
 
       {/* MITRE ATT&CK Tactics Heat Map */}
-      <div className="mb-6">
-        <div className="bg-white dark:bg-gray-800 shadow-sm rounded-xl p-6">
-          <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">MITRE ATT&CK Tactics Overview</h2>
+      <div className="mb-6 px-4">
+        <div className="hig-card">
+          <h2 className="hig-headline text-gray-900 dark:text-gray-100 mb-4">MITRE ATT&CK Tactics Overview</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
             <button
               onClick={() => setSelectedTactic('all')}
-              className={`p-4 rounded-lg text-sm font-medium transition-all ${
+              className={`hig-card p-4 text-center transition-all ${
                 selectedTactic === 'all'
-                  ? 'bg-indigo-600 dark:bg-indigo-500 text-white shadow-sm shadow-lg scale-105'
-                  : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                  ? 'text-white border-2 border-[#A655F7] shadow-lg shadow-[#393A84]/30'
+                  : 'bg-gray-50 dark:bg-[#334155]/30 hover:bg-gray-100 dark:hover:bg-[#334155]/50 border-2 border-transparent'
               }`}
+              style={selectedTactic === 'all' ? { backgroundColor: '#393A84' } : {}}
             >
-              <div className="text-2xl font-bold">All</div>
-              <div className="text-xs opacity-80">{techniques.length} techniques</div>
+              <div className={`hig-headline ${selectedTactic === 'all' ? 'text-white' : 'text-gray-900 dark:text-gray-100'}`} style={selectedTactic === 'all' ? { WebkitTextFillColor: 'white', color: 'white' } : {}}>All</div>
+              <div className={`hig-caption mt-1 ${selectedTactic === 'all' ? 'text-white/90' : 'text-gray-600 dark:text-gray-400'}`} style={selectedTactic === 'all' ? { WebkitTextFillColor: 'rgba(255, 255, 255, 0.9)', color: 'rgba(255, 255, 255, 0.9)' } : {}}>{techniques.length} techniques</div>
             </button>
             {mitreTactics.map(tactic => {
               const tacticCount = techniques.filter(t => t.tactic === tactic).length
               const tacticDetections = techniques.filter(t => t.tactic === tactic).reduce((sum, t) => sum + t.detections, 0)
-              const intensity = Math.min(100, (tacticDetections / 300) * 100)
               
               return (
                 <button
                   key={tactic}
                   onClick={() => setSelectedTactic(tactic)}
-                  className={`p-4 rounded-lg text-sm font-medium transition-all relative overflow-hidden ${
+                  className={`hig-card p-4 text-center transition-all ${
                     selectedTactic === tactic
-                      ? 'bg-indigo-600 dark:bg-indigo-500 text-white shadow-sm shadow-lg scale-105'
-                      : 'bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-indigo-600 dark:hover:border-indigo-600'
+                      ? 'text-white border-2 border-[#A655F7] shadow-lg shadow-[#393A84]/30'
+                      : 'bg-gray-50 dark:bg-[#334155]/30 hover:bg-gray-100 dark:hover:bg-[#334155]/50 border-2 border-transparent'
                   }`}
-                  style={{
-                    background: selectedTactic !== tactic ? 
-                      `linear-gradient(135deg, rgba(139, 92, 246, ${intensity/100}) 0%, rgba(168, 85, 247, ${intensity/200}) 100%)` : 
-                      undefined
-                  }}
+                  style={selectedTactic === tactic ? { backgroundColor: '#393A84' } : {}}
                 >
-                  <div className={`text-lg font-bold ${selectedTactic !== tactic && intensity > 50 ? 'text-white' : ''}`}>
+                  <div className={`hig-metric-value text-3xl ${selectedTactic === tactic ? 'text-white' : 'text-gray-900 dark:text-gray-100'}`} style={selectedTactic === tactic ? { WebkitTextFillColor: 'white', color: 'white' } : {}}>
                     {tacticDetections}
                   </div>
-                  <div className={`text-xs truncate ${selectedTactic !== tactic && intensity > 50 ? 'text-white/90' : 'opacity-80'}`}>
+                  <div className={`hig-caption mt-1 ${selectedTactic === tactic ? 'text-white/90' : 'text-gray-600 dark:text-gray-400'}`} style={selectedTactic === tactic ? { WebkitTextFillColor: 'rgba(255, 255, 255, 0.9)', color: 'rgba(255, 255, 255, 0.9)' } : {}}>
                     {tactic.split(' ')[0]}
                   </div>
-                  <div className={`text-xs mt-1 ${selectedTactic !== tactic && intensity > 50 ? 'text-white/80' : 'opacity-70'}`}>
+                  <div className={`hig-caption mt-1 ${selectedTactic === tactic ? 'text-white/80' : 'text-gray-500 dark:text-gray-500'}`} style={selectedTactic === tactic ? { WebkitTextFillColor: 'rgba(255, 255, 255, 0.8)', color: 'rgba(255, 255, 255, 0.8)' } : {}}>
                     {tacticCount} techniques
                   </div>
                 </button>
@@ -274,69 +266,98 @@ export default function ThreatAnalytics() {
       </div>
 
       {/* Techniques Table */}
-      <div className="grid grid-cols-12 gap-4">
+      <div className="grid grid-cols-12 gap-4 px-4">
         <div className="col-span-12 lg:col-span-8">
-          <div className="bg-white dark:bg-gray-800 shadow-sm rounded-xl">
-            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-              <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Detected Techniques</h2>
+          <div className="hig-card">
+            <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200 dark:border-gray-700/60">
+              <h2 className="hig-headline text-gray-900 dark:text-gray-100">Detected Techniques</h2>
+              <span className="hig-caption text-gray-600 dark:text-gray-400">{filteredTechniques.length} total</span>
             </div>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-900/20">
-                  <tr>
-                    <th className="px-4 py-3 text-left">ID</th>
-                    <th className="px-4 py-3 text-left">Technique</th>
-                    <th className="px-4 py-3 text-left">Tactic</th>
-                    <th className="px-4 py-3 text-left">Detections</th>
-                    <th className="px-4 py-3 text-left">Severity</th>
-                    <th className="px-4 py-3 text-left">Trend</th>
-                    <th className="px-4 py-3 text-left">Last Detected</th>
-                  </tr>
-                </thead>
-                <tbody className="text-sm divide-y divide-gray-200 dark:divide-gray-700">
-                  {filteredTechniques.map((technique) => (
-                    <tr
-                      key={technique.id}
+            
+            <div className="space-y-0">
+              {filteredTechniques.map((technique, idx) => {
+                const severityColor = getSeverityColor(technique.severity)
+                
+                return (
+                  <div key={technique.id}>
+                    <div 
+                      className={`flex items-center gap-4 p-4 cursor-pointer ${
+                        idx !== filteredTechniques.length - 1 ? 'border-b border-gray-200 dark:border-gray-700/60' : ''
+                      } hover:bg-gray-50 dark:hover:bg-[#334155]/20`}
                       onClick={() => setSelectedTechnique(technique)}
-                      className="hover:bg-gray-50 dark:hover:bg-gray-900/20 cursor-pointer"
                     >
-                      <td className="px-4 py-3">
-                        <span className="font-mono text-indigo-600 hover:text-indigo-700 dark:hover:text-indigo-500">{technique.id}</span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className="font-medium text-gray-800 dark:text-gray-100">{technique.name}</span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className="text-gray-600 dark:text-gray-400">{technique.tactic}</span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className="font-semibold text-gray-900 dark:text-gray-100">{technique.detections}</span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getSeverityColor(technique.severity)}`}>
-                          {technique.severity.toUpperCase()}
+                      {/* Severity Indicator */}
+                      <div 
+                        className="w-1 h-12 rounded-full flex-shrink-0"
+                        style={{ 
+                          backgroundColor: severityColor,
+                          boxShadow: `0 0 8px ${severityColor}40`
+                        }}
+                      />
+                      
+                      {/* Technique ID */}
+                      <div className="w-20 flex-shrink-0">
+                        <span className="hig-caption font-mono text-gray-600 dark:text-gray-400">
+                          {technique.id}
                         </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-1">
-                          {getTrendIcon(technique.trend)}
+                      </div>
+                      
+                      {/* Technique Info */}
+                      <div className="flex-1 min-w-0">
+                        <h3 className="hig-body font-semibold text-gray-900 dark:text-gray-100 mb-1 line-clamp-2" title={technique.name}>
+                          {technique.name}
+                        </h3>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="hig-caption text-gray-600 dark:text-gray-400">{technique.tactic}</span>
+                          <span className="hig-caption text-gray-400">•</span>
+                          <span 
+                            className="hig-badge"
+                            style={{
+                              backgroundColor: `${severityColor}20`,
+                              color: severityColor
+                            }}
+                          >
+                            {technique.severity.toUpperCase()}
+                          </span>
                         </div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className="text-gray-600 dark:text-gray-400">{technique.lastDetected}</span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                      </div>
+                      
+                      {/* Metrics */}
+                      <div className="flex items-center gap-6 flex-shrink-0">
+                        <div className="text-right">
+                          <div className="hig-caption text-gray-600 dark:text-gray-400">Detections</div>
+                          <div className="hig-body text-gray-900 dark:text-gray-100 font-semibold mt-1">
+                            {technique.detections}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="hig-caption text-gray-600 dark:text-gray-400">Trend</div>
+                          <div className="flex items-center justify-end mt-1">
+                            {getTrendIcon(technique.trend)}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="hig-caption text-gray-600 dark:text-gray-400">Last Detected</div>
+                          <div className="hig-caption text-gray-900 dark:text-gray-100 font-medium mt-1">
+                            {technique.lastDetected}
+                          </div>
+                        </div>
+                        <span className="hig-caption text-[#AF52DE] hover:text-[#AF52DE] hig-link-hover">
+                          View →
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
             </div>
           </div>
         </div>
 
         {/* Top Techniques & Tactic Distribution */}
         <div className="col-span-12 lg:col-span-4 space-y-4">
-          <div className="bg-white dark:bg-gray-800 shadow-sm rounded-xl p-6">
-            <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Top Techniques</h2>
+          <div className="hig-card p-6">
+            <h2 className="hig-headline text-gray-900 dark:text-gray-100 mb-4">Top Techniques</h2>
             <div className="space-y-3">
               {[...techniques]
                 .sort((a, b) => b.detections - a.detections)
@@ -344,24 +365,24 @@ export default function ThreatAnalytics() {
                 .map((technique, idx) => (
                   <div key={idx} className="flex items-center justify-between">
                     <div className="flex-1">
-                      <div className="text-sm font-medium text-gray-800 dark:text-gray-100 mb-1">
+                      <div className="hig-body font-medium text-gray-900 dark:text-gray-100 mb-1">
                         {technique.id} - {technique.name}
                       </div>
                       <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                         <div 
-                          className="bg-indigo-600 dark:bg-indigo-500 h-2 rounded-full" 
+                          className="bg-[#393A84] dark:bg-[#393A84] h-2 rounded-full" 
                           style={{ width: `${(technique.detections / stats.totalDetections) * 100}%` }}
                         ></div>
                       </div>
                     </div>
-                    <span className="ml-4 text-sm font-semibold text-gray-900 dark:text-gray-100">{technique.detections}</span>
+                    <span className="ml-4 hig-body font-semibold text-gray-900 dark:text-gray-100">{technique.detections}</span>
                   </div>
                 ))}
             </div>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 shadow-sm rounded-xl p-6">
-            <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Tactic Distribution</h2>
+          <div className="hig-card p-6">
+            <h2 className="hig-headline text-gray-900 dark:text-gray-100 mb-4">Tactic Distribution</h2>
             <div className="space-y-3">
               {Object.entries(
                 techniques.reduce((acc, t) => {
@@ -374,12 +395,12 @@ export default function ThreatAnalytics() {
                 .map(([tactic, count], idx) => (
                   <div key={idx}>
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm text-gray-700 dark:text-gray-300">{tactic}</span>
-                      <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">{count}</span>
+                      <span className="hig-body text-gray-700 dark:text-gray-300">{tactic}</span>
+                      <span className="hig-body font-semibold text-gray-900 dark:text-gray-100">{count}</span>
                     </div>
                     <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                       <div 
-                        className="bg-indigo-600 dark:bg-indigo-600 h-2 rounded-full" 
+                        className="bg-[#393A84] dark:bg-[#393A84] h-2 rounded-full" 
                         style={{ width: `${(count / stats.totalDetections) * 100}%` }}
                       ></div>
                     </div>
@@ -390,83 +411,118 @@ export default function ThreatAnalytics() {
         </div>
       </div>
 
-      {/* Technique Detail Panel */}
+      {/* Technique Detail Modal */}
       {selectedTechnique && (
-        <>
-          <div 
-            className="fixed inset-0 bg-gray-900/50 z-40"
-            onClick={() => setSelectedTechnique(null)}
-          />
-          <div className="fixed inset-y-0 right-0 w-full md:w-2/3 lg:w-1/2 bg-white dark:bg-gray-800 shadow-xl z-50 overflow-y-auto">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">Technique Details</h2>
+        <div className="hig-modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="hig-modal p-0 max-w-4xl w-full flex flex-col max-h-[90vh]">
+            {/* Fixed Header */}
+            <div 
+              className="sticky top-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-[#1E293B]/80 border-b border-gray-200 dark:border-gray-700/60 p-6 pb-4"
+              style={{
+                WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+                backdropFilter: 'blur(20px) saturate(180%)'
+              }}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <h2 className="hig-headline text-gray-900 dark:text-gray-100">Technique Details</h2>
                 <button
                   onClick={() => setSelectedTechnique(null)}
-                  className="text-gray-400 hover:text-gray-500"
+                  className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
                 >
-                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <span className="sr-only">Close</span>
+                  <svg className="w-6 h-6 fill-current" viewBox="0 0 24 24">
+                    <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
                   </svg>
                 </button>
               </div>
+              {/* Severity Indicator Bar */}
+              <div 
+                className="h-1 rounded-full" 
+                style={{ backgroundColor: getSeverityColor(selectedTechnique.severity) }}
+              />
+            </div>
 
-              <div className="space-y-4">
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto px-6 py-6">
+              <div className="space-y-4 pb-4 border-b border-gray-200 dark:border-gray-700/60 mb-4">
                 <div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">Technique ID</div>
-                  <div className="text-lg font-mono text-indigo-600">{selectedTechnique.id}</div>
+                  <div className="hig-caption text-gray-600 dark:text-gray-400 mb-1">Technique ID</div>
+                  <div className="hig-body font-mono text-gray-900 dark:text-gray-100">{selectedTechnique.id}</div>
                 </div>
 
                 <div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">Name</div>
-                  <div className="text-lg font-semibold text-gray-800 dark:text-gray-100">{selectedTechnique.name}</div>
+                  <div className="hig-caption text-gray-600 dark:text-gray-400 mb-1">Name</div>
+                  <div className="hig-headline text-gray-900 dark:text-gray-100">{selectedTechnique.name}</div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="flex items-center gap-3">
                   <div>
-                    <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">Tactic</div>
-                    <div className="text-gray-800 dark:text-gray-100">{selectedTechnique.tactic}</div>
+                    <div className="hig-caption text-gray-600 dark:text-gray-400 mb-1">Tactic</div>
+                    <div className="hig-body text-gray-900 dark:text-gray-100">{selectedTechnique.tactic}</div>
                   </div>
                   <div>
-                    <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">Severity</div>
-                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getSeverityColor(selectedTechnique.severity)}`}>
+                    <div className="hig-caption text-gray-600 dark:text-gray-400 mb-1">Severity</div>
+                    <span 
+                      className="hig-badge"
+                      style={{
+                        backgroundColor: `${getSeverityColor(selectedTechnique.severity)}20`,
+                        color: getSeverityColor(selectedTechnique.severity)
+                      }}
+                    >
                       {selectedTechnique.severity.toUpperCase()}
                     </span>
                   </div>
                 </div>
+              </div>
 
-                <div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">Detections</div>
-                  <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">{selectedTechnique.detections}</div>
-                </div>
-
-                <div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">Trend</div>
-                  <div className="flex items-center gap-2">
-                    {getTrendIcon(selectedTechnique.trend)}
-                    <span className="capitalize text-gray-800 dark:text-gray-100">{selectedTechnique.trend}</span>
+              {/* Metric Cards */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+                  <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Detections</div>
+                  <div className="hig-metric-value text-3xl text-gray-900 dark:text-gray-100">
+                    {selectedTechnique.detections}
                   </div>
                 </div>
-
-                <div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">Last Detected</div>
-                  <div className="text-gray-800 dark:text-gray-100">{selectedTechnique.lastDetected}</div>
+                <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+                  <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Trend</div>
+                  <div className="flex items-center justify-center gap-2">
+                    {getTrendIcon(selectedTechnique.trend)}
+                    <span className="hig-body capitalize text-gray-900 dark:text-gray-100">{selectedTechnique.trend}</span>
+                  </div>
                 </div>
-
-                <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-                  <a 
-                    href={`https://attack.mitre.org/techniques/${selectedTechnique.id}/`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="btn bg-indigo-600 dark:bg-indigo-600 hover:bg-indigo-700 dark:hover:bg-indigo-700 text-white w-full"
-                  >
-                    View on MITRE ATT&CK
-                  </a>
+                <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+                  <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Last Detected</div>
+                  <div className="hig-body text-gray-900 dark:text-gray-100 font-medium">
+                    {selectedTechnique.lastDetected}
+                  </div>
                 </div>
               </div>
             </div>
+
+            {/* Fixed Footer */}
+            <div 
+              className="sticky bottom-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-[#1E293B]/80 border-t border-gray-200 dark:border-gray-700/60 p-6 pt-4"
+              style={{
+                WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+                backdropFilter: 'blur(20px) saturate(180%)'
+              }}
+            >
+              <div className="flex gap-3">
+                <a 
+                  href={`https://attack.mitre.org/techniques/${selectedTechnique.id}/`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hig-button hig-button-primary flex-1 text-center"
+                >
+                  View on MITRE ATT&CK
+                </a>
+                <button className="hig-button hig-button-secondary flex-1" onClick={() => setSelectedTechnique(null)}>
+                  Close
+                </button>
+              </div>
+            </div>
           </div>
-        </>
+        </div>
       )}
     </div>
   )
