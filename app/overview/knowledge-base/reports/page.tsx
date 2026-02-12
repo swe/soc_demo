@@ -114,22 +114,22 @@ export default function ReportsPage() {
 
   const getTypeColor = (type: string): string => {
     const colors: Record<string, string> = {
-      security: '#007AFF',
-      compliance: '#007AFF',
-      incident: '#FF3B30',
-      threat: '#FF9500',
-      vulnerability: '#FFCC00'
+      security: '#4f46e5',
+      compliance: '#4f46e5',
+      incident: '#e11d48',
+      threat: '#ea580c',
+      vulnerability: '#d97706'
     }
-    return colors[type] || '#8E8E93'
+    return colors[type] || '#6b7280'
   }
 
   const getStatusColor = (status: string): string => {
     const colors: Record<string, string> = {
-      final: '#34C759',
-      review: '#FF9500',
-      draft: '#8E8E93'
+      final: '#059669',
+      review: '#ea580c',
+      draft: '#6b7280'
     }
-    return colors[status] || '#8E8E93'
+    return colors[status] || '#6b7280'
   }
 
   const filteredReports = selectedType === 'all' 
@@ -143,29 +143,29 @@ export default function ReportsPage() {
   }
 
   return (
-    <div className="py-8 w-full max-w-7xl mx-auto">
+    <div className="py-4 w-full max-w-7xl mx-auto">
       <div className="mb-6 px-4 hig-fade-in">
         <h1 className="hig-title-large text-gray-900 dark:text-gray-100 mb-2">Security Reports</h1>
         <p className="hig-body text-gray-600 dark:text-gray-400">Access security reports, compliance documents, and incident analyses</p>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6 px-4">
-        <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-3 px-4">
+        <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
           <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Total Reports</div>
           <div className="hig-metric-value text-4xl text-gray-900 dark:text-gray-100">{stats.total}</div>
         </div>
 
-        <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+        <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
           <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Final Reports</div>
-          <div className="hig-metric-value text-4xl" style={{ color: '#34C759', WebkitTextFillColor: '#34C759' }}>
+          <div className="hig-metric-value text-4xl" style={{ color: '#059669', WebkitTextFillColor: '#059669' }}>
             {stats.final}
           </div>
         </div>
 
-        <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+        <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
           <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">This Month</div>
-          <div className="hig-metric-value text-4xl" style={{ color: '#007AFF', WebkitTextFillColor: '#007AFF' }}>
+          <div className="hig-metric-value text-4xl" style={{ color: '#4f46e5', WebkitTextFillColor: '#4f46e5' }}>
             {stats.thisMonth}
           </div>
         </div>
@@ -193,7 +193,7 @@ export default function ReportsPage() {
       {/* Reports Table */}
       <div className="px-4">
         <div className="hig-card p-0">
-          <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200 dark:border-gray-700/60 px-6 pt-6">
+          <div className="flex items-center justify-between mb-3 pb-4 border-b border-gray-200 dark:border-gray-700/60 px-6 pt-6">
             <h2 className="hig-headline text-gray-900 dark:text-gray-100">Reports</h2>
             <span className="hig-caption text-gray-600 dark:text-gray-400">{filteredReports.length} total</span>
           </div>
@@ -214,7 +214,7 @@ export default function ReportsPage() {
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-gray-700/60">
               {filteredReports.map((report) => (
-                <tr key={report.id} className="hover:bg-gray-50 dark:hover:bg-[#334155]/20">
+                <tr key={report.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/20">
                   <td className="px-6 py-4">
                     <div>
                       <div className="hig-body font-semibold text-gray-900 dark:text-gray-100">{report.title}</div>
@@ -271,7 +271,7 @@ export default function ReportsPage() {
                           document.body.removeChild(link)
                           alert(`Downloading ${report.title}...`)
                         }}
-                        className="hig-caption hover:text-[#AF52DE] hig-link-hover"
+                        className="hig-caption hig-link-hover"
                       >
                         Download →
                       </button>
@@ -280,7 +280,7 @@ export default function ReportsPage() {
                           e.stopPropagation()
                           setSelectedReport(report)
                         }}
-                        className="hig-caption hover:text-[#AF52DE] hig-link-hover"
+                        className="hig-caption hig-link-hover"
                       >
                         Share →
                       </button>
@@ -307,7 +307,7 @@ export default function ReportsPage() {
             >
               {/* Fixed Header */}
               <div 
-                className="sticky top-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-[#1E293B]/80 border-b border-gray-200 dark:border-gray-700/60 p-6 pb-4"
+                className="sticky top-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-gray-900/80 border-b border-gray-200 dark:border-gray-700/60 p-6 pb-4"
                 style={{
                   WebkitBackdropFilter: 'blur(20px) saturate(180%)',
                   backdropFilter: 'blur(20px) saturate(180%)'
@@ -361,7 +361,7 @@ export default function ReportsPage() {
 
               {/* Fixed Footer */}
               <div 
-                className="sticky bottom-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-[#1E293B]/80 border-t border-gray-200 dark:border-gray-700/60 p-6 pt-4"
+                className="sticky bottom-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-gray-900/80 border-t border-gray-200 dark:border-gray-700/60 p-6 pt-4"
                 style={{
                   WebkitBackdropFilter: 'blur(20px) saturate(180%)',
                   backdropFilter: 'blur(20px) saturate(180%)'

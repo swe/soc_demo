@@ -151,7 +151,7 @@ export default function AttackMap() {
               <div className="text-center">
                 <div className="font-semibold text-gray-900">{location.name}</div>
                 <div className="text-sm text-gray-600 mt-1">
-                  <span className="font-bold text-red-600">{location.attacks.toLocaleString()}</span> attacks
+                  <span className="font-semibold text-rose-600">{location.attacks.toLocaleString()}</span> attacks
                 </div>
                 <div className="text-xs text-gray-500 mt-1 capitalize">
                   Threat Level: <span className="font-semibold">{location.threatLevel}</span>

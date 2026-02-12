@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { usePageTitle } from '@/app/page-title-context'
-import { formatDate } from '@/lib/utils'
+import { formatDate, formatNumber } from '@/lib/utils'
 
 interface ComplianceFramework {
   id: string
@@ -86,11 +86,11 @@ export default function CompliancePage() {
 
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
-      compliant: '#34C759',
-      partial: '#FF9500',
-      'non-compliant': '#FF3B30'
+      compliant: '#059669',
+      partial: '#ea580c',
+      'non-compliant': '#e11d48'
     }
-    return colors[status] || '#8E8E93'
+    return colors[status] || '#6b7280'
   }
 
   const getStatusBadgeColor = (status: string) => {
@@ -115,38 +115,68 @@ export default function CompliancePage() {
   const implementedControls = frameworks.reduce((sum, f) => sum + f.controls.implemented, 0)
 
   return (
-    <div className="py-8 w-full max-w-7xl mx-auto">
+    <div className="py-4 w-full max-w-7xl mx-auto">
       <div className="mb-6 px-4 hig-fade-in">
         <h1 className="hig-title-large text-gray-900 dark:text-gray-100 mb-2">Compliance</h1>
         <p className="hig-body text-gray-600 dark:text-gray-400">Monitor compliance with security standards and regulations</p>
       </div>
 
+      {/* Sticky Status Bar */}
+      <div className="sticky top-16 z-40 before:absolute before:inset-0 before:backdrop-blur-xl before:bg-white/80 dark:before:bg-gray-950/80 before:-z-10 border-b border-gray-200 dark:border-gray-700/60 mb-3 -mx-4 sm:-mx-6 lg:-mx-8">
+        <div className="px-4 sm:px-6 lg:px-8 py-3">
+          <div className="flex items-center justify-between text-sm">
+            <div className="flex items-center space-x-6">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-[#059669] rounded-full"></div>
+                <span className="hig-caption font-semibold text-gray-900 dark:text-gray-100">
+                  Overall: {overallScore}%
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="hig-caption font-semibold text-gray-900 dark:text-gray-100">
+                  {frameworks.filter(f => f.status === 'compliant').length} Compliant
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-[#ea580c] rounded-full"></div>
+                <span className="hig-caption font-semibold text-gray-900 dark:text-gray-100">
+                  {frameworks.filter(f => f.status === 'partial').length} Partial
+                </span>
+              </div>
+              <div className="hig-caption">
+                {frameworks.length} frameworks • {formatNumber(totalControls)} controls
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Overview Stats */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 mb-8 px-4">
-        <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+        <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
           <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Overall Score</div>
           <div className="hig-metric-value text-4xl text-gray-900 dark:text-gray-100 mb-2">{overallScore}%</div>
         </div>
 
-        <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+        <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
           <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Total Controls</div>
-          <div className="hig-metric-value text-4xl text-gray-900 dark:text-gray-100 mb-2">{totalControls.toLocaleString()}</div>
+          <div className="hig-metric-value text-4xl text-gray-900 dark:text-gray-100 mb-2">{formatNumber(totalControls)}</div>
           <div className="hig-caption text-gray-600 dark:text-gray-400">{frameworks.length} frameworks</div>
         </div>
 
-        <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+        <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
           <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Implemented</div>
-          <div className="hig-metric-value text-4xl text-gray-900 dark:text-gray-100 mb-2">{implementedControls.toLocaleString()}</div>
+          <div className="hig-metric-value text-4xl text-gray-900 dark:text-gray-100 mb-2">{formatNumber(implementedControls)}</div>
           <div className="hig-caption text-gray-600 dark:text-gray-400">{Math.round((implementedControls / totalControls) * 100)}% complete</div>
         </div>
       </div>
 
       {/* Frameworks List */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 px-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 px-4">
         {frameworks.map((framework) => (
           <div 
             key={framework.id} 
-            className="hig-card cursor-pointer hover:bg-gray-50 dark:hover:bg-[#334155]/30"
+            className="hig-card cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/30"
             onClick={() => setSelectedFramework(framework)}
           >
             <div className="flex items-start justify-between mb-6">
@@ -191,7 +221,7 @@ export default function CompliancePage() {
             >
               {/* Fixed Header */}
               <div 
-                className="sticky top-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-[#1E293B]/80 border-b border-gray-200 dark:border-gray-700/60 p-6 pb-4"
+                className="sticky top-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-gray-900/80 border-b border-gray-200 dark:border-gray-700/60 p-6 pb-4"
                 style={{
                   WebkitBackdropFilter: 'blur(20px) saturate(180%)',
                   backdropFilter: 'blur(20px) saturate(180%)'
@@ -216,7 +246,7 @@ export default function CompliancePage() {
                 <div 
                   className="h-1 rounded-full mt-3" 
                   style={{ 
-                    backgroundColor: selectedFramework.status === 'compliant' ? '#34C759' : selectedFramework.status === 'partial' ? '#FF9500' : '#FF3B30'
+                    backgroundColor: selectedFramework.status === 'compliant' ? '#059669' : selectedFramework.status === 'partial' ? '#ea580c' : '#e11d48'
                   }}
                 />
               </div>
@@ -235,15 +265,15 @@ export default function CompliancePage() {
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+                    <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
                       <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Implemented</div>
-                      <div className="hig-metric-value text-3xl" style={{ color: '#34C759', WebkitTextFillColor: '#34C759' }}>
+                      <div className="hig-metric-value text-3xl" style={{ color: '#059669', WebkitTextFillColor: '#059669' }}>
                         {selectedFramework.controls.implemented}
                       </div>
                     </div>
-                    <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+                    <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
                       <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">In Progress</div>
-                      <div className="hig-metric-value text-3xl" style={{ color: '#FF9500', WebkitTextFillColor: '#FF9500' }}>
+                      <div className="hig-metric-value text-3xl" style={{ color: '#ea580c', WebkitTextFillColor: '#ea580c' }}>
                         {selectedFramework.controls.inProgress}
                       </div>
                     </div>
@@ -281,7 +311,7 @@ export default function CompliancePage() {
 
               {/* Fixed Footer */}
               <div 
-                className="sticky bottom-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-[#1E293B]/80 border-t border-gray-200 dark:border-gray-700/60 p-6 pt-4"
+                className="sticky bottom-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-gray-900/80 border-t border-gray-200 dark:border-gray-700/60 p-6 pt-4"
                 style={{
                   WebkitBackdropFilter: 'blur(20px) saturate(180%)',
                   backdropFilter: 'blur(20px) saturate(180%)'

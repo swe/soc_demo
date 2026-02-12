@@ -1,5 +1,5 @@
 'use client'
-import { formatDate, formatDateTime } from '@/lib/utils'
+import { formatDate, formatDateTime, getSeverity, getStatus, getSeverityColor, getStatusColor } from '@/lib/utils'
 import { useEffect, useState } from 'react'
 import { usePageTitle } from '@/app/page-title-context'
 
@@ -345,36 +345,9 @@ export default function AllAlerts() {
     setExpandedAlertId(expandedAlertId === alertId ? null : alertId)
   }
 
-  const getSeverityColor = (severity: string): string => {
-    const colors: Record<string, string> = {
-      'CRITICAL': '#FF3B30',  // System red
-      'HIGH': '#FF9500',      // System orange
-      'MEDIUM': '#FFCC00',    // System yellow
-      'LOW': '#007AFF'        // System blue
-    }
-    return colors[severity.toUpperCase()] || '#8E8E93'
-  }
-
-  const getStatusColor = (status: string): string => {
-    const colors: Record<string, string> = {
-      'NEW': '#FF3B30',        // System red
-      'ACTIVE': '#FF3B30',     // System red
-      'INVESTIGATING': '#FF9500', // System orange
-      'RESOLVED': '#34C759',   // System green
-      'CLOSED': '#8E8E93'      // System gray
-    }
-    return colors[status.toUpperCase()] || '#8E8E93'
-  }
 
   const formatAlertDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleString('en-US', {
-      month: '2-digit',
-      day: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
+    return formatDateTime(dateString)
   }
 
   const renderPagination = () => {
@@ -443,9 +416,9 @@ export default function AllAlerts() {
   }
 
   return (
-    <div className="py-8 w-full max-w-7xl mx-auto">
+    <div className="py-4 w-full max-w-7xl mx-auto">
       {/* Page header */}
-      <div className="sm:flex sm:justify-between sm:items-center mb-6 px-4 hig-fade-in">
+      <div className="sm:flex sm:justify-between sm:items-center mb-3 px-4 hig-fade-in">
         {/* Left: Title */}
         <div className="mb-4 sm:mb-0">
           <h1 className="hig-title-large text-gray-900 dark:text-gray-100 mb-2">All Alerts</h1>
@@ -487,24 +460,24 @@ export default function AllAlerts() {
       </div>
 
       {/* Sticky Status Bar */}
-      <div className="sticky top-16 z-40 before:absolute before:inset-0 before:backdrop-blur-xl before:bg-white/80 dark:before:bg-[#0F172A]/80 before:-z-10 border-b border-gray-200 dark:border-gray-700/60 mb-6 -mx-4 sm:-mx-6 lg:-mx-8">
+      <div className="sticky top-16 z-40 before:absolute before:inset-0 before:backdrop-blur-xl before:bg-white/80 dark:before:bg-gray-950/80 before:-z-10 border-b border-gray-200 dark:border-gray-700/60 mb-3 -mx-4 sm:-mx-6 lg:-mx-8">
         <div className="px-4 sm:px-6 lg:px-8 py-3">
           <div className="flex items-center justify-between text-sm">
             <div className="flex items-center space-x-6">
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-[#FF3B30] rounded-full animate-pulse"></div>
+                <div className="w-2 h-2 bg-[#e11d48] rounded-full animate-pulse"></div>
                 <span className="hig-caption font-semibold text-gray-900 dark:text-gray-100">
                   Critical: {alertsData.filter(a => a.severity === 'CRITICAL').length}
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-[#FF9500] rounded-full"></div>
+                <div className="w-2 h-2 bg-[#ea580c] rounded-full"></div>
                 <span className="hig-caption font-semibold text-gray-900 dark:text-gray-100">
                   High: {alertsData.filter(a => a.severity === 'HIGH').length}
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-[#34C759] rounded-full"></div>
+                <div className="w-2 h-2 bg-[#059669] rounded-full"></div>
                 <span className="hig-caption font-semibold text-gray-900 dark:text-gray-100">
                   Active: {alertsData.filter(a => a.status === 'ACTIVE').length}
                 </span>
@@ -555,17 +528,17 @@ export default function AllAlerts() {
       {/* Alerts List with Expandable Details */}
       <div className="px-4">
         <div className="hig-card relative">
-          <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200 dark:border-gray-700/60">
+          <div className="flex items-center justify-between mb-3 pb-4 border-b border-gray-200 dark:border-gray-700/60">
             <h2 className="hig-headline text-gray-900 dark:text-gray-100">Security Alerts</h2>
             <span className="hig-caption text-gray-600 dark:text-gray-400">{filteredAlerts.length} total</span>
           </div>
 
               {loading ? (
-          <div className="py-8 text-center">
+          <div className="py-4 text-center">
             <div className="hig-body text-gray-500 dark:text-gray-400">Loading alerts...</div>
                     </div>
               ) : currentPageAlerts.length === 0 ? (
-          <div className="py-8 text-center">
+          <div className="py-4 text-center">
             <div className="hig-body text-gray-500 dark:text-gray-400">No alerts found</div>
                     </div>
         ) : (
@@ -580,7 +553,7 @@ export default function AllAlerts() {
                   <div 
                     className={`flex items-center gap-4 p-4 cursor-pointer transition-colors ${
                       idx !== currentPageAlerts.length - 1 ? 'border-b border-gray-200 dark:border-gray-700/60' : ''
-                    } ${isExpanded ? 'bg-gray-50 dark:bg-[#334155]/30' : 'hover:bg-gray-50 dark:hover:bg-[#334155]/20'}`}
+                    } ${isExpanded ? 'bg-gray-50 dark:bg-gray-700/30' : 'hover:bg-gray-50 dark:hover:bg-gray-700/20'}`}
                     onClick={() => handleExpandAlert(alert.id)}
                   >
                     {/* Severity Indicator */}
@@ -628,7 +601,7 @@ export default function AllAlerts() {
                     </div>
                     
                     {/* Metrics */}
-                    <div className="flex items-center gap-6 flex-shrink-0">
+                    <div className="flex items-center gap-3 flex-shrink-0">
                       <div className="text-right">
                         <div className="hig-caption text-gray-600 dark:text-gray-400">Detected</div>
                         <div className="hig-caption text-gray-900 dark:text-gray-100 font-medium mt-1">
@@ -649,7 +622,7 @@ export default function AllAlerts() {
 
                   {/* Expanded Details */}
                   {isExpanded && (
-                    <div className="px-4 pb-4 bg-gray-50 dark:bg-[#334155]/30 border-b border-gray-200 dark:border-gray-700/60">
+                    <div className="px-4 pb-4 bg-gray-50 dark:bg-gray-700/30 border-b border-gray-200 dark:border-gray-700/60">
                       <div className="pt-4 space-y-4">
                         {/* Description */}
                         {alert.description && (
@@ -717,7 +690,7 @@ export default function AllAlerts() {
           <div className="hig-modal p-0 max-w-4xl w-full flex flex-col max-h-[90vh]">
             {/* Fixed Header */}
             <div 
-              className="sticky top-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-[#1E293B]/80 border-b border-gray-200 dark:border-gray-700/60 p-6 pb-4"
+              className="sticky top-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-gray-900/80 border-b border-gray-200 dark:border-gray-700/60 p-6 pb-4"
               style={{
                 WebkitBackdropFilter: 'blur(20px) saturate(180%)',
                 backdropFilter: 'blur(20px) saturate(180%)'
@@ -746,25 +719,25 @@ export default function AllAlerts() {
             <div className="flex-1 overflow-y-auto px-6 py-6">
               {/* Metric Cards */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+                <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
                   <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Confidence</div>
                   <div className="hig-metric-value text-3xl text-gray-900 dark:text-gray-100">
                     {selectedAlert.confidence}%
                       </div>
                       </div>
-                <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+                <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
                   <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">False Positive Risk</div>
                   <div className="hig-metric-value text-3xl text-gray-900 dark:text-gray-100">
                     {selectedAlert.falsePositiveRisk}%
                     </div>
                   </div>
-                <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+                <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
                   <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Escalation Level</div>
                   <div className="hig-metric-value text-3xl text-gray-900 dark:text-gray-100">
                     {selectedAlert.escalationLevel}
                   </div>
                 </div>
-                <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+                <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
                   <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Affected Devices</div>
                   <div className="hig-metric-value text-3xl text-gray-900 dark:text-gray-100">
                     {selectedAlert.affectedDevices.length}
@@ -860,7 +833,7 @@ export default function AllAlerts() {
                   <h3 className="hig-headline mb-4">Affected Devices</h3>
                   <div className="space-y-3">
                         {selectedAlert.affectedDevices.map((device, index) => (
-                      <div key={index} className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4">
+                      <div key={index} className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4">
                         <div className="grid grid-cols-2 gap-4">
                           <div>
                             <div className="hig-caption text-gray-600 dark:text-gray-400 mb-1">Hostname</div>
@@ -879,8 +852,8 @@ export default function AllAlerts() {
                             <div 
                               className="hig-body font-semibold"
                               style={{
-                                color: device.riskScore >= 70 ? '#FF3B30' : device.riskScore >= 40 ? '#FF9500' : '#34C759',
-                                WebkitTextFillColor: device.riskScore >= 70 ? '#FF3B30' : device.riskScore >= 40 ? '#FF9500' : '#34C759'
+                                color: device.riskScore >= 70 ? '#e11d48' : device.riskScore >= 40 ? '#ea580c' : '#059669',
+                                WebkitTextFillColor: device.riskScore >= 70 ? '#e11d48' : device.riskScore >= 40 ? '#ea580c' : '#059669'
                               }}
                             >
                                 {device.riskScore}
@@ -896,7 +869,7 @@ export default function AllAlerts() {
                   {/* Business Impact */}
               <div className="pb-4 border-b border-gray-200 dark:border-gray-700/60 mb-4">
                 <h3 className="hig-headline mb-4">Business Impact</h3>
-                <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4">
+                <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4">
                   <div className="grid grid-cols-2 gap-4">
                   <div>
                       <div className="hig-caption text-gray-600 dark:text-gray-400 mb-1">Impact Level</div>
@@ -913,14 +886,14 @@ export default function AllAlerts() {
                   {/* Containment Status */}
               <div className="pb-4 border-b border-gray-200 dark:border-gray-700/60 mb-4">
                 <h3 className="hig-headline mb-4">Containment Status</h3>
-                <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4">
+                <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4">
                   <div className="flex items-center justify-between mb-3">
                     <div className="hig-caption text-gray-600 dark:text-gray-400">Contained</div>
                     <div 
                       className="hig-body font-semibold"
                       style={{
-                        color: selectedAlert.containmentStatus.isContained ? '#34C759' : '#FF3B30',
-                        WebkitTextFillColor: selectedAlert.containmentStatus.isContained ? '#34C759' : '#FF3B30'
+                        color: selectedAlert.containmentStatus.isContained ? '#059669' : '#e11d48',
+                        WebkitTextFillColor: selectedAlert.containmentStatus.isContained ? '#059669' : '#e11d48'
                       }}
                     >
                           {selectedAlert.containmentStatus.isContained ? 'Yes' : 'No'}
@@ -946,7 +919,7 @@ export default function AllAlerts() {
               {selectedAlert.recommendedAction && (
                 <div className="pb-4 border-b border-gray-200 dark:border-gray-700/60 mb-4">
                   <h3 className="hig-headline mb-4">Recommended Action</h3>
-                  <div className="hig-card bg-[#007AFF]/10 dark:bg-[#007AFF]/20 border border-[#007AFF]/30 p-4">
+                  <div className="hig-card bg-[#4f46e5]/10 dark:bg-[#4f46e5]/20 border border-[#4f46e5]/30 p-4">
                     <div className="hig-body text-gray-900 dark:text-gray-100">{selectedAlert.recommendedAction}</div>
                   </div>
                 </div>
@@ -962,8 +935,8 @@ export default function AllAlerts() {
                         key={index} 
                         className="hig-badge"
                         style={{
-                          backgroundColor: 'rgba(142, 142, 147, 0.2)',
-                          color: '#8E8E93'
+                          backgroundColor: 'rgba(107, 114, 128, 0.2)',
+                          color: '#6b7280'
                         }}
                       >
                             {tag}
@@ -983,8 +956,8 @@ export default function AllAlerts() {
                         key={index} 
                         className="hig-badge font-mono"
                         style={{
-                          backgroundColor: '#FF3B3020',
-                          color: '#FF3B30'
+                          backgroundColor: '#e11d4820',
+                          color: '#e11d48'
                         }}
                       >
                             {technique}
@@ -997,7 +970,7 @@ export default function AllAlerts() {
 
             {/* Fixed Footer */}
             <div 
-              className="sticky bottom-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-[#1E293B]/80 border-t border-gray-200 dark:border-gray-700/60 p-6 pt-4"
+              className="sticky bottom-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-gray-900/80 border-t border-gray-200 dark:border-gray-700/60 p-6 pt-4"
               style={{
                 WebkitBackdropFilter: 'blur(20px) saturate(180%)',
                 backdropFilter: 'blur(20px) saturate(180%)'

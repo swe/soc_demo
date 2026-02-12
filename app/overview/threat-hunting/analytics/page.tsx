@@ -139,24 +139,24 @@ export default function ThreatAnalytics() {
 
   const getSeverityColor = (severity: string): string => {
     const colors: Record<string, string> = {
-      critical: '#FF3B30',  // System red
-      high: '#FF9500',      // System orange
-      medium: '#FFCC00',    // System yellow
-      low: '#007AFF'        // System blue
+      critical: '#e11d48',  // System red
+      high: '#ea580c',      // System orange
+      medium: '#d97706',    // System yellow
+      low: '#4f46e5'        // System blue
     }
-    return colors[severity] || '#8E8E93'
+    return colors[severity] || '#6b7280'
   }
 
   const getTrendIcon = (trend: string) => {
     if (trend === 'up') {
       return (
-        <svg className="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+        <svg className="w-4 h-4 text-rose-500" fill="currentColor" viewBox="0 0 20 20">
           <path fillRule="evenodd" d="M5.293 7.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L6.707 7.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
         </svg>
       )
     } else if (trend === 'down') {
       return (
-        <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+        <svg className="w-4 h-4 text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
           <path fillRule="evenodd" d="M14.707 12.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 14.586V3a1 1 0 012 0v11.586l2.293-2.293a1 1 0 011.414 0z" clipRule="evenodd" />
         </svg>
       )
@@ -180,31 +180,31 @@ export default function ThreatAnalytics() {
   }
 
   return (
-    <div className="py-8 w-full max-w-7xl mx-auto">
+    <div className="py-4 w-full max-w-7xl mx-auto">
       <div className="mb-6 px-4 hig-fade-in">
         <h1 className="hig-title-large text-gray-900 dark:text-gray-100 mb-2">Threat Analytics</h1>
         <p className="hig-body text-gray-600 dark:text-gray-400">MITRE ATT&CK framework-based threat detection and analysis</p>
       </div>
 
       {/* Sticky Status Bar */}
-      <div className="sticky top-16 z-40 before:absolute before:inset-0 before:backdrop-blur-xl before:bg-white/80 dark:before:bg-[#0F172A]/80 before:-z-10 border-b border-gray-200 dark:border-gray-700/60 mb-6 -mx-4 sm:-mx-6 lg:-mx-8">
+      <div className="sticky top-16 z-40 before:absolute before:inset-0 before:backdrop-blur-xl before:bg-white/80 dark:before:bg-gray-950/80 before:-z-10 border-b border-gray-200 dark:border-gray-700/60 mb-3 -mx-4 sm:-mx-6 lg:-mx-8">
         <div className="px-4 sm:px-6 lg:px-8 py-3">
           <div className="flex items-center justify-between hig-caption">
             <div className="flex items-center space-x-6">
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-[#007AFF] rounded-full"></div>
+                <div className="w-2 h-2 bg-[#4f46e5] rounded-full"></div>
                 <span className="hig-caption font-semibold text-gray-900 dark:text-gray-100">
                   {techniques.reduce((sum, t) => sum + t.detections, 0)} Total Detections
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-[#FF3B30] rounded-full animate-pulse"></div>
+                <div className="w-2 h-2 bg-[#e11d48] rounded-full animate-pulse"></div>
                 <span className="hig-caption font-semibold text-gray-900 dark:text-gray-100">
                   {techniques.filter(t => t.severity === 'critical').length} Critical Techniques
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-[#FF9500] rounded-full"></div>
+                <div className="w-2 h-2 bg-[#ea580c] rounded-full"></div>
                 <span className="hig-caption font-semibold text-gray-900 dark:text-gray-100">
                   {techniques.filter(t => t.trend === 'up').length} Trending Up
                 </span>
@@ -226,10 +226,10 @@ export default function ThreatAnalytics() {
               onClick={() => setSelectedTactic('all')}
               className={`hig-card p-4 text-center transition-all ${
                 selectedTactic === 'all'
-                  ? 'text-white border-2 border-[#A655F7] shadow-lg shadow-[#393A84]/30'
-                  : 'bg-gray-50 dark:bg-[#334155]/30 hover:bg-gray-100 dark:hover:bg-[#334155]/50 border-2 border-transparent'
+                  ? 'text-white border-2 border-indigo-400 shadow-lg shadow-indigo-600/30'
+                  : 'bg-gray-50 dark:bg-gray-700/30 hover:bg-gray-100 dark:hover:bg-gray-700/50 border-2 border-transparent'
               }`}
-              style={selectedTactic === 'all' ? { backgroundColor: '#393A84' } : {}}
+              style={selectedTactic === 'all' ? { backgroundColor: '#3730a3' } : {}}
             >
               <div className={`hig-headline ${selectedTactic === 'all' ? 'text-white' : 'text-gray-900 dark:text-gray-100'}`} style={selectedTactic === 'all' ? { WebkitTextFillColor: 'white', color: 'white' } : {}}>All</div>
               <div className={`hig-caption mt-1 ${selectedTactic === 'all' ? 'text-white/90' : 'text-gray-600 dark:text-gray-400'}`} style={selectedTactic === 'all' ? { WebkitTextFillColor: 'rgba(255, 255, 255, 0.9)', color: 'rgba(255, 255, 255, 0.9)' } : {}}>{techniques.length} techniques</div>
@@ -244,10 +244,10 @@ export default function ThreatAnalytics() {
                   onClick={() => setSelectedTactic(tactic)}
                   className={`hig-card p-4 text-center transition-all ${
                     selectedTactic === tactic
-                      ? 'text-white border-2 border-[#A655F7] shadow-lg shadow-[#393A84]/30'
-                      : 'bg-gray-50 dark:bg-[#334155]/30 hover:bg-gray-100 dark:hover:bg-[#334155]/50 border-2 border-transparent'
+                      ? 'text-white border-2 border-indigo-400 shadow-lg shadow-indigo-600/30'
+                      : 'bg-gray-50 dark:bg-gray-700/30 hover:bg-gray-100 dark:hover:bg-gray-700/50 border-2 border-transparent'
                   }`}
-                  style={selectedTactic === tactic ? { backgroundColor: '#393A84' } : {}}
+                  style={selectedTactic === tactic ? { backgroundColor: '#3730a3' } : {}}
                 >
                   <div className={`hig-metric-value text-3xl ${selectedTactic === tactic ? 'text-white' : 'text-gray-900 dark:text-gray-100'}`} style={selectedTactic === tactic ? { WebkitTextFillColor: 'white', color: 'white' } : {}}>
                     {tacticDetections}
@@ -269,7 +269,7 @@ export default function ThreatAnalytics() {
       <div className="grid grid-cols-12 gap-4 px-4">
         <div className="col-span-12 lg:col-span-8">
           <div className="hig-card">
-            <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200 dark:border-gray-700/60">
+            <div className="flex items-center justify-between mb-3 pb-4 border-b border-gray-200 dark:border-gray-700/60">
               <h2 className="hig-headline text-gray-900 dark:text-gray-100">Detected Techniques</h2>
               <span className="hig-caption text-gray-600 dark:text-gray-400">{filteredTechniques.length} total</span>
             </div>
@@ -283,7 +283,7 @@ export default function ThreatAnalytics() {
                     <div 
                       className={`flex items-center gap-4 p-4 cursor-pointer ${
                         idx !== filteredTechniques.length - 1 ? 'border-b border-gray-200 dark:border-gray-700/60' : ''
-                      } hover:bg-gray-50 dark:hover:bg-[#334155]/20`}
+                      } hover:bg-gray-50 dark:hover:bg-gray-700/20`}
                       onClick={() => setSelectedTechnique(technique)}
                     >
                       {/* Severity Indicator */}
@@ -323,7 +323,7 @@ export default function ThreatAnalytics() {
                       </div>
                       
                       {/* Metrics */}
-                      <div className="flex items-center gap-6 flex-shrink-0">
+                      <div className="flex items-center gap-3 flex-shrink-0">
                         <div className="text-right">
                           <div className="hig-caption text-gray-600 dark:text-gray-400">Detections</div>
                           <div className="hig-body text-gray-900 dark:text-gray-100 font-semibold mt-1">
@@ -342,7 +342,7 @@ export default function ThreatAnalytics() {
                             {technique.lastDetected}
                           </div>
                         </div>
-                        <span className="hig-caption text-[#AF52DE] hover:text-[#AF52DE] hig-link-hover">
+                        <span className="hig-caption hig-link-hover">
                           View →
                         </span>
                       </div>
@@ -370,7 +370,7 @@ export default function ThreatAnalytics() {
                       </div>
                       <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                         <div 
-                          className="bg-[#393A84] dark:bg-[#393A84] h-2 rounded-full" 
+                          className="bg-indigo-600 dark:bg-indigo-500 h-2 rounded-full" 
                           style={{ width: `${(technique.detections / stats.totalDetections) * 100}%` }}
                         ></div>
                       </div>
@@ -400,7 +400,7 @@ export default function ThreatAnalytics() {
                     </div>
                     <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                       <div 
-                        className="bg-[#393A84] dark:bg-[#393A84] h-2 rounded-full" 
+                        className="bg-indigo-600 dark:bg-indigo-500 h-2 rounded-full" 
                         style={{ width: `${(count / stats.totalDetections) * 100}%` }}
                       ></div>
                     </div>
@@ -417,7 +417,7 @@ export default function ThreatAnalytics() {
           <div className="hig-modal p-0 max-w-4xl w-full flex flex-col max-h-[90vh]">
             {/* Fixed Header */}
             <div 
-              className="sticky top-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-[#1E293B]/80 border-b border-gray-200 dark:border-gray-700/60 p-6 pb-4"
+              className="sticky top-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-gray-900/80 border-b border-gray-200 dark:border-gray-700/60 p-6 pb-4"
               style={{
                 WebkitBackdropFilter: 'blur(20px) saturate(180%)',
                 backdropFilter: 'blur(20px) saturate(180%)'
@@ -477,20 +477,20 @@ export default function ThreatAnalytics() {
 
               {/* Metric Cards */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+                <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
                   <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Detections</div>
                   <div className="hig-metric-value text-3xl text-gray-900 dark:text-gray-100">
                     {selectedTechnique.detections}
                   </div>
                 </div>
-                <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+                <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
                   <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Trend</div>
                   <div className="flex items-center justify-center gap-2">
                     {getTrendIcon(selectedTechnique.trend)}
                     <span className="hig-body capitalize text-gray-900 dark:text-gray-100">{selectedTechnique.trend}</span>
                   </div>
                 </div>
-                <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+                <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
                   <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Last Detected</div>
                   <div className="hig-body text-gray-900 dark:text-gray-100 font-medium">
                     {selectedTechnique.lastDetected}
@@ -501,7 +501,7 @@ export default function ThreatAnalytics() {
 
             {/* Fixed Footer */}
             <div 
-              className="sticky bottom-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-[#1E293B]/80 border-t border-gray-200 dark:border-gray-700/60 p-6 pt-4"
+              className="sticky bottom-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-gray-900/80 border-t border-gray-200 dark:border-gray-700/60 p-6 pt-4"
               style={{
                 WebkitBackdropFilter: 'blur(20px) saturate(180%)',
                 backdropFilter: 'blur(20px) saturate(180%)'

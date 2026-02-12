@@ -1,5 +1,5 @@
 'use client'
-import { formatDate, formatDateTime } from '@/lib/utils'
+import { formatDate, formatDateTime, formatNumber } from '@/lib/utils'
 import { useEffect, useState } from 'react'
 import { usePageTitle } from '@/app/page-title-context'
 
@@ -114,20 +114,20 @@ export default function ThreatFeeds() {
 
   const getStatusColor = (status: string): string => {
     const colors: Record<string, string> = {
-      active: '#34C759',     // System green
-      inactive: '#8E8E93',   // System gray
-      error: '#FF3B30'       // System red
+      active: '#059669',     // System green
+      inactive: '#6b7280',   // System gray
+      error: '#e11d48'       // System red
     }
-    return colors[status] || '#8E8E93'
+    return colors[status] || '#6b7280'
   }
 
   const getTypeColor = (type: string): string => {
     const colors: Record<string, string> = {
-      'open-source': '#007AFF',  // System blue
-      'commercial': '#AF52DE',    // System purple
-      'internal': '#FF9500'       // System orange
+      'open-source': '#4f46e5',  // System blue
+      'commercial': '#4f46e5',    // System purple
+      'internal': '#ea580c'       // System orange
     }
-    return colors[type] || '#8E8E93'
+    return colors[type] || '#6b7280'
   }
 
   const filteredFeeds = filterType === 'all' 
@@ -142,7 +142,7 @@ export default function ThreatFeeds() {
   }
 
   return (
-    <div className="py-8 w-full max-w-7xl mx-auto">
+    <div className="py-4 w-full max-w-7xl mx-auto">
       <div className="mb-6 px-4 hig-fade-in">
         <h1 className="hig-title-large text-gray-900 dark:text-gray-100 mb-2">Threat Intelligence Feeds</h1>
         <p className="hig-body text-gray-600 dark:text-gray-400">Manage and monitor threat intelligence data sources</p>
@@ -150,28 +150,28 @@ export default function ThreatFeeds() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 px-4">
-        <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+        <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
           <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Total Feeds</div>
           <div className="hig-metric-value text-4xl text-gray-900 dark:text-gray-100">{stats.total}</div>
         </div>
 
-        <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+        <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
           <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Active Feeds</div>
-          <div className="hig-metric-value text-4xl" style={{ color: '#34C759', WebkitTextFillColor: '#34C759' }}>
+          <div className="hig-metric-value text-4xl" style={{ color: '#059669', WebkitTextFillColor: '#059669' }}>
             {stats.active}
           </div>
         </div>
 
-        <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+        <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
           <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Total Indicators</div>
-          <div className="hig-metric-value text-4xl" style={{ color: '#007AFF', WebkitTextFillColor: '#007AFF' }}>
-            {stats.totalIndicators.toLocaleString()}
+          <div className="hig-metric-value text-4xl" style={{ color: '#4f46e5', WebkitTextFillColor: '#4f46e5' }}>
+            {formatNumber(stats.totalIndicators)}
           </div>
         </div>
 
-        <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+        <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
           <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Avg Reliability</div>
-          <div className="hig-metric-value text-4xl" style={{ color: '#AF52DE', WebkitTextFillColor: '#AF52DE' }}>
+          <div className="hig-metric-value text-4xl" style={{ color: '#4f46e5', WebkitTextFillColor: '#4f46e5' }}>
             {stats.avgReliability}%
           </div>
         </div>
@@ -195,7 +195,7 @@ export default function ThreatFeeds() {
       {/* Threat Feeds List */}
       <div className="px-4">
         <div className="hig-card">
-          <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200 dark:border-gray-700/60">
+          <div className="flex items-center justify-between mb-3 pb-4 border-b border-gray-200 dark:border-gray-700/60">
             <h2 className="hig-headline text-gray-900 dark:text-gray-100">Threat Intelligence Feeds</h2>
             <span className="hig-caption text-gray-600 dark:text-gray-400">{filteredFeeds.length} total</span>
           </div>
@@ -256,7 +256,7 @@ export default function ThreatFeeds() {
                           className="hig-badge"
                           style={{
                             backgroundColor: 'rgba(142, 142, 147, 0.2)',
-                            color: '#8E8E93'
+                            color: '#6b7280'
                           }}
                         >
                           {coverage}
@@ -266,16 +266,16 @@ export default function ThreatFeeds() {
                   </div>
                   
                   {/* Metrics */}
-                  <div className="flex items-center gap-6 flex-shrink-0">
+                  <div className="flex items-center gap-3 flex-shrink-0">
                     <div className="text-right">
                       <div className="hig-caption text-gray-600 dark:text-gray-400">Indicators</div>
                       <div className="hig-body text-gray-900 dark:text-gray-100 font-semibold mt-1">
-                        {feed.indicators.toLocaleString()}
+                        {formatNumber(feed.indicators)}
                       </div>
                     </div>
                     <div className="text-right">
                       <div className="hig-caption text-gray-600 dark:text-gray-400">Reliability</div>
-                      <div className="hig-body font-semibold mt-1" style={{ color: feed.reliability >= 90 ? '#34C759' : feed.reliability >= 70 ? '#FF9500' : '#FF3B30', WebkitTextFillColor: feed.reliability >= 90 ? '#34C759' : feed.reliability >= 70 ? '#FF9500' : '#FF3B30' }}>
+                      <div className="hig-body font-semibold mt-1" style={{ color: feed.reliability >= 90 ? '#059669' : feed.reliability >= 70 ? '#ea580c' : '#e11d48', WebkitTextFillColor: feed.reliability >= 90 ? '#059669' : feed.reliability >= 70 ? '#ea580c' : '#e11d48' }}>
                         {feed.reliability}%
                       </div>
                     </div>
@@ -285,7 +285,7 @@ export default function ThreatFeeds() {
                         {feed.lastUpdate}
                       </div>
                     </div>
-                    <span className="hig-caption text-[#AF52DE] hover:text-[#AF52DE] hig-link-hover">
+                    <span className="hig-caption hig-link-hover">
                       View Details →
                     </span>
                   </div>
@@ -303,7 +303,7 @@ export default function ThreatFeeds() {
           <div className="hig-modal p-0 max-w-4xl w-full flex flex-col max-h-[90vh]">
             {/* Fixed Header */}
             <div 
-              className="sticky top-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-[#1E293B]/80 border-b border-gray-200 dark:border-gray-700/60 p-6 pb-4"
+              className="sticky top-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-gray-900/80 border-b border-gray-200 dark:border-gray-700/60 p-6 pb-4"
               style={{
                 WebkitBackdropFilter: 'blur(20px) saturate(180%)',
                 backdropFilter: 'blur(20px) saturate(180%)'
@@ -372,17 +372,17 @@ export default function ThreatFeeds() {
 
               {/* Metric Cards */}
               <div className="grid grid-cols-2 gap-4 mb-6">
-                <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+                <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
                   <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Total Indicators</div>
                   <div className="hig-metric-value text-3xl text-gray-900 dark:text-gray-100">
-                    {selectedFeed.indicators.toLocaleString()}
+                    {formatNumber(selectedFeed.indicators)}
                   </div>
                 </div>
-                <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+                <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
                   <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Reliability</div>
                   <div className="hig-metric-value text-3xl" style={{ 
-                    color: selectedFeed.reliability >= 90 ? '#34C759' : selectedFeed.reliability >= 70 ? '#FF9500' : '#FF3B30',
-                    WebkitTextFillColor: selectedFeed.reliability >= 90 ? '#34C759' : selectedFeed.reliability >= 70 ? '#FF9500' : '#FF3B30'
+                    color: selectedFeed.reliability >= 90 ? '#059669' : selectedFeed.reliability >= 70 ? '#ea580c' : '#e11d48',
+                    WebkitTextFillColor: selectedFeed.reliability >= 90 ? '#059669' : selectedFeed.reliability >= 70 ? '#ea580c' : '#e11d48'
                   }}>
                     {selectedFeed.reliability}%
                   </div>
@@ -399,7 +399,7 @@ export default function ThreatFeeds() {
                       className="hig-badge"
                       style={{
                         backgroundColor: 'rgba(142, 142, 147, 0.2)',
-                        color: '#8E8E93'
+                        color: '#6b7280'
                       }}
                     >
                       {coverage}
@@ -426,7 +426,7 @@ export default function ThreatFeeds() {
                   </div>
                   <div>
                     <div className="hig-caption text-gray-600 dark:text-gray-400 mb-1">Total Indicators</div>
-                    <div className="hig-body font-semibold text-gray-900 dark:text-gray-100">{selectedFeed.indicators.toLocaleString()}</div>
+                    <div className="hig-body font-semibold text-gray-900 dark:text-gray-100">{formatNumber(selectedFeed.indicators)}</div>
                   </div>
                 </div>
               </div>
@@ -434,12 +434,12 @@ export default function ThreatFeeds() {
               {/* Reliability Details */}
               <div className="pb-4 border-b border-gray-200 dark:border-gray-700/60 mb-4">
                 <h3 className="hig-headline mb-4">Reliability Assessment</h3>
-                <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4">
+                <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4">
                   <div className="flex items-center justify-between mb-3">
                     <div className="hig-body text-gray-900 dark:text-gray-100">Reliability Score</div>
                     <div className="hig-body font-semibold" style={{ 
-                      color: selectedFeed.reliability >= 90 ? '#34C759' : selectedFeed.reliability >= 70 ? '#FF9500' : '#FF3B30',
-                      WebkitTextFillColor: selectedFeed.reliability >= 90 ? '#34C759' : selectedFeed.reliability >= 70 ? '#FF9500' : '#FF3B30'
+                      color: selectedFeed.reliability >= 90 ? '#059669' : selectedFeed.reliability >= 70 ? '#ea580c' : '#e11d48',
+                      WebkitTextFillColor: selectedFeed.reliability >= 90 ? '#059669' : selectedFeed.reliability >= 70 ? '#ea580c' : '#e11d48'
                     }}>
                       {selectedFeed.reliability}%
                     </div>
@@ -449,7 +449,7 @@ export default function ThreatFeeds() {
                       className="h-3 rounded-full" 
                       style={{ 
                         width: `${selectedFeed.reliability}%`,
-                        backgroundColor: selectedFeed.reliability >= 90 ? '#34C759' : selectedFeed.reliability >= 70 ? '#FF9500' : '#FF3B30'
+                        backgroundColor: selectedFeed.reliability >= 90 ? '#059669' : selectedFeed.reliability >= 70 ? '#ea580c' : '#e11d48'
                       }}
                     ></div>
                   </div>
@@ -466,7 +466,7 @@ export default function ThreatFeeds() {
               {/* Coverage Details */}
               <div>
                 <h3 className="hig-headline mb-4">Coverage Details</h3>
-                <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4">
+                <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4">
                   <div className="hig-body text-gray-700 dark:text-gray-300 mb-3">
                     This feed provides indicators for the following threat categories:
                   </div>
@@ -476,8 +476,8 @@ export default function ThreatFeeds() {
                         key={idx} 
                         className="hig-badge"
                         style={{
-                          backgroundColor: '#007AFF20',
-                          color: '#007AFF'
+                          backgroundColor: '#4f46e520',
+                          color: '#4f46e5'
                         }}
                       >
                         {coverage}
@@ -493,7 +493,7 @@ export default function ThreatFeeds() {
 
             {/* Fixed Footer */}
             <div 
-              className="sticky bottom-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-[#1E293B]/80 border-t border-gray-200 dark:border-gray-700/60 p-6 pt-4"
+              className="sticky bottom-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-gray-900/80 border-t border-gray-200 dark:border-gray-700/60 p-6 pt-4"
               style={{
                 WebkitBackdropFilter: 'blur(20px) saturate(180%)',
                 backdropFilter: 'blur(20px) saturate(180%)'

@@ -4,6 +4,7 @@ import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { usePageTitle } from '@/app/page-title-context'
 import Icon from '@/components/ui/icon'
+import { getSeverity, getStatus, getSeverityColor, getStatusColor, formatNumber } from '@/lib/utils'
 
 // Dynamically import AttackMap to avoid SSR issues with Leaflet
 const AttackMap = dynamic(() => import('@/components/attack-map'), { 
@@ -58,7 +59,7 @@ const generateIncident = (id: number) => {
 }
 
 export default function OverviewPage() {
-  const [lastUpdateTime, setLastUpdateTime] = useState(new Date())
+  const [lastUpdateTime, setLastUpdateTime] = useState<Date | null>(null)
   const { setPageTitle } = usePageTitle()
   
   // Live updating metrics
@@ -146,40 +147,10 @@ export default function OverviewPage() {
     setShowIncidentModal(false)
   }
 
-  const getSeverityColor = (severity: string) => {
-    switch(severity) {
-      case 'critical': return '#FF3B30'
-      case 'high': return '#FF9500'
-      case 'medium': return '#FFCC00'
-      default: return '#007AFF'
-    }
-  }
-
-  const getStatusColor = (status: string) => {
-    switch(status) {
-      case 'resolved': return { 
-        color: '#34C759', 
-        backgroundColor: 'rgba(52, 199, 89, 0.2)' 
-      }
-      case 'investigating': return { 
-        color: '#FF9500', 
-        backgroundColor: 'rgba(255, 149, 0, 0.2)' 
-      }
-      case 'escalated': return { 
-        color: '#FF3B30', 
-        backgroundColor: 'rgba(255, 59, 48, 0.2)' 
-      }
-      default: return { 
-        color: '#8E8E93', 
-        backgroundColor: 'rgba(142, 142, 147, 0.2)' 
-      }
-    }
-  }
-
   return (
-    <div className="py-8 w-full max-w-7xl mx-auto">
+    <div className="py-4 w-full max-w-7xl mx-auto">
       {/* Header Section */}
-      <div className="mb-6 px-4 hig-fade-in">
+      <div className="mb-3 px-4 hig-fade-in">
         <h1 className="hig-title-large text-gray-900 dark:text-gray-100 mb-2">
           Security Operations Center
         </h1>
@@ -189,22 +160,22 @@ export default function OverviewPage() {
       </div>
 
       {/* Key Metrics */}
-      <div className="mb-6 px-4">
+      <div className="mb-3 px-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="hig-card">
             <div className="hig-caption text-gray-600 dark:text-gray-400 mb-3">Active Threats</div>
             <div className="flex items-start justify-between mb-3">
               <div className="hig-metric-value">{metrics.activeThreats}</div>
-              <div className={`px-2 py-1 rounded-lg text-xs font-semibold ${parseFloat(metrics.threatChange as any) > 0 ? 'bg-red-100 dark:bg-red-900/20 text-[#FF3B30]' : 'bg-green-100 dark:bg-green-900/20 text-[#34C759]'}`}>
+              <div className={`px-2 py-1 rounded-md text-xs font-semibold ${parseFloat(metrics.threatChange as any) > 0 ? 'bg-rose-100 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400' : 'bg-emerald-100 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400'}`}>
                 {parseFloat(metrics.threatChange as any) > 0 ? '+' : ''}{metrics.threatChange}%
               </div>
             </div>
             <div className="pt-3 border-t border-gray-100 dark:border-gray-700/60">
               <div className="flex items-center gap-2 hig-caption text-gray-500">
-                <span className="text-[#FF3B30] font-medium">{Math.floor(metrics.activeThreats * 0.17)}</span>
+                <span className="text-rose-600 dark:text-rose-400 font-medium">{Math.floor(metrics.activeThreats * 0.17)}</span>
                 <span>critical</span>
                 <span>•</span>
-                <span className="text-[#FF9500] font-medium">{Math.floor(metrics.activeThreats * 0.32)}</span>
+                <span className="text-orange-600 dark:text-orange-400 font-medium">{Math.floor(metrics.activeThreats * 0.32)}</span>
                 <span>high</span>
               </div>
             </div>
@@ -214,16 +185,16 @@ export default function OverviewPage() {
             <div className="hig-caption text-gray-600 dark:text-gray-400 mb-3">Incidents</div>
             <div className="flex items-start justify-between mb-3">
               <div className="hig-metric-value">{metrics.incidents}</div>
-              <div className={`px-2 py-1 rounded-lg text-xs font-semibold ${parseFloat(metrics.incidentChange as any) > 0 ? 'bg-red-100 dark:bg-red-900/20 text-[#FF3B30]' : 'bg-green-100 dark:bg-green-900/20 text-[#34C759]'}`}>
+              <div className={`px-2 py-1 rounded-lg text-xs font-semibold ${parseFloat(metrics.incidentChange as any) > 0 ? 'bg-rose-100 dark:bg-rose-900/20 text-[#e11d48]' : 'bg-emerald-100 dark:bg-emerald-900/20 text-[#059669]'}`}>
                 {parseFloat(metrics.incidentChange as any) > 0 ? '+' : ''}{metrics.incidentChange}%
               </div>
             </div>
             <div className="pt-3 border-t border-gray-100 dark:border-gray-700/60">
               <div className="flex items-center gap-2 hig-caption text-gray-500">
-                <span className="text-[#FF9500] font-medium">{Math.floor(metrics.incidents * 0.3)}</span>
+                <span className="text-[#ea580c] font-medium">{Math.floor(metrics.incidents * 0.3)}</span>
                 <span>investigating</span>
                 <span>•</span>
-                <span className="text-[#34C759] font-medium">{Math.floor(metrics.incidents * 0.7)}</span>
+                <span className="text-[#059669] font-medium">{Math.floor(metrics.incidents * 0.7)}</span>
                 <span>resolved</span>
               </div>
             </div>
@@ -232,17 +203,17 @@ export default function OverviewPage() {
           <div className="hig-card">
             <div className="hig-caption text-gray-600 dark:text-gray-400 mb-3">Vulnerabilities</div>
             <div className="flex items-start justify-between mb-3">
-              <div className="hig-metric-value">{metrics.vulnerabilities.toLocaleString()}</div>
-              <div className={`px-2 py-1 rounded-lg text-xs font-semibold ${parseFloat(metrics.vulnChange as any) > 0 ? 'bg-red-100 dark:bg-red-900/20 text-[#FF3B30]' : 'bg-green-100 dark:bg-green-900/20 text-[#34C759]'}`}>
+              <div className="hig-metric-value">{formatNumber(metrics.vulnerabilities)}</div>
+              <div className={`px-2 py-1 rounded-lg text-xs font-semibold ${parseFloat(metrics.vulnChange as any) > 0 ? 'bg-rose-100 dark:bg-rose-900/20 text-[#e11d48]' : 'bg-emerald-100 dark:bg-emerald-900/20 text-[#059669]'}`}>
                 {parseFloat(metrics.vulnChange as any) > 0 ? '+' : ''}{metrics.vulnChange}%
               </div>
             </div>
             <div className="pt-3 border-t border-gray-100 dark:border-gray-700/60">
               <div className="flex items-center gap-2 hig-caption text-gray-500">
-                <span className="text-[#FF3B30] font-medium">{Math.floor(metrics.vulnerabilities * 0.018)}</span>
+                <span className="text-[#e11d48] font-medium">{Math.floor(metrics.vulnerabilities * 0.018)}</span>
                 <span>critical</span>
                 <span>•</span>
-                <span className="text-[#FF9500] font-medium">{Math.floor(metrics.vulnerabilities * 0.125)}</span>
+                <span className="text-[#ea580c] font-medium">{Math.floor(metrics.vulnerabilities * 0.125)}</span>
                 <span>high</span>
               </div>
             </div>
@@ -250,13 +221,13 @@ export default function OverviewPage() {
 
           <div className="hig-card">
             <div className="hig-caption text-gray-600 dark:text-gray-400 mb-3">Assets Protected</div>
-            <div className="hig-metric-value mb-3">{metrics.assets.toLocaleString()}</div>
+            <div className="hig-metric-value mb-3">{formatNumber(metrics.assets)}</div>
             <div className="pt-3 border-t border-gray-100 dark:border-gray-700/60">
               <div className="flex items-center gap-2 hig-caption text-gray-500">
-                <span className="text-[#393A84] font-medium">{Math.floor(metrics.assets * 0.433).toLocaleString()}</span>
+                <span className="text-indigo-600 dark:text-indigo-400 font-medium">{formatNumber(Math.floor(metrics.assets * 0.433))}</span>
               <span>devices</span>
               <span>•</span>
-              <span className="text-[#A655F7] font-medium">{Math.floor(metrics.assets * 0.567).toLocaleString()}</span>
+              <span className="text-violet-600 dark:text-violet-400 font-medium">{formatNumber(Math.floor(metrics.assets * 0.567))}</span>
                 <span>users</span>
               </div>
             </div>
@@ -265,41 +236,41 @@ export default function OverviewPage() {
       </div>
 
       {/* Sticky System Status Bar */}
-      <div className="sticky top-16 z-40 before:absolute before:inset-0 before:backdrop-blur-xl before:bg-white/80 dark:before:bg-[#0F172A]/80 before:-z-10 border-b border-gray-200 dark:border-gray-700/60 mb-6 -mx-4 sm:-mx-6 lg:-mx-8">
+      <div className="sticky top-16 z-40 before:absolute before:inset-0 before:backdrop-blur-xl before:bg-white/80 dark:before:bg-gray-950/80 before:-z-10 border-b border-gray-200 dark:border-gray-700/60 mb-3 -mx-4 sm:-mx-6 lg:-mx-8">
         <div className="px-4 sm:px-6 lg:px-8 py-3">
           <div className="flex items-center gap-8 flex-wrap">
             <span className="hig-caption text-gray-600 dark:text-gray-400 font-medium">Systems Status:</span>
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-[#34C759] rounded-full"></div>
+              <div className="w-2 h-2 bg-[#059669] rounded-full"></div>
               <span className="hig-caption text-gray-900 dark:text-gray-100">SIEM</span>
-              <span className="hig-body font-semibold text-[#34C759]">99.9%</span>
+              <span className="hig-body font-semibold text-[#059669]">99.9%</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-[#34C759] rounded-full"></div>
+              <div className="w-2 h-2 bg-[#059669] rounded-full"></div>
               <span className="hig-caption text-gray-900 dark:text-gray-100">Threat Intel</span>
-              <span className="hig-body font-semibold text-[#34C759]">100%</span>
+              <span className="hig-body font-semibold text-[#059669]">100%</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-[#34C759] rounded-full"></div>
+              <div className="w-2 h-2 bg-[#059669] rounded-full"></div>
               <span className="hig-caption text-gray-900 dark:text-gray-100">Endpoints</span>
-              <span className="hig-body font-semibold text-[#34C759]">99.8%</span>
+              <span className="hig-body font-semibold text-[#059669]">99.8%</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-[#34C759] rounded-full"></div>
+              <div className="w-2 h-2 bg-[#059669] rounded-full"></div>
               <span className="hig-caption text-gray-900 dark:text-gray-100">Network</span>
-              <span className="hig-body font-semibold text-[#34C759]">99.7%</span>
+              <span className="hig-body font-semibold text-[#059669]">99.7%</span>
             </div>
           </div>
         </div>
       </div>
 
       {/* Three Cards Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 px-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 mb-3 px-4">
         {/* SOC Performance */}
         <div className="hig-card">
           <div className="flex items-center justify-between mb-3 pb-3 border-b border-gray-200 dark:border-gray-700/60">
             <h3 className="hig-headline text-gray-900 dark:text-gray-100">SOC Performance</h3>
-            <div className="w-2 h-2 bg-[#34C759] rounded-full animate-pulse"></div>
+            <div className="w-2 h-2 bg-[#059669] rounded-full animate-pulse"></div>
           </div>
           <div className="space-y-3">
             <div className="flex items-center justify-between pb-2 border-b border-gray-100 dark:border-gray-700/60">
@@ -312,11 +283,11 @@ export default function OverviewPage() {
             </div>
             <div className="flex items-center justify-between pb-2 border-b border-gray-100 dark:border-gray-700/60">
               <span className="hig-body text-gray-600 dark:text-gray-400">False Positive Rate</span>
-              <span className="hig-body font-semibold text-[#34C759]">7.2%</span>
+              <span className="hig-body font-semibold text-[#059669]">7.2%</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="hig-body text-gray-600 dark:text-gray-400">Alert Accuracy</span>
-              <span className="hig-body font-semibold text-[#34C759]">92.8%</span>
+              <span className="hig-body font-semibold text-[#059669]">92.8%</span>
             </div>
           </div>
         </div>
@@ -332,7 +303,7 @@ export default function OverviewPage() {
           <div className="space-y-3">
             <div className="flex items-center justify-between pb-2 border-b border-gray-100 dark:border-gray-700/60">
               <span className="hig-body text-gray-600 dark:text-gray-400">Top Threat Actor</span>
-              <span className="hig-body font-semibold text-[#FF3B30] text-right max-w-[60%] truncate">{topThreatActor}</span>
+              <span className="hig-body font-semibold text-[#e11d48] text-right max-w-[60%] truncate">{topThreatActor}</span>
             </div>
             <div className="flex items-center justify-between pb-2 border-b border-gray-100 dark:border-gray-700/60">
               <span className="hig-body text-gray-600 dark:text-gray-400">Active Campaigns</span>
@@ -340,11 +311,11 @@ export default function OverviewPage() {
             </div>
             <div className="flex items-center justify-between pb-2 border-b border-gray-100 dark:border-gray-700/60">
               <span className="hig-body text-gray-600 dark:text-gray-400">IOCs Detected</span>
-              <span className="hig-body font-semibold text-gray-900 dark:text-gray-100">2,847</span>
+              <span className="hig-body font-semibold text-gray-900 dark:text-gray-100">1,247</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="hig-body text-gray-600 dark:text-gray-400">Block Rate</span>
-              <span className="hig-body font-semibold text-[#34C759]">95.3%</span>
+              <span className="hig-body font-semibold text-[#059669]">95.3%</span>
             </div>
           </div>
         </div>
@@ -361,21 +332,21 @@ export default function OverviewPage() {
             <div>
               <div className="flex items-center justify-between mb-2">
                 <span className="hig-body text-gray-600 dark:text-gray-400">Overall Score</span>
-                <span className="hig-body font-semibold text-[#34C759]">94.2%</span>
+                <span className="hig-body font-semibold text-[#059669]">92%</span>
               </div>
               <div className="hig-progress">
-                <div className="hig-progress-bar" style={{ width: '94.2%' }}></div>
+                <div className="hig-progress-bar" style={{ width: '92%' }}></div>
               </div>
             </div>
             <div className="space-y-2">
               {[
-                { name: 'SOC 2', score: 92, status: 'compliant' },
-                { name: 'ISO 27001', score: 89, status: 'in-progress' },
-                { name: 'HIPAA', score: 98, status: 'compliant' }
+                { name: 'ISO 27001', score: 98, status: 'compliant' },
+                { name: 'SOC 2 Type II', score: 95, status: 'compliant' },
+                { name: 'HIPAA', score: 92, status: 'compliant' }
               ].map((item, idx) => (
                 <div key={idx} className="flex items-center justify-between pb-2 border-b border-gray-100 dark:border-gray-700/60 last:border-0 last:pb-0">
                   <div className="flex items-center gap-2">
-                    <div className={`w-1.5 h-1.5 rounded-full ${item.status === 'compliant' ? 'bg-[#34C759]' : 'bg-[#FFCC00]'}`}></div>
+                    <div className={`w-1.5 h-1.5 rounded-full ${item.status === 'compliant' ? 'bg-[#059669]' : 'bg-[#d97706]'}`}></div>
                     <span className="hig-body text-gray-900 dark:text-gray-100">{item.name}</span>
                   </div>
                   <span className="hig-body font-semibold text-gray-900 dark:text-gray-100">{item.score}%</span>
@@ -393,7 +364,7 @@ export default function OverviewPage() {
           {/* Enhanced List Design */}
           <div className="hig-card overflow-hidden">
             {/* Header inside card */}
-            <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200 dark:border-gray-700/60">
+            <div className="flex items-center justify-between mb-3 pb-4 border-b border-gray-200 dark:border-gray-700/60">
               <h2 className="hig-headline text-gray-900 dark:text-gray-100">Recent Incidents</h2>
               <div className="flex items-center gap-3">
                 <button 
@@ -431,9 +402,12 @@ export default function OverviewPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-3 mb-1 flex-wrap">
                         <span className="hig-body font-semibold text-gray-900 dark:text-gray-100">{incident.title}</span>
-                        <span 
+                        <span
                           className="hig-badge"
-                          style={getStatusColor(incident.status)}
+                          style={{
+                            backgroundColor: `${getStatusColor(incident.status)}20`,
+                            color: getStatusColor(incident.status)
+                          }}
                         >
                           {incident.status.toUpperCase()}
                         </span>
@@ -505,10 +479,10 @@ function IncidentModal({ incident, onClose, onSave }: any) {
 
   const getSeverityColor = (severity: string) => {
     switch(severity) {
-      case 'critical': return '#FF3B30'
-      case 'high': return '#FF9500'
-      case 'medium': return '#FFCC00'
-      default: return '#007AFF'
+      case 'critical': return '#e11d48'
+      case 'high': return '#ea580c'
+      case 'medium': return '#d97706'
+      default: return '#4f46e5'
     }
   }
 
@@ -518,7 +492,7 @@ function IncidentModal({ incident, onClose, onSave }: any) {
         <form id="incident-form" onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
           {/* Fixed Header */}
           <div 
-            className="sticky top-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-[#1E293B]/80 border-b border-gray-200 dark:border-gray-700/60 p-6 pb-4"
+            className="sticky top-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-gray-900/80 border-b border-gray-200 dark:border-gray-700/60 p-6 pb-4"
             style={{
               WebkitBackdropFilter: 'blur(20px) saturate(180%)',
               backdropFilter: 'blur(20px) saturate(180%)'
@@ -641,7 +615,7 @@ function IncidentModal({ incident, onClose, onSave }: any) {
 
           {/* Fixed Footer */}
           <div 
-            className="sticky bottom-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-[#1E293B]/80 border-t border-gray-200 dark:border-gray-700/60 p-6 pt-4"
+            className="sticky bottom-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-gray-900/80 border-t border-gray-200 dark:border-gray-700/60 p-6 pt-4"
             style={{
               WebkitBackdropFilter: 'blur(20px) saturate(180%)',
               backdropFilter: 'blur(20px) saturate(180%)'

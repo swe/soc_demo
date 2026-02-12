@@ -172,26 +172,26 @@ export default function IdentitiesPage() {
 
   const getStatusColor = (status: string): string => {
     const colors: Record<string, string> = {
-      active: '#34C759',      // System green
-      inactive: '#FF9500',    // System orange
-      locked: '#FF3B30'       // System red
+      active: '#059669',      // System green
+      inactive: '#ea580c',    // System orange
+      locked: '#e11d48'       // System red
     }
-    return colors[status] || '#8E8E93'
+    return colors[status] || '#6b7280'
   }
 
   const getRiskColor = (score: number): string => {
-    if (score >= 70) return '#FF3B30'  // System red
-    if (score >= 40) return '#FF9500'  // System orange
-    return '#34C759'                   // System green
+    if (score >= 70) return '#e11d48'  // System red
+    if (score >= 40) return '#ea580c'  // System orange
+    return '#059669'                   // System green
   }
 
   const getAccessLevelColor = (level: string): string => {
     const colors: Record<string, string> = {
-      admin: '#AF52DE',    // System purple
-      user: '#007AFF',     // System blue
-      guest: '#8E8E93'     // System gray
+      admin: '#4f46e5',    // System purple
+      user: '#4f46e5',     // System blue
+      guest: '#6b7280'     // System gray
     }
-    return colors[level] || '#8E8E93'
+    return colors[level] || '#6b7280'
   }
 
   const filteredIdentities = identities.filter(identity => {
@@ -210,34 +210,36 @@ export default function IdentitiesPage() {
   }
 
   return (
-    <div className="py-8 w-full max-w-7xl mx-auto">
+    <div className="py-4 w-full max-w-7xl mx-auto">
       <div className="mb-6 px-4 hig-fade-in">
         <h1 className="hig-title-large text-gray-900 dark:text-gray-100 mb-2">Identity & Access Management</h1>
         <p className="hig-body text-gray-600 dark:text-gray-400">Manage and monitor user identities, access rights, and permissions</p>
       </div>
 
-      {/* User Statistics Bar */}
-      <div className="mb-6 pb-4 px-4 border-b border-gray-200 dark:border-gray-700/60">
-        <div className="flex items-center gap-8 flex-wrap">
-          <span className="hig-caption text-gray-600 dark:text-gray-400 font-medium">Users:</span>
-          <div className="flex items-center gap-2">
-            <span className="hig-body font-semibold text-gray-900 dark:text-gray-100">{stats.total}</span>
-            <span className="hig-caption text-gray-600 dark:text-gray-400">Total</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-[#34C759] rounded-full"></div>
-            <span className="hig-body font-semibold text-[#34C759]">{stats.active}</span>
-            <span className="hig-caption text-gray-600 dark:text-gray-400">Active</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-[#007AFF] rounded-full"></div>
-            <span className="hig-body font-semibold text-[#007AFF]">{stats.mfaEnabled}</span>
-            <span className="hig-caption text-gray-600 dark:text-gray-400">MFA Enabled</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-[#FF3B30] rounded-full"></div>
-            <span className="hig-body font-semibold text-[#FF3B30]">{stats.atRisk}</span>
-            <span className="hig-caption text-gray-600 dark:text-gray-400">High Risk</span>
+      {/* Sticky User Statistics Bar */}
+      <div className="sticky top-16 z-40 before:absolute before:inset-0 before:backdrop-blur-xl before:bg-white/80 dark:before:bg-gray-950/80 before:-z-10 border-b border-gray-200 dark:border-gray-700/60 mb-3 -mx-4 sm:-mx-6 lg:-mx-8">
+        <div className="px-4 sm:px-6 lg:px-8 py-3">
+          <div className="flex items-center gap-8 flex-wrap">
+            <span className="hig-caption text-gray-600 dark:text-gray-400 font-medium">Users:</span>
+            <div className="flex items-center gap-2">
+              <span className="hig-caption font-semibold text-gray-900 dark:text-gray-100">{stats.total}</span>
+              <span className="hig-caption text-gray-600 dark:text-gray-400">Total</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-[#059669] rounded-full"></div>
+              <span className="hig-caption font-semibold text-[#059669]">{stats.active}</span>
+              <span className="hig-caption text-gray-600 dark:text-gray-400">Active</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-[#4f46e5] rounded-full"></div>
+              <span className="hig-caption font-semibold text-[#4f46e5]">{stats.mfaEnabled}</span>
+              <span className="hig-caption text-gray-600 dark:text-gray-400">MFA Enabled</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-[#e11d48] rounded-full"></div>
+              <span className="hig-caption font-semibold text-[#e11d48]">{stats.atRisk}</span>
+              <span className="hig-caption text-gray-600 dark:text-gray-400">High Risk</span>
+            </div>
           </div>
         </div>
       </div>
@@ -263,10 +265,10 @@ export default function IdentitiesPage() {
             <button
               key={level}
               onClick={() => setActiveTab(level)}
-              className={`hig-button hig-button-secondary ${
+              className={`hig-button ${
                 activeTab === level
-                  ? 'bg-[#393A84] dark:bg-[#393A84] text-white'
-                  : ''
+                  ? 'hig-button-primary'
+                  : 'hig-button-secondary'
               }`}
             >
               {level === 'all' ? 'All Users' : level.charAt(0).toUpperCase() + level.slice(1)}
@@ -291,12 +293,12 @@ export default function IdentitiesPage() {
               <div
                 key={identity.id}
                 onClick={() => setSelectedIdentity(identity)}
-                className="p-6 hover:bg-gray-50 dark:hover:bg-[#334155]/30 cursor-pointer"
+                className="p-6 hover:bg-gray-50 dark:hover:bg-gray-700/30 cursor-pointer"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-center gap-4 flex-1">
-                    <div className="w-12 h-12 bg-[#007AFF]/20 dark:bg-[#007AFF]/20 rounded-full flex items-center justify-center flex-shrink-0">
-                      <span className="hig-body font-semibold text-[#007AFF] dark:text-[#007AFF]">
+                    <div className="w-12 h-12 bg-[#4f46e5]/20 dark:bg-[#4f46e5]/20 rounded-full flex items-center justify-center flex-shrink-0">
+                      <span className="hig-body font-semibold text-[#4f46e5] dark:text-[#4f46e5]">
                         {identity.name.split(' ').map(n => n[0]).join('')}
                       </span>
                     </div>
@@ -316,8 +318,8 @@ export default function IdentitiesPage() {
                           <span 
                             className="hig-badge"
                             style={{
-                              backgroundColor: '#34C75920',
-                              color: '#34C759'
+                              backgroundColor: '#05966920',
+                              color: '#059669'
                             }}
                           >
                             MFA
@@ -374,7 +376,7 @@ export default function IdentitiesPage() {
           >
             {/* Modal Header - Fixed */}
             <div 
-              className="sticky top-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-[#1E293B]/80 border-b border-gray-200 dark:border-gray-700/60 p-6 pb-4"
+              className="sticky top-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-gray-900/80 border-b border-gray-200 dark:border-gray-700/60 p-6 pb-4"
               style={{
                 WebkitBackdropFilter: 'blur(20px) saturate(180%)',
                 backdropFilter: 'blur(20px) saturate(180%)'
@@ -382,8 +384,8 @@ export default function IdentitiesPage() {
             >
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 bg-[#007AFF]/20 dark:bg-[#007AFF]/20 rounded-full flex items-center justify-center">
-                    <span className="hig-body font-semibold text-[#007AFF] dark:text-[#007AFF]">
+                  <div className="w-16 h-16 bg-[#4f46e5]/20 dark:bg-[#4f46e5]/20 rounded-full flex items-center justify-center">
+                    <span className="hig-body font-semibold text-[#4f46e5] dark:text-[#4f46e5]">
                       {selectedIdentity.name.split(' ').map(n => n[0]).join('')}
                     </span>
                   </div>
@@ -436,7 +438,7 @@ export default function IdentitiesPage() {
               <div className="space-y-6">
                 {/* Key Metrics */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                  <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+                  <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
                     <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Risk Score</div>
                     <div 
                       className="hig-metric-value text-4xl"
@@ -448,25 +450,25 @@ export default function IdentitiesPage() {
                       {selectedIdentity.riskScore}
                     </div>
                   </div>
-                  <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+                  <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
                     <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Active Sessions</div>
                     <div className="hig-metric-value text-4xl text-gray-900 dark:text-gray-100">
                       {selectedIdentity.activeSessions ?? 0}
                     </div>
                   </div>
-                  <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+                  <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
                     <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Failed Logins</div>
                     <div 
                       className="hig-metric-value text-4xl"
                       style={{ 
-                        color: (selectedIdentity.failedLoginAttempts ?? 0) > 5 ? '#FF3B30' : (selectedIdentity.failedLoginAttempts ?? 0) > 0 ? '#FF9500' : '#34C759',
-                        WebkitTextFillColor: (selectedIdentity.failedLoginAttempts ?? 0) > 5 ? '#FF3B30' : (selectedIdentity.failedLoginAttempts ?? 0) > 0 ? '#FF9500' : '#34C759'
+                        color: (selectedIdentity.failedLoginAttempts ?? 0) > 5 ? '#e11d48' : (selectedIdentity.failedLoginAttempts ?? 0) > 0 ? '#ea580c' : '#059669',
+                        WebkitTextFillColor: (selectedIdentity.failedLoginAttempts ?? 0) > 5 ? '#e11d48' : (selectedIdentity.failedLoginAttempts ?? 0) > 0 ? '#ea580c' : '#059669'
                       }}
                     >
                       {selectedIdentity.failedLoginAttempts ?? 0}
                     </div>
                   </div>
-                  <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+                  <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
                     <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Permissions</div>
                     <div className="hig-metric-value text-4xl text-gray-900 dark:text-gray-100">
                       {selectedIdentity.permissions.length}
@@ -476,13 +478,13 @@ export default function IdentitiesPage() {
 
                 {/* Anomalous Activity Alert */}
                 {selectedIdentity.anomalousActivity && (
-                  <div className="hig-card bg-[#FF3B30]/10 dark:bg-[#FF3B30]/20 border border-[#FF3B30]/30 p-4">
+                  <div className="hig-card bg-[#e11d48]/10 dark:bg-[#e11d48]/20 border border-[#e11d48]/30 p-4">
                     <div className="flex items-center gap-3">
-                      <svg className="w-5 h-5 text-[#FF3B30] flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <svg className="w-5 h-5 text-[#e11d48] flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                       </svg>
                       <div>
-                        <div className="hig-body font-semibold text-[#FF3B30] mb-1">Anomalous Activity Detected</div>
+                        <div className="hig-body font-semibold text-[#e11d48] mb-1">Anomalous Activity Detected</div>
                         <div className="hig-caption text-gray-600 dark:text-gray-400">This account shows unusual patterns and requires review</div>
                       </div>
                     </div>
@@ -522,8 +524,8 @@ export default function IdentitiesPage() {
                       <span 
                         className="hig-badge"
                         style={{
-                          backgroundColor: selectedIdentity.mfaEnabled ? '#34C75920' : '#FF3B3020',
-                          color: selectedIdentity.mfaEnabled ? '#34C759' : '#FF3B30'
+                          backgroundColor: selectedIdentity.mfaEnabled ? '#05966920' : '#e11d4820',
+                          color: selectedIdentity.mfaEnabled ? '#059669' : '#e11d48'
                         }}
                       >
                         {selectedIdentity.mfaEnabled ? 'ENABLED' : 'DISABLED'}
@@ -547,14 +549,14 @@ export default function IdentitiesPage() {
                     <div className="space-y-3">
                       {selectedIdentity.relatedIncidents.map((incident, idx) => {
                         const severityColors: Record<string, string> = {
-                          critical: '#FF3B30',
-                          high: '#FF9500',
-                          medium: '#FFCC00',
-                          low: '#007AFF'
+                          critical: '#e11d48',
+                          high: '#ea580c',
+                          medium: '#d97706',
+                          low: '#4f46e5'
                         }
-                        const severityColor = severityColors[incident.severity] || '#8E8E93'
+                        const severityColor = severityColors[incident.severity] || '#6b7280'
                         return (
-                          <div key={idx} className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4">
+                          <div key={idx} className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4">
                             <div className="flex items-start justify-between gap-3">
                               <div className="flex-1">
                                 <div className="flex items-center gap-2 mb-1">
@@ -590,7 +592,7 @@ export default function IdentitiesPage() {
                     <div className="space-y-3">
                       {selectedIdentity.recentActivity.slice(0, 5).map((activity, idx) => (
                         <div key={idx} className="flex items-start gap-3 pb-3 border-b border-gray-200 dark:border-gray-700/60 last:border-0 last:pb-0">
-                          <div className="w-2 h-2 rounded-full bg-[#007AFF] mt-2 flex-shrink-0"></div>
+                          <div className="w-2 h-2 rounded-full bg-[#4f46e5] mt-2 flex-shrink-0"></div>
                           <div className="flex-1 min-w-0">
                             <div className="hig-body text-gray-900 dark:text-gray-100 font-medium mb-1">{activity.action}</div>
                             <div className="flex items-center gap-2 flex-wrap hig-caption text-gray-600 dark:text-gray-400">
@@ -625,8 +627,8 @@ export default function IdentitiesPage() {
                           key={idx} 
                           className="hig-badge"
                           style={{
-                            backgroundColor: 'rgba(142, 142, 147, 0.2)',
-                            color: '#8E8E93'
+                            backgroundColor: 'rgba(107, 114, 128, 0.2)',
+                            color: '#6b7280'
                           }}
                         >
                           {permission}
@@ -640,7 +642,7 @@ export default function IdentitiesPage() {
 
             {/* Fixed Footer */}
             <div 
-              className="sticky bottom-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-[#1E293B]/80 border-t border-gray-200 dark:border-gray-700/60 p-6 pt-4"
+              className="sticky bottom-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-gray-900/80 border-t border-gray-200 dark:border-gray-700/60 p-6 pt-4"
               style={{
                 WebkitBackdropFilter: 'blur(20px) saturate(180%)',
                 backdropFilter: 'blur(20px) saturate(180%)'
@@ -653,7 +655,7 @@ export default function IdentitiesPage() {
                 <button 
                   className="hig-button"
                   style={{
-                    backgroundColor: '#FF3B30',
+                    backgroundColor: '#e11d48',
                     color: 'white',
                     transition: 'opacity 0.2s'
                   }}

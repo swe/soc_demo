@@ -126,22 +126,22 @@ export default function ProceduresPage() {
 
   const getTypeColor = (type: string): string => {
     const colors: Record<string, string> = {
-      'incident-response': '#FF3B30',
-      'threat-hunting': '#FF9500',
-      'vulnerability': '#FFCC00',
-      'compliance': '#007AFF'
+      'incident-response': '#e11d48',
+      'threat-hunting': '#ea580c',
+      'vulnerability': '#d97706',
+      'compliance': '#4f46e5'
     }
-    return colors[type] || '#8E8E93'
+    return colors[type] || '#6b7280'
   }
 
   const getPriorityColor = (priority: string): string => {
     const colors: Record<string, string> = {
-      critical: '#FF3B30',
-      high: '#FF9500',
-      medium: '#FFCC00',
-      low: '#007AFF'
+      critical: '#e11d48',
+      high: '#ea580c',
+      medium: '#d97706',
+      low: '#4f46e5'
     }
-    return colors[priority] || '#8E8E93'
+    return colors[priority] || '#6b7280'
   }
 
   const filteredProcedures = selectedType === 'all' 
@@ -155,29 +155,29 @@ export default function ProceduresPage() {
   }
 
   return (
-    <div className="py-8 w-full max-w-7xl mx-auto">
+    <div className="py-4 w-full max-w-7xl mx-auto">
       <div className="mb-6 px-4 hig-fade-in">
         <h1 className="hig-title-large text-gray-900 dark:text-gray-100 mb-2">Security Procedures</h1>
         <p className="hig-body text-gray-600 dark:text-gray-400">Standard operating procedures for security operations and incident response</p>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6 px-4">
-        <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-3 px-4">
+        <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
           <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Total Procedures</div>
           <div className="hig-metric-value text-4xl text-gray-900 dark:text-gray-100">{stats.total}</div>
         </div>
 
-        <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+        <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
           <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Critical Priority</div>
-          <div className="hig-metric-value text-4xl" style={{ color: '#FF3B30', WebkitTextFillColor: '#FF3B30' }}>
+          <div className="hig-metric-value text-4xl" style={{ color: '#e11d48', WebkitTextFillColor: '#e11d48' }}>
             {stats.critical}
           </div>
         </div>
 
-        <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+        <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
           <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Incident Response</div>
-          <div className="hig-metric-value text-4xl" style={{ color: '#FF9500', WebkitTextFillColor: '#FF9500' }}>
+          <div className="hig-metric-value text-4xl" style={{ color: '#ea580c', WebkitTextFillColor: '#ea580c' }}>
             {stats.incident}
           </div>
         </div>
@@ -241,15 +241,15 @@ export default function ProceduresPage() {
               </div>
 
               <div className="grid grid-cols-3 gap-4 mb-4">
-                <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-3 text-center">
+                <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-3 text-center">
                   <div className="hig-caption text-gray-600 dark:text-gray-400 mb-1">Steps</div>
                   <div className="hig-metric-value text-3xl text-gray-900 dark:text-gray-100">{procedure.steps}</div>
                 </div>
-                <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-3 text-center">
+                <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-3 text-center">
                   <div className="hig-caption text-gray-600 dark:text-gray-400 mb-1">Time</div>
                   <div className="hig-body font-semibold text-gray-900 dark:text-gray-100">{procedure.estimatedTime}</div>
                 </div>
-                <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-3 text-center">
+                <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-3 text-center">
                   <div className="hig-caption text-gray-600 dark:text-gray-400 mb-1">Related</div>
                   <div className="hig-metric-value text-3xl text-gray-900 dark:text-gray-100">{procedure.related.length}</div>
                 </div>
@@ -277,7 +277,7 @@ export default function ProceduresPage() {
             >
               {/* Fixed Header */}
               <div 
-                className="sticky top-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-[#1E293B]/80 border-b border-gray-200 dark:border-gray-700/60 p-6 pb-4"
+                className="sticky top-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-gray-900/80 border-b border-gray-200 dark:border-gray-700/60 p-6 pb-4"
                 style={{
                   WebkitBackdropFilter: 'blur(20px) saturate(180%)',
                   backdropFilter: 'blur(20px) saturate(180%)'
@@ -343,11 +343,11 @@ export default function ProceduresPage() {
                   </div>
 
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+                    <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
                       <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Steps</div>
                       <div className="hig-metric-value text-3xl text-gray-900 dark:text-gray-100">{selectedProcedure.steps}</div>
                     </div>
-                    <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+                    <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
                       <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Time</div>
                       <div className="hig-body font-semibold text-gray-900 dark:text-gray-100">{selectedProcedure.estimatedTime}</div>
                     </div>
@@ -376,7 +376,7 @@ export default function ProceduresPage() {
 
               {/* Fixed Footer */}
               <div 
-                className="sticky bottom-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-[#1E293B]/80 border-t border-gray-200 dark:border-gray-700/60 p-6 pt-4"
+                className="sticky bottom-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-gray-900/80 border-t border-gray-200 dark:border-gray-700/60 p-6 pt-4"
                 style={{
                   WebkitBackdropFilter: 'blur(20px) saturate(180%)',
                   backdropFilter: 'blur(20px) saturate(180%)'

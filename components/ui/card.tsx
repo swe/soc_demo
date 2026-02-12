@@ -12,17 +12,17 @@ interface CardProps {
 export function Card({ children, className = '', hover = false, padding = 'md', onClick, border = true }: CardProps) {
   const paddingClasses = {
     none: '',
-    sm: 'p-4',
-    md: 'p-6',
-    lg: 'p-8',
+    sm: 'p-2',
+    md: 'p-3',
+    lg: 'p-4',
   }
 
-  const baseClasses = 'bg-white dark:bg-gray-800 rounded-lg shadow-sm'
+  const baseClasses = 'bg-white dark:bg-gray-900 rounded-md'
   const borderClasses = border ? 'border border-gray-200 dark:border-gray-700/60' : ''
-  const hoverClasses = hover ? 'hover:shadow-md hover:border-gray-300 dark:hover:border-gray-600 transition-all duration-200 cursor-pointer' : ''
-  
+  const hoverClasses = hover ? 'hover:bg-gray-50 dark:hover:bg-gray-800/80 transition-colors duration-150 cursor-pointer' : ''
+
   return (
-    <div 
+    <div
       className={`${baseClasses} ${borderClasses} ${paddingClasses[padding]} ${hoverClasses} ${className}`}
       onClick={onClick}
     >
@@ -46,23 +46,23 @@ interface StatCardProps {
 export function StatCard({ title, value, icon, trend, color = 'indigo', onClick }: StatCardProps) {
   const colorClasses = {
     rose: {
-      iconBg: 'bg-rose-50 dark:bg-rose-900/20',
+      iconBg: 'bg-rose-50 dark:bg-rose-950/30',
       iconText: 'text-rose-600 dark:text-rose-400',
     },
     orange: {
-      iconBg: 'bg-orange-50 dark:bg-orange-900/20',
+      iconBg: 'bg-orange-50 dark:bg-orange-950/30',
       iconText: 'text-orange-600 dark:text-orange-400',
     },
     amber: {
-      iconBg: 'bg-amber-50 dark:bg-amber-900/20',
+      iconBg: 'bg-amber-50 dark:bg-amber-950/30',
       iconText: 'text-amber-600 dark:text-amber-400',
     },
     emerald: {
-      iconBg: 'bg-emerald-50 dark:bg-emerald-900/20',
+      iconBg: 'bg-emerald-50 dark:bg-emerald-950/30',
       iconText: 'text-emerald-600 dark:text-emerald-400',
     },
     indigo: {
-      iconBg: 'bg-indigo-50 dark:bg-indigo-900/20',
+      iconBg: 'bg-indigo-50 dark:bg-indigo-950/30',
       iconText: 'text-indigo-600 dark:text-indigo-400',
     },
   }
@@ -72,22 +72,22 @@ export function StatCard({ title, value, icon, trend, color = 'indigo', onClick 
 
   return (
     <Card hover={!!onClick} onClick={onClick} padding="md">
-      <div className="flex items-start justify-between mb-3">
+      <div className="flex items-start justify-between mb-2">
         {icon && (
-          <div className={`w-12 h-12 rounded-lg ${colors.iconBg} ${colors.iconText} flex items-center justify-center`}>
+          <div className={`w-8 h-8 rounded-md ${colors.iconBg} ${colors.iconText} flex items-center justify-center`}>
             {icon}
           </div>
         )}
         {trend && (
-          <div className={`flex items-center gap-1 text-sm font-medium ${trendColor}`}>
+          <div className={`flex items-center gap-1 text-xs font-medium ${trendColor}`}>
             <span>{trend.direction === 'up' ? '↑' : '↓'}</span>
             <span>{trend.value}%</span>
           </div>
         )}
       </div>
       <div>
-        <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">{title}</div>
-        <div className="text-2xl font-semibold text-gray-900 dark:text-gray-100">{value}</div>
+        <div className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">{title}</div>
+        <div className="text-xl font-semibold tabular-nums text-gray-900 dark:text-gray-100">{value}</div>
       </div>
     </Card>
   )
@@ -101,12 +101,12 @@ interface PageHeaderProps {
 
 export function PageHeader({ title, description, action }: PageHeaderProps) {
   return (
-    <div className="mb-8">
+    <div className="mb-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-semibold text-gray-900 dark:text-gray-100 mb-2">{title}</h1>
+          <h1 className="text-xl font-semibold tracking-tight text-gray-900 dark:text-gray-100 mb-0.5">{title}</h1>
           {description && (
-            <p className="text-gray-600 dark:text-gray-400">{description}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">{description}</p>
           )}
         </div>
         {action && <div className="ml-4">{action}</div>}
@@ -122,16 +122,16 @@ interface BadgeProps {
 
 export function Badge({ children, variant = 'default' }: BadgeProps) {
   const variants = {
-    default: 'bg-gray-100 dark:bg-gray-700/50 text-gray-700 dark:text-gray-300',
+    default: 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400',
     critical: 'bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300',
     high: 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300',
     medium: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300',
-    low: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300',
+    low: 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300',
     success: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300',
   }
 
   return (
-    <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium ${variants[variant]}`}>
+    <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium ${variants[variant]}`}>
       {children}
     </span>
   )
@@ -149,20 +149,19 @@ export function Table({ headers, children }: TableProps) {
         <thead>
           <tr className="border-b border-gray-200 dark:border-gray-700/60">
             {headers.map((header, idx) => (
-              <th 
+              <th
                 key={idx}
-                className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400"
+                className="px-3 py-2 text-left text-[11px] font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400"
               >
                 {header}
               </th>
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-200 dark:divide-gray-700/60">
+        <tbody className="divide-y divide-gray-100 dark:divide-gray-700/40">
           {children}
         </tbody>
       </table>
     </div>
   )
 }
-

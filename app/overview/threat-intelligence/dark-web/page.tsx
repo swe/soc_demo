@@ -108,22 +108,22 @@ export default function DarkWebMonitoring() {
 
   const getSeverityColor = (severity: string): string => {
     const colors: Record<string, string> = {
-      critical: '#FF3B30',  // System red
-      high: '#FF9500',      // System orange
-      medium: '#FFCC00',    // System yellow
-      low: '#007AFF'        // System blue
+      critical: '#e11d48',  // System red
+      high: '#ea580c',      // System orange
+      medium: '#d97706',    // System yellow
+      low: '#4f46e5'        // System blue
     }
-    return colors[severity] || '#8E8E93'
+    return colors[severity] || '#6b7280'
   }
 
   const getStatusColor = (status: string): string => {
     const colors: Record<string, string> = {
-      new: '#AF52DE',        // System purple
-      investigating: '#FF9500', // System orange
-      mitigated: '#34C759',     // System green
-      'false-positive': '#8E8E93' // System gray
+      new: '#4f46e5',        // System purple
+      investigating: '#ea580c', // System orange
+      mitigated: '#059669',     // System green
+      'false-positive': '#6b7280' // System gray
     }
-    return colors[status] || '#8E8E93'
+    return colors[status] || '#6b7280'
   }
 
   const getCategoryIcon = (category: string) => {
@@ -151,32 +151,32 @@ export default function DarkWebMonitoring() {
   }
 
   return (
-    <div className="py-8 w-full max-w-7xl mx-auto">
+    <div className="py-4 w-full max-w-7xl mx-auto">
       <div className="mb-6 px-4 hig-fade-in">
         <h1 className="hig-title-large text-gray-900 dark:text-gray-100 mb-2">Dark Web Monitoring</h1>
         <p className="hig-body text-gray-600 dark:text-gray-400">Track mentions of your organization on the dark web and hidden forums</p>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 px-4">
-        <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-3 px-4">
+        <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
           <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Sources Monitored</div>
           <div className="hig-metric-value text-4xl text-gray-900 dark:text-gray-100">1,114</div>
           <div className="hig-caption text-gray-500 dark:text-gray-400 mt-1">Last scan: 2 min ago</div>
         </div>
-        <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+        <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
           <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Total Mentions</div>
           <div className="hig-metric-value text-4xl text-gray-900 dark:text-gray-100">{stats.total}</div>
         </div>
-        <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+        <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
           <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Critical</div>
-          <div className="hig-metric-value text-4xl" style={{ color: '#FF3B30', WebkitTextFillColor: '#FF3B30' }}>
+          <div className="hig-metric-value text-4xl" style={{ color: '#e11d48', WebkitTextFillColor: '#e11d48' }}>
             {stats.critical}
           </div>
         </div>
-        <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+        <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
           <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">New Findings</div>
-          <div className="hig-metric-value text-4xl" style={{ color: '#AF52DE', WebkitTextFillColor: '#AF52DE' }}>
+          <div className="hig-metric-value text-4xl" style={{ color: '#4f46e5', WebkitTextFillColor: '#4f46e5' }}>
             {stats.new}
           </div>
         </div>
@@ -206,7 +206,7 @@ export default function DarkWebMonitoring() {
       <div className="grid grid-cols-12 gap-4 px-4">
         <div className="col-span-12 lg:col-span-8">
           <div className="hig-card">
-            <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200 dark:border-gray-700/60">
+            <div className="flex items-center justify-between mb-3 pb-4 border-b border-gray-200 dark:border-gray-700/60">
               <h2 className="hig-headline text-gray-900 dark:text-gray-100">Dark Web Mentions</h2>
               <span className="hig-caption text-gray-600 dark:text-gray-400">{filteredMentions.length} total</span>
             </div>
@@ -221,7 +221,7 @@ export default function DarkWebMonitoring() {
                     <div 
                       className={`flex items-center gap-4 p-4 cursor-pointer ${
                         idx !== filteredMentions.length - 1 ? 'border-b border-gray-200 dark:border-gray-700/60' : ''
-                      } hover:bg-gray-50 dark:hover:bg-[#334155]/20`}
+                      } hover:bg-gray-50 dark:hover:bg-gray-700/20`}
                       onClick={() => setSelectedMention(mention)}
                     >
                       {/* Severity Indicator */}
@@ -260,8 +260,8 @@ export default function DarkWebMonitoring() {
                           <span 
                             className="hig-badge"
                             style={{
-                              backgroundColor: '#AF52DE20',
-                              color: '#AF52DE'
+                              backgroundColor: '#4f46e520',
+                              color: '#4f46e5'
                             }}
                           >
                             {mention.category.replace('-', ' ').toUpperCase()}
@@ -271,7 +271,7 @@ export default function DarkWebMonitoring() {
                           {mention.description}
                         </div>
                         {(mention.indicators.emails || mention.indicators.credentials) && (
-                          <div className="hig-caption text-[#FF3B30] font-medium">
+                          <div className="hig-caption text-[#e11d48] font-medium">
                             {mention.indicators.credentials && `${mention.indicators.credentials} credentials exposed`}
                             {mention.indicators.credentials && mention.indicators.emails && ' • '}
                             {mention.indicators.emails && `${mention.indicators.emails.length} emails`}
@@ -288,7 +288,7 @@ export default function DarkWebMonitoring() {
                       
                       {/* View Details Link */}
                       <div className="flex-shrink-0">
-                        <span className="hig-caption text-[#AF52DE] hover:text-[#AF52DE] hig-link-hover">
+                        <span className="hig-caption hig-link-hover">
                           View Details →
                         </span>
                       </div>
@@ -303,7 +303,7 @@ export default function DarkWebMonitoring() {
         {/* Sidebar - Monitoring Sources */}
         <div className="col-span-12 lg:col-span-4 space-y-4">
           {/* Monitored Sources */}
-          <div className="hig-card bg-gradient-to-br from-[#393A84] to-[#A655F7] p-6 text-white">
+          <div className="hig-card bg-gradient-to-br from-indigo-600 to-indigo-800 p-6 text-white">
             <h2 className="hig-headline text-white mb-4 flex items-center gap-2">
               <span>🌐</span>
               Monitored Sources
@@ -336,11 +336,11 @@ export default function DarkWebMonitoring() {
             <h2 className="hig-headline text-gray-900 dark:text-gray-100 mb-4">Threat Categories</h2>
             <div className="space-y-3">
               {[
-                { name: 'Credentials', count: darkWebMentions.filter(m => m.category === 'credentials').length, color: 'bg-[#393A84] dark:bg-[#393A84]', icon: '🔑' },
-                { name: 'Data Leaks', count: darkWebMentions.filter(m => m.category === 'data-leak').length, color: 'bg-[#393A84] dark:bg-[#393A84]', icon: '💾' },
-                { name: 'Exploits', count: darkWebMentions.filter(m => m.category === 'exploit').length, color: 'bg-[#FF3B30] dark:bg-[#FF3B30]', icon: '⚠️' },
-                { name: 'Ransomware', count: darkWebMentions.filter(m => m.category === 'ransomware').length, color: 'bg-[#FF9500] dark:bg-[#FF9500]', icon: '🔒' },
-                { name: 'Marketplace', count: darkWebMentions.filter(m => m.category === 'marketplace').length, color: 'bg-[#34C759] dark:bg-[#34C759]', icon: '🛒' }
+                { name: 'Credentials', count: darkWebMentions.filter(m => m.category === 'credentials').length, color: 'bg-indigo-600 dark:bg-indigo-500', icon: '🔑' },
+                { name: 'Data Leaks', count: darkWebMentions.filter(m => m.category === 'data-leak').length, color: 'bg-indigo-600 dark:bg-indigo-500', icon: '💾' },
+                { name: 'Exploits', count: darkWebMentions.filter(m => m.category === 'exploit').length, color: 'bg-[#e11d48] dark:bg-[#e11d48]', icon: '⚠️' },
+                { name: 'Ransomware', count: darkWebMentions.filter(m => m.category === 'ransomware').length, color: 'bg-[#ea580c] dark:bg-[#ea580c]', icon: '🔒' },
+                { name: 'Marketplace', count: darkWebMentions.filter(m => m.category === 'marketplace').length, color: 'bg-[#059669] dark:bg-[#059669]', icon: '🛒' }
               ].map((category, idx) => (
                 <div key={idx} className="p-3 bg-gray-50 dark:bg-gray-900/20 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-900/30">
                   <div className="flex items-center justify-between mb-2">
@@ -366,7 +366,7 @@ export default function DarkWebMonitoring() {
           <div className="hig-modal p-0 max-w-4xl w-full flex flex-col max-h-[90vh]">
             {/* Fixed Header */}
             <div 
-              className="sticky top-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-[#1E293B]/80 border-b border-gray-200 dark:border-gray-700/60 p-6 pb-4"
+              className="sticky top-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-gray-900/80 border-b border-gray-200 dark:border-gray-700/60 p-6 pb-4"
               style={{
                 WebkitBackdropFilter: 'blur(20px) saturate(180%)',
                 backdropFilter: 'blur(20px) saturate(180%)'
@@ -435,8 +435,8 @@ export default function DarkWebMonitoring() {
                     <span 
                       className="hig-badge"
                       style={{
-                        backgroundColor: '#AF52DE20',
-                        color: '#AF52DE'
+                        backgroundColor: '#4f46e520',
+                        color: '#4f46e5'
                       }}
                     >
                       {selectedMention.category.replace('-', ' ').toUpperCase()}
@@ -473,8 +473,8 @@ export default function DarkWebMonitoring() {
                   <h3 className="hig-headline mb-4">Compromised Emails</h3>
                   <div className="space-y-2">
                     {selectedMention.indicators.emails.map((email, idx) => (
-                      <div key={idx} className="hig-card bg-[#FF3B30]/10 dark:bg-[#FF3B30]/20 border border-[#FF3B30]/30 p-3">
-                        <div className="hig-body font-mono text-[#FF3B30]">{email}</div>
+                      <div key={idx} className="hig-card bg-[#e11d48]/10 dark:bg-[#e11d48]/20 border border-[#e11d48]/30 p-3">
+                        <div className="hig-body font-mono text-[#e11d48]">{email}</div>
                       </div>
                     ))}
                   </div>
@@ -484,13 +484,13 @@ export default function DarkWebMonitoring() {
               {selectedMention.indicators.credentials && (
                 <div className="pb-4 border-b border-gray-200 dark:border-gray-700/60 mb-4">
                   <h3 className="hig-headline mb-4">Exposed Credentials</h3>
-                  <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
-                    <div className="hig-metric-value text-4xl" style={{ color: '#FF3B30', WebkitTextFillColor: '#FF3B30' }}>
+                  <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
+                    <div className="hig-metric-value text-4xl" style={{ color: '#e11d48', WebkitTextFillColor: '#e11d48' }}>
                       {selectedMention.indicators.credentials}
                     </div>
                     <div className="hig-caption text-gray-600 dark:text-gray-400 mt-1">credentials exposed</div>
                   </div>
-                  <div className="hig-card bg-[#FF3B30]/10 dark:bg-[#FF3B30]/20 border border-[#FF3B30]/30 p-4 mt-4">
+                  <div className="hig-card bg-[#e11d48]/10 dark:bg-[#e11d48]/20 border border-[#e11d48]/30 p-4 mt-4">
                     <div className="hig-body text-gray-900 dark:text-gray-100">
                       <strong>Action Required:</strong> These credentials should be immediately invalidated and all affected accounts should be forced to reset their passwords. Review authentication logs for any suspicious activity.
                     </div>
@@ -503,8 +503,8 @@ export default function DarkWebMonitoring() {
                   <h3 className="hig-headline mb-4">Affected Domains</h3>
                   <div className="space-y-2">
                     {selectedMention.indicators.domains.map((domain, idx) => (
-                      <div key={idx} className="hig-card bg-[#FF9500]/10 dark:bg-[#FF9500]/20 border border-[#FF9500]/30 p-3">
-                        <div className="hig-body font-mono text-[#FF9500]">{domain}</div>
+                      <div key={idx} className="hig-card bg-[#ea580c]/10 dark:bg-[#ea580c]/20 border border-[#ea580c]/30 p-3">
+                        <div className="hig-body font-mono text-[#ea580c]">{domain}</div>
                       </div>
                     ))}
                   </div>
@@ -516,7 +516,7 @@ export default function DarkWebMonitoring() {
                   <h3 className="hig-headline mb-4">Related IP Addresses</h3>
                   <div className="space-y-2">
                     {selectedMention.indicators.ips.map((ip, idx) => (
-                      <div key={idx} className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-3">
+                      <div key={idx} className="hig-card bg-gray-50 dark:bg-gray-700/30 p-3">
                         <div className="hig-body font-mono text-gray-900 dark:text-gray-100">{ip}</div>
                       </div>
                     ))}
@@ -527,7 +527,7 @@ export default function DarkWebMonitoring() {
 
             {/* Fixed Footer */}
             <div 
-              className="sticky bottom-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-[#1E293B]/80 border-t border-gray-200 dark:border-gray-700/60 p-6 pt-4"
+              className="sticky bottom-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-gray-900/80 border-t border-gray-200 dark:border-gray-700/60 p-6 pt-4"
               style={{
                 WebkitBackdropFilter: 'blur(20px) saturate(180%)',
                 backdropFilter: 'blur(20px) saturate(180%)'
