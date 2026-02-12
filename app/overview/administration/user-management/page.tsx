@@ -22,7 +22,7 @@ export default function UserManagementPage() {
   }
 
   return (
-    <div className="py-8 w-full max-w-7xl mx-auto">
+    <div className="py-4 w-full max-w-7xl mx-auto">
       <div className="mb-6 px-4 hig-fade-in">
         <div className="flex items-center justify-between">
           <div>
@@ -38,7 +38,7 @@ export default function UserManagementPage() {
               {addUserOptions.map((option) => (
                 <MenuItem key={option.id}>
                   <button
-                    className="w-full px-4 py-2.5 text-left hig-body text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#334155]/30"
+                    className="w-full px-4 py-2.5 text-left hig-body text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/30"
                     onClick={() => handleOptionClick(option.id)}
                   >
                     {option.label}
@@ -51,7 +51,7 @@ export default function UserManagementPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-6 mb-8 px-4">
+      <div className="grid grid-cols-3 gap-3 mb-8 px-4">
         <div className="hig-metric-card hig-stagger-item">
           <div className="hig-caption mb-3">Active Users</div>
           <div className="hig-metric-value mb-2">1,247</div>
@@ -71,7 +71,7 @@ export default function UserManagementPage() {
 
       <div className="px-4">
         <div className="hig-card p-0">
-          <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200 dark:border-gray-700/60 px-6 pt-6">
+          <div className="flex items-center justify-between mb-3 pb-4 border-b border-gray-200 dark:border-gray-700/60 px-6 pt-6">
           <h2 className="hig-headline text-gray-900 dark:text-gray-100">Users</h2>
           <span className="hig-caption text-gray-600 dark:text-gray-400">5 total</span>
         </div>
@@ -94,7 +94,7 @@ export default function UserManagementPage() {
                 { name: 'Emily Taylor', email: 'emily.taylor@neverlands.art', role: 'Admin', dept: 'IT', status: 'active', mfa: true },
                 { name: 'Michael Kim', email: 'michael.kim@neverlands.art', role: 'Analyst', dept: 'Operations', status: 'inactive', mfa: false }
               ].map((user, idx) => (
-                <tr key={idx} className="hover:bg-gray-50 dark:hover:bg-[#334155]/20">
+                <tr key={idx} className="hover:bg-gray-50 dark:hover:bg-gray-700/20">
                   <td className="px-6 py-4">
                     <div className="hig-body font-semibold text-gray-900 dark:text-gray-100">{user.name}</div>
                     <div className="hig-caption text-gray-600 dark:text-gray-400 font-mono">{user.email}</div>
@@ -109,8 +109,8 @@ export default function UserManagementPage() {
                     <span 
                       className="hig-badge"
                       style={{
-                        backgroundColor: user.status === 'active' ? '#34C75920' : '#8E8E9320',
-                        color: user.status === 'active' ? '#34C759' : '#8E8E93'
+                        backgroundColor: user.status === 'active' ? '#05966920' : '#6b728020',
+                        color: user.status === 'active' ? '#059669' : '#6b7280'
                       }}
                     >
                       {user.status.toUpperCase()}
@@ -118,7 +118,7 @@ export default function UserManagementPage() {
                   </td>
                   <td className="px-6 py-4 text-center">
                     {user.mfa ? (
-                      <span className="text-[#34C759]" style={{ WebkitTextFillColor: '#34C759' }}>✓</span>
+                      <span className="text-[#059669]" style={{ WebkitTextFillColor: '#059669' }}>✓</span>
                     ) : (
                       <span className="text-gray-400 dark:text-gray-600">×</span>
                     )}

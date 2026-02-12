@@ -1,4 +1,5 @@
 import './css/style.css' // Global base styles
+import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import localFont from 'next/font/local'
 import Theme from './theme-provider'
@@ -34,7 +35,12 @@ const uncutsans = localFont({
   display: 'swap',  
 })
 
-export const metadata = {
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+}
+
+export const metadata: Metadata = {
   title: 'Svalbard Intelligence',
   description: 'Intelligent cyber threat management platform',
 }
@@ -46,11 +52,6 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${inter.variable} ${uncutsans.variable}`} suppressHydrationWarning>{/* suppressHydrationWarning: https://github.com/vercel/next.js/issues/44343 */}
-      <head>
-        {/* Ionicons - load directly in head for better compatibility */}
-        <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js" async></script>
-        <script noModule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js" async></script>
-      </head>
       <body className="font-inter antialiased" suppressHydrationWarning>
         <Theme>
           <AppProvider>

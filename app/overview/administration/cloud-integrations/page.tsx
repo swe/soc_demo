@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { usePageTitle } from '@/app/page-title-context'
+import { formatNumber } from '@/lib/utils'
 
 interface CloudProvider {
   id: string
@@ -59,7 +60,7 @@ export default function CloudIntegrations() {
       resources: { total: 843, monitored: 821 },
       alerts: { critical: 1, high: 8, medium: 23, low: 67 },
       logo: '☁️',
-      color: 'bg-[#393A84] dark:bg-[#393A84]'
+      color: 'bg-indigo-600 dark:bg-indigo-500'
     },
     {
       id: 'gcp-1',
@@ -72,7 +73,7 @@ export default function CloudIntegrations() {
       resources: { total: 456, monitored: 445 },
       alerts: { critical: 0, high: 5, medium: 18, low: 34 },
       logo: '☁️',
-      color: 'bg-[#FF3B30] dark:bg-[#FF3B30]'
+      color: 'bg-[#e11d48] dark:bg-[#e11d48]'
     },
     {
       id: 'oci-1',
@@ -91,12 +92,12 @@ export default function CloudIntegrations() {
 
   const getStatusColor = (status: string): string => {
     const colors: Record<string, string> = {
-      connected: '#34C759',
-      disconnected: '#8E8E93',
-      error: '#FF3B30',
-      pending: '#FF9500'
+      connected: '#059669',
+      disconnected: '#6b7280',
+      error: '#e11d48',
+      pending: '#ea580c'
     }
-    return colors[status] || '#8E8E93'
+    return colors[status] || '#6b7280'
   }
 
   const getProviderIcon = (type: string) => {
@@ -117,9 +118,9 @@ export default function CloudIntegrations() {
   }
 
   return (
-    <div className="py-8 w-full max-w-7xl mx-auto">
+    <div className="py-4 w-full max-w-7xl mx-auto">
       {/* Header */}
-      <div className="sm:flex sm:justify-between sm:items-center mb-6 px-4 hig-fade-in">
+      <div className="sm:flex sm:justify-between sm:items-center mb-3 px-4 hig-fade-in">
         <div className="mb-4 sm:mb-0">
           <h1 className="hig-title-large text-gray-900 dark:text-gray-100">Cloud Integrations</h1>
           <p className="hig-body text-gray-600 dark:text-gray-400">Manage and monitor your cloud provider connections</p>
@@ -135,7 +136,7 @@ export default function CloudIntegrations() {
       </div>
 
       {/* Cloud Provider Cards */}
-      <div className="grid grid-cols-12 gap-4 mb-6 px-4">
+      <div className="grid grid-cols-12 gap-4 mb-3 px-4">
         {cloudProviders.map((provider) => (
           <div key={provider.id} className="col-span-12 lg:col-span-6">
             <div className="hig-card">
@@ -161,11 +162,11 @@ export default function CloudIntegrations() {
               </div>
 
               <div className="grid grid-cols-2 gap-4 mb-4">
-                <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-3 text-center">
+                <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-3 text-center">
                   <div className="hig-caption text-gray-600 dark:text-gray-400 mb-1">Accounts</div>
                   <div className="hig-metric-value text-3xl text-gray-900 dark:text-gray-100">{provider.accounts}</div>
                 </div>
-                <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-3 text-center">
+                <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-3 text-center">
                   <div className="hig-caption text-gray-600 dark:text-gray-400 mb-1">Resources</div>
                   <div className="hig-metric-value text-3xl text-gray-900 dark:text-gray-100">
                       {provider.resources.monitored}/{provider.resources.total}
@@ -192,8 +193,8 @@ export default function CloudIntegrations() {
                       <span 
                         className="hig-badge"
                         style={{
-                          backgroundColor: '#FF3B3020',
-                          color: '#FF3B30'
+                          backgroundColor: '#e11d4820',
+                          color: '#e11d48'
                         }}
                       >
                         {provider.alerts.critical} Critical
@@ -203,8 +204,8 @@ export default function CloudIntegrations() {
                       <span 
                         className="hig-badge"
                         style={{
-                          backgroundColor: '#FF950020',
-                          color: '#FF9500'
+                          backgroundColor: '#ea580c20',
+                          color: '#ea580c'
                         }}
                       >
                         {provider.alerts.high} High
@@ -214,8 +215,8 @@ export default function CloudIntegrations() {
                       <span 
                         className="hig-badge"
                         style={{
-                          backgroundColor: '#FFCC0020',
-                          color: '#FFCC00'
+                          backgroundColor: '#d9770620',
+                          color: '#d97706'
                         }}
                       >
                         {provider.alerts.medium} Medium
@@ -231,11 +232,11 @@ export default function CloudIntegrations() {
                 </span>
                 <div className="flex gap-2">
                   {provider.status === 'connected' ? (
-                    <button className="hig-caption hover:text-[#AF52DE] hig-link-hover">
+                    <button className="hig-caption hig-link-hover">
                       Configure →
                     </button>
                   ) : (
-                    <button className="hig-caption hover:text-[#AF52DE] hig-link-hover">
+                    <button className="hig-caption hig-link-hover">
                       Reconnect →
                     </button>
                   )}
@@ -250,7 +251,7 @@ export default function CloudIntegrations() {
       <div className="grid grid-cols-12 gap-4 px-4">
         <div className="col-span-12 lg:col-span-8">
           <div className="hig-card">
-            <h2 className="hig-headline text-gray-900 dark:text-gray-100 mb-6 pb-4 border-b border-gray-200 dark:border-gray-700/60">Resource Distribution by Provider</h2>
+            <h2 className="hig-headline text-gray-900 dark:text-gray-100 mb-3 pb-4 border-b border-gray-200 dark:border-gray-700/60">Resource Distribution by Provider</h2>
             <div className="space-y-4">
               {cloudProviders.filter(p => p.status === 'connected').map((provider, idx) => {
                 const percentage = (provider.resources.monitored / provider.resources.total) * 100
@@ -277,24 +278,24 @@ export default function CloudIntegrations() {
 
         <div className="col-span-12 lg:col-span-4">
           <div className="hig-card">
-            <h2 className="hig-headline text-gray-900 dark:text-gray-100 mb-6 pb-4 border-b border-gray-200 dark:border-gray-700/60">Quick Stats</h2>
+            <h2 className="hig-headline text-gray-900 dark:text-gray-100 mb-3 pb-4 border-b border-gray-200 dark:border-gray-700/60">Quick Stats</h2>
             <div className="space-y-4">
-              <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+              <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
                 <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Total Providers</div>
                 <div className="hig-metric-value text-3xl text-gray-900 dark:text-gray-100">
                   {cloudProviders.length}
                 </div>
               </div>
-              <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+              <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
                 <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Active Connections</div>
-                <div className="hig-metric-value text-3xl" style={{ color: '#34C759', WebkitTextFillColor: '#34C759' }}>
+                <div className="hig-metric-value text-3xl" style={{ color: '#059669', WebkitTextFillColor: '#059669' }}>
                   {cloudProviders.filter(p => p.status === 'connected').length}
                 </div>
               </div>
-              <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+              <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
                 <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Total Resources</div>
                 <div className="hig-metric-value text-3xl text-gray-900 dark:text-gray-100">
-                  {cloudProviders.reduce((acc, p) => acc + p.resources.total, 0).toLocaleString()}
+                  {formatNumber(cloudProviders.reduce((acc, p) => acc + p.resources.total, 0))}
                 </div>
               </div>
             </div>
@@ -315,7 +316,7 @@ export default function CloudIntegrations() {
             >
               {/* Fixed Header */}
               <div 
-                className="sticky top-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-[#1E293B]/80 border-b border-gray-200 dark:border-gray-700/60 p-6 pb-4"
+                className="sticky top-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-gray-900/80 border-b border-gray-200 dark:border-gray-700/60 p-6 pb-4"
                 style={{
                   WebkitBackdropFilter: 'blur(20px) saturate(180%)',
                   backdropFilter: 'blur(20px) saturate(180%)'
@@ -341,7 +342,7 @@ export default function CloudIntegrations() {
                   {['AWS', 'Azure', 'Google Cloud', 'Oracle Cloud', 'Alibaba Cloud'].map((provider, idx) => (
                     <button
                       key={idx}
-                      className="hig-card p-4 text-center hover:bg-gray-50 dark:hover:bg-[#334155]/30"
+                      className="hig-card p-4 text-center hover:bg-gray-50 dark:hover:bg-gray-700/30"
                     >
                       <div className="text-4xl mb-2">☁️</div>
                       <div className="hig-body font-semibold text-gray-900 dark:text-gray-100">{provider}</div>
@@ -352,7 +353,7 @@ export default function CloudIntegrations() {
 
               {/* Fixed Footer */}
               <div 
-                className="sticky bottom-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-[#1E293B]/80 border-t border-gray-200 dark:border-gray-700/60 p-6 pt-4"
+                className="sticky bottom-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-gray-900/80 border-t border-gray-200 dark:border-gray-700/60 p-6 pt-4"
                 style={{
                   WebkitBackdropFilter: 'blur(20px) saturate(180%)',
                   backdropFilter: 'blur(20px) saturate(180%)'

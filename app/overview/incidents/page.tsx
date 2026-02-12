@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { usePageTitle } from '@/app/page-title-context'
+import { getSeverity, getStatus } from '@/lib/utils'
 
 interface Incident {
   id: string
@@ -86,23 +87,23 @@ export default function IncidentsPage() {
 
   const getSeverityColor = (severity: string): string => {
     const colors: Record<string, string> = {
-      'critical': '#FF3B30',  // System red
-      'high': '#FF9500',      // System orange
-      'medium': '#FFCC00',    // System yellow
-      'low': '#007AFF'        // System blue
+      'critical': '#e11d48',  // System red
+      'high': '#ea580c',      // System orange
+      'medium': '#d97706',    // System yellow
+      'low': '#4f46e5'        // System blue
     }
-    return colors[severity.toLowerCase()] || '#8E8E93'
+    return colors[severity.toLowerCase()] || '#6b7280'
   }
 
   const getStatusColor = (status: string): string => {
     const colors: Record<string, string> = {
-      'new': '#FF3B30',        // System red
-      'investigating': '#FF9500', // System orange
-      'contained': '#007AFF',   // System blue
-      'resolved': '#34C759',    // System green
-      'closed': '#8E8E93'      // System gray
+      'new': '#e11d48',        // System red
+      'investigating': '#ea580c', // System orange
+      'contained': '#4f46e5',   // System blue
+      'resolved': '#059669',    // System green
+      'closed': '#6b7280'      // System gray
     }
-    return colors[status.toLowerCase()] || '#8E8E93'
+    return colors[status.toLowerCase()] || '#6b7280'
   }
 
   const stats = {
@@ -117,19 +118,19 @@ export default function IncidentsPage() {
     : incidents.filter(i => i.status === filterStatus)
 
   return (
-    <div className="py-8 w-full max-w-7xl mx-auto">
+    <div className="py-4 w-full max-w-7xl mx-auto">
       <div className="mb-6 px-4 hig-fade-in">
         <h1 className="hig-title-large text-gray-900 dark:text-gray-100 mb-2">Security Incidents</h1>
         <p className="hig-body text-gray-600 dark:text-gray-400">Monitor and manage security incidents and response activities</p>
       </div>
 
       {/* Sticky Status Bar - Consolidated metrics */}
-      <div className="sticky top-16 z-40 before:absolute before:inset-0 before:backdrop-blur-xl before:bg-white/80 dark:before:bg-[#0F172A]/80 before:-z-10 border-b border-gray-200 dark:border-gray-700/60 mb-6 -mx-4 sm:-mx-6 lg:-mx-8">
+      <div className="sticky top-16 z-40 before:absolute before:inset-0 before:backdrop-blur-xl before:bg-white/80 dark:before:bg-gray-950/80 before:-z-10 border-b border-gray-200 dark:border-gray-700/60 mb-3 -mx-4 sm:-mx-6 lg:-mx-8">
         <div className="px-4 sm:px-6 lg:px-8 py-3">
           <div className="flex items-center justify-between text-sm">
             <div className="flex items-center space-x-6">
               <div className="flex items-center gap-2">
-                <svg className="w-4 h-4 text-[#007AFF]" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-4 h-4 text-[#4f46e5]" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                 </svg>
                 <span className="hig-caption font-semibold text-gray-900 dark:text-gray-100">
@@ -137,19 +138,19 @@ export default function IncidentsPage() {
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-[#FF3B30] rounded-full animate-pulse"></div>
+                <div className="w-2 h-2 bg-[#e11d48] rounded-full animate-pulse"></div>
                 <span className="hig-caption font-semibold text-gray-900 dark:text-gray-100">
                   {stats.critical} Critical
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-[#FF9500] rounded-full"></div>
+                <div className="w-2 h-2 bg-[#ea580c] rounded-full"></div>
                 <span className="hig-caption font-semibold text-gray-900 dark:text-gray-100">
                   {stats.investigating} Investigating
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-[#34C759] rounded-full"></div>
+                <div className="w-2 h-2 bg-[#059669] rounded-full"></div>
                 <span className="hig-caption font-semibold text-gray-900 dark:text-gray-100">
                   {stats.resolved} Resolved Today
                 </span>
@@ -178,10 +179,10 @@ export default function IncidentsPage() {
       </div>
 
       {/* Incidents List with Expandable Details */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 px-4">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 px-4">
         <div className="lg:col-span-8">
           <div className="hig-card">
-            <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200 dark:border-gray-700/60">
+            <div className="flex items-center justify-between mb-3 pb-4 border-b border-gray-200 dark:border-gray-700/60">
               <h2 className="hig-headline text-gray-900 dark:text-gray-100">Active Incidents</h2>
               <span className="hig-caption text-gray-600 dark:text-gray-400">{filteredIncidents.length} total</span>
             </div>
@@ -197,7 +198,7 @@ export default function IncidentsPage() {
                     <div 
                       className={`flex items-center gap-4 p-4 cursor-pointer transition-colors ${
                         idx !== filteredIncidents.length - 1 ? 'border-b border-gray-200 dark:border-gray-700/60' : ''
-                      } ${isExpanded ? 'bg-gray-50 dark:bg-[#334155]/30' : 'hover:bg-gray-50 dark:hover:bg-[#334155]/20'}`}
+                      } ${isExpanded ? 'bg-gray-50 dark:bg-gray-700/30' : 'hover:bg-gray-50 dark:hover:bg-gray-700/20'}`}
                       onClick={() => setExpandedIncidentId(isExpanded ? null : incident.id)}
                     >
                       {/* Severity Indicator */}
@@ -247,7 +248,7 @@ export default function IncidentsPage() {
                       </div>
                       
                       {/* Metrics */}
-                      <div className="flex items-center gap-6 flex-shrink-0">
+                      <div className="flex items-center gap-3 flex-shrink-0">
                         <div className="text-right">
                           <div className="hig-caption text-gray-600 dark:text-gray-400">Detected</div>
                           <div className="hig-caption text-gray-900 dark:text-gray-100 font-medium mt-1">
@@ -269,7 +270,7 @@ export default function IncidentsPage() {
 
                     {/* Expanded Details */}
                     {isExpanded && (
-                      <div className="px-4 pb-4 bg-gray-50 dark:bg-[#334155]/30 border-b border-gray-200 dark:border-gray-700/60">
+                      <div className="px-4 pb-4 bg-gray-50 dark:bg-gray-700/30 border-b border-gray-200 dark:border-gray-700/60">
                         <div className="pt-4 space-y-4">
                           {/* Category and Assignment */}
                           <div className="grid grid-cols-2 gap-4">
@@ -293,8 +294,8 @@ export default function IncidentsPage() {
                                     key={idx}
                                     className="hig-badge font-mono"
                                     style={{
-                                      backgroundColor: '#FF3B3020',
-                                      color: '#FF3B30'
+                                      backgroundColor: '#e11d4820',
+                                      color: '#e11d48'
                                     }}
                                   >
                                     {technique}
@@ -333,11 +334,11 @@ export default function IncidentsPage() {
             <h2 className="hig-headline text-gray-900 dark:text-gray-100 mb-4">Incident Categories</h2>
             <div className="space-y-3">
               {[
-                { name: 'Malware', count: 1, color: 'bg-[#FF3B30] dark:bg-[#FF3B30]' },
-                { name: 'Data Breach', count: 1, color: 'bg-[#FF9500] dark:bg-[#FF9500]' },
-                { name: 'Unauthorized Access', count: 1, color: 'bg-[#FFCC00] dark:bg-[#FFCC00]' },
-                { name: 'Network Attack', count: 1, color: 'bg-[#393A84] dark:bg-[#393A84]' },
-                { name: 'Social Engineering', count: 1, color: 'bg-[#393A84] dark:bg-[#393A84]' }
+                { name: 'Malware', count: 1, color: 'bg-[#e11d48] dark:bg-[#e11d48]' },
+                { name: 'Data Breach', count: 1, color: 'bg-[#ea580c] dark:bg-[#ea580c]' },
+                { name: 'Unauthorized Access', count: 1, color: 'bg-[#d97706] dark:bg-[#d97706]' },
+                { name: 'Network Attack', count: 1, color: 'bg-indigo-600 dark:bg-indigo-500' },
+                { name: 'Social Engineering', count: 1, color: 'bg-indigo-600 dark:bg-indigo-500' }
               ].map((category, idx) => (
                 <div key={idx}>
                   <div className="flex items-center justify-between mb-1">
@@ -355,15 +356,15 @@ export default function IncidentsPage() {
           <div className="hig-card">
             <h2 className="hig-headline text-gray-900 dark:text-gray-100 mb-4">Response Metrics</h2>
             <div className="space-y-4">
-              <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+              <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
                 <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Avg Response Time</div>
                 <div className="hig-metric-value text-3xl text-gray-900 dark:text-gray-100">12m</div>
               </div>
-              <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+              <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
                 <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Avg Resolution Time</div>
                 <div className="hig-metric-value text-3xl text-gray-900 dark:text-gray-100">4.2h</div>
               </div>
-              <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+              <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
                 <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">MTTR (Mean Time to Resolve)</div>
                 <div className="hig-metric-value text-3xl text-gray-900 dark:text-gray-100">3.8h</div>
               </div>
@@ -378,7 +379,7 @@ export default function IncidentsPage() {
           <div className="hig-modal p-0 max-w-4xl w-full flex flex-col max-h-[90vh]">
             {/* Fixed Header */}
             <div 
-              className="sticky top-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-[#1E293B]/80 border-b border-gray-200 dark:border-gray-700/60 p-6 pb-4"
+              className="sticky top-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-gray-900/80 border-b border-gray-200 dark:border-gray-700/60 p-6 pb-4"
               style={{
                 WebkitBackdropFilter: 'blur(20px) saturate(180%)',
                 backdropFilter: 'blur(20px) saturate(180%)'
@@ -410,13 +411,13 @@ export default function IncidentsPage() {
             <div className="flex-1 overflow-y-auto px-6 py-6">
               {/* Metric Cards */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+                <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
                   <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Affected Assets</div>
                   <div className="hig-metric-value text-3xl text-gray-900 dark:text-gray-100">
                     {selectedIncident.affectedAssets}
                   </div>
                 </div>
-                <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+                <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
                   <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">MITRE Techniques</div>
                   <div className="hig-metric-value text-3xl text-gray-900 dark:text-gray-100">
                     {selectedIncident.mitreTechniques.length}
@@ -490,8 +491,8 @@ export default function IncidentsPage() {
                         key={idx}
                         className="hig-badge font-mono"
                         style={{
-                          backgroundColor: '#FF3B3020',
-                          color: '#FF3B30'
+                          backgroundColor: '#e11d4820',
+                          color: '#e11d48'
                         }}
                       >
                         {technique}
@@ -504,7 +505,7 @@ export default function IncidentsPage() {
 
             {/* Fixed Footer */}
             <div 
-              className="sticky bottom-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-[#1E293B]/80 border-t border-gray-200 dark:border-gray-700/60 p-6 pt-4"
+              className="sticky bottom-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-gray-900/80 border-t border-gray-200 dark:border-gray-700/60 p-6 pt-4"
               style={{
                 WebkitBackdropFilter: 'blur(20px) saturate(180%)',
                 backdropFilter: 'blur(20px) saturate(180%)'

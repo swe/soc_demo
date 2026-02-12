@@ -135,21 +135,21 @@ export default function TrainingsPage() {
 
   const getCategoryColor = (category: string): string => {
     const colors: Record<string, string> = {
-      'security-awareness': '#007AFF',
-      'technical': '#AF52DE',
-      'incident-response': '#FF3B30',
-      'compliance': '#34C759'
+      'security-awareness': '#4f46e5',
+      'technical': '#4f46e5',
+      'incident-response': '#e11d48',
+      'compliance': '#059669'
     }
-    return colors[category] || '#8E8E93'
+    return colors[category] || '#6b7280'
   }
 
   const getLevelColor = (level: string): string => {
     const colors: Record<string, string> = {
-      beginner: '#34C759',
-      intermediate: '#FFCC00',
-      advanced: '#FF3B30'
+      beginner: '#059669',
+      intermediate: '#d97706',
+      advanced: '#e11d48'
     }
-    return colors[level] || '#8E8E93'
+    return colors[level] || '#6b7280'
   }
 
   const filteredTrainings = selectedCategory === 'all' 
@@ -163,29 +163,29 @@ export default function TrainingsPage() {
   }
 
   return (
-    <div className="py-8 w-full max-w-7xl mx-auto">
+    <div className="py-4 w-full max-w-7xl mx-auto">
       <div className="mb-6 px-4 hig-fade-in">
         <h1 className="hig-title-large text-gray-900 dark:text-gray-100 mb-2">Security Training</h1>
         <p className="hig-body text-gray-600 dark:text-gray-400">Access training courses and learning resources for security professionals</p>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6 px-4">
-        <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-3 px-4">
+        <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
           <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Available Courses</div>
           <div className="hig-metric-value text-4xl text-gray-900 dark:text-gray-100">{stats.total}</div>
         </div>
 
-        <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+        <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
           <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Total Enrolled</div>
-          <div className="hig-metric-value text-4xl" style={{ color: '#007AFF', WebkitTextFillColor: '#007AFF' }}>
+          <div className="hig-metric-value text-4xl" style={{ color: '#4f46e5', WebkitTextFillColor: '#4f46e5' }}>
             {stats.totalEnrolled}
           </div>
         </div>
 
-        <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+        <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
           <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Avg Completion</div>
-          <div className="hig-metric-value text-4xl" style={{ color: '#34C759', WebkitTextFillColor: '#34C759' }}>
+          <div className="hig-metric-value text-4xl" style={{ color: '#059669', WebkitTextFillColor: '#059669' }}>
             {stats.avgCompletion}%
           </div>
         </div>
@@ -244,15 +244,15 @@ export default function TrainingsPage() {
               {/* Body */}
               <div>
                 <div className="grid grid-cols-3 gap-3 mb-4">
-                  <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-3 text-center">
+                  <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-3 text-center">
                     <div className="hig-metric-value text-2xl text-gray-900 dark:text-gray-100">{training.duration.split(' ')[0]}</div>
                     <div className="hig-caption text-gray-600 dark:text-gray-400">Hours</div>
                   </div>
-                  <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-3 text-center">
+                  <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-3 text-center">
                     <div className="hig-metric-value text-2xl text-gray-900 dark:text-gray-100">{training.modules}</div>
                     <div className="hig-caption text-gray-600 dark:text-gray-400">Modules</div>
                   </div>
-                  <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-3 text-center">
+                  <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-3 text-center">
                     <div className="hig-metric-value text-2xl text-gray-900 dark:text-gray-100">{training.enrolled}</div>
                     <div className="hig-caption text-gray-600 dark:text-gray-400">Students</div>
                   </div>
@@ -269,7 +269,7 @@ export default function TrainingsPage() {
                       className="h-2.5 rounded-full transition-all duration-500" 
                       style={{ 
                         width: `${training.completionRate}%`,
-                        backgroundColor: '#007AFF'
+                        backgroundColor: '#4f46e5'
                       }}
                     />
                   </div>
@@ -315,7 +315,7 @@ export default function TrainingsPage() {
             >
               {/* Fixed Header */}
               <div 
-                className="sticky top-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-[#1E293B]/80 border-b border-gray-200 dark:border-gray-700/60 p-6 pb-4"
+                className="sticky top-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-gray-900/80 border-b border-gray-200 dark:border-gray-700/60 p-6 pb-4"
                 style={{
                   WebkitBackdropFilter: 'blur(20px) saturate(180%)',
                   backdropFilter: 'blur(20px) saturate(180%)'
@@ -376,15 +376,15 @@ export default function TrainingsPage() {
                   </div>
 
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+                    <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
                       <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Duration</div>
                       <div className="hig-body font-semibold text-gray-900 dark:text-gray-100">{selectedTraining.duration}</div>
                     </div>
-                    <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+                    <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
                       <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Modules</div>
                       <div className="hig-metric-value text-3xl text-gray-900 dark:text-gray-100">{selectedTraining.modules}</div>
                     </div>
-                    <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+                    <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
                       <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Enrolled</div>
                       <div className="hig-metric-value text-3xl text-gray-900 dark:text-gray-100">{selectedTraining.enrolled}</div>
                     </div>
@@ -403,7 +403,7 @@ export default function TrainingsPage() {
                             className="h-3 rounded-full" 
                             style={{ 
                               width: `${selectedTraining.completionRate}%`,
-                              backgroundColor: '#007AFF'
+                              backgroundColor: '#4f46e5'
                             }}
                           />
                         </div>
@@ -413,13 +413,13 @@ export default function TrainingsPage() {
                   </div>
 
                   {selectedTraining.certificate && (
-                    <div className="hig-card bg-[#FFCC00]/10 dark:bg-[#FFCC00]/20 border border-[#FFCC00]/30 p-4">
+                    <div className="hig-card bg-[#d97706]/10 dark:bg-[#d97706]/20 border border-[#d97706]/30 p-4">
                       <div className="flex items-center gap-3">
-                        <svg className="w-5 h-5 text-[#FFCC00] flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <svg className="w-5 h-5 text-[#d97706] flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                           <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                         </svg>
                         <div>
-                          <div className="hig-body font-semibold text-[#FFCC00] mb-1">Certificate Available</div>
+                          <div className="hig-body font-semibold text-[#d97706] mb-1">Certificate Available</div>
                           <div className="hig-caption text-gray-600 dark:text-gray-400">Certificate awarded upon completion</div>
                         </div>
                       </div>
@@ -430,7 +430,7 @@ export default function TrainingsPage() {
 
               {/* Fixed Footer */}
               <div 
-                className="sticky bottom-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-[#1E293B]/80 border-t border-gray-200 dark:border-gray-700/60 p-6 pt-4"
+                className="sticky bottom-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-gray-900/80 border-t border-gray-200 dark:border-gray-700/60 p-6 pt-4"
                 style={{
                   WebkitBackdropFilter: 'blur(20px) saturate(180%)',
                   backdropFilter: 'blur(20px) saturate(180%)'

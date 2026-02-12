@@ -258,17 +258,17 @@ export default function DevicesPage() {
 
   const getStatusColor = (status: string): string => {
     const colors: Record<string, string> = {
-      online: '#34C759',      // System green
-      offline: '#8E8E93',     // System gray
-      warning: '#FF9500'      // System orange
+      online: '#059669',      // System green
+      offline: '#6b7280',     // System gray
+      warning: '#ea580c'      // System orange
     }
-    return colors[status] || '#8E8E93'
+    return colors[status] || '#6b7280'
   }
 
   const getRiskColor = (score: number): string => {
-    if (score >= 70) return '#FF3B30'  // System red
-    if (score >= 40) return '#FF9500'   // System orange
-    return '#34C759'                    // System green
+    if (score >= 70) return '#e11d48'  // System red
+    if (score >= 40) return '#ea580c'   // System orange
+    return '#059669'                    // System green
   }
 
   const getTypeIcon = (type: string): string => {
@@ -283,21 +283,21 @@ export default function DevicesPage() {
 
   const getComplianceColor = (status?: string): string => {
     const colors: Record<string, string> = {
-      'compliant': '#34C759',
-      'non-compliant': '#FF3B30',
-      'warning': '#FF9500'
+      'compliant': '#059669',
+      'non-compliant': '#e11d48',
+      'warning': '#ea580c'
     }
-    return colors[status || ''] || '#8E8E93'
+    return colors[status || ''] || '#6b7280'
   }
 
   const getSeverityColor = (severity: string): string => {
     const colors: Record<string, string> = {
-      'critical': '#FF3B30',
-      'high': '#FF9500',
-      'medium': '#FFCC00',
-      'low': '#007AFF'
+      'critical': '#e11d48',
+      'high': '#ea580c',
+      'medium': '#d97706',
+      'low': '#4f46e5'
     }
-    return colors[severity] || '#8E8E93'
+    return colors[severity] || '#6b7280'
   }
 
   const filteredDevices = devices.filter(device => {
@@ -316,7 +316,7 @@ export default function DevicesPage() {
   }
 
   return (
-    <div className="py-8 w-full max-w-7xl mx-auto">
+    <div className="py-4 w-full max-w-7xl mx-auto">
       {/* Page Header */}
       <div className="mb-6 px-4 hig-fade-in">
         <h1 className="hig-title-large text-gray-900 dark:text-gray-100 mb-2">
@@ -327,27 +327,29 @@ export default function DevicesPage() {
         </p>
       </div>
 
-      {/* Device Statistics Bar */}
-      <div className="mb-6 pb-4 px-4 border-b border-gray-200 dark:border-gray-700/60">
-        <div className="flex items-center gap-8 flex-wrap">
-          <span className="hig-caption text-gray-600 dark:text-gray-400 font-medium">Devices:</span>
-          <div className="flex items-center gap-2">
-            <span className="hig-body font-semibold text-gray-900 dark:text-gray-100">{stats.total}</span>
-            <span className="hig-caption text-gray-600 dark:text-gray-400">Total</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-[#34C759] rounded-full"></div>
-            <span className="hig-body font-semibold text-[#34C759]">{stats.online}</span>
-            <span className="hig-caption text-gray-600 dark:text-gray-400">Online</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-[#FF3B30] rounded-full"></div>
-            <span className="hig-body font-semibold text-[#FF3B30]">{stats.atRisk}</span>
-            <span className="hig-caption text-gray-600 dark:text-gray-400">High Risk</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="hig-body font-semibold text-gray-900 dark:text-gray-100">{stats.vulnerabilities}</span>
-            <span className="hig-caption text-gray-600 dark:text-gray-400">Vulnerabilities</span>
+      {/* Sticky Device Statistics Bar */}
+      <div className="sticky top-16 z-40 before:absolute before:inset-0 before:backdrop-blur-xl before:bg-white/80 dark:before:bg-gray-950/80 before:-z-10 border-b border-gray-200 dark:border-gray-700/60 mb-3 -mx-4 sm:-mx-6 lg:-mx-8">
+        <div className="px-4 sm:px-6 lg:px-8 py-3">
+          <div className="flex items-center gap-8 flex-wrap">
+            <span className="hig-caption text-gray-600 dark:text-gray-400 font-medium">Devices:</span>
+            <div className="flex items-center gap-2">
+              <span className="hig-caption font-semibold text-gray-900 dark:text-gray-100">{stats.total}</span>
+              <span className="hig-caption text-gray-600 dark:text-gray-400">Total</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-[#059669] rounded-full"></div>
+              <span className="hig-caption font-semibold text-[#059669]">{stats.online}</span>
+              <span className="hig-caption text-gray-600 dark:text-gray-400">Online</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-[#e11d48] rounded-full"></div>
+              <span className="hig-caption font-semibold text-[#e11d48]">{stats.atRisk}</span>
+              <span className="hig-caption text-gray-600 dark:text-gray-400">High Risk</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="hig-caption font-semibold text-gray-900 dark:text-gray-100">{stats.vulnerabilities}</span>
+              <span className="hig-caption text-gray-600 dark:text-gray-400">Vulnerabilities</span>
+            </div>
           </div>
         </div>
       </div>
@@ -396,7 +398,7 @@ export default function DevicesPage() {
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 px-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-3 px-4">
           {filteredDevices.map((device, index) => (
             <div key={device.id} className="hig-card hig-stagger-item" style={{ animationDelay: `${index * 0.05}s` }}>
               {/* Risk Indicator Bar */}
@@ -434,7 +436,7 @@ export default function DevicesPage() {
 
               {/* Quick Stats */}
               <div className="grid grid-cols-3 gap-4 mb-4">
-                <div className="bg-gray-50 dark:bg-[#334155]/30 rounded-lg p-3 text-center">
+                <div className="bg-gray-50 dark:bg-gray-700/30 rounded-lg p-3 text-center">
                   <div 
                     className="hig-metric-value text-3xl"
                     style={{ color: getRiskColor(device.riskScore), WebkitTextFillColor: getRiskColor(device.riskScore) }}
@@ -443,19 +445,19 @@ export default function DevicesPage() {
                   </div>
                   <div className="hig-caption text-gray-600 dark:text-gray-400 mt-1">Risk</div>
                 </div>
-                <div className="bg-gray-50 dark:bg-[#334155]/30 rounded-lg p-3 text-center">
+                <div className="bg-gray-50 dark:bg-gray-700/30 rounded-lg p-3 text-center">
                   <div 
                     className="hig-metric-value text-3xl"
                     style={{ 
-                      color: device.vulnerabilities > 0 ? '#FF3B30' : '#34C759',
-                      WebkitTextFillColor: device.vulnerabilities > 0 ? '#FF3B30' : '#34C759'
+                      color: device.vulnerabilities > 0 ? '#e11d48' : '#059669',
+                      WebkitTextFillColor: device.vulnerabilities > 0 ? '#e11d48' : '#059669'
                     }}
                   >
                     {device.vulnerabilities}
                   </div>
                   <div className="hig-caption text-gray-600 dark:text-gray-400 mt-1">Vulns</div>
                 </div>
-                <div className="bg-gray-50 dark:bg-[#334155]/30 rounded-lg p-3 text-center">
+                <div className="bg-gray-50 dark:bg-gray-700/30 rounded-lg p-3 text-center">
                   <div className="hig-body text-gray-900 dark:text-gray-100 font-semibold truncate">
                     {device.type === 'iot' ? 'IoT' : device.type.charAt(0).toUpperCase() + device.type.slice(1)}
                   </div>
@@ -497,14 +499,14 @@ export default function DevicesPage() {
                   <button 
                     className="flex-1 hig-button" 
                     style={{
-                      backgroundColor: '#FF9500',
+                      backgroundColor: '#ea580c',
                       color: 'white'
                     }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.backgroundColor = '#FF8500'
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = '#FF9500'
+                      e.currentTarget.style.backgroundColor = '#ea580c'
                     }}
                   >
                     Patch
@@ -533,7 +535,7 @@ export default function DevicesPage() {
           >
             {/* Modal Header - Fixed */}
             <div 
-              className="sticky top-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-[#1E293B]/80 border-b border-gray-200 dark:border-gray-700/60 p-6 pb-4"
+              className="sticky top-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-gray-900/80 border-b border-gray-200 dark:border-gray-700/60 p-6 pb-4"
               style={{
                 WebkitBackdropFilter: 'blur(20px) saturate(180%)',
                 backdropFilter: 'blur(20px) saturate(180%)'
@@ -589,20 +591,20 @@ export default function DevicesPage() {
               <div className="space-y-6">
               {/* Key Metrics */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+                <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
                   <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Risk Score</div>
                   <div className="hig-metric-value text-4xl text-gray-900 dark:text-gray-100">
                     {selectedDevice.riskScore}
                   </div>
                 </div>
-                <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+                <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
                   <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Vulnerabilities</div>
                   <div className="hig-metric-value text-4xl text-gray-900 dark:text-gray-100">
                     {selectedDevice.vulnerabilities}
                   </div>
                 </div>
                 {selectedDevice.activeThreats !== undefined && (
-                  <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+                  <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
                     <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Active Threats</div>
                     <div className="hig-metric-value text-4xl text-gray-900 dark:text-gray-100">
                       {selectedDevice.activeThreats}
@@ -610,10 +612,10 @@ export default function DevicesPage() {
                   </div>
                 )}
                 {selectedDevice.complianceStatus && (
-                  <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+                  <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
                     <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Compliance</div>
                     <div 
-                      className="text-4xl font-bold"
+                      className="text-4xl font-semibold"
                       style={{ 
                         color: getComplianceColor(selectedDevice.complianceStatus),
                         WebkitTextFillColor: getComplianceColor(selectedDevice.complianceStatus)
@@ -722,7 +724,7 @@ export default function DevicesPage() {
                   <h3 className="hig-headline text-gray-900 dark:text-gray-100 mb-4">Compliance Issues</h3>
                   <div className="space-y-3">
                     {selectedDevice.complianceIssues.map((issue, index) => (
-                      <div key={index} className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4">
+                      <div key={index} className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4">
                         <div className="flex items-start justify-between mb-2">
                           <div className="flex items-center gap-2">
                             <div 
@@ -758,7 +760,7 @@ export default function DevicesPage() {
                   <h3 className="hig-headline text-gray-900 dark:text-gray-100 mb-4">Active Threats</h3>
                   <div className="space-y-3">
                     {selectedDevice.threatDetails.map((threat) => (
-                      <div key={threat.id} className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4">
+                      <div key={threat.id} className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4">
                         <div className="flex items-start justify-between mb-2">
                           <div className="flex items-center gap-2">
                             <div 
@@ -799,7 +801,7 @@ export default function DevicesPage() {
 
             {/* Modal Footer - Fixed */}
             <div 
-              className="sticky bottom-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-[#1E293B]/80 border-t border-gray-200 dark:border-gray-700/60 p-6 pt-4"
+              className="sticky bottom-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-gray-900/80 border-t border-gray-200 dark:border-gray-700/60 p-6 pt-4"
               style={{
                 WebkitBackdropFilter: 'blur(20px) saturate(180%)',
                 backdropFilter: 'blur(20px) saturate(180%)'
@@ -813,14 +815,14 @@ export default function DevicesPage() {
                   <button 
                     className="hig-button"
                     style={{
-                      backgroundColor: '#FF9500',
+                      backgroundColor: '#ea580c',
                       color: 'white'
                     }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.backgroundColor = '#FF8500'
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = '#FF9500'
+                      e.currentTarget.style.backgroundColor = '#ea580c'
                     }}
                   >
                     Patch

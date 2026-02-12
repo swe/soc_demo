@@ -31,42 +31,68 @@ export default function ThreatIntelligenceOverview() {
   ]
 
   return (
-    <div className="py-8 w-full max-w-7xl mx-auto">
+    <div className="py-4 w-full max-w-7xl mx-auto">
       <div className="mb-6 px-4 hig-fade-in">
         <h1 className="hig-title-large text-gray-900 dark:text-gray-100 mb-2">Threat Intelligence</h1>
         <p className="hig-body text-gray-600 dark:text-gray-400">Monitor emerging threats, indicators of compromise, and threat actor activities</p>
       </div>
 
+      {/* Sticky Status Bar */}
+      <div className="sticky top-16 z-40 before:absolute before:inset-0 before:backdrop-blur-xl before:bg-white/80 dark:before:bg-gray-950/80 before:-z-10 border-b border-gray-200 dark:border-gray-700/60 mb-3 -mx-4 sm:-mx-6 lg:-mx-8">
+        <div className="px-4 sm:px-6 lg:px-8 py-3">
+          <div className="flex items-center justify-between text-sm">
+            <div className="flex items-center space-x-6">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-[#e11d48] rounded-full animate-pulse"></div>
+                <span className="hig-caption font-semibold text-gray-900 dark:text-gray-100">24 Active Threat Actors</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-[#ea580c] rounded-full"></div>
+                <span className="hig-caption font-semibold text-gray-900 dark:text-gray-100">1,247 IOCs</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-[#4f46e5] rounded-full"></div>
+                <span className="hig-caption font-semibold text-gray-900 dark:text-gray-100">12 Critical CVEs</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-[#059669] rounded-full"></div>
+                <span className="hig-caption font-semibold text-gray-900 dark:text-gray-100">15 Active Feeds</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Stats Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 px-4">
-        <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-3 px-4">
+        <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
           <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Active Threat Actors</div>
           <div className="hig-metric-value text-4xl text-gray-900 dark:text-gray-100">24</div>
-          <div className="hig-caption text-[#FF3B30] mt-1">+3 this week</div>
+          <div className="hig-caption text-[#e11d48] mt-1">+3 this week</div>
         </div>
 
-        <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+        <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
           <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">IOCs Detected</div>
-          <div className="hig-metric-value text-4xl" style={{ color: '#FF9500', WebkitTextFillColor: '#FF9500' }}>
+          <div className="hig-metric-value text-4xl" style={{ color: '#ea580c', WebkitTextFillColor: '#ea580c' }}>
             1,247
           </div>
-          <div className="hig-caption text-[#FF9500] mt-1">+89 today</div>
+          <div className="hig-caption text-[#ea580c] mt-1">+89 today</div>
         </div>
 
-        <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+        <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
           <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Critical CVEs</div>
-          <div className="hig-metric-value text-4xl" style={{ color: '#AF52DE', WebkitTextFillColor: '#AF52DE' }}>
+          <div className="hig-metric-value text-4xl" style={{ color: '#4f46e5', WebkitTextFillColor: '#4f46e5' }}>
             12
           </div>
-          <div className="hig-caption text-[#AF52DE] mt-1">3 exploited</div>
+          <div className="hig-caption text-[#e11d48] mt-1">3 exploited</div>
         </div>
 
-        <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+        <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
           <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Threat Feeds</div>
-          <div className="hig-metric-value text-4xl" style={{ color: '#007AFF', WebkitTextFillColor: '#007AFF' }}>
+          <div className="hig-metric-value text-4xl" style={{ color: '#4f46e5', WebkitTextFillColor: '#4f46e5' }}>
             15
           </div>
-          <div className="hig-caption text-[#007AFF] mt-1">All active</div>
+          <div className="hig-caption text-[#4f46e5] mt-1">All active</div>
         </div>
       </div>
 
@@ -76,15 +102,15 @@ export default function ThreatIntelligenceOverview() {
         {/* Active Threat Actors */}
         <div className="col-span-12 lg:col-span-6">
           <div className="hig-card">
-            <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200 dark:border-gray-700/60">
+            <div className="flex items-center justify-between mb-3 pb-4 border-b border-gray-200 dark:border-gray-700/60">
               <h2 className="hig-headline text-gray-900 dark:text-gray-100">Active Threat Actors</h2>
-              <Link href="/overview/threat-intelligence/overview" className="hig-caption text-[#AF52DE] hover:text-[#AF52DE] hig-link-hover">
+              <Link href="/overview/threat-intelligence/overview" className="hig-caption hig-link-hover font-semibold">
                 View All →
               </Link>
             </div>
             <div className="space-y-0">
               {threatActors.map((actor, idx) => {
-                const activityColor = actor.activity === 'Critical' ? '#FF3B30' : actor.activity === 'High' ? '#FF9500' : '#FFCC00'
+                const activityColor = actor.activity === 'Critical' ? '#e11d48' : actor.activity === 'High' ? '#ea580c' : '#d97706'
                 
                 return (
                   <div key={idx} className={`flex items-center gap-4 p-4 ${
@@ -119,8 +145,8 @@ export default function ThreatIntelligenceOverview() {
                             key={i} 
                             className="hig-badge"
                             style={{
-                              backgroundColor: 'rgba(142, 142, 147, 0.2)',
-                              color: '#8E8E93'
+                              backgroundColor: 'rgba(107, 114, 128, 0.2)',
+                              color: '#6b7280'
                             }}
                           >
                             {sector}
@@ -138,15 +164,15 @@ export default function ThreatIntelligenceOverview() {
         {/* Recent Indicators */}
         <div className="col-span-12 lg:col-span-6">
           <div className="hig-card">
-            <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200 dark:border-gray-700/60">
+            <div className="flex items-center justify-between mb-3 pb-4 border-b border-gray-200 dark:border-gray-700/60">
               <h2 className="hig-headline text-gray-900 dark:text-gray-100">Recent Indicators of Compromise</h2>
-              <Link href="/overview/threat-intelligence/overview" className="hig-caption text-[#AF52DE] hover:text-[#AF52DE] hig-link-hover">
+              <Link href="/overview/threat-intelligence/overview" className="hig-caption hig-link-hover font-semibold">
                 View All →
               </Link>
             </div>
             <div className="space-y-0">
               {recentIndicators.map((ioc, idx) => {
-                const confidenceColor = ioc.confidence >= 90 ? '#FF3B30' : '#FF9500'
+                const confidenceColor = ioc.confidence >= 90 ? '#e11d48' : '#ea580c'
                 
                 return (
                   <div key={idx} className={`flex items-center gap-4 p-4 ${
@@ -157,8 +183,8 @@ export default function ThreatIntelligenceOverview() {
                         <span 
                           className="hig-badge"
                           style={{
-                            backgroundColor: '#007AFF20',
-                            color: '#007AFF'
+                            backgroundColor: '#4f46e520',
+                            color: '#4f46e5'
                           }}
                         >
                           {ioc.type}
@@ -190,15 +216,15 @@ export default function ThreatIntelligenceOverview() {
         {/* Critical Vulnerabilities */}
         <div className="col-span-12">
           <div className="hig-card">
-            <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200 dark:border-gray-700/60">
+            <div className="flex items-center justify-between mb-3 pb-4 border-b border-gray-200 dark:border-gray-700/60">
               <h2 className="hig-headline text-gray-900 dark:text-gray-100">Critical Vulnerabilities</h2>
-              <Link href="/overview/vulnerability/dashboard" className="hig-caption text-[#AF52DE] hover:text-[#AF52DE] hig-link-hover">
+              <Link href="/overview/vulnerability/dashboard" className="hig-caption hig-link-hover font-semibold">
                 View All →
               </Link>
             </div>
             <div className="space-y-0">
               {vulnerabilities.map((vuln, idx) => {
-                const severityColor = vuln.severity === 'Critical' ? '#FF3B30' : '#FF9500'
+                const severityColor = vuln.severity === 'Critical' ? '#e11d48' : '#ea580c'
                 
                 return (
                   <div key={idx} className={`flex items-center gap-4 p-4 ${
@@ -227,8 +253,8 @@ export default function ThreatIntelligenceOverview() {
                           <span 
                             className="hig-badge"
                             style={{
-                              backgroundColor: '#FF3B3020',
-                              color: '#FF3B30'
+                              backgroundColor: '#e11d4820',
+                              color: '#e11d48'
                             }}
                           >
                             Actively Exploited
@@ -252,9 +278,9 @@ export default function ThreatIntelligenceOverview() {
         {/* Threat Feed Status & Dark Web Quick Access */}
         <div className="col-span-12 lg:col-span-6">
           <div className="hig-card">
-            <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200 dark:border-gray-700/60">
+            <div className="flex items-center justify-between mb-3 pb-4 border-b border-gray-200 dark:border-gray-700/60">
               <h2 className="hig-headline text-gray-900 dark:text-gray-100">Threat Feed Status</h2>
-              <Link href="/overview/threat-intelligence/feeds" className="hig-caption text-[#AF52DE] hover:text-[#AF52DE] hig-link-hover">
+              <Link href="/overview/threat-intelligence/feeds" className="hig-caption hig-link-hover font-semibold">
                 Manage →
               </Link>
             </div>
@@ -269,13 +295,13 @@ export default function ThreatIntelligenceOverview() {
                   idx !== 3 ? 'border-b border-gray-200 dark:border-gray-700/60' : ''
                 }`}>
                   <div className="flex items-center gap-3">
-                    <div className="w-2 h-2 bg-[#34C759] rounded-full"></div>
+                    <div className="w-2 h-2 bg-[#059669] rounded-full"></div>
                     <div>
                       <div className="hig-body font-medium text-gray-900 dark:text-gray-100">{feed.name}</div>
                       <div className="hig-caption text-gray-500 dark:text-gray-400">{feed.lastUpdate} • {feed.indicators} indicators</div>
                     </div>
                   </div>
-                  <span className="hig-caption text-[#34C759] font-medium">{feed.status.toUpperCase()}</span>
+                  <span className="hig-caption text-[#059669] font-medium">{feed.status.toUpperCase()}</span>
                 </div>
               ))}
             </div>
@@ -284,7 +310,7 @@ export default function ThreatIntelligenceOverview() {
 
         {/* Dark Web Monitoring Quick Access */}
         <div className="col-span-12 lg:col-span-6">
-          <div className="hig-card bg-gradient-to-br from-[#393A84] to-[#A655F7] p-6 text-white">
+          <div className="hig-card bg-gradient-to-br from-indigo-600 to-indigo-800 p-6 text-white">
             <div className="flex items-center justify-between mb-4">
               <h2 className="hig-headline text-white">Dark Web Monitoring</h2>
               <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center text-2xl">
@@ -306,7 +332,7 @@ export default function ThreatIntelligenceOverview() {
                 <div className="hig-caption text-white/80 mt-1">Sources</div>
               </div>
             </div>
-            <Link href="/overview/threat-intelligence/dark-web" className="hig-button hig-button-secondary bg-white hover:bg-gray-100 text-[#393A84] w-full text-center">
+            <Link href="/overview/threat-intelligence/dark-web" className="hig-button hig-button-secondary bg-white hover:bg-gray-100 text-indigo-700 w-full text-center">
               View Dark Web Dashboard
             </Link>
           </div>

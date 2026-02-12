@@ -127,21 +127,21 @@ export default function DocumentationPage() {
 
   const getCategoryColor = (category: string): string => {
     const colors: Record<string, string> = {
-      security: '#FF3B30',
-      technical: '#007AFF',
-      policy: '#AF52DE',
-      guide: '#34C759'
+      security: '#e11d48',
+      technical: '#4f46e5',
+      policy: '#4f46e5',
+      guide: '#059669'
     }
-    return colors[category] || '#8E8E93'
+    return colors[category] || '#6b7280'
   }
 
   const getStatusColor = (status: string): string => {
     const colors: Record<string, string> = {
-      published: '#34C759',
-      draft: '#FF9500',
-      archived: '#8E8E93'
+      published: '#059669',
+      draft: '#ea580c',
+      archived: '#6b7280'
     }
-    return colors[status] || '#8E8E93'
+    return colors[status] || '#6b7280'
   }
 
   const filteredDocs = documents.filter(doc => {
@@ -159,27 +159,27 @@ export default function DocumentationPage() {
   }
 
   return (
-    <div className="py-8 w-full max-w-7xl mx-auto">
+    <div className="py-4 w-full max-w-7xl mx-auto">
       <div className="mb-6 px-4 hig-fade-in">
         <h1 className="hig-title-large text-gray-900 dark:text-gray-100 mb-2">Documentation</h1>
         <p className="hig-body text-gray-600 dark:text-gray-400">Access security documentation, guides, and technical resources</p>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6 px-4">
-        <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-3 px-4">
+        <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
           <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Total Documents</div>
           <div className="hig-metric-value text-4xl text-gray-900 dark:text-gray-100">{stats.total}</div>
         </div>
 
-        <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+        <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
           <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Published</div>
           <div className="hig-metric-value text-4xl text-gray-900 dark:text-gray-100">{stats.published}</div>
         </div>
 
-        <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+        <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
           <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Total Downloads</div>
-          <div className="hig-metric-value text-4xl" style={{ color: '#007AFF', WebkitTextFillColor: '#007AFF' }}>
+          <div className="hig-metric-value text-4xl" style={{ color: '#4f46e5', WebkitTextFillColor: '#4f46e5' }}>
             {stats.totalDownloads}
           </div>
         </div>
@@ -285,7 +285,7 @@ export default function DocumentationPage() {
             >
               {/* Fixed Header */}
               <div 
-                className="sticky top-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-[#1E293B]/80 border-b border-gray-200 dark:border-gray-700/60 p-6 pb-4"
+                className="sticky top-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-gray-900/80 border-b border-gray-200 dark:border-gray-700/60 p-6 pb-4"
                 style={{
                   WebkitBackdropFilter: 'blur(20px) saturate(180%)',
                   backdropFilter: 'blur(20px) saturate(180%)'
@@ -349,11 +349,11 @@ export default function DocumentationPage() {
                   </div>
 
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+                    <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
                       <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Version</div>
                       <div className="hig-metric-value text-3xl text-gray-900 dark:text-gray-100">v{selectedDoc.version}</div>
                     </div>
-                    <div className="hig-card bg-gray-50 dark:bg-[#334155]/30 p-4 text-center">
+                    <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
                       <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Downloads</div>
                       <div className="hig-metric-value text-3xl text-gray-900 dark:text-gray-100">{selectedDoc.downloads}</div>
                     </div>
@@ -382,7 +382,7 @@ export default function DocumentationPage() {
 
               {/* Fixed Footer */}
               <div 
-                className="sticky bottom-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-[#1E293B]/80 border-t border-gray-200 dark:border-gray-700/60 p-6 pt-4"
+                className="sticky bottom-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-gray-900/80 border-t border-gray-200 dark:border-gray-700/60 p-6 pt-4"
                 style={{
                   WebkitBackdropFilter: 'blur(20px) saturate(180%)',
                   backdropFilter: 'blur(20px) saturate(180%)'
