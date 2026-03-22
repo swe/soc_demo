@@ -58,7 +58,7 @@ export default function Footer() {
                 >
                   <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-purple-500/10">
                     <img
-                      src="https://soc.svalbard.ca/favicon/favicon.ico"
+                      src="https://soc.svalbard.ca/images/favicon/favicon.ico"
                       alt="Heimdall icon"
                       className="h-4 w-4"
                     />
