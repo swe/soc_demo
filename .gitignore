@@ -15,6 +15,7 @@
 *_REMOTE_*.txt
 .DS_Store
 
+
 ### GitBook ###
 # Node rules:
 ## Grunt intermediate storage (http://gruntjs.com/creating-plugins#storing-task-files)
@@ -403,3 +404,5 @@ secrets.yml
 .next
 .contentlayer
 comments.md
+.DS_Store
+
