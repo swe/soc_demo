@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useState, useEffect } from 'react'
-import { useTheme } from 'next-themes'
+import { useTheme } from '@/lib/theme'
 
 import { chartColors } from '@/components/charts/chartjs-config'
 import {
@@ -31,8 +31,8 @@ export default function RealtimeChart({
   const canvas = useRef<HTMLCanvasElement>(null)
   const chartValue = useRef<HTMLSpanElement>(null)
   const chartDeviation = useRef<HTMLDivElement>(null)  
-  const { theme } = useTheme()
-  const darkMode = theme === 'dark'
+  const { resolvedTheme } = useTheme()
+  const darkMode = resolvedTheme === 'dark'
   const { textColor, gridColor, tooltipTitleColor, tooltipBodyColor, tooltipBgColor, tooltipBorderColor } = chartColors
 
   useEffect(() => {
@@ -153,7 +153,7 @@ export default function RealtimeChart({
       chart.options.plugins!.tooltip!.borderColor = tooltipBorderColor.light 
     }
     chart.update('none')
-  }, [theme])    
+  }, [resolvedTheme, chart])    
 
   return (
     <>

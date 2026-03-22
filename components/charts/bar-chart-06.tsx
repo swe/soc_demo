@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useState, useEffect } from 'react'
-import { useTheme } from 'next-themes'
+import { useTheme } from '@/lib/theme'
 import coinbaseIcon from '@/public/images/company-icon-06.svg'
 import hsbcIcon from '@/public/images/company-icon-02.svg'
 import qontoIcon from '@/public/images/company-icon-03.svg'
@@ -35,8 +35,8 @@ export default function BarChart06({
   const [chart, setChart] = useState<Chart | null>(null)
   const canvas = useRef<HTMLCanvasElement>(null)
   const legend = useRef<HTMLUListElement>(null)
-  const { theme } = useTheme()
-  const darkMode = theme === 'dark'
+  const { resolvedTheme } = useTheme()
+  const darkMode = resolvedTheme === 'dark'
   const { textColor, gridColor, tooltipBodyColor, tooltipBgColor, tooltipBorderColor } = chartColors 
 
   const images: StaticImageData[] = [coinbaseIcon, hsbcIcon, qontoIcon, n26Icon]
@@ -196,7 +196,7 @@ export default function BarChart06({
       chart.options.plugins!.tooltip!.borderColor = tooltipBorderColor.light
     }
     chart.update('none')
-  }, [theme])    
+  }, [resolvedTheme, chart])    
 
   return (
     <>

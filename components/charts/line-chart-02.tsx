@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useState, useEffect } from 'react'
-import { useTheme } from 'next-themes'
+import { useTheme } from '@/lib/theme'
 
 import { chartColors } from '@/components/charts/chartjs-config'
 import {
@@ -30,8 +30,8 @@ export default function LineChart02({
   const [chart, setChart] = useState<Chart | null>(null)
   const canvas = useRef<HTMLCanvasElement>(null)
   const legend = useRef<HTMLUListElement>(null)
-  const { theme } = useTheme()
-  const darkMode = theme === 'dark'  
+  const { resolvedTheme } = useTheme()
+  const darkMode = resolvedTheme === 'dark'  
   const { textColor, gridColor, tooltipBodyColor, tooltipBgColor, tooltipBorderColor } = chartColors  
 
   useEffect(() => {    
@@ -175,7 +175,7 @@ export default function LineChart02({
       chart.options.plugins!.tooltip!.borderColor = tooltipBorderColor.light
     }
     chart.update('none')
-  }, [theme])   
+  }, [resolvedTheme, chart])   
 
   return (
     <>
