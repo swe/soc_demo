@@ -191,6 +191,18 @@ html {
   background-image: linear-gradient(to top, #111827, #1f2937);
 }
 
+/* CTA gradient animation */
+.landing-wrapper .cta-banner-animate {
+  background-size: 200% 200%;
+  background-image: linear-gradient(135deg, #2563eb 0%, #7c3aed 50%, #2563eb 100%);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .landing-wrapper .cta-banner-animate {
+    animation: gradientShift 12s ease infinite;
+  }
+}
+
 /* Hover effects for gradient buttons */
 .landing-wrapper .bg-linear-to-t.from-blue-600.to-blue-400:hover {
   --tw-gradient-to: #3b82f6; /* to-blue-500 */
@@ -296,5 +308,65 @@ html {
   }
   to {
     transform: rotate(360deg);
+  }
+}
+
+/* Motion and animation utilities */
+@media (prefers-reduced-motion: no-preference) {
+  .landing-wrapper .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  .landing-wrapper .animate-fade-in {
+    animation: fadeIn 0.6s ease-out forwards;
+  }
+
+  .landing-wrapper .animate-gradient-shift {
+    background-size: 200% 200%;
+    animation: gradientShift 8s ease infinite;
+  }
+
+  .landing-wrapper .hover-lift {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .landing-wrapper .hover-lift:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.4);
+  }
+
+  .landing-wrapper .hover-scale {
+    transition: transform 0.2s ease;
+  }
+
+  .landing-wrapper .hover-scale:hover {
+    transform: scale(1.02);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes gradientShift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
   }
 }

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { usePageTitle } from '@/app/page-title-context'
-import { useTheme } from 'next-themes'
+import { useTheme } from '@/lib/theme'
 
 export default function SettingsPage() {
   const { setPageTitle } = usePageTitle()

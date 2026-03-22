@@ -2,8 +2,10 @@ import './css/style.css' // Global base styles
 import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import localFont from 'next/font/local'
-import Theme from './theme-provider'
+
+import { THEME_INIT_SCRIPT } from '@/lib/theme-script'
 import AppProvider from './app-provider'
+import Theme from './theme-provider'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -42,7 +44,7 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: 'Svalbard Intelligence',
-  description: 'Intelligent cyber threat management platform',
+  description: 'Security operations and threat management. Clear, hands-on support when it matters.',
 }
 
 export default function RootLayout({

@@ -76,15 +76,13 @@ export default function Sidebar({
               aria-expanded={sidebarOpen}
             >
               <span className="sr-only">Close sidebar</span>
-              <svg className="w-6 h-6 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path d="M10.7 18.7l1.4-1.4L7.8 13H20v-2H7.8l4.3-4.3-1.4-1.4L4 12z" />
-              </svg>
+              <Icon name="arrow-back-outline" className="w-6 h-6 text-gray-500" />
             </button>
             {/* Logo and Title */}
             <Link href="/" className="flex items-center lg:justify-center lg:w-full hover:opacity-80 transition-opacity duration-200">
               <Logo withLink={false} />
               <span className="text-lg font-semibold text-gray-800 dark:text-gray-100 ml-3 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 transition-opacity duration-200">
-                CoreGuard
+                Heimdall
               </span>
             </Link>
           </div>
@@ -138,12 +136,10 @@ export default function Sidebar({
                           </div>
                           {/* Icon */}
                           <div className="flex shrink-0 ml-2">
-                            <svg
-                              className={`w-3 h-3 shrink-0 ml-1 fill-current text-gray-400 dark:text-gray-500 ${open && 'rotate-180'}`}
-                              viewBox="0 0 12 12"
-                            >
-                              <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
-                            </svg>
+                            <Icon
+                              name="chevron-down-outline"
+                              className={`w-3 h-3 shrink-0 ml-1 text-gray-400 dark:text-gray-500 ${open ? 'rotate-180' : ''}`}
+                            />
                           </div>
                         </div>
                       </a>
@@ -195,12 +191,10 @@ export default function Sidebar({
                           </div>
                           {/* Icon */}
                           <div className="flex shrink-0 ml-2">
-                            <svg
-                              className={`w-3 h-3 shrink-0 ml-1 fill-current text-gray-400 dark:text-gray-500 ${open && 'rotate-180'}`}
-                              viewBox="0 0 12 12"
-                            >
-                              <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
-                            </svg>
+                            <Icon
+                              name="chevron-down-outline"
+                              className={`w-3 h-3 shrink-0 ml-1 text-gray-400 dark:text-gray-500 ${open ? 'rotate-180' : ''}`}
+                            />
                           </div>
                         </div>
                       </a>
@@ -252,12 +246,10 @@ export default function Sidebar({
                           </div>
                           {/* Icon */}
                           <div className="flex shrink-0 ml-2">
-                            <svg
-                              className={`w-3 h-3 shrink-0 ml-1 fill-current text-gray-400 dark:text-gray-500 ${open && 'rotate-180'}`}
-                              viewBox="0 0 12 12"
-                            >
-                              <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
-                            </svg>
+                            <Icon
+                              name="chevron-down-outline"
+                              className={`w-3 h-3 shrink-0 ml-1 text-gray-400 dark:text-gray-500 ${open ? 'rotate-180' : ''}`}
+                            />
                           </div>
                         </div>
                       </a>
@@ -337,12 +329,10 @@ export default function Sidebar({
                           </div>
                           {/* Icon */}
                           <div className="flex shrink-0 ml-2">
-                            <svg
-                              className={`w-3 h-3 shrink-0 ml-1 fill-current text-gray-400 dark:text-gray-500 ${open && 'rotate-180'}`}
-                              viewBox="0 0 12 12"
-                            >
-                              <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
-                            </svg>
+                            <Icon
+                              name="chevron-down-outline"
+                              className={`w-3 h-3 shrink-0 ml-1 text-gray-400 dark:text-gray-500 ${open ? 'rotate-180' : ''}`}
+                            />
                           </div>
                         </div>
                       </a>
@@ -394,12 +384,10 @@ export default function Sidebar({
                           </div>
                           {/* Icon */}
                           <div className="flex shrink-0 ml-2">
-                            <svg
-                              className={`w-3 h-3 shrink-0 ml-1 fill-current text-gray-400 dark:text-gray-500 ${open && 'rotate-180'}`}
-                              viewBox="0 0 12 12"
-                            >
-                              <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
-                            </svg>
+                            <Icon
+                              name="chevron-down-outline"
+                              className={`w-3 h-3 shrink-0 ml-1 text-gray-400 dark:text-gray-500 ${open ? 'rotate-180' : ''}`}
+                            />
                           </div>
                         </div>
                       </a>
@@ -469,12 +457,10 @@ export default function Sidebar({
                           </div>
                           {/* Icon */}
                           <div className="flex shrink-0 ml-2">
-                            <svg
-                              className={`w-3 h-3 shrink-0 ml-1 fill-current text-gray-400 dark:text-gray-500 ${open && 'rotate-180'}`}
-                              viewBox="0 0 12 12"
-                            >
-                              <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
-                            </svg>
+                            <Icon
+                              name="chevron-down-outline"
+                              className={`w-3 h-3 shrink-0 ml-1 text-gray-400 dark:text-gray-500 ${open ? 'rotate-180' : ''}`}
+                            />
                           </div>
                         </div>
                       </a>
@@ -540,12 +526,10 @@ export default function Sidebar({
                           </div>
                           {/* Icon */}
                           <div className="flex shrink-0 ml-2">
-                            <svg
-                              className={`w-3 h-3 shrink-0 ml-1 fill-current text-gray-400 dark:text-gray-500 ${open && 'rotate-180'}`}
-                              viewBox="0 0 12 12"
-                            >
-                              <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
-                            </svg>
+                            <Icon
+                              name="chevron-down-outline"
+                              className={`w-3 h-3 shrink-0 ml-1 text-gray-400 dark:text-gray-500 ${open ? 'rotate-180' : ''}`}
+                            />
                           </div>
                         </div>
                       </a>
@@ -598,9 +582,10 @@ export default function Sidebar({
           <div className="w-12 pl-4 pr-3 py-2">
             <button className="text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400" onClick={() => setSidebarExpanded(!sidebarExpanded)}>
               <span className="sr-only">Expand / collapse sidebar</span>
-              <svg className="shrink-0 fill-current text-gray-400 dark:text-gray-500 sidebar-expanded:rotate-180" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
-                <path d="M15 16a1 1 0 0 1-1-1V1a1 1 0 1 1 2 0v14a1 1 0 0 1-1 1ZM8.586 7H1a1 1 0 1 0 0 2h7.586l-2.793 2.793a1 1 0 1 0 1.414 1.414l4.5-4.5A.997.997 0 0 0 12 8.01M11.924 7.617a.997.997 0 0 0-.217-.324l-4.5-4.5a1 1 0 0 0-1.414 1.414L8.586 7M12 7.99a.996.996 0 0 0-.076-.373Z" />
-              </svg>              
+              <Icon
+                name="chevron-back-outline"
+                className="inline shrink-0 text-gray-400 dark:text-gray-500 sidebar-expanded:rotate-180 w-4 h-4"
+              />
             </button>
           </div>
         </div>

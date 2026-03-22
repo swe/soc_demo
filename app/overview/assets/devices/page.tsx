@@ -271,14 +271,14 @@ export default function DevicesPage() {
     return '#059669'                    // System green
   }
 
-  const getTypeIcon = (type: string): string => {
+  const getDeviceIconName = (type: string): string => {
     const icons: Record<string, string> = {
-      endpoint: '💻',
-      server: '🖥️',
-      network: '🌐',
-      iot: '📱'
+      endpoint: 'laptop-outline',
+      server: 'server-outline',
+      network: 'globe-outline',
+      iot: 'phone-portrait-outline',
     }
-    return icons[type] || '💻'
+    return icons[type] || 'desktop-outline'
   }
 
   const getComplianceColor = (status?: string): string => {
@@ -413,7 +413,9 @@ export default function DevicesPage() {
               {/* Device Header */}
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
-                  <div className="text-3xl">{getTypeIcon(device.type)}</div>
+                  <div className="text-3xl text-indigo-600 dark:text-indigo-400">
+                    <Icon name={getDeviceIconName(device.type)} className="w-10 h-10" />
+                  </div>
                   <div>
                     <h3 className="hig-headline text-gray-900 dark:text-gray-100 mb-1">
                       {device.hostname}
@@ -543,7 +545,9 @@ export default function DevicesPage() {
             >
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-4">
-                  <div className="text-5xl">{getTypeIcon(selectedDevice.type)}</div>
+                  <div className="text-5xl text-indigo-600 dark:text-indigo-400">
+                    <Icon name={getDeviceIconName(selectedDevice.type)} className="w-14 h-14" />
+                  </div>
                   <div>
                     <h2 className="hig-headline text-gray-900 dark:text-gray-100 mb-1">
                       {selectedDevice.hostname}

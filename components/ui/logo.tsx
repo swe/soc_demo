@@ -9,7 +9,7 @@ export default function Logo({ withLink = true }: LogoProps) {
   const imageContent = (
     <Image
       src="/logoOver.png"
-      alt="CoreGuard Logo"
+      alt="Heimdall"
       width={32}
       height={32}
       className="object-contain"

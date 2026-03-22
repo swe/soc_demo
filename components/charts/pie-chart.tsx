@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useState, useEffect } from 'react'
-import { useTheme } from 'next-themes'
+import { useTheme } from '@/lib/theme'
 
 import { chartColors } from '@/components/charts/chartjs-config'
 import {
@@ -31,8 +31,8 @@ export default function DoughnutChart({
   const [chart, setChart] = useState<Chart | null>(null)
   const canvas = useRef<HTMLCanvasElement>(null)
   const legend = useRef<HTMLUListElement>(null)
-  const { theme } = useTheme()
-  const darkMode = theme === 'dark'
+  const { resolvedTheme } = useTheme()
+  const darkMode = resolvedTheme === 'dark'
   const { tooltipTitleColor, tooltipBodyColor, tooltipBgColor, tooltipBorderColor } = chartColors  
 
   useEffect(() => {    
@@ -263,7 +263,7 @@ export default function DoughnutChart({
     } catch (e) {
       console.warn('Error updating chart theme:', e)
     }
-  }, [chart, theme, darkMode, tooltipTitleColor, tooltipBodyColor, tooltipBgColor, tooltipBorderColor])    
+  }, [chart, resolvedTheme, darkMode, tooltipTitleColor, tooltipBodyColor, tooltipBgColor, tooltipBorderColor])    
 
   return (
     <div className="grow flex flex-col justify-center">
