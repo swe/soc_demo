@@ -1,5 +1,6 @@
 'use client'
-import { formatDate, formatDateTime } from '@/lib/utils'
+
+import { formatDate } from '@/lib/utils'
 import { useEffect, useState } from 'react'
 import { usePageTitle } from '@/app/page-title-context'
 
@@ -12,6 +13,9 @@ interface Training {
   instructor: string
   completionRate: number
   enrolled: number
+  completed: number
+  avgScore: number
+  dueDate: string
   lastUpdated: string
   modules: number
   certificate: boolean
@@ -27,427 +31,199 @@ export default function TrainingsPage() {
   }, [setPageTitle])
 
   const trainings: Training[] = [
-    {
-      id: 'TRN-001',
-      title: 'Security Awareness Fundamentals',
-      category: 'security-awareness',
-      level: 'beginner',
-      duration: '2 hours',
-      instructor: 'Security Team',
-      completionRate: 87,
-      enrolled: 234,
-      lastUpdated: '2024-03-01',
-      modules: 8,
-      certificate: true
-    },
-    {
-      id: 'TRN-002',
-      title: 'Advanced Threat Hunting',
-      category: 'technical',
-      level: 'advanced',
-      duration: '8 hours',
-      instructor: 'Threat Intel Team',
-      completionRate: 45,
-      enrolled: 67,
-      lastUpdated: '2024-02-15',
-      modules: 12,
-      certificate: true
-    },
-    {
-      id: 'TRN-003',
-      title: 'Incident Response Essentials',
-      category: 'incident-response',
-      level: 'intermediate',
-      duration: '6 hours',
-      instructor: 'IR Team Lead',
-      completionRate: 72,
-      enrolled: 156,
-      lastUpdated: '2024-02-20',
-      modules: 10,
-      certificate: true
-    },
-    {
-      id: 'TRN-004',
-      title: 'SIEM Analytics & Investigation',
-      category: 'technical',
-      level: 'intermediate',
-      duration: '5 hours',
-      instructor: 'SOC Analyst',
-      completionRate: 61,
-      enrolled: 98,
-      lastUpdated: '2024-03-05',
-      modules: 9,
-      certificate: true
-    },
-    {
-      id: 'TRN-005',
-      title: 'GDPR Compliance Training',
-      category: 'compliance',
-      level: 'beginner',
-      duration: '3 hours',
-      instructor: 'Compliance Officer',
-      completionRate: 93,
-      enrolled: 312,
-      lastUpdated: '2024-01-10',
-      modules: 6,
-      certificate: true
-    },
-    {
-      id: 'TRN-006',
-      title: 'Malware Analysis Basics',
-      category: 'technical',
-      level: 'intermediate',
-      duration: '7 hours',
-      instructor: 'Malware Analyst',
-      completionRate: 38,
-      enrolled: 45,
-      lastUpdated: '2024-02-28',
-      modules: 11,
-      certificate: true
-    },
-    {
-      id: 'TRN-007',
-      title: 'Phishing Detection & Prevention',
-      category: 'security-awareness',
-      level: 'beginner',
-      duration: '1.5 hours',
-      instructor: 'Security Team',
-      completionRate: 89,
-      enrolled: 267,
-      lastUpdated: '2024-03-10',
-      modules: 5,
-      certificate: false
-    },
-    {
-      id: 'TRN-008',
-      title: 'Cloud Security Fundamentals',
-      category: 'technical',
-      level: 'beginner',
-      duration: '4 hours',
-      instructor: 'Cloud Security Team',
-      completionRate: 78,
-      enrolled: 189,
-      lastUpdated: '2024-02-25',
-      modules: 8,
-      certificate: true
-    }
+    { id: 'TRN-001', title: 'Security Awareness Fundamentals', category: 'security-awareness', level: 'beginner', duration: '2 hours', instructor: 'Security Team', completionRate: 87, enrolled: 234, completed: 204, avgScore: 88, dueDate: '2024-04-30', lastUpdated: '2024-03-01', modules: 8, certificate: true },
+    { id: 'TRN-002', title: 'Advanced Threat Hunting', category: 'technical', level: 'advanced', duration: '8 hours', instructor: 'Threat Intel Team', completionRate: 45, enrolled: 67, completed: 30, avgScore: 79, dueDate: '2024-05-15', lastUpdated: '2024-02-15', modules: 12, certificate: true },
+    { id: 'TRN-003', title: 'Incident Response Essentials', category: 'incident-response', level: 'intermediate', duration: '6 hours', instructor: 'IR Team Lead', completionRate: 72, enrolled: 156, completed: 112, avgScore: 84, dueDate: '2024-04-15', lastUpdated: '2024-02-20', modules: 10, certificate: true },
+    { id: 'TRN-004', title: 'SIEM Analytics & Investigation', category: 'technical', level: 'intermediate', duration: '5 hours', instructor: 'SOC Analyst', completionRate: 61, enrolled: 98, completed: 60, avgScore: 81, dueDate: '2024-05-01', lastUpdated: '2024-03-05', modules: 9, certificate: true },
+    { id: 'TRN-005', title: 'GDPR Compliance Training', category: 'compliance', level: 'beginner', duration: '3 hours', instructor: 'Compliance Officer', completionRate: 93, enrolled: 312, completed: 290, avgScore: 91, dueDate: '2024-03-31', lastUpdated: '2024-01-10', modules: 6, certificate: true },
+    { id: 'TRN-006', title: 'Malware Analysis Basics', category: 'technical', level: 'intermediate', duration: '7 hours', instructor: 'Malware Analyst', completionRate: 38, enrolled: 45, completed: 17, avgScore: 76, dueDate: '2024-06-01', lastUpdated: '2024-02-28', modules: 11, certificate: true },
+    { id: 'TRN-007', title: 'Phishing Detection & Prevention', category: 'security-awareness', level: 'beginner', duration: '1.5 hours', instructor: 'Security Team', completionRate: 89, enrolled: 267, completed: 238, avgScore: 90, dueDate: '2024-04-01', lastUpdated: '2024-03-10', modules: 5, certificate: false },
+    { id: 'TRN-008', title: 'Cloud Security Fundamentals', category: 'technical', level: 'beginner', duration: '4 hours', instructor: 'Cloud Security Team', completionRate: 78, enrolled: 189, completed: 147, avgScore: 85, dueDate: '2024-05-30', lastUpdated: '2024-02-25', modules: 8, certificate: true },
   ]
 
-  const getCategoryColor = (category: string): string => {
-    const colors: Record<string, string> = {
-      'security-awareness': '#4f46e5',
-      'technical': '#4f46e5',
-      'incident-response': '#e11d48',
-      'compliance': '#059669'
-    }
-    return colors[category] || '#6b7280'
+  const getCategoryColor = (category: string) => {
+    const map: Record<string, string> = { 'security-awareness': 'var(--soc-accent)', 'technical': 'var(--soc-accent)', 'incident-response': 'var(--soc-critical)', 'compliance': 'var(--soc-low)' }
+    return map[category] || 'var(--soc-text-muted)'
+  }
+  const getCategoryBg = (category: string) => {
+    const map: Record<string, string> = { 'security-awareness': 'var(--soc-accent-bg)', 'technical': 'var(--soc-accent-bg)', 'incident-response': 'var(--soc-critical-bg)', 'compliance': 'var(--soc-low-bg)' }
+    return map[category] || 'var(--soc-border)'
+  }
+  const getLevelColor = (level: string) => {
+    const map: Record<string, string> = { beginner: 'var(--soc-low)', intermediate: 'var(--soc-medium)', advanced: 'var(--soc-critical)' }
+    return map[level] || 'var(--soc-text-muted)'
+  }
+  const getLevelBg = (level: string) => {
+    const map: Record<string, string> = { beginner: 'var(--soc-low-bg)', intermediate: 'var(--soc-medium-bg)', advanced: 'var(--soc-critical-bg)' }
+    return map[level] || 'var(--soc-border)'
   }
 
-  const getLevelColor = (level: string): string => {
-    const colors: Record<string, string> = {
-      beginner: '#059669',
-      intermediate: '#d97706',
-      advanced: '#e11d48'
-    }
-    return colors[level] || '#6b7280'
-  }
-
-  const filteredTrainings = selectedCategory === 'all' 
-    ? trainings 
-    : trainings.filter(t => t.category === selectedCategory)
+  const filteredTrainings = selectedCategory === 'all' ? trainings : trainings.filter(t => t.category === selectedCategory)
 
   const stats = {
     total: trainings.length,
     totalEnrolled: trainings.reduce((sum, t) => sum + t.enrolled, 0),
-    avgCompletion: Math.round(trainings.reduce((sum, t) => sum + t.completionRate, 0) / trainings.length)
+    avgCompletion: Math.round(trainings.reduce((sum, t) => sum + t.completionRate, 0) / trainings.length),
+    avgScore: Math.round(trainings.reduce((sum, t) => sum + t.avgScore, 0) / trainings.length),
   }
 
   return (
-    <div className="py-4 w-full max-w-7xl mx-auto">
-      <div className="mb-6 px-4 hig-fade-in">
-        <h1 className="hig-title-large text-gray-900 dark:text-gray-100 mb-2">Security Training</h1>
-        <p className="hig-body text-gray-600 dark:text-gray-400">Access training courses and learning resources for security professionals</p>
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-3 px-4">
-        <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
-          <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Available Courses</div>
-          <div className="hig-metric-value text-4xl text-gray-900 dark:text-gray-100">{stats.total}</div>
-        </div>
-
-        <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
-          <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Total Enrolled</div>
-          <div className="hig-metric-value text-4xl" style={{ color: '#4f46e5', WebkitTextFillColor: '#4f46e5' }}>
-            {stats.totalEnrolled}
-          </div>
-        </div>
-
-        <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
-          <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Avg Completion</div>
-          <div className="hig-metric-value text-4xl" style={{ color: '#059669', WebkitTextFillColor: '#059669' }}>
-            {stats.avgCompletion}%
-          </div>
+    <div className="w-full max-w-7xl mx-auto px-6 py-6 hig-fade-in">
+      {/* Header */}
+      <div className="flex items-start justify-between mb-6">
+        <div>
+          <div className="soc-label mb-1">KNOWLEDGE BASE</div>
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 600, color: 'var(--soc-text)', lineHeight: 1.2 }}>Security Training</h1>
+          <p style={{ color: 'var(--soc-text-secondary)', fontSize: '0.875rem', marginTop: '0.25rem' }}>Access training courses and learning resources for security professionals</p>
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="mb-6 px-4">
-        <div className="flex flex-wrap gap-2">
-          {['all', 'security-awareness', 'technical', 'incident-response', 'compliance'].map(category => (
-            <button
-              key={category}
-              onClick={() => setSelectedCategory(category)}
-              className={`hig-button ${
-                selectedCategory === category
-                  ? 'hig-button-primary'
-                  : 'hig-button-secondary'
-              }`}
-            >
-              {category === 'all' ? 'All Categories' : category.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Trainings Grid */}
-      <div className="grid grid-cols-12 gap-4 px-4">
-        {filteredTrainings.map((training) => (
-          <div key={training.id} className="col-span-12 lg:col-span-6 xl:col-span-4">
-            <div className="hig-card">
-              {/* Header */}
-              <div className="mb-6 pb-4 border-b border-gray-200 dark:border-gray-700/60">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-2 flex-wrap">
-                      <span 
-                        className="hig-badge"
-                        style={{
-                          backgroundColor: `${getLevelColor(training.level)}20`,
-                          color: getLevelColor(training.level)
-                        }}
-                      >
-                        {training.level.toUpperCase()}
-                      </span>
-                      {training.certificate && (
-                        <span className="text-lg">🏆</span>
-                      )}
-                    </div>
-                    <h3 className="hig-body font-semibold text-gray-900 dark:text-gray-100 mb-1 line-clamp-2" title={training.title}>
-                      {training.title}
-                    </h3>
-                    <div className="hig-caption text-gray-600 dark:text-gray-400">{training.category.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}</div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Body */}
-              <div>
-                <div className="grid grid-cols-3 gap-3 mb-4">
-                  <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-3 text-center">
-                    <div className="hig-metric-value text-2xl text-gray-900 dark:text-gray-100">{training.duration.split(' ')[0]}</div>
-                    <div className="hig-caption text-gray-600 dark:text-gray-400">Hours</div>
-                  </div>
-                  <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-3 text-center">
-                    <div className="hig-metric-value text-2xl text-gray-900 dark:text-gray-100">{training.modules}</div>
-                    <div className="hig-caption text-gray-600 dark:text-gray-400">Modules</div>
-                  </div>
-                  <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-3 text-center">
-                    <div className="hig-metric-value text-2xl text-gray-900 dark:text-gray-100">{training.enrolled}</div>
-                    <div className="hig-caption text-gray-600 dark:text-gray-400">Students</div>
-                  </div>
-                </div>
-
-                {/* Progress Bar */}
-                <div className="mb-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="hig-caption text-gray-600 dark:text-gray-400">Completion Rate</span>
-                    <span className="hig-body font-semibold text-gray-900 dark:text-gray-100">{training.completionRate}%</span>
-                  </div>
-                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 overflow-hidden">
-                    <div 
-                      className="h-2.5 rounded-full transition-all duration-500" 
-                      style={{ 
-                        width: `${training.completionRate}%`,
-                        backgroundColor: '#4f46e5'
-                      }}
-                    />
-                  </div>
-                </div>
-
-                {/* Footer */}
-                <div className="flex items-center justify-between hig-caption text-gray-600 dark:text-gray-400 mb-4">
-                  <span>{training.instructor}</span>
-                  <span>{formatDate(training.lastUpdated)}</span>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex gap-2">
-                  <button 
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setSelectedTraining(training)
-                    }}
-                    className="flex-1 hig-button hig-button-primary"
-                  >
-                    Start Course
-                  </button>
-                  <button className="hig-button hig-button-secondary">
-                    Preview
-                  </button>
-                </div>
-              </div>
-            </div>
+      {/* KPI Row */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {[
+          { label: 'COURSES', value: String(stats.total), sub: 'Available' },
+          { label: 'TOTAL ENROLLED', value: String(stats.totalEnrolled), sub: 'Across all courses', accent: true },
+          { label: 'AVG COMPLETION', value: `${stats.avgCompletion}%`, sub: 'Completion rate', accent: true },
+          { label: 'AVG SCORE', value: `${stats.avgScore}%`, sub: 'Test average' },
+        ].map((kpi, i) => (
+          <div key={i} className="soc-card" style={{ padding: '1.25rem' }}>
+            <div className="soc-label mb-2">{kpi.label}</div>
+            <div className="soc-metric-lg" style={kpi.accent ? { color: 'var(--soc-accent)' } : {}}>{kpi.value}</div>
+            <div className="soc-metric-sm mt-1">{kpi.sub}</div>
           </div>
         ))}
       </div>
 
-      {/* Training Detail Panel */}
-      {selectedTraining && (
-        <>
-          <div 
-            className="hig-modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4"
-            onClick={() => setSelectedTraining(null)}
+      {/* Filters */}
+      <div style={{ marginBottom: '1.25rem', display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+        {['all', 'security-awareness', 'technical', 'incident-response', 'compliance'].map(category => (
+          <button
+            key={category}
+            onClick={() => setSelectedCategory(category)}
+            className={`soc-btn ${selectedCategory === category ? 'soc-btn-primary' : 'soc-btn-secondary'}`}
           >
-            <div 
-              className="hig-modal p-0 max-w-4xl w-full flex flex-col max-h-[90vh]"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* Fixed Header */}
-              <div 
-                className="sticky top-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-gray-900/80 border-b border-gray-200 dark:border-gray-700/60 p-6 pb-4"
-                style={{
-                  WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-                  backdropFilter: 'blur(20px) saturate(180%)'
-                }}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <h2 className="hig-headline text-gray-900 dark:text-gray-100">Training Details</h2>
-                  <button
-                    onClick={() => setSelectedTraining(null)}
-                    className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
-                  >
-                    <span className="sr-only">Close</span>
-                    <svg className="w-6 h-6 fill-current" viewBox="0 0 24 24">
-                      <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-                    </svg>
-                  </button>
-                </div>
-                {/* Level Indicator Bar */}
-                <div 
-                  className="h-1 rounded-full mt-3" 
-                  style={{ backgroundColor: getLevelColor(selectedTraining.level) }}
-                />
-              </div>
+            {category === 'all' ? 'All Categories' : category.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+          </button>
+        ))}
+      </div>
 
-              {/* Scrollable Content */}
-              <div className="flex-1 overflow-y-auto px-6 py-6">
-                <div className="space-y-6">
-                  <div>
-                    <div className="hig-headline text-gray-900 dark:text-gray-100 mb-2">{selectedTraining.title}</div>
-                    <div className="hig-caption text-gray-600 dark:text-gray-400 font-mono">{selectedTraining.id}</div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Category</div>
-                      <span 
-                        className="hig-badge"
-                        style={{
-                          backgroundColor: `${getCategoryColor(selectedTraining.category)}20`,
-                          color: getCategoryColor(selectedTraining.category)
-                        }}
-                      >
-                        {selectedTraining.category.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
-                      </span>
-                    </div>
-                    <div>
-                      <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Level</div>
-                      <span 
-                        className="hig-badge"
-                        style={{
-                          backgroundColor: `${getLevelColor(selectedTraining.level)}20`,
-                          color: getLevelColor(selectedTraining.level)
-                        }}
-                      >
-                        {selectedTraining.level.toUpperCase()}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
-                      <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Duration</div>
-                      <div className="hig-body font-semibold text-gray-900 dark:text-gray-100">{selectedTraining.duration}</div>
-                    </div>
-                    <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
-                      <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Modules</div>
-                      <div className="hig-metric-value text-3xl text-gray-900 dark:text-gray-100">{selectedTraining.modules}</div>
-                    </div>
-                    <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
-                      <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Enrolled</div>
-                      <div className="hig-metric-value text-3xl text-gray-900 dark:text-gray-100">{selectedTraining.enrolled}</div>
-                    </div>
-                    <div>
-                      <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Instructor</div>
-                      <div className="hig-body font-semibold text-gray-900 dark:text-gray-100">{selectedTraining.instructor}</div>
-                    </div>
-                  </div>
-
-                  <div className="pb-4 border-b border-gray-200 dark:border-gray-700/60">
-                    <div className="hig-headline mb-4">Completion Rate</div>
-                    <div className="flex items-center gap-3">
-                      <div className="flex-1">
-                        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
-                          <div 
-                            className="h-3 rounded-full" 
-                            style={{ 
-                              width: `${selectedTraining.completionRate}%`,
-                              backgroundColor: '#4f46e5'
-                            }}
-                          />
-                        </div>
+      {/* Courses Table */}
+      <div className="soc-card" style={{ padding: 0 }}>
+        <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--soc-border)' }}>
+          <div className="flex items-center justify-between">
+            <span style={{ fontWeight: 600, color: 'var(--soc-text)', fontSize: '0.9375rem' }}>Courses</span>
+            <span className="soc-metric-sm">{filteredTrainings.length} shown</span>
+          </div>
+        </div>
+        <div style={{ overflowX: 'auto' }}>
+          <table className="soc-table" style={{ width: '100%' }}>
+            <thead>
+              <tr>
+                <th>Course</th>
+                <th>Category</th>
+                <th>Level</th>
+                <th>Enrolled</th>
+                <th>Completed</th>
+                <th>Avg Score</th>
+                <th>Completion</th>
+                <th>Due Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredTrainings.map((training) => (
+                <tr key={training.id} style={{ cursor: 'pointer' }} onClick={() => setSelectedTraining(training)}>
+                  <td>
+                    <div style={{ fontWeight: 600, color: 'var(--soc-text)', fontSize: '0.875rem' }}>{training.title}</div>
+                    <div style={{ color: 'var(--soc-text-muted)', fontSize: '0.75rem' }}>{training.duration} · {training.modules} modules</div>
+                  </td>
+                  <td>
+                    <span className="soc-badge" style={{ backgroundColor: getCategoryBg(training.category), color: getCategoryColor(training.category) }}>
+                      {training.category.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                    </span>
+                  </td>
+                  <td>
+                    <span className="soc-badge" style={{ backgroundColor: getLevelBg(training.level), color: getLevelColor(training.level) }}>
+                      {training.level.toUpperCase()}
+                    </span>
+                  </td>
+                  <td style={{ color: 'var(--soc-text-secondary)', fontSize: '0.875rem' }}>{training.enrolled}</td>
+                  <td style={{ color: 'var(--soc-text-secondary)', fontSize: '0.875rem' }}>{training.completed}</td>
+                  <td style={{ color: 'var(--soc-text-secondary)', fontSize: '0.875rem' }}>{training.avgScore}%</td>
+                  <td>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: '80px' }}>
+                      <div className="soc-progress-track" style={{ flex: 1 }}>
+                        <div className="soc-progress-fill" style={{ width: `${training.completionRate}%`, backgroundColor: 'var(--soc-accent)' }} />
                       </div>
-                      <span className="hig-body font-semibold text-gray-900 dark:text-gray-100">{selectedTraining.completionRate}%</span>
+                      <span style={{ fontSize: '0.8125rem', color: 'var(--soc-text-secondary)', fontWeight: 600, minWidth: '2.25rem' }}>{training.completionRate}%</span>
                     </div>
+                  </td>
+                  <td style={{ color: 'var(--soc-text-muted)', fontSize: '0.8125rem' }}>{training.dueDate}</td>
+                  <td>
+                    <button className="soc-link" style={{ fontSize: '0.8125rem' }} onClick={(e) => { e.stopPropagation(); setSelectedTraining(training) }}>Start →</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Training Detail Modal */}
+      {selectedTraining && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }} onClick={() => setSelectedTraining(null)}>
+          <div className="w-full max-w-lg rounded-xl overflow-hidden flex flex-col" style={{ backgroundColor: 'var(--soc-surface)', border: '1px solid var(--soc-border-mid)', maxHeight: '90vh' }} onClick={(e) => e.stopPropagation()}>
+            <div className="px-5 py-4 border-b flex items-start justify-between flex-shrink-0" style={{ borderColor: 'var(--soc-border)' }}>
+              <div>
+                <p className="soc-label mb-1 font-mono">{selectedTraining.id}</p>
+                <h2 className="text-base font-bold" style={{ color: 'var(--soc-text)' }}>{selectedTraining.title}</h2>
+              </div>
+              <button onClick={() => setSelectedTraining(null)} className="text-sm w-7 h-7 flex items-center justify-center rounded flex-shrink-0" style={{ color: 'var(--soc-text-muted)', backgroundColor: 'var(--soc-raised)' }}>✕</button>
+            </div>
+            <div className="px-5 py-4 overflow-y-auto space-y-4">
+              <div className="flex gap-2">
+                <span className="soc-badge" style={{ backgroundColor: getCategoryBg(selectedTraining.category), color: getCategoryColor(selectedTraining.category) }}>
+                  {selectedTraining.category.split('-').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                </span>
+                <span className="soc-badge" style={{ backgroundColor: getLevelBg(selectedTraining.level), color: getLevelColor(selectedTraining.level) }}>
+                  {selectedTraining.level.toUpperCase()}
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { label: 'DURATION',   value: selectedTraining.duration },
+                  { label: 'MODULES',    value: String(selectedTraining.modules) },
+                  { label: 'ENROLLED',   value: String(selectedTraining.enrolled) },
+                  { label: 'INSTRUCTOR', value: selectedTraining.instructor },
+                ].map(({ label, value }) => (
+                  <div key={label} className="p-3 rounded" style={{ backgroundColor: 'var(--soc-raised)' }}>
+                    <p className="soc-label mb-1">{label}</p>
+                    <p className="text-sm font-medium" style={{ color: 'var(--soc-text)' }}>{value}</p>
                   </div>
-
-                  {selectedTraining.certificate && (
-                    <div className="hig-card bg-[#d97706]/10 dark:bg-[#d97706]/20 border border-[#d97706]/30 p-4">
-                      <div className="flex items-center gap-3">
-                        <svg className="w-5 h-5 text-[#d97706] flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                        </svg>
-                        <div>
-                          <div className="hig-body font-semibold text-[#d97706] mb-1">Certificate Available</div>
-                          <div className="hig-caption text-gray-600 dark:text-gray-400">Certificate awarded upon completion</div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                ))}
+              </div>
+              <div>
+                <p className="soc-label mb-2">COMPLETION RATE</p>
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 soc-progress-track">
+                    <div className="soc-progress-fill" style={{ width: `${selectedTraining.completionRate}%`, backgroundColor: 'var(--soc-accent)' }} />
+                  </div>
+                  <span className="text-sm font-bold" style={{ color: 'var(--soc-text)' }}>{selectedTraining.completionRate}%</span>
                 </div>
               </div>
-
-              {/* Fixed Footer */}
-              <div 
-                className="sticky bottom-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-gray-900/80 border-t border-gray-200 dark:border-gray-700/60 p-6 pt-4"
-                style={{
-                  WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-                  backdropFilter: 'blur(20px) saturate(180%)'
-                }}
-              >
-                <div className="space-y-3">
-                  <button className="hig-button hig-button-primary w-full">
-                    Start Training
-                  </button>
-                  <button className="hig-button hig-button-secondary w-full">
-                    View Curriculum
-                  </button>
+              {selectedTraining.certificate && (
+                <div className="p-3 rounded" style={{ backgroundColor: 'var(--soc-medium-bg)' }}>
+                  <p className="text-sm font-semibold" style={{ color: 'var(--soc-medium)' }}>Certificate Available</p>
+                  <p className="text-xs mt-0.5" style={{ color: 'var(--soc-text-secondary)' }}>Certificate awarded upon completion</p>
                 </div>
-              </div>
+              )}
+            </div>
+            <div className="px-5 py-4 flex gap-3 border-t flex-shrink-0" style={{ borderColor: 'var(--soc-border)' }}>
+              <button className="soc-btn soc-btn-primary flex-1">Start Training</button>
+              <button onClick={() => setSelectedTraining(null)} className="soc-btn soc-btn-secondary flex-1">Close</button>
             </div>
           </div>
-        </>
+        </div>
       )}
     </div>
   )

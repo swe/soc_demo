@@ -11,287 +11,216 @@ interface DarkWebMention {
   description: string
   discoveredAt: string
   url: string
-  indicators: {
-    emails?: string[]
-    domains?: string[]
-    ips?: string[]
-    credentials?: number
-  }
+  indicators: { emails?: string[]; domains?: string[]; ips?: string[]; credentials?: number }
   status: 'new' | 'investigating' | 'mitigated' | 'false-positive'
 }
 
+const MENTIONS: DarkWebMention[] = [
+  { id: 'DW-2024-001', source: 'RaidForums Mirror',    category: 'data-leak',    severity: 'critical', title: 'Employee Database Leak',              description: 'Database containing employee credentials and personal information found on dark web marketplace', discoveredAt: '15m ago',  url: 'onion://[redacted]', indicators: { emails: ['peter.pan@neverlands.art', 'sarah.chen@neverlands.art'], credentials: 1247 }, status: 'new' },
+  { id: 'DW-2024-002', source: 'Breach Forums',         category: 'credentials', severity: 'high',     title: 'Corporate Credentials for Sale',      description: 'Verified corporate email credentials being sold for $500 on underground forum',                  discoveredAt: '2h ago',   url: 'onion://[redacted]', indicators: { emails: ['admin@neverlands.art'], credentials: 23 },                                    status: 'investigating' },
+  { id: 'DW-2024-003', source: 'XSS Forum',             category: 'exploit',     severity: 'critical', title: 'Zero-Day Exploit Discussion',         description: 'Active discussion about exploiting company infrastructure with proof-of-concept code',             discoveredAt: '4h ago',   url: 'onion://[redacted]', indicators: { domains: ['portal.company.com', 'api.company.com'], ips: ['203.0.113.0'] },                status: 'investigating' },
+  { id: 'DW-2024-004', source: 'AlphaBay Successor',    category: 'marketplace', severity: 'high',     title: 'VPN Access for Sale',                 description: 'Compromised VPN credentials for company network being auctioned',                                  discoveredAt: '6h ago',   url: 'onion://[redacted]', indicators: { domains: ['vpn.company.com'], credentials: 5 },                                         status: 'mitigated' },
+  { id: 'DW-2024-005', source: 'Russian Carder Forum',  category: 'ransomware',  severity: 'medium',   title: 'Ransomware Gang Targeting Sector',    description: 'Known ransomware group discussing targeting companies in your industry sector',                    discoveredAt: '12h ago',  url: 'onion://[redacted]', indicators: { domains: ['company.com'] },                                                              status: 'investigating' },
+]
+
+const SEV: Record<string, { color: string; bg: string }> = {
+  critical: { color: 'var(--soc-critical)', bg: 'var(--soc-critical-bg)' },
+  high:     { color: 'var(--soc-high)',     bg: 'var(--soc-high-bg)' },
+  medium:   { color: 'var(--soc-medium)',   bg: 'var(--soc-medium-bg)' },
+  low:      { color: 'var(--soc-low)',      bg: 'var(--soc-low-bg)' },
+}
+
+const STATUS_CONFIG: Record<string, { color: string; label: string }> = {
+  'new':            { color: 'var(--soc-accent)',   label: 'New' },
+  'investigating':  { color: 'var(--soc-high)',     label: 'Investigating' },
+  'mitigated':      { color: 'var(--soc-low)',      label: 'Mitigated' },
+  'false-positive': { color: 'var(--soc-text-muted)', label: 'False Positive' },
+}
+
+const CAT_LABEL: Record<string, string> = {
+  credentials: 'Credentials',
+  'data-leak':  'Data Leak',
+  ransomware:   'Ransomware',
+  exploit:      'Exploit',
+  marketplace:  'Marketplace',
+  forum:        'Forum',
+}
+
+const SOURCES = [
+  { name: 'Dark Web Forums',    count: 247 },
+  { name: 'Marketplaces',       count: 89 },
+  { name: 'Paste Sites',        count: 156 },
+  { name: 'Telegram Channels',  count: 432 },
+  { name: 'IRC Channels',       count: 67 },
+  { name: 'Code Repositories',  count: 123 },
+]
+
 export default function DarkWebMonitoring() {
   const { setPageTitle } = usePageTitle()
-  const [activeTab, setActiveTab] = useState<'all' | 'credentials' | 'data-leak' | 'threats'>('all')
-  const [selectedMention, setSelectedMention] = useState<DarkWebMention | null>(null)
+  const [filter, setFilter] = useState<'all' | 'credentials' | 'data-leak' | 'threats'>('all')
+  const [selected, setSelected] = useState<DarkWebMention | null>(null)
 
-  useEffect(() => {
-    setPageTitle('Dark Web Monitoring')
-  }, [setPageTitle])
+  useEffect(() => { setPageTitle('Dark Web Monitoring') }, [setPageTitle])
 
-  const darkWebMentions: DarkWebMention[] = [
-    {
-      id: 'DW-2024-001',
-      source: 'RaidForums Mirror',
-      category: 'data-leak',
-      severity: 'critical',
-      title: 'Employee Database Leak',
-      description: 'Database containing employee credentials and personal information found on dark web marketplace',
-      discoveredAt: '15 minutes ago',
-      url: 'onion://[redacted]',
-      indicators: {
-        emails: ['peter.pan@neverlands.art', 'sarah.chen@neverlands.art'],
-        credentials: 1247
-      },
-      status: 'new'
-    },
-    {
-      id: 'DW-2024-002',
-      source: 'Breach Forums',
-      category: 'credentials',
-      severity: 'high',
-      title: 'Corporate Credentials for Sale',
-      description: 'Verified corporate email credentials being sold for $500 on underground forum',
-      discoveredAt: '2 hours ago',
-      url: 'onion://[redacted]',
-      indicators: {
-        emails: ['admin@neverlands.art'],
-        credentials: 23
-      },
-      status: 'investigating'
-    },
-    {
-      id: 'DW-2024-003',
-      source: 'XSS Forum',
-      category: 'exploit',
-      severity: 'critical',
-      title: 'Zero-Day Exploit Discussion',
-      description: 'Active discussion about exploiting company infrastructure with proof-of-concept code',
-      discoveredAt: '4 hours ago',
-      url: 'onion://[redacted]',
-      indicators: {
-        domains: ['portal.company.com', 'api.company.com'],
-        ips: ['203.0.113.0']
-      },
-      status: 'investigating'
-    },
-    {
-      id: 'DW-2024-004',
-      source: 'AlphaBay Successor',
-      category: 'marketplace',
-      severity: 'high',
-      title: 'VPN Access for Sale',
-      description: 'Compromised VPN credentials for company network being auctioned',
-      discoveredAt: '6 hours ago',
-      url: 'onion://[redacted]',
-      indicators: {
-        domains: ['vpn.company.com'],
-        credentials: 5
-      },
-      status: 'mitigated'
-    },
-    {
-      id: 'DW-2024-005',
-      source: 'Russian Carder Forum',
-      category: 'ransomware',
-      severity: 'medium',
-      title: 'Ransomware Gang Targeting Sector',
-      description: 'Known ransomware group discussing targeting companies in your industry sector',
-      discoveredAt: '12 hours ago',
-      url: 'onion://[redacted]',
-      indicators: {
-        domains: ['company.com']
-      },
-      status: 'investigating'
-    },
-  ]
+  const visible = filter === 'all'
+    ? MENTIONS
+    : MENTIONS.filter(m =>
+        filter === 'threats'
+          ? (m.category === 'ransomware' || m.category === 'exploit')
+          : m.category === filter
+      )
 
-  const getSeverityColor = (severity: string): string => {
-    const colors: Record<string, string> = {
-      critical: '#e11d48',  // System red
-      high: '#ea580c',      // System orange
-      medium: '#d97706',    // System yellow
-      low: '#4f46e5'        // System blue
-    }
-    return colors[severity] || '#6b7280'
-  }
+  const critical = MENTIONS.filter(m => m.severity === 'critical').length
+  const newCount = MENTIONS.filter(m => m.status === 'new').length
+  const investigating = MENTIONS.filter(m => m.status === 'investigating').length
 
-  const getStatusColor = (status: string): string => {
-    const colors: Record<string, string> = {
-      new: '#4f46e5',        // System purple
-      investigating: '#ea580c', // System orange
-      mitigated: '#059669',     // System green
-      'false-positive': '#6b7280' // System gray
-    }
-    return colors[status] || '#6b7280'
-  }
-
-  const getCategoryIcon = (category: string) => {
-    const icons = {
-      credentials: '🔑',
-      'data-leak': '💾',
-      ransomware: '🔒',
-      exploit: '⚠️',
-      marketplace: '🛒',
-      forum: '💬'
-    }
-    return icons[category as keyof typeof icons] || '🔍'
-  }
-
-  const filteredMentions = activeTab === 'all' 
-    ? darkWebMentions 
-    : darkWebMentions.filter(m => m.category === activeTab || 
-        (activeTab === 'threats' && (m.category === 'ransomware' || m.category === 'exploit')))
-
-  const stats = {
-    total: darkWebMentions.length,
-    critical: darkWebMentions.filter(m => m.severity === 'critical').length,
-    new: darkWebMentions.filter(m => m.status === 'new').length,
-    mitigated: darkWebMentions.filter(m => m.status === 'mitigated').length
-  }
+  const catCounts = ['credentials', 'data-leak', 'exploit', 'ransomware', 'marketplace'].map(cat => ({
+    cat,
+    n: MENTIONS.filter(m => m.category === cat).length,
+  }))
 
   return (
-    <div className="py-4 w-full max-w-7xl mx-auto">
-      <div className="mb-6 px-4 hig-fade-in">
-        <h1 className="hig-title-large text-gray-900 dark:text-gray-100 mb-2">Dark Web Monitoring</h1>
-        <p className="hig-body text-gray-600 dark:text-gray-400">Track mentions of your organization on the dark web and hidden forums</p>
+    <div className="w-full max-w-7xl mx-auto px-6 py-6">
+
+      {/* Header */}
+      <div className="flex items-start justify-between mb-5 hig-fade-in">
+        <div>
+          <p className="soc-label mb-1">THREAT INTELLIGENCE</p>
+          <h1 className="text-xl font-bold tracking-tight mb-1.5" style={{ color: 'var(--soc-text)' }}>
+            Dark Web Monitoring
+          </h1>
+          <p className="text-sm" style={{ color: 'var(--soc-text-secondary)' }}>
+            <strong style={{ color: 'var(--soc-critical)' }}>{critical}</strong> critical mentions ·{' '}
+            <strong style={{ color: 'var(--soc-accent)' }}>{newCount}</strong> new ·{' '}
+            <strong style={{ color: 'var(--soc-high)' }}>{investigating}</strong> under investigation
+          </p>
+        </div>
+        <div className="flex items-center gap-2 mt-1">
+          <button className="soc-btn soc-btn-secondary">Export</button>
+          <button className="soc-btn soc-btn-primary">Configure Sources</button>
+        </div>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-3 px-4">
-        <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
-          <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Sources Monitored</div>
-          <div className="hig-metric-value text-4xl text-gray-900 dark:text-gray-100">1,114</div>
-          <div className="hig-caption text-gray-500 dark:text-gray-400 mt-1">Last scan: 2 min ago</div>
-        </div>
-        <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
-          <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Total Mentions</div>
-          <div className="hig-metric-value text-4xl text-gray-900 dark:text-gray-100">{stats.total}</div>
-        </div>
-        <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
-          <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Critical</div>
-          <div className="hig-metric-value text-4xl" style={{ color: '#e11d48', WebkitTextFillColor: '#e11d48' }}>
-            {stats.critical}
+      {/* KPIs */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
+        {[
+          { label: 'SOURCES MONITORED', value: '1,114', sub: 'Last scan 2m ago',       color: 'var(--soc-text)' },
+          { label: 'TOTAL MENTIONS',    value: MENTIONS.length, sub: 'All categories', color: 'var(--soc-text)' },
+          { label: 'CRITICAL',          value: critical,   sub: 'Immediate action',    color: 'var(--soc-critical)' },
+          { label: 'NEW FINDINGS',      value: newCount,   sub: 'Unreviewed',          color: 'var(--soc-accent)' },
+        ].map(({ label, value, sub, color }) => (
+          <div key={label} className="soc-card">
+            <p className="soc-label mb-2">{label}</p>
+            <p className="soc-metric-sm mb-1" style={{ color }}>{value}</p>
+            <p className="text-xs" style={{ color: 'var(--soc-text-muted)' }}>{sub}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-12 gap-4">
+
+        {/* Main mentions table */}
+        <div className="col-span-12 lg:col-span-8 space-y-3">
+
+          {/* Category filter */}
+          <div className="flex items-center gap-1 flex-wrap">
+            {([
+              { id: 'all',         label: 'All Mentions' },
+              { id: 'credentials', label: 'Credentials' },
+              { id: 'data-leak',   label: 'Data Leaks' },
+              { id: 'threats',     label: 'Active Threats' },
+            ] as const).map(({ id, label }) => (
+              <button
+                key={id}
+                onClick={() => setFilter(id)}
+                className="soc-btn text-xs"
+                style={filter === id
+                  ? { backgroundColor: 'var(--soc-accent)', borderColor: 'var(--soc-accent)', color: '#fff' }
+                  : { borderColor: 'var(--soc-border-mid)', color: 'var(--soc-text-secondary)', background: 'transparent' }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          <div className="soc-card p-0 overflow-hidden">
+            <table className="soc-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Title</th>
+                  <th>Category</th>
+                  <th>Source</th>
+                  <th>Severity</th>
+                  <th>Status</th>
+                  <th>Discovered</th>
+                </tr>
+              </thead>
+              <tbody>
+                {visible.map((m) => {
+                  const s = SEV[m.severity]
+                  const st = STATUS_CONFIG[m.status]
+                  return (
+                    <tr key={m.id} className="cursor-pointer" onClick={() => setSelected(m)}>
+                      <td><span className="text-xs font-mono font-bold" style={{ color: 'var(--soc-accent)' }}>{m.id}</span></td>
+                      <td>
+                        <p className="text-sm font-medium" style={{ color: 'var(--soc-text)' }}>{m.title}</p>
+                        <p className="text-xs mt-0.5" style={{ color: 'var(--soc-text-muted)' }}>
+                          {m.description.length > 60 ? m.description.slice(0, 60) + '…' : m.description}
+                        </p>
+                      </td>
+                      <td><span className="soc-badge">{CAT_LABEL[m.category]}</span></td>
+                      <td><span className="text-xs" style={{ color: 'var(--soc-text-secondary)' }}>{m.source}</span></td>
+                      <td><span className="soc-badge" style={{ backgroundColor: s.bg, color: s.color }}>{m.severity.toUpperCase()}</span></td>
+                      <td><span className="soc-badge" style={{ color: st.color, border: `1px solid ${st.color}44`, background: 'transparent' }}>{st.label}</span></td>
+                      <td><span className="text-xs tabular-nums" style={{ color: 'var(--soc-text-muted)' }}>{m.discoveredAt}</span></td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
           </div>
         </div>
-        <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
-          <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">New Findings</div>
-          <div className="hig-metric-value text-4xl" style={{ color: '#4f46e5', WebkitTextFillColor: '#4f46e5' }}>
-            {stats.new}
-          </div>
-        </div>
-      </div>
 
-      {/* Tabs */}
-      <div className="mb-6 px-4">
-        <div className="flex flex-wrap gap-2">
-          {[
-            { id: 'all', label: 'All Mentions' },
-            { id: 'credentials', label: 'Credentials' },
-            { id: 'data-leak', label: 'Data Leaks' },
-            { id: 'threats', label: 'Active Threats' }
-          ].map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
-              className={`hig-button ${activeTab === tab.id ? 'hig-button-primary' : 'hig-button-secondary'}`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-      </div>
+        {/* Sidebar */}
+        <div className="col-span-12 lg:col-span-4 space-y-4">
 
-      {/* Mentions List */}
-      <div className="grid grid-cols-12 gap-4 px-4">
-        <div className="col-span-12 lg:col-span-8">
-          <div className="hig-card">
-            <div className="flex items-center justify-between mb-3 pb-4 border-b border-gray-200 dark:border-gray-700/60">
-              <h2 className="hig-headline text-gray-900 dark:text-gray-100">Dark Web Mentions</h2>
-              <span className="hig-caption text-gray-600 dark:text-gray-400">{filteredMentions.length} total</span>
-            </div>
-
+          {/* Monitored Sources */}
+          <div className="soc-card">
+            <p className="soc-label mb-3">MONITORED SOURCES</p>
             <div className="space-y-0">
-              {filteredMentions.map((mention, idx) => {
-                const severityColor = getSeverityColor(mention.severity)
-                const statusColor = getStatusColor(mention.status)
-                
+              {SOURCES.map((src, i, arr) => (
+                <div key={src.name} className="flex items-center justify-between py-2" style={{ borderBottom: i < arr.length - 1 ? '1px solid var(--soc-border)' : 'none' }}>
+                  <div className="flex items-center gap-2">
+                    <div className="soc-dot" style={{ backgroundColor: 'var(--soc-low)' }} />
+                    <span className="text-xs" style={{ color: 'var(--soc-text-secondary)' }}>{src.name}</span>
+                  </div>
+                  <span className="text-xs font-semibold tabular-nums" style={{ color: 'var(--soc-text)' }}>{src.count}</span>
+                </div>
+              ))}
+            </div>
+            <div className="mt-3 pt-3" style={{ borderTop: '1px solid var(--soc-border)' }}>
+              <div className="flex items-center justify-between">
+                <span className="soc-label">TOTAL</span>
+                <span className="text-base font-bold tabular-nums" style={{ color: 'var(--soc-text)' }}>1,114</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Category breakdown */}
+          <div className="soc-card">
+            <p className="soc-label mb-3">CATEGORY BREAKDOWN</p>
+            <div className="space-y-2.5">
+              {catCounts.map(({ cat, n }) => {
+                const pct = Math.round((n / MENTIONS.length) * 100)
                 return (
-                  <div key={mention.id}>
-                    <div 
-                      className={`flex items-center gap-4 p-4 cursor-pointer ${
-                        idx !== filteredMentions.length - 1 ? 'border-b border-gray-200 dark:border-gray-700/60' : ''
-                      } hover:bg-gray-50 dark:hover:bg-gray-700/20`}
-                      onClick={() => setSelectedMention(mention)}
-                    >
-                      {/* Severity Indicator */}
-                      <div 
-                        className="w-1 h-12 rounded-full flex-shrink-0"
-                        style={{ 
-                          backgroundColor: severityColor,
-                          boxShadow: `0 0 8px ${severityColor}40`
-                        }}
-                      />
-                      
-                      {/* Mention Info */}
-                      <div className="flex-1 min-w-0">
-                        <h3 className="hig-body font-semibold text-gray-900 dark:text-gray-100 mb-1 line-clamp-2" title={mention.title}>
-                          {mention.title}
-                        </h3>
-                        <div className="flex items-center gap-2 flex-wrap mb-2">
-                          <span 
-                            className="hig-badge"
-                            style={{
-                              backgroundColor: `${severityColor}20`,
-                              color: severityColor
-                            }}
-                          >
-                            {mention.severity.toUpperCase()}
-                          </span>
-                          <span 
-                            className="hig-badge"
-                            style={{
-                              backgroundColor: `${statusColor}20`,
-                              color: statusColor
-                            }}
-                          >
-                            {mention.status.replace('-', ' ').toUpperCase()}
-                          </span>
-                          <span 
-                            className="hig-badge"
-                            style={{
-                              backgroundColor: '#4f46e520',
-                              color: '#4f46e5'
-                            }}
-                          >
-                            {mention.category.replace('-', ' ').toUpperCase()}
-                          </span>
-                        </div>
-                        <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2 line-clamp-1">
-                          {mention.description}
-                        </div>
-                        {(mention.indicators.emails || mention.indicators.credentials) && (
-                          <div className="hig-caption text-[#e11d48] font-medium">
-                            {mention.indicators.credentials && `${mention.indicators.credentials} credentials exposed`}
-                            {mention.indicators.credentials && mention.indicators.emails && ' • '}
-                            {mention.indicators.emails && `${mention.indicators.emails.length} emails`}
-                          </div>
-                        )}
-                        <div className="flex items-center gap-2 hig-caption text-gray-500 dark:text-gray-400 mt-2">
-                          <span className="font-mono">{mention.id}</span>
-                          <span>•</span>
-                          <span>{mention.source}</span>
-                          <span>•</span>
-                          <span>{mention.discoveredAt}</span>
-                        </div>
-                      </div>
-                      
-                      {/* View Details Link */}
-                      <div className="flex-shrink-0">
-                        <span className="hig-caption hig-link-hover">
-                          View Details →
-                        </span>
-                      </div>
+                  <div key={cat}>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs" style={{ color: 'var(--soc-text-secondary)' }}>{CAT_LABEL[cat]}</span>
+                      <span className="text-xs font-semibold" style={{ color: 'var(--soc-text)' }}>{n}</span>
+                    </div>
+                    <div className="soc-progress-track">
+                      <div className="soc-progress-fill" style={{ width: `${pct}%`, backgroundColor: 'var(--soc-accent)' }} />
                     </div>
                   </div>
                 )
@@ -299,248 +228,71 @@ export default function DarkWebMonitoring() {
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Sidebar - Monitoring Sources */}
-        <div className="col-span-12 lg:col-span-4 space-y-4">
-          {/* Monitored Sources */}
-          <div className="hig-card bg-gradient-to-br from-indigo-600 to-indigo-800 p-6 text-white">
-            <h2 className="hig-headline text-white mb-4 flex items-center gap-2">
-              <span>🌐</span>
-              Monitored Sources
-            </h2>
-            <div className="space-y-2">
-              {[
-                { name: 'Dark Web Forums', count: 247 },
-                { name: 'Marketplaces', count: 89 },
-                { name: 'Paste Sites', count: 156 },
-                { name: 'Telegram Channels', count: 432 },
-                { name: 'IRC Channels', count: 67 },
-                { name: 'Code Repositories', count: 123 }
-                ].map((source, idx) => (
-                  <div key={idx} className="flex items-center justify-between p-2 bg-white/10 rounded-lg backdrop-blur-sm">
-                    <span className="hig-body font-medium text-white">{source.name}</span>
-                    <span className="hig-body font-semibold text-white">{source.count}</span>
+      {/* Detail modal */}
+      {selected && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}
+          onClick={() => setSelected(null)}
+        >
+          <div
+            className="w-full max-w-lg rounded-xl overflow-hidden"
+            style={{ backgroundColor: 'var(--soc-surface)', border: '1px solid var(--soc-border-mid)' }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="px-5 py-4 border-b flex items-start justify-between" style={{ borderColor: 'var(--soc-border)' }}>
+              <div>
+                <p className="soc-label mb-1 font-mono">{selected.id} · {selected.source}</p>
+                <h2 className="text-base font-bold" style={{ color: 'var(--soc-text)' }}>{selected.title}</h2>
+              </div>
+              <button onClick={() => setSelected(null)} className="text-sm w-7 h-7 flex items-center justify-center rounded" style={{ color: 'var(--soc-text-muted)', backgroundColor: 'var(--soc-raised)' }}>✕</button>
+            </div>
+            <div className="px-5 py-4 space-y-4">
+              <p className="text-sm" style={{ color: 'var(--soc-text-secondary)' }}>{selected.description}</p>
+              <div className="flex gap-2 flex-wrap">
+                <span className="soc-badge" style={{ backgroundColor: SEV[selected.severity].bg, color: SEV[selected.severity].color }}>{selected.severity.toUpperCase()}</span>
+                <span className="soc-badge" style={{ color: STATUS_CONFIG[selected.status].color, border: `1px solid ${STATUS_CONFIG[selected.status].color}44`, background: 'transparent' }}>{STATUS_CONFIG[selected.status].label}</span>
+                <span className="soc-badge">{CAT_LABEL[selected.category]}</span>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { label: 'DISCOVERED', value: selected.discoveredAt },
+                  { label: 'URL',        value: selected.url },
+                ].map(({ label, value }) => (
+                  <div key={label} className="p-3 rounded" style={{ backgroundColor: 'var(--soc-raised)' }}>
+                    <p className="soc-label mb-1">{label}</p>
+                    <p className="text-xs font-mono" style={{ color: 'var(--soc-text)' }}>{value}</p>
                   </div>
                 ))}
               </div>
-              <div className="mt-4 pt-4 border-t border-white/20">
-                <div className="text-center">
-                  <div className="hig-metric-value text-white" style={{ WebkitTextFillColor: 'white' }}>1,114</div>
-                  <div className="hig-caption text-white" style={{ WebkitTextFillColor: 'white' }}>Total Sources</div>
+              {selected.indicators.credentials && (
+                <div className="p-3 rounded" style={{ backgroundColor: 'var(--soc-critical-bg)' }}>
+                  <p className="soc-label mb-1" style={{ color: 'var(--soc-critical)' }}>EXPOSED CREDENTIALS</p>
+                  <p className="text-2xl font-bold tabular-nums" style={{ color: 'var(--soc-critical)' }}>{selected.indicators.credentials.toLocaleString()}</p>
                 </div>
-              </div>
-          </div>
-
-          {/* Threat Categories */}
-          <div className="hig-card p-6">
-            <h2 className="hig-headline text-gray-900 dark:text-gray-100 mb-4">Threat Categories</h2>
-            <div className="space-y-3">
-              {[
-                { name: 'Credentials', count: darkWebMentions.filter(m => m.category === 'credentials').length, color: 'bg-indigo-600 dark:bg-indigo-500', icon: '🔑' },
-                { name: 'Data Leaks', count: darkWebMentions.filter(m => m.category === 'data-leak').length, color: 'bg-indigo-600 dark:bg-indigo-500', icon: '💾' },
-                { name: 'Exploits', count: darkWebMentions.filter(m => m.category === 'exploit').length, color: 'bg-[#e11d48] dark:bg-[#e11d48]', icon: '⚠️' },
-                { name: 'Ransomware', count: darkWebMentions.filter(m => m.category === 'ransomware').length, color: 'bg-[#ea580c] dark:bg-[#ea580c]', icon: '🔒' },
-                { name: 'Marketplace', count: darkWebMentions.filter(m => m.category === 'marketplace').length, color: 'bg-[#059669] dark:bg-[#059669]', icon: '🛒' }
-              ].map((category, idx) => (
-                <div key={idx} className="p-3 bg-gray-50 dark:bg-gray-900/20 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-900/30">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-2xl">{category.icon}</span>
-                      <span className="hig-body font-medium text-gray-700 dark:text-gray-300">{category.name}</span>
-                    </div>
-                    <span className="hig-body font-semibold text-gray-900 dark:text-gray-100">{category.count}</span>
-                  </div>
-                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                    <div className={`${category.color} h-2 rounded-full transition-all duration-200`} style={{ width: `${(category.count / darkWebMentions.length) * 100}%` }}></div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Detail Modal */}
-      {selectedMention && (
-        <div className="hig-modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="hig-modal p-0 max-w-4xl w-full flex flex-col max-h-[90vh]">
-            {/* Fixed Header */}
-            <div 
-              className="sticky top-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-gray-900/80 border-b border-gray-200 dark:border-gray-700/60 p-6 pb-4"
-              style={{
-                WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-                backdropFilter: 'blur(20px) saturate(180%)'
-              }}
-            >
-              <div className="flex items-center justify-between mb-2">
-                <h2 className="hig-headline text-gray-900 dark:text-gray-100">Mention Details</h2>
-                <button
-                  onClick={() => setSelectedMention(null)}
-                  className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
-                >
-                  <span className="sr-only">Close</span>
-                  <svg className="w-6 h-6 fill-current" viewBox="0 0 24 24">
-                    <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-                  </svg>
-                </button>
-              </div>
-              {/* Severity Indicator Bar */}
-              <div 
-                className="h-1 rounded-full" 
-                style={{ backgroundColor: getSeverityColor(selectedMention.severity) }}
-              />
-            </div>
-
-            {/* Scrollable Content */}
-            <div className="flex-1 overflow-y-auto px-6 py-6">
-
-              <div className="space-y-4 pb-4 border-b border-gray-200 dark:border-gray-700/60 mb-4">
+              )}
+              {selected.indicators.emails && selected.indicators.emails.length > 0 && (
                 <div>
-                  <div className="hig-caption text-gray-600 dark:text-gray-400 mb-1">Title</div>
-                  <div className="hig-headline text-gray-900 dark:text-gray-100">{selectedMention.title}</div>
+                  <p className="soc-label mb-2">COMPROMISED EMAILS</p>
+                  {selected.indicators.emails.map(e => (
+                    <p key={e} className="text-xs font-mono mb-1" style={{ color: 'var(--soc-critical)' }}>{e}</p>
+                  ))}
                 </div>
-
+              )}
+              {selected.indicators.domains && selected.indicators.domains.length > 0 && (
                 <div>
-                  <div className="hig-caption text-gray-600 dark:text-gray-400 mb-1">Description</div>
-                  <div className="hig-body text-gray-700 dark:text-gray-300 leading-relaxed">{selectedMention.description}</div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <div>
-                    <div className="hig-caption text-gray-600 dark:text-gray-400 mb-1">Severity</div>
-                    <span 
-                      className="hig-badge"
-                      style={{
-                        backgroundColor: `${getSeverityColor(selectedMention.severity)}20`,
-                        color: getSeverityColor(selectedMention.severity)
-                      }}
-                    >
-                      {selectedMention.severity.toUpperCase()}
-                    </span>
-                  </div>
-                  <div>
-                    <div className="hig-caption text-gray-600 dark:text-gray-400 mb-1">Status</div>
-                    <span 
-                      className="hig-badge"
-                      style={{
-                        backgroundColor: `${getStatusColor(selectedMention.status)}20`,
-                        color: getStatusColor(selectedMention.status)
-                      }}
-                    >
-                      {selectedMention.status.replace('-', ' ').toUpperCase()}
-                    </span>
-                  </div>
-                  <div>
-                    <div className="hig-caption text-gray-600 dark:text-gray-400 mb-1">Category</div>
-                    <span 
-                      className="hig-badge"
-                      style={{
-                        backgroundColor: '#4f46e520',
-                        color: '#4f46e5'
-                      }}
-                    >
-                      {selectedMention.category.replace('-', ' ').toUpperCase()}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Additional Details */}
-              <div className="pb-4 border-b border-gray-200 dark:border-gray-700/60 mb-4">
-                <h3 className="hig-headline mb-4">Source Information</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <div className="hig-caption text-gray-600 dark:text-gray-400 mb-1">Source</div>
-                    <div className="hig-body text-gray-900 dark:text-gray-100">{selectedMention.source}</div>
-                  </div>
-                  <div>
-                    <div className="hig-caption text-gray-600 dark:text-gray-400 mb-1">Discovered</div>
-                    <div className="hig-body text-gray-900 dark:text-gray-100">{selectedMention.discoveredAt}</div>
-                  </div>
-                  <div>
-                    <div className="hig-caption text-gray-600 dark:text-gray-400 mb-1">Mention ID</div>
-                    <div className="hig-body font-mono text-gray-900 dark:text-gray-100">{selectedMention.id}</div>
-                  </div>
-                  <div>
-                    <div className="hig-caption text-gray-600 dark:text-gray-400 mb-1">URL</div>
-                    <div className="hig-body font-mono text-gray-600 dark:text-gray-400">{selectedMention.url}</div>
-                  </div>
-                </div>
-              </div>
-
-              {selectedMention.indicators.emails && selectedMention.indicators.emails.length > 0 && (
-                <div className="pb-4 border-b border-gray-200 dark:border-gray-700/60 mb-4">
-                  <h3 className="hig-headline mb-4">Compromised Emails</h3>
-                  <div className="space-y-2">
-                    {selectedMention.indicators.emails.map((email, idx) => (
-                      <div key={idx} className="hig-card bg-[#e11d48]/10 dark:bg-[#e11d48]/20 border border-[#e11d48]/30 p-3">
-                        <div className="hig-body font-mono text-[#e11d48]">{email}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {selectedMention.indicators.credentials && (
-                <div className="pb-4 border-b border-gray-200 dark:border-gray-700/60 mb-4">
-                  <h3 className="hig-headline mb-4">Exposed Credentials</h3>
-                  <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
-                    <div className="hig-metric-value text-4xl" style={{ color: '#e11d48', WebkitTextFillColor: '#e11d48' }}>
-                      {selectedMention.indicators.credentials}
-                    </div>
-                    <div className="hig-caption text-gray-600 dark:text-gray-400 mt-1">credentials exposed</div>
-                  </div>
-                  <div className="hig-card bg-[#e11d48]/10 dark:bg-[#e11d48]/20 border border-[#e11d48]/30 p-4 mt-4">
-                    <div className="hig-body text-gray-900 dark:text-gray-100">
-                      <strong>Action Required:</strong> These credentials should be immediately invalidated and all affected accounts should be forced to reset their passwords. Review authentication logs for any suspicious activity.
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {selectedMention.indicators.domains && selectedMention.indicators.domains.length > 0 && (
-                <div className="pb-4 border-b border-gray-200 dark:border-gray-700/60 mb-4">
-                  <h3 className="hig-headline mb-4">Affected Domains</h3>
-                  <div className="space-y-2">
-                    {selectedMention.indicators.domains.map((domain, idx) => (
-                      <div key={idx} className="hig-card bg-[#ea580c]/10 dark:bg-[#ea580c]/20 border border-[#ea580c]/30 p-3">
-                        <div className="hig-body font-mono text-[#ea580c]">{domain}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {selectedMention.indicators.ips && selectedMention.indicators.ips.length > 0 && (
-                <div className="pb-4 border-b border-gray-200 dark:border-gray-700/60 mb-4">
-                  <h3 className="hig-headline mb-4">Related IP Addresses</h3>
-                  <div className="space-y-2">
-                    {selectedMention.indicators.ips.map((ip, idx) => (
-                      <div key={idx} className="hig-card bg-gray-50 dark:bg-gray-700/30 p-3">
-                        <div className="hig-body font-mono text-gray-900 dark:text-gray-100">{ip}</div>
-                      </div>
-                    ))}
-                  </div>
+                  <p className="soc-label mb-2">AFFECTED DOMAINS</p>
+                  {selected.indicators.domains.map(d => (
+                    <p key={d} className="text-xs font-mono mb-1" style={{ color: 'var(--soc-high)' }}>{d}</p>
+                  ))}
                 </div>
               )}
             </div>
-
-            {/* Fixed Footer */}
-            <div 
-              className="sticky bottom-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-gray-900/80 border-t border-gray-200 dark:border-gray-700/60 p-6 pt-4"
-              style={{
-                WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-                backdropFilter: 'blur(20px) saturate(180%)'
-              }}
-            >
-              <div className="flex gap-3">
-                <button className="hig-button hig-button-primary flex-1">
-                  Mark as Investigating
-                </button>
-                <button className="hig-button hig-button-secondary flex-1">
-                  Mark as Mitigated
-                </button>
-              </div>
+            <div className="px-5 py-4 flex gap-3 border-t" style={{ borderColor: 'var(--soc-border)' }}>
+              <button className="soc-btn soc-btn-primary flex-1">Mark Investigating</button>
+              <button onClick={() => setSelected(null)} className="soc-btn soc-btn-secondary flex-1">Close</button>
             </div>
           </div>
         </div>
@@ -548,4 +300,3 @@ export default function DarkWebMonitoring() {
     </div>
   )
 }
-
