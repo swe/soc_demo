@@ -1,5 +1,6 @@
 'use client'
-import { formatDate, formatDateTime } from '@/lib/utils'
+
+import { formatDate } from '@/lib/utils'
 import { useEffect, useState } from 'react'
 import { usePageTitle } from '@/app/page-title-context'
 
@@ -26,262 +27,139 @@ export default function ReportsPage() {
   }, [setPageTitle])
 
   const reports: Report[] = [
-    {
-      id: 'REP-2024-03-001',
-      title: 'Monthly Security Operations Report',
-      type: 'security',
-      period: 'March 2024',
-      generatedAt: '2024-03-31',
-      generatedBy: 'SOC Manager',
-      status: 'final',
-      pages: 45,
-      format: 'PDF',
-      recipients: ['CISO', 'Security Team', 'Executive Team']
-    },
-    {
-      id: 'REP-2024-Q1-001',
-      title: 'Q1 2024 Compliance Report',
-      type: 'compliance',
-      period: 'Q1 2024',
-      generatedAt: '2024-03-30',
-      generatedBy: 'Compliance Team',
-      status: 'final',
-      pages: 78,
-      format: 'PDF',
-      recipients: ['Board', 'Audit Committee', 'CISO']
-    },
-    {
-      id: 'REP-2024-INC-012',
-      title: 'Ransomware Incident Post-Mortem',
-      type: 'incident',
-      period: 'February 2024',
-      generatedAt: '2024-02-28',
-      generatedBy: 'IR Team',
-      status: 'final',
-      pages: 23,
-      format: 'PDF',
-      recipients: ['CISO', 'IT Management', 'Legal']
-    },
-    {
-      id: 'REP-2024-THR-005',
-      title: 'Threat Intelligence Report',
-      type: 'threat',
-      period: 'March 2024',
-      generatedAt: '2024-03-29',
-      generatedBy: 'Threat Intel Team',
-      status: 'final',
-      pages: 34,
-      format: 'PDF',
-      recipients: ['Security Team', 'CISO', 'Risk Management']
-    },
-    {
-      id: 'REP-2024-VUL-003',
-      title: 'Vulnerability Management Report',
-      type: 'vulnerability',
-      period: 'March 2024',
-      generatedAt: '2024-03-28',
-      generatedBy: 'Vuln Management',
-      status: 'final',
-      pages: 56,
-      format: 'Excel',
-      recipients: ['Security Team', 'IT Operations', 'CISO']
-    },
-    {
-      id: 'REP-2024-04-001',
-      title: 'Weekly Security Summary',
-      type: 'security',
-      period: 'Week 13 2024',
-      generatedAt: '2024-03-30',
-      generatedBy: 'SOC Analyst',
-      status: 'review',
-      pages: 12,
-      format: 'PDF',
-      recipients: ['Security Team', 'SOC Manager']
-    },
-    {
-      id: 'REP-2024-THR-006',
-      title: 'APT Activity Report',
-      type: 'threat',
-      period: 'Q1 2024',
-      generatedAt: '2024-03-27',
-      generatedBy: 'Threat Intel Team',
-      status: 'draft',
-      pages: 67,
-      format: 'PDF',
-      recipients: ['CISO', 'Executive Team']
-    }
+    { id: 'REP-2024-03-001', title: 'Monthly Security Operations Report', type: 'security', period: 'March 2024', generatedAt: '2024-03-31', generatedBy: 'SOC Manager', status: 'final', pages: 45, format: 'PDF', recipients: ['CISO', 'Security Team', 'Executive Team'] },
+    { id: 'REP-2024-Q1-001', title: 'Q1 2024 Compliance Report', type: 'compliance', period: 'Q1 2024', generatedAt: '2024-03-30', generatedBy: 'Compliance Team', status: 'final', pages: 78, format: 'PDF', recipients: ['Board', 'Audit Committee', 'CISO'] },
+    { id: 'REP-2024-INC-012', title: 'Ransomware Incident Post-Mortem', type: 'incident', period: 'February 2024', generatedAt: '2024-02-28', generatedBy: 'IR Team', status: 'final', pages: 23, format: 'PDF', recipients: ['CISO', 'IT Management', 'Legal'] },
+    { id: 'REP-2024-THR-005', title: 'Threat Intelligence Report', type: 'threat', period: 'March 2024', generatedAt: '2024-03-29', generatedBy: 'Threat Intel Team', status: 'final', pages: 34, format: 'PDF', recipients: ['Security Team', 'CISO', 'Risk Management'] },
+    { id: 'REP-2024-VUL-003', title: 'Vulnerability Management Report', type: 'vulnerability', period: 'March 2024', generatedAt: '2024-03-28', generatedBy: 'Vuln Management', status: 'final', pages: 56, format: 'Excel', recipients: ['Security Team', 'IT Operations', 'CISO'] },
+    { id: 'REP-2024-04-001', title: 'Weekly Security Summary', type: 'security', period: 'Week 13 2024', generatedAt: '2024-03-30', generatedBy: 'SOC Analyst', status: 'review', pages: 12, format: 'PDF', recipients: ['Security Team', 'SOC Manager'] },
+    { id: 'REP-2024-THR-006', title: 'APT Activity Report', type: 'threat', period: 'Q1 2024', generatedAt: '2024-03-27', generatedBy: 'Threat Intel Team', status: 'draft', pages: 67, format: 'PDF', recipients: ['CISO', 'Executive Team'] },
   ]
 
-  const getTypeColor = (type: string): string => {
-    const colors: Record<string, string> = {
-      security: '#4f46e5',
-      compliance: '#4f46e5',
-      incident: '#e11d48',
-      threat: '#ea580c',
-      vulnerability: '#d97706'
-    }
-    return colors[type] || '#6b7280'
+  const getTypeColor = (type: string) => {
+    const map: Record<string, string> = { security: 'var(--soc-accent)', compliance: 'var(--soc-accent)', incident: 'var(--soc-critical)', threat: 'var(--soc-high)', vulnerability: 'var(--soc-medium)' }
+    return map[type] || 'var(--soc-text-muted)'
+  }
+  const getTypeBg = (type: string) => {
+    const map: Record<string, string> = { security: 'var(--soc-accent-bg)', compliance: 'var(--soc-accent-bg)', incident: 'var(--soc-critical-bg)', threat: 'var(--soc-high-bg)', vulnerability: 'var(--soc-medium-bg)' }
+    return map[type] || 'var(--soc-border)'
+  }
+  const getStatusColor = (status: string) => {
+    const map: Record<string, string> = { final: 'var(--soc-low)', review: 'var(--soc-high)', draft: 'var(--soc-text-muted)' }
+    return map[status] || 'var(--soc-text-muted)'
+  }
+  const getStatusBg = (status: string) => {
+    const map: Record<string, string> = { final: 'var(--soc-low-bg)', review: 'var(--soc-high-bg)', draft: 'var(--soc-border)' }
+    return map[status] || 'var(--soc-border)'
   }
 
-  const getStatusColor = (status: string): string => {
-    const colors: Record<string, string> = {
-      final: '#059669',
-      review: '#ea580c',
-      draft: '#6b7280'
-    }
-    return colors[status] || '#6b7280'
-  }
-
-  const filteredReports = selectedType === 'all' 
-    ? reports 
-    : reports.filter(r => r.type === selectedType)
+  const filteredReports = selectedType === 'all' ? reports : reports.filter(r => r.type === selectedType)
 
   const stats = {
     total: reports.length,
     final: reports.filter(r => r.status === 'final').length,
-    thisMonth: reports.filter(r => new Date(r.generatedAt).getMonth() === 2).length
+    thisMonth: reports.filter(r => new Date(r.generatedAt).getMonth() === 2).length,
   }
 
   return (
-    <div className="py-4 w-full max-w-7xl mx-auto">
-      <div className="mb-6 px-4 hig-fade-in">
-        <h1 className="hig-title-large text-gray-900 dark:text-gray-100 mb-2">Security Reports</h1>
-        <p className="hig-body text-gray-600 dark:text-gray-400">Access security reports, compliance documents, and incident analyses</p>
+    <div className="w-full max-w-7xl mx-auto px-6 py-6 hig-fade-in">
+      {/* Header */}
+      <div className="flex items-start justify-between mb-6">
+        <div>
+          <div className="soc-label mb-1">KNOWLEDGE BASE</div>
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 600, color: 'var(--soc-text)', lineHeight: 1.2 }}>Security Reports</h1>
+          <p style={{ color: 'var(--soc-text-secondary)', fontSize: '0.875rem', marginTop: '0.25rem' }}>Access security reports, compliance documents, and incident analyses</p>
+        </div>
+        <button className="soc-btn soc-btn-primary">Generate Report</button>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-3 px-4">
-        <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
-          <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Total Reports</div>
-          <div className="hig-metric-value text-4xl text-gray-900 dark:text-gray-100">{stats.total}</div>
-        </div>
-
-        <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
-          <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Final Reports</div>
-          <div className="hig-metric-value text-4xl" style={{ color: '#059669', WebkitTextFillColor: '#059669' }}>
-            {stats.final}
+      {/* KPI Row */}
+      <div className="grid grid-cols-3 gap-4 mb-6">
+        {[
+          { label: 'TOTAL REPORTS', value: String(stats.total), sub: 'In library' },
+          { label: 'FINAL', value: String(stats.final), sub: 'Ready to distribute', accent: true },
+          { label: 'THIS MONTH', value: String(stats.thisMonth), sub: 'Generated in March 2024', accent: true },
+        ].map((kpi, i) => (
+          <div key={i} className="soc-card" style={{ padding: '1.25rem' }}>
+            <div className="soc-label mb-2">{kpi.label}</div>
+            <div className="soc-metric-lg" style={kpi.accent ? { color: 'var(--soc-accent)' } : {}}>{kpi.value}</div>
+            <div className="soc-metric-sm mt-1">{kpi.sub}</div>
           </div>
-        </div>
-
-        <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
-          <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">This Month</div>
-          <div className="hig-metric-value text-4xl" style={{ color: '#4f46e5', WebkitTextFillColor: '#4f46e5' }}>
-            {stats.thisMonth}
-          </div>
-        </div>
+        ))}
       </div>
 
       {/* Filters */}
-      <div className="mb-6 px-4">
-        <div className="flex flex-wrap gap-2">
-          {['all', 'security', 'compliance', 'incident', 'threat', 'vulnerability'].map(type => (
-            <button
-              key={type}
-              onClick={() => setSelectedType(type)}
-              className={`hig-button ${
-                selectedType === type
-                  ? 'hig-button-primary'
-                  : 'hig-button-secondary'
-              }`}
-            >
-              {type === 'all' ? 'All Types' : type.charAt(0).toUpperCase() + type.slice(1)}
-            </button>
-          ))}
-        </div>
+      <div style={{ marginBottom: '1.25rem', display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+        {['all', 'security', 'compliance', 'incident', 'threat', 'vulnerability'].map(type => (
+          <button
+            key={type}
+            onClick={() => setSelectedType(type)}
+            className={`soc-btn ${selectedType === type ? 'soc-btn-primary' : 'soc-btn-secondary'}`}
+          >
+            {type === 'all' ? 'All Types' : type.charAt(0).toUpperCase() + type.slice(1)}
+          </button>
+        ))}
       </div>
 
       {/* Reports Table */}
-      <div className="px-4">
-        <div className="hig-card p-0">
-          <div className="flex items-center justify-between mb-3 pb-4 border-b border-gray-200 dark:border-gray-700/60 px-6 pt-6">
-            <h2 className="hig-headline text-gray-900 dark:text-gray-100">Reports</h2>
-            <span className="hig-caption text-gray-600 dark:text-gray-400">{filteredReports.length} total</span>
+      <div className="soc-card" style={{ padding: 0 }}>
+        <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--soc-border)' }}>
+          <div className="flex items-center justify-between">
+            <span style={{ fontWeight: 600, color: 'var(--soc-text)', fontSize: '0.9375rem' }}>Reports</span>
+            <span className="soc-metric-sm">{filteredReports.length} total</span>
           </div>
-
-          <div className="overflow-x-auto">
-          <table className="hig-table w-full">
+        </div>
+        <div style={{ overflowX: 'auto' }}>
+          <table className="soc-table" style={{ width: '100%' }}>
             <thead>
-              <tr className="border-b border-gray-200 dark:border-gray-700/60">
-                <th className="px-6 py-3 text-left hig-caption font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Report</th>
-                <th className="px-6 py-3 text-left hig-caption font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Type</th>
-                <th className="px-6 py-3 text-left hig-caption font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Period</th>
-                <th className="px-6 py-3 text-left hig-caption font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Pages</th>
-                <th className="px-6 py-3 text-left hig-caption font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Format</th>
-                <th className="px-6 py-3 text-left hig-caption font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Generated</th>
-                <th className="px-6 py-3 text-left hig-caption font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Status</th>
-                <th className="px-6 py-3 text-left hig-caption font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">Actions</th>
+              <tr>
+                <th>Title</th>
+                <th>Type</th>
+                <th>Period</th>
+                <th>Pages</th>
+                <th>Format</th>
+                <th>Generated By</th>
+                <th>Date</th>
+                <th>Status</th>
+                <th>Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200 dark:divide-gray-700/60">
+            <tbody>
               {filteredReports.map((report) => (
-                <tr key={report.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/20">
-                  <td className="px-6 py-4">
-                    <div>
-                      <div className="hig-body font-semibold text-gray-900 dark:text-gray-100">{report.title}</div>
-                      <div className="hig-caption text-gray-600 dark:text-gray-400 font-mono mt-0.5">{report.id}</div>
-                    </div>
+                <tr key={report.id}>
+                  <td>
+                    <div style={{ fontWeight: 600, color: 'var(--soc-text)', fontSize: '0.875rem' }}>{report.title}</div>
+                    <div style={{ color: 'var(--soc-text-muted)', fontSize: '0.75rem', fontFamily: 'monospace' }}>{report.id}</div>
                   </td>
-                  <td className="px-6 py-4">
-                    <span 
-                      className="hig-badge"
-                      style={{
-                        backgroundColor: `${getTypeColor(report.type)}20`,
-                        color: getTypeColor(report.type)
-                      }}
-                    >
+                  <td>
+                    <span className="soc-badge" style={{ backgroundColor: getTypeBg(report.type), color: getTypeColor(report.type) }}>
                       {report.type.toUpperCase()}
                     </span>
                   </td>
-                  <td className="px-6 py-4">
-                    <span className="hig-body text-gray-700 dark:text-gray-300">{report.period}</span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="hig-body text-gray-700 dark:text-gray-300">{report.pages}</span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="hig-body text-gray-700 dark:text-gray-300">{report.format}</span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div>
-                      <div className="hig-body text-gray-700 dark:text-gray-300">{formatDate(report.generatedAt)}</div>
-                      <div className="hig-caption text-gray-500 dark:text-gray-400">{report.generatedBy}</div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span 
-                      className="hig-badge"
-                      style={{
-                        backgroundColor: `${getStatusColor(report.status)}20`,
-                        color: getStatusColor(report.status)
-                      }}
-                    >
+                  <td style={{ color: 'var(--soc-text-secondary)', fontSize: '0.875rem' }}>{report.period}</td>
+                  <td style={{ color: 'var(--soc-text-secondary)', fontSize: '0.875rem' }}>{report.pages}</td>
+                  <td style={{ color: 'var(--soc-text-secondary)', fontSize: '0.875rem' }}>{report.format}</td>
+                  <td style={{ color: 'var(--soc-text-secondary)', fontSize: '0.875rem' }}>{report.generatedBy}</td>
+                  <td style={{ color: 'var(--soc-text-muted)', fontSize: '0.8125rem' }}>{formatDate(report.generatedAt)}</td>
+                  <td>
+                    <span className="soc-badge" style={{ backgroundColor: getStatusBg(report.status), color: getStatusColor(report.status) }}>
                       {report.status.toUpperCase()}
                     </span>
                   </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <button 
+                  <td>
+                    <div style={{ display: 'flex', gap: '0.75rem' }}>
+                      <button className="soc-link" style={{ fontSize: '0.8125rem' }}
                         onClick={(e) => {
                           e.stopPropagation()
-                          const link = document.createElement('a')
-                          link.href = '#'
-                          link.download = `${report.id}_${report.title.replace(/\s+/g, '_')}.${report.format.toLowerCase()}`
-                          document.body.appendChild(link)
-                          link.click()
-                          document.body.removeChild(link)
                           alert(`Downloading ${report.title}...`)
-                        }}
-                        className="hig-caption hig-link-hover"
-                      >
+                        }}>
                         Download →
                       </button>
-                      <button 
+                      <button className="soc-link" style={{ fontSize: '0.8125rem' }}
                         onClick={(e) => {
                           e.stopPropagation()
                           setSelectedReport(report)
-                        }}
-                        className="hig-caption hig-link-hover"
-                      >
+                        }}>
                         Share →
                       </button>
                     </div>
@@ -290,104 +168,47 @@ export default function ReportsPage() {
               ))}
             </tbody>
           </table>
-          </div>
         </div>
       </div>
 
       {/* Share Modal */}
       {selectedReport && (
-        <>
-          <div 
-            className="hig-modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4"
-            onClick={() => setSelectedReport(null)}
-          >
-            <div 
-              className="hig-modal p-0 max-w-4xl w-full flex flex-col max-h-[90vh]"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* Fixed Header */}
-              <div 
-                className="sticky top-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-gray-900/80 border-b border-gray-200 dark:border-gray-700/60 p-6 pb-4"
-                style={{
-                  WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-                  backdropFilter: 'blur(20px) saturate(180%)'
-                }}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <h2 className="hig-headline text-gray-900 dark:text-gray-100">Share Report</h2>
-                  <button
-                    onClick={() => setSelectedReport(null)}
-                    className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
-                  >
-                    <span className="sr-only">Close</span>
-                    <svg className="w-6 h-6 fill-current" viewBox="0 0 24 24">
-                      <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-                    </svg>
-                  </button>
-                </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }} onClick={() => setSelectedReport(null)}>
+          <div className="w-full max-w-md rounded-xl overflow-hidden" style={{ backgroundColor: 'var(--soc-surface)', border: '1px solid var(--soc-border-mid)' }} onClick={(e) => e.stopPropagation()}>
+            <div className="px-5 py-4 border-b flex items-start justify-between" style={{ borderColor: 'var(--soc-border)' }}>
+              <div>
+                <p className="soc-label mb-1 font-mono">{selectedReport.id}</p>
+                <h2 className="text-base font-bold" style={{ color: 'var(--soc-text)' }}>Share Report</h2>
               </div>
-
-              {/* Scrollable Content */}
-              <div className="flex-1 overflow-y-auto px-6 py-6">
-                <div className="space-y-6">
-                  <div>
-                    <div className="hig-body font-semibold text-gray-900 dark:text-gray-100 mb-1">{selectedReport.title}</div>
-                    <div className="hig-caption text-gray-600 dark:text-gray-400 font-mono">{selectedReport.id}</div>
-                  </div>
-
-                  <div>
-                    <label className="block hig-caption text-gray-600 dark:text-gray-400 mb-2 font-semibold">
-                      Email addresses (comma separated)
-                    </label>
-                    <textarea 
-                      placeholder="email1@company.com, email2@company.com"
-                      rows={3}
-                      className="hig-input w-full min-h-[100px] resize-none"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block hig-caption text-gray-600 dark:text-gray-400 mb-2 font-semibold">
-                      Message (optional)
-                    </label>
-                    <textarea 
-                      placeholder="Add a message..."
-                      rows={3}
-                      className="hig-input w-full min-h-[100px] resize-none"
-                    />
-                  </div>
-                </div>
+              <button onClick={() => setSelectedReport(null)} className="text-sm w-7 h-7 flex items-center justify-center rounded" style={{ color: 'var(--soc-text-muted)', backgroundColor: 'var(--soc-raised)' }}>✕</button>
+            </div>
+            <div className="px-5 py-4 space-y-4">
+              <p className="text-sm font-medium" style={{ color: 'var(--soc-text)' }}>{selectedReport.title}</p>
+              <div>
+                <p className="soc-label mb-2">EMAIL ADDRESSES</p>
+                <textarea
+                  placeholder="email1@company.com, email2@company.com"
+                  rows={3}
+                  className="w-full text-sm px-3 py-2 rounded-md resize-none"
+                  style={{ backgroundColor: 'var(--soc-raised)', border: '1px solid var(--soc-border-mid)', color: 'var(--soc-text)', outline: 'none' }}
+                />
               </div>
-
-              {/* Fixed Footer */}
-              <div 
-                className="sticky bottom-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-gray-900/80 border-t border-gray-200 dark:border-gray-700/60 p-6 pt-4"
-                style={{
-                  WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-                  backdropFilter: 'blur(20px) saturate(180%)'
-                }}
-              >
-                <div className="flex gap-3">
-                  <button 
-                    onClick={() => {
-                      alert('Report shared successfully!')
-                      setSelectedReport(null)
-                    }}
-                    className="flex-1 hig-button hig-button-primary"
-                  >
-                    Send Report
-                  </button>
-                  <button 
-                    onClick={() => setSelectedReport(null)}
-                    className="flex-1 hig-button hig-button-secondary"
-                  >
-                    Cancel
-                  </button>
-                </div>
+              <div>
+                <p className="soc-label mb-2">MESSAGE (OPTIONAL)</p>
+                <textarea
+                  placeholder="Add a message..."
+                  rows={3}
+                  className="w-full text-sm px-3 py-2 rounded-md resize-none"
+                  style={{ backgroundColor: 'var(--soc-raised)', border: '1px solid var(--soc-border-mid)', color: 'var(--soc-text)', outline: 'none' }}
+                />
               </div>
             </div>
+            <div className="px-5 py-4 flex gap-3 border-t" style={{ borderColor: 'var(--soc-border)' }}>
+              <button className="soc-btn soc-btn-primary flex-1" onClick={() => { alert('Report shared successfully!'); setSelectedReport(null) }}>Send Report</button>
+              <button className="soc-btn soc-btn-secondary flex-1" onClick={() => setSelectedReport(null)}>Cancel</button>
+            </div>
           </div>
-        </>
+        </div>
       )}
     </div>
   )

@@ -12,23 +12,14 @@ interface CloudProvider {
   accounts: number
   regions: string[]
   lastSync: string
-  resources: {
-    total: number
-    monitored: number
-  }
-  alerts: {
-    critical: number
-    high: number
-    medium: number
-    low: number
-  }
+  resources: { total: number; monitored: number }
+  alerts: { critical: number; high: number; medium: number; low: number }
   logo: string
   color: string
 }
 
 export default function CloudIntegrations() {
   const { setPageTitle } = usePageTitle()
-  const [selectedProvider, setSelectedProvider] = useState<CloudProvider | null>(null)
   const [showAddModal, setShowAddModal] = useState(false)
 
   useEffect(() => {
@@ -37,237 +28,174 @@ export default function CloudIntegrations() {
 
   const cloudProviders: CloudProvider[] = [
     {
-      id: 'aws-1',
-      name: 'AWS Production',
-      type: 'aws',
-      status: 'connected',
-      accounts: 5,
-      regions: ['us-east-1', 'eu-west-1', 'ap-southeast-1'],
-      lastSync: '2 minutes ago',
+      id: 'aws-1', name: 'AWS Production', type: 'aws', status: 'connected',
+      accounts: 5, regions: ['us-east-1', 'eu-west-1', 'ap-southeast-1'], lastSync: '2 minutes ago',
       resources: { total: 1247, monitored: 1189 },
       alerts: { critical: 3, high: 12, medium: 45, low: 89 },
-      logo: '☁️',
-      color: 'bg-orange-600 dark:bg-orange-700'
+      logo: '☁️', color: 'bg-orange-600 dark:bg-orange-700'
     },
     {
-      id: 'azure-1',
-      name: 'Azure Enterprise',
-      type: 'azure',
-      status: 'connected',
-      accounts: 3,
-      regions: ['East US', 'West Europe', 'Southeast Asia'],
-      lastSync: '5 minutes ago',
+      id: 'azure-1', name: 'Azure Enterprise', type: 'azure', status: 'connected',
+      accounts: 3, regions: ['East US', 'West Europe', 'Southeast Asia'], lastSync: '5 minutes ago',
       resources: { total: 843, monitored: 821 },
       alerts: { critical: 1, high: 8, medium: 23, low: 67 },
-      logo: '☁️',
-      color: 'bg-indigo-600 dark:bg-indigo-500'
+      logo: '☁️', color: 'bg-indigo-600 dark:bg-indigo-500'
     },
     {
-      id: 'gcp-1',
-      name: 'Google Cloud',
-      type: 'gcp',
-      status: 'connected',
-      accounts: 2,
-      regions: ['us-central1', 'europe-west1'],
-      lastSync: '8 minutes ago',
+      id: 'gcp-1', name: 'Google Cloud', type: 'gcp', status: 'connected',
+      accounts: 2, regions: ['us-central1', 'europe-west1'], lastSync: '8 minutes ago',
       resources: { total: 456, monitored: 445 },
       alerts: { critical: 0, high: 5, medium: 18, low: 34 },
-      logo: '☁️',
-      color: 'bg-[#e11d48] dark:bg-[#e11d48]'
+      logo: '☁️', color: 'bg-[#e11d48] dark:bg-[#e11d48]'
     },
     {
-      id: 'oci-1',
-      name: 'Oracle Cloud',
-      type: 'oci',
-      status: 'disconnected',
-      accounts: 1,
-      regions: ['us-ashburn-1'],
-      lastSync: '2 hours ago',
+      id: 'oci-1', name: 'Oracle Cloud', type: 'oci', status: 'disconnected',
+      accounts: 1, regions: ['us-ashburn-1'], lastSync: '2 hours ago',
       resources: { total: 123, monitored: 0 },
       alerts: { critical: 0, high: 0, medium: 0, low: 0 },
-      logo: '☁️',
-      color: 'bg-red-600'
+      logo: '☁️', color: 'bg-red-600'
     },
   ]
 
-  const getStatusColor = (status: string): string => {
-    const colors: Record<string, string> = {
-      connected: '#059669',
-      disconnected: '#6b7280',
-      error: '#e11d48',
-      pending: '#ea580c'
-    }
-    return colors[status] || '#6b7280'
+  const getStatusColor = (status: string) => {
+    const map: Record<string, string> = { connected: 'var(--soc-low)', disconnected: 'var(--soc-text-muted)', error: 'var(--soc-critical)', pending: 'var(--soc-high)' }
+    return map[status] || 'var(--soc-text-muted)'
+  }
+  const getStatusBg = (status: string) => {
+    const map: Record<string, string> = { connected: 'var(--soc-low-bg)', disconnected: 'var(--soc-border)', error: 'var(--soc-critical-bg)', pending: 'var(--soc-high-bg)' }
+    return map[status] || 'var(--soc-border)'
   }
 
   const getProviderIcon = (type: string) => {
-    const iconPaths: Record<string, string> = {
-      aws: '/logos/aws.svg',
-      azure: '/logos/azure.svg',
-      gcp: '/logos/googlecloud.svg',
-      oci: '/logos/oracle.svg',
-      alibaba: '/logos/aws.svg' // fallback
-    }
-    return (
-      <img 
-        src={iconPaths[type] || iconPaths.aws} 
-        alt={type} 
-        className="w-8 h-8 brightness-0 invert"
-      />
-    )
+    const iconPaths: Record<string, string> = { aws: '/logos/aws.svg', azure: '/logos/azure.svg', gcp: '/logos/googlecloud.svg', oci: '/logos/oracle.svg', alibaba: '/logos/aws.svg' }
+    return <img src={iconPaths[type] || iconPaths.aws} alt={type} className="w-8 h-8 brightness-0 invert" />
   }
 
+  const connectedProviders = cloudProviders.filter(p => p.status === 'connected')
+  const totalCritical = cloudProviders.reduce((s, p) => s + p.alerts.critical, 0)
+  const totalMonitored = cloudProviders.reduce((s, p) => s + p.resources.monitored, 0)
+  const totalResources = cloudProviders.reduce((s, p) => s + p.resources.total, 0)
+
   return (
-    <div className="py-4 w-full max-w-7xl mx-auto">
+    <div className="w-full max-w-7xl mx-auto px-6 py-6 hig-fade-in">
       {/* Header */}
-      <div className="sm:flex sm:justify-between sm:items-center mb-3 px-4 hig-fade-in">
-        <div className="mb-4 sm:mb-0">
-          <h1 className="hig-title-large text-gray-900 dark:text-gray-100">Cloud Integrations</h1>
-          <p className="hig-body text-gray-600 dark:text-gray-400">Manage and monitor your cloud provider connections</p>
+      <div className="flex items-start justify-between mb-6">
+        <div>
+          <div className="soc-label mb-1">ADMINISTRATION</div>
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 600, color: 'var(--soc-text)', lineHeight: 1.2 }}>Cloud Integrations</h1>
+          <p style={{ color: 'var(--soc-text-secondary)', fontSize: '0.875rem', marginTop: '0.25rem' }}>Manage and monitor cloud provider connections</p>
         </div>
-        <div className="grid grid-flow-col sm:auto-cols-max justify-start sm:justify-end gap-2">
-          <button 
-            onClick={() => setShowAddModal(true)}
-            className="hig-button hig-button-primary"
-          >
-            Add Integration
-          </button>
-        </div>
+        <button className="soc-btn soc-btn-primary" onClick={() => setShowAddModal(true)}>Add Integration</button>
       </div>
 
-      {/* Cloud Provider Cards */}
-      <div className="grid grid-cols-12 gap-4 mb-3 px-4">
+      {/* KPI Row */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {[
+          { label: 'PROVIDERS', value: String(cloudProviders.length), sub: 'Configured' },
+          { label: 'CONNECTED', value: String(connectedProviders.length), sub: 'Active connections', accent: true },
+          { label: 'CRITICAL ALERTS', value: String(totalCritical), sub: 'Across all providers', err: totalCritical > 0 },
+          { label: 'RESOURCES MONITORED', value: formatNumber(totalMonitored), sub: `of ${formatNumber(totalResources)} total` },
+        ].map((kpi, i) => (
+          <div key={i} className="soc-card" style={{ padding: '1.25rem' }}>
+            <div className="soc-label mb-2">{kpi.label}</div>
+            <div className="soc-metric-lg" style={kpi.err ? { color: 'var(--soc-critical)' } : kpi.accent ? { color: 'var(--soc-accent)' } : {}}>{kpi.value}</div>
+            <div className="soc-metric-sm mt-1">{kpi.sub}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Provider Cards */}
+      <div className="grid grid-cols-12 gap-4 mb-4">
         {cloudProviders.map((provider) => (
           <div key={provider.id} className="col-span-12 lg:col-span-6">
-            <div className="hig-card">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-4">
-                  <div className={`${provider.color} text-white p-3 rounded-lg`}>
+            <div className="soc-card" style={{ padding: '1.25rem' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                  <div className={`${provider.color} text-white p-2 rounded-lg`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '2.5rem', height: '2.5rem', borderRadius: '8px', flexShrink: 0 }}>
                     {getProviderIcon(provider.type)}
                   </div>
                   <div>
-                    <h3 className="hig-headline text-gray-900 dark:text-gray-100">{provider.name}</h3>
-                    <p className="hig-caption text-gray-600 dark:text-gray-400 capitalize">{provider.type}</p>
+                    <div style={{ fontWeight: 600, color: 'var(--soc-text)', fontSize: '0.9375rem' }}>{provider.name}</div>
+                    <div style={{ color: 'var(--soc-text-muted)', fontSize: '0.8125rem', textTransform: 'capitalize' }}>{provider.type}</div>
                   </div>
                 </div>
-                <span 
-                  className="hig-badge"
-                  style={{
-                    backgroundColor: `${getStatusColor(provider.status)}20`,
-                    color: getStatusColor(provider.status)
-                  }}
-                >
+                <span className="soc-badge" style={{ backgroundColor: getStatusBg(provider.status), color: getStatusColor(provider.status) }}>
                   {provider.status.toUpperCase()}
                 </span>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 mb-4">
-                <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-3 text-center">
-                  <div className="hig-caption text-gray-600 dark:text-gray-400 mb-1">Accounts</div>
-                  <div className="hig-metric-value text-3xl text-gray-900 dark:text-gray-100">{provider.accounts}</div>
+              {/* Stats */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1rem' }}>
+                <div style={{ background: 'var(--soc-raised)', border: '1px solid var(--soc-border)', borderRadius: '6px', padding: '0.75rem', textAlign: 'center' }}>
+                  <div style={{ color: 'var(--soc-text-muted)', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Accounts</div>
+                  <div style={{ fontWeight: 700, fontSize: '1.5rem', color: 'var(--soc-text)' }}>{provider.accounts}</div>
                 </div>
-                <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-3 text-center">
-                  <div className="hig-caption text-gray-600 dark:text-gray-400 mb-1">Resources</div>
-                  <div className="hig-metric-value text-3xl text-gray-900 dark:text-gray-100">
-                      {provider.resources.monitored}/{provider.resources.total}
-                    </div>
+                <div style={{ background: 'var(--soc-raised)', border: '1px solid var(--soc-border)', borderRadius: '6px', padding: '0.75rem', textAlign: 'center' }}>
+                  <div style={{ color: 'var(--soc-text-muted)', fontSize: '0.75rem', marginBottom: '0.25rem' }}>Resources</div>
+                  <div style={{ fontWeight: 700, fontSize: '1.25rem', color: 'var(--soc-text)' }}>{provider.resources.monitored}/{provider.resources.total}</div>
                 </div>
               </div>
 
-              <div className="mb-4">
-                <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Active Regions</div>
-                <div className="flex flex-wrap gap-2">
+              {/* Regions */}
+              <div style={{ marginBottom: '0.75rem' }}>
+                <div style={{ color: 'var(--soc-text-muted)', fontSize: '0.75rem', marginBottom: '0.375rem' }}>Active Regions</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.375rem' }}>
                   {provider.regions.map((region, idx) => (
-                    <span key={idx} className="hig-badge bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
-                      {region}
-                    </span>
+                    <span key={idx} className="soc-badge" style={{ background: 'var(--soc-raised)', color: 'var(--soc-text-secondary)' }}>{region}</span>
                   ))}
                 </div>
               </div>
 
-              {provider.status === 'connected' && (
-                <div className="mb-4">
-                  <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Active Alerts</div>
-                  <div className="flex gap-2 flex-wrap">
+              {/* Alerts */}
+              {provider.status === 'connected' && (provider.alerts.critical > 0 || provider.alerts.high > 0 || provider.alerts.medium > 0) && (
+                <div style={{ marginBottom: '0.75rem' }}>
+                  <div style={{ color: 'var(--soc-text-muted)', fontSize: '0.75rem', marginBottom: '0.375rem' }}>Active Alerts</div>
+                  <div style={{ display: 'flex', gap: '0.375rem', flexWrap: 'wrap' }}>
                     {provider.alerts.critical > 0 && (
-                      <span 
-                        className="hig-badge"
-                        style={{
-                          backgroundColor: '#e11d4820',
-                          color: '#e11d48'
-                        }}
-                      >
-                        {provider.alerts.critical} Critical
-                      </span>
+                      <span className="soc-badge" style={{ backgroundColor: 'var(--soc-critical-bg)', color: 'var(--soc-critical)' }}>{provider.alerts.critical} Critical</span>
                     )}
                     {provider.alerts.high > 0 && (
-                      <span 
-                        className="hig-badge"
-                        style={{
-                          backgroundColor: '#ea580c20',
-                          color: '#ea580c'
-                        }}
-                      >
-                        {provider.alerts.high} High
-                      </span>
+                      <span className="soc-badge" style={{ backgroundColor: 'var(--soc-high-bg)', color: 'var(--soc-high)' }}>{provider.alerts.high} High</span>
                     )}
                     {provider.alerts.medium > 0 && (
-                      <span 
-                        className="hig-badge"
-                        style={{
-                          backgroundColor: '#d9770620',
-                          color: '#d97706'
-                        }}
-                      >
-                        {provider.alerts.medium} Medium
-                      </span>
+                      <span className="soc-badge" style={{ backgroundColor: 'var(--soc-medium-bg)', color: 'var(--soc-medium)' }}>{provider.alerts.medium} Medium</span>
                     )}
                   </div>
                 </div>
               )}
 
-              <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700/60">
-                <span className="hig-caption text-gray-600 dark:text-gray-400">
-                  Last sync: {provider.lastSync}
-                </span>
-                <div className="flex gap-2">
-                  {provider.status === 'connected' ? (
-                    <button className="hig-caption hig-link-hover">
-                      Configure →
-                    </button>
-                  ) : (
-                    <button className="hig-caption hig-link-hover">
-                      Reconnect →
-                    </button>
-                  )}
-                </div>
+              {/* Footer */}
+              <div style={{ borderTop: '1px solid var(--soc-border)', paddingTop: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ color: 'var(--soc-text-muted)', fontSize: '0.8125rem' }}>Last sync: {provider.lastSync}</span>
+                <button className="soc-link" style={{ fontSize: '0.8125rem' }}>
+                  {provider.status === 'connected' ? 'Configure →' : 'Reconnect →'}
+                </button>
               </div>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Integration Statistics */}
-      <div className="grid grid-cols-12 gap-4 px-4">
+      {/* Resource Distribution */}
+      <div className="grid grid-cols-12 gap-4">
         <div className="col-span-12 lg:col-span-8">
-          <div className="hig-card">
-            <h2 className="hig-headline text-gray-900 dark:text-gray-100 mb-3 pb-4 border-b border-gray-200 dark:border-gray-700/60">Resource Distribution by Provider</h2>
-            <div className="space-y-4">
-              {cloudProviders.filter(p => p.status === 'connected').map((provider, idx) => {
-                const percentage = (provider.resources.monitored / provider.resources.total) * 100
+          <div className="soc-card" style={{ padding: '1.25rem' }}>
+            <div style={{ borderBottom: '1px solid var(--soc-border)', paddingBottom: '0.75rem', marginBottom: '1rem' }}>
+              <span style={{ fontWeight: 600, color: 'var(--soc-text)', fontSize: '0.9375rem' }}>Resource Distribution by Provider</span>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {connectedProviders.map((provider, idx) => {
+                const pct = (provider.resources.monitored / provider.resources.total) * 100
+                const colors = ['var(--soc-high)', 'var(--soc-accent)', 'var(--soc-low)', 'var(--soc-critical)']
+                const c = colors[idx % colors.length]
                 return (
                   <div key={idx}>
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <div className={`w-3 h-3 rounded-full ${provider.color}`}></div>
-                      <span className="hig-body font-semibold text-gray-700 dark:text-gray-300">{provider.name}</span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.375rem' }}>
+                      <span style={{ fontWeight: 500, color: 'var(--soc-text-secondary)', fontSize: '0.875rem' }}>{provider.name}</span>
+                      <span style={{ color: 'var(--soc-text-secondary)', fontSize: '0.875rem' }}>{provider.resources.monitored} / {provider.resources.total}</span>
                     </div>
-                    <span className="hig-body text-gray-600 dark:text-gray-400">
-                      {provider.resources.monitored} / {provider.resources.total} resources
-                    </span>
-                    </div>
-                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
-                      <div className={`${provider.color} h-3 rounded-full`} style={{ width: `${percentage}%` }}></div>
+                    <div className="soc-progress-track">
+                      <div className="soc-progress-fill" style={{ width: `${pct}%`, backgroundColor: c }} />
                     </div>
                   </div>
                 )
@@ -277,100 +205,50 @@ export default function CloudIntegrations() {
         </div>
 
         <div className="col-span-12 lg:col-span-4">
-          <div className="hig-card">
-            <h2 className="hig-headline text-gray-900 dark:text-gray-100 mb-3 pb-4 border-b border-gray-200 dark:border-gray-700/60">Quick Stats</h2>
-            <div className="space-y-4">
-              <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
-                <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Total Providers</div>
-                <div className="hig-metric-value text-3xl text-gray-900 dark:text-gray-100">
-                  {cloudProviders.length}
+          <div className="soc-card" style={{ padding: '1.25rem' }}>
+            <div style={{ borderBottom: '1px solid var(--soc-border)', paddingBottom: '0.75rem', marginBottom: '1rem' }}>
+              <span style={{ fontWeight: 600, color: 'var(--soc-text)', fontSize: '0.9375rem' }}>Quick Stats</span>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              {[
+                { label: 'Total Providers', value: String(cloudProviders.length), color: 'var(--soc-text)' },
+                { label: 'Active Connections', value: String(connectedProviders.length), color: 'var(--soc-low)' },
+                { label: 'Total Resources', value: formatNumber(totalResources), color: 'var(--soc-text)' },
+              ].map((s, i) => (
+                <div key={i} style={{ background: 'var(--soc-raised)', border: '1px solid var(--soc-border)', borderRadius: '6px', padding: '1rem', textAlign: 'center' }}>
+                  <div style={{ color: 'var(--soc-text-muted)', fontSize: '0.75rem', marginBottom: '0.375rem' }}>{s.label}</div>
+                  <div style={{ fontWeight: 700, fontSize: '1.75rem', color: s.color }}>{s.value}</div>
                 </div>
-              </div>
-              <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
-                <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Active Connections</div>
-                <div className="hig-metric-value text-3xl" style={{ color: '#059669', WebkitTextFillColor: '#059669' }}>
-                  {cloudProviders.filter(p => p.status === 'connected').length}
-                </div>
-              </div>
-              <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
-                <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Total Resources</div>
-                <div className="hig-metric-value text-3xl text-gray-900 dark:text-gray-100">
-                  {formatNumber(cloudProviders.reduce((acc, p) => acc + p.resources.total, 0))}
-                </div>
-              </div>
+              ))}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Add Integration Modal */}
+      {/* Add Modal */}
       {showAddModal && (
-        <>
-          <div 
-            className="hig-modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4"
-            onClick={() => setShowAddModal(false)}
-          >
-            <div 
-              className="hig-modal p-0 max-w-4xl w-full flex flex-col max-h-[90vh]"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* Fixed Header */}
-              <div 
-                className="sticky top-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-gray-900/80 border-b border-gray-200 dark:border-gray-700/60 p-6 pb-4"
-                style={{
-                  WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-                  backdropFilter: 'blur(20px) saturate(180%)'
-                }}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <h2 className="hig-headline text-gray-900 dark:text-gray-100">Add Cloud Integration</h2>
-                  <button 
-                    onClick={() => setShowAddModal(false)} 
-                    className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
-                  >
-                    <span className="sr-only">Close</span>
-                    <svg className="w-6 h-6 fill-current" viewBox="0 0 24 24">
-                      <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-                    </svg>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }} onClick={() => setShowAddModal(false)}>
+          <div className="w-full max-w-lg rounded-xl overflow-hidden" style={{ backgroundColor: 'var(--soc-surface)', border: '1px solid var(--soc-border-mid)' }} onClick={(e) => e.stopPropagation()}>
+            <div className="px-5 py-4 border-b flex items-center justify-between" style={{ borderColor: 'var(--soc-border)' }}>
+              <h2 className="text-base font-bold" style={{ color: 'var(--soc-text)' }}>Add Cloud Integration</h2>
+              <button onClick={() => setShowAddModal(false)} className="text-sm w-7 h-7 flex items-center justify-center rounded" style={{ color: 'var(--soc-text-muted)', backgroundColor: 'var(--soc-raised)' }}>✕</button>
+            </div>
+            <div className="px-5 py-4">
+              <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+                {['AWS', 'Azure', 'Google Cloud', 'Oracle Cloud', 'Alibaba Cloud'].map((provider, idx) => (
+                  <button key={idx} className="soc-card p-4 text-center cursor-pointer" style={{ cursor: 'pointer' }}>
+                    <div className="text-3xl mb-2">☁️</div>
+                    <div className="text-sm font-semibold" style={{ color: 'var(--soc-text)' }}>{provider}</div>
                   </button>
-                </div>
-              </div>
-
-              {/* Scrollable Content */}
-              <div className="flex-1 overflow-y-auto px-6 py-6">
-                <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-                  {['AWS', 'Azure', 'Google Cloud', 'Oracle Cloud', 'Alibaba Cloud'].map((provider, idx) => (
-                    <button
-                      key={idx}
-                      className="hig-card p-4 text-center hover:bg-gray-50 dark:hover:bg-gray-700/30"
-                    >
-                      <div className="text-4xl mb-2">☁️</div>
-                      <div className="hig-body font-semibold text-gray-900 dark:text-gray-100">{provider}</div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Fixed Footer */}
-              <div 
-                className="sticky bottom-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-gray-900/80 border-t border-gray-200 dark:border-gray-700/60 p-6 pt-4"
-                style={{
-                  WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-                  backdropFilter: 'blur(20px) saturate(180%)'
-                }}
-              >
-                <button
-                  onClick={() => setShowAddModal(false)}
-                  className="hig-button hig-button-secondary w-full"
-                >
-                  Close
-                </button>
+                ))}
               </div>
             </div>
+            <div className="px-5 py-4 border-t" style={{ borderColor: 'var(--soc-border)' }}>
+              <button onClick={() => setShowAddModal(false)} className="soc-btn soc-btn-secondary w-full">Close</button>
+            </div>
           </div>
-        </>
+        </div>
       )}
     </div>
   )
 }
-

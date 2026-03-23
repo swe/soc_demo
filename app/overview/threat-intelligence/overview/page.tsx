@@ -1,345 +1,233 @@
 'use client'
 import { useEffect } from 'react'
 import { usePageTitle } from '@/app/page-title-context'
-import Link from 'next/link'
+
+const THREAT_ACTORS = [
+  { name: 'APT28 (Fancy Bear)',  country: 'Russia',       sectors: ['Government', 'Military', 'Energy'],               activity: 'high',     lastSeen: '2d ago',  techniques: ['T1566', 'T1078', 'T1059'] },
+  { name: 'Lazarus Group',       country: 'North Korea',  sectors: ['Financial', 'Cryptocurrency'],                    activity: 'critical', lastSeen: '1d ago',  techniques: ['T1195', 'T1048', 'T1486'] },
+  { name: 'APT29 (Cozy Bear)',   country: 'Russia',       sectors: ['Government', 'Think Tanks'],                      activity: 'medium',   lastSeen: '5d ago',  techniques: ['T1078', 'T1098'] },
+  { name: 'APT41',               country: 'China',        sectors: ['Healthcare', 'Technology', 'Telecom'],            activity: 'high',     lastSeen: '3d ago',  techniques: ['T1190', 'T1059'] },
+]
+
+const IOCS = [
+  { type: 'IP',     value: '192.0.2.146',          threat: 'C2 Server',         confidence: 95, source: 'MISP' },
+  { type: 'Domain', value: 'malicious-site.example', threat: 'Phishing',          confidence: 88, source: 'AlienVault' },
+  { type: 'Hash',   value: 'a3f5e7b2c8d1f4a9e6b3',  threat: 'Ransomware',         confidence: 92, source: 'VirusTotal' },
+  { type: 'Email',  value: 'phish@evil.net',         threat: 'Phishing Campaign',  confidence: 85, source: 'Internal' },
+  { type: 'URL',    value: 'http://drop.example/p',  threat: 'Malware Drop',       confidence: 78, source: 'URLhaus' },
+  { type: 'IP',     value: '91.219.236.197',         threat: 'Supply Chain C2',    confidence: 97, source: 'Internal' },
+]
+
+const CVES = [
+  { cve: 'CVE-2024-1234', severity: 'critical', cvss: 9.8, desc: 'Remote Code Execution in Apache Struts',       exploited: true,  daysAgo: 2 },
+  { cve: 'CVE-2024-9012', severity: 'critical', cvss: 9.1, desc: 'Authentication Bypass in Enterprise Software', exploited: true,  daysAgo: 1 },
+  { cve: 'CVE-2024-5678', severity: 'high',     cvss: 8.1, desc: 'SQL Injection in Web Application',             exploited: false, daysAgo: 5 },
+  { cve: 'CVE-2024-2341', severity: 'critical', cvss: 9.5, desc: 'Remote Code Execution in Log4j',               exploited: true,  daysAgo: 4 },
+]
+
+const SEV: Record<string, { color: string; bg: string }> = {
+  critical: { color: 'var(--soc-critical)', bg: 'var(--soc-critical-bg)' },
+  high:     { color: 'var(--soc-high)',     bg: 'var(--soc-high-bg)' },
+  medium:   { color: 'var(--soc-medium)',   bg: 'var(--soc-medium-bg)' },
+  low:      { color: 'var(--soc-low)',      bg: 'var(--soc-low-bg)' },
+}
 
 export default function ThreatIntelligenceOverview() {
   const { setPageTitle } = usePageTitle()
+  useEffect(() => { setPageTitle('Threat Intelligence') }, [setPageTitle])
 
-  useEffect(() => {
-    setPageTitle('Threat Intelligence')
-  }, [setPageTitle])
-
-  const threatActors = [
-    { name: 'APT28 (Fancy Bear)', country: 'Russia', targetSectors: ['Government', 'Military', 'Energy'], activity: 'High', lastSeen: '2 days ago' },
-    { name: 'Lazarus Group', country: 'North Korea', targetSectors: ['Financial', 'Cryptocurrency'], activity: 'Critical', lastSeen: '1 day ago' },
-    { name: 'APT29 (Cozy Bear)', country: 'Russia', targetSectors: ['Government', 'Think Tanks'], activity: 'Medium', lastSeen: '5 days ago' },
-    { name: 'APT41', country: 'China', targetSectors: ['Healthcare', 'Technology', 'Telecom'], activity: 'High', lastSeen: '3 days ago' },
-  ]
-
-  const recentIndicators = [
-    { type: 'IP', value: '192.0.2.146', threat: 'C2 Server', confidence: 95, source: 'MISP' },
-    { type: 'Domain', value: 'malicious-site.example', threat: 'Phishing', confidence: 88, source: 'AlienVault' },
-    { type: 'Hash', value: 'a3f5e...', threat: 'Ransomware', confidence: 92, source: 'VirusTotal' },
-    { type: 'Email', value: 'phish@evil.com', threat: 'Phishing Campaign', confidence: 85, source: 'Internal' },
-  ]
-
-  const vulnerabilities = [
-    { cve: 'CVE-2024-1234', severity: 'Critical', cvss: 9.8, description: 'Remote Code Execution in Popular Framework', publishedDays: 2, exploited: true },
-    { cve: 'CVE-2024-5678', severity: 'High', cvss: 8.1, description: 'SQL Injection in Web Application', publishedDays: 5, exploited: false },
-    { cve: 'CVE-2024-9012', severity: 'Critical', cvss: 9.1, description: 'Authentication Bypass in Enterprise Software', publishedDays: 1, exploited: true },
-  ]
+  const criticalActors = THREAT_ACTORS.filter(a => a.activity === 'critical').length
 
   return (
-    <div className="py-4 w-full max-w-7xl mx-auto">
-      <div className="mb-6 px-4 hig-fade-in">
-        <h1 className="hig-title-large text-gray-900 dark:text-gray-100 mb-2">Threat Intelligence</h1>
-        <p className="hig-body text-gray-600 dark:text-gray-400">Monitor emerging threats, indicators of compromise, and threat actor activities</p>
+    <div className="w-full max-w-7xl mx-auto px-6 py-6">
+
+      {/* Header */}
+      <div className="flex items-start justify-between mb-5 hig-fade-in">
+        <div>
+          <p className="soc-label mb-1">THREAT INTELLIGENCE</p>
+          <h1 className="text-xl font-bold tracking-tight mb-1.5" style={{ color: 'var(--soc-text)' }}>
+            Intelligence Overview
+          </h1>
+          <p className="text-sm" style={{ color: 'var(--soc-text-secondary)' }}>
+            {criticalActors > 0 && <><strong style={{ color: 'var(--soc-critical)' }}>{criticalActors} critical threat actor</strong> with active campaigns · </>}
+            {IOCS.length} active IOCs · {CVES.filter(c => c.exploited).length} exploited CVEs
+          </p>
+        </div>
+        <div className="flex items-center gap-2 mt-1">
+          <button className="soc-btn soc-btn-secondary">Export IOCs</button>
+          <button className="soc-btn soc-btn-primary">Add Feed</button>
+        </div>
       </div>
 
-      {/* Sticky Status Bar */}
-      <div className="sticky top-16 z-40 before:absolute before:inset-0 before:backdrop-blur-xl before:bg-white/80 dark:before:bg-gray-950/80 before:-z-10 border-b border-gray-200 dark:border-gray-700/60 mb-3 -mx-4 sm:-mx-6 lg:-mx-8">
-        <div className="px-4 sm:px-6 lg:px-8 py-3">
-          <div className="flex items-center justify-between text-sm">
-            <div className="flex items-center space-x-6">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-[#e11d48] rounded-full animate-pulse"></div>
-                <span className="hig-caption font-semibold text-gray-900 dark:text-gray-100">24 Active Threat Actors</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-[#ea580c] rounded-full"></div>
-                <span className="hig-caption font-semibold text-gray-900 dark:text-gray-100">1,247 IOCs</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-[#4f46e5] rounded-full"></div>
-                <span className="hig-caption font-semibold text-gray-900 dark:text-gray-100">12 Critical CVEs</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-[#059669] rounded-full"></div>
-                <span className="hig-caption font-semibold text-gray-900 dark:text-gray-100">15 Active Feeds</span>
-              </div>
+      {/* KPI row */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
+        {[
+          { label: 'THREAT ACTORS', value: THREAT_ACTORS.length, sub: `${criticalActors} critical`, color: 'var(--soc-critical)' },
+          { label: 'ACTIVE IOCs',   value: '1,247',              sub: `${IOCS.length} new today`,    color: 'var(--soc-text)' },
+          { label: 'CRITICAL CVEs', value: CVES.filter(c => c.severity === 'critical').length, sub: `${CVES.filter(c => c.exploited).length} with exploits`, color: 'var(--soc-critical)' },
+          { label: 'FEED SOURCES',  value: '15',                 sub: 'All feeds active',            color: 'var(--soc-low)' },
+        ].map(({ label, value, sub, color }) => (
+          <div key={label} className="soc-card">
+            <p className="soc-label mb-2">{label}</p>
+            <p className="soc-metric-sm mb-1" style={{ color }}>{value}</p>
+            <p className="text-xs" style={{ color: 'var(--soc-text-muted)' }}>{sub}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-12 gap-4">
+
+        {/* Left: threat actors + IOCs */}
+        <div className="col-span-12 lg:col-span-8 space-y-4">
+
+          {/* Threat actors */}
+          <div className="soc-card p-0 overflow-hidden">
+            <div className="px-4 py-3 border-b flex items-center justify-between" style={{ borderColor: 'var(--soc-border)' }}>
+              <p className="soc-label">ACTIVE THREAT ACTORS</p>
+              <span className="text-xs" style={{ color: 'var(--soc-text-muted)' }}>Updated daily</span>
             </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Stats Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-3 px-4">
-        <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
-          <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Active Threat Actors</div>
-          <div className="hig-metric-value text-4xl text-gray-900 dark:text-gray-100">24</div>
-          <div className="hig-caption text-[#e11d48] mt-1">+3 this week</div>
-        </div>
-
-        <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
-          <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">IOCs Detected</div>
-          <div className="hig-metric-value text-4xl" style={{ color: '#ea580c', WebkitTextFillColor: '#ea580c' }}>
-            1,247
-          </div>
-          <div className="hig-caption text-[#ea580c] mt-1">+89 today</div>
-        </div>
-
-        <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
-          <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Critical CVEs</div>
-          <div className="hig-metric-value text-4xl" style={{ color: '#4f46e5', WebkitTextFillColor: '#4f46e5' }}>
-            12
-          </div>
-          <div className="hig-caption text-[#e11d48] mt-1">3 exploited</div>
-        </div>
-
-        <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
-          <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Threat Feeds</div>
-          <div className="hig-metric-value text-4xl" style={{ color: '#4f46e5', WebkitTextFillColor: '#4f46e5' }}>
-            15
-          </div>
-          <div className="hig-caption text-[#4f46e5] mt-1">All active</div>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="grid grid-cols-12 gap-4 px-4">
-        
-        {/* Active Threat Actors */}
-        <div className="col-span-12 lg:col-span-6">
-          <div className="hig-card">
-            <div className="flex items-center justify-between mb-3 pb-4 border-b border-gray-200 dark:border-gray-700/60">
-              <h2 className="hig-headline text-gray-900 dark:text-gray-100">Active Threat Actors</h2>
-              <Link href="/overview/threat-intelligence/overview" className="hig-caption hig-link-hover font-semibold">
-                View All →
-              </Link>
-            </div>
-            <div className="space-y-0">
-              {threatActors.map((actor, idx) => {
-                const activityColor = actor.activity === 'Critical' ? '#e11d48' : actor.activity === 'High' ? '#ea580c' : '#d97706'
-                
-                return (
-                  <div key={idx} className={`flex items-center gap-4 p-4 ${
-                    idx !== threatActors.length - 1 ? 'border-b border-gray-200 dark:border-gray-700/60' : ''
-                  }`}>
-                    <div 
-                      className="w-1 h-12 rounded-full flex-shrink-0"
-                      style={{ 
-                        backgroundColor: activityColor,
-                        boxShadow: `0 0 8px ${activityColor}40`
-                      }}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <h3 className="hig-body font-semibold text-gray-900 dark:text-gray-100 mb-1">{actor.name}</h3>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="hig-caption text-gray-600 dark:text-gray-400">Origin: {actor.country}</span>
-                        <span className="hig-caption text-gray-400">•</span>
-                        <span className="hig-caption text-gray-600 dark:text-gray-400">{actor.lastSeen}</span>
-                        <span 
-                          className="hig-badge"
-                          style={{
-                            backgroundColor: `${activityColor}20`,
-                            color: activityColor
-                          }}
-                        >
-                          {actor.activity}
+            <table className="soc-table">
+              <thead>
+                <tr>
+                  <th>Actor</th>
+                  <th>Origin</th>
+                  <th>Target Sectors</th>
+                  <th>Activity</th>
+                  <th>MITRE TTPs</th>
+                  <th>Last Seen</th>
+                </tr>
+              </thead>
+              <tbody>
+                {THREAT_ACTORS.map((a) => {
+                  const s = SEV[a.activity] ?? SEV.medium
+                  return (
+                    <tr key={a.name}>
+                      <td><p className="text-sm font-semibold" style={{ color: 'var(--soc-text)' }}>{a.name}</p></td>
+                      <td><span className="text-xs" style={{ color: 'var(--soc-text-secondary)' }}>{a.country}</span></td>
+                      <td>
+                        <div className="flex gap-1 flex-wrap">
+                          {a.sectors.slice(0, 2).map(sec => (
+                            <span key={sec} className="soc-badge">{sec}</span>
+                          ))}
+                          {a.sectors.length > 2 && <span className="soc-badge">+{a.sectors.length - 2}</span>}
+                        </div>
+                      </td>
+                      <td>
+                        <span className="soc-badge" style={{ backgroundColor: s.bg, color: s.color }}>
+                          {a.activity.toUpperCase()}
                         </span>
-                      </div>
-                      <div className="flex flex-wrap gap-1 mt-2">
-                        {actor.targetSectors.map((sector, i) => (
-                          <span 
-                            key={i} 
-                            className="hig-badge"
-                            style={{
-                              backgroundColor: 'rgba(107, 114, 128, 0.2)',
-                              color: '#6b7280'
-                            }}
-                          >
-                            {sector}
-                          </span>
-                        ))}
+                      </td>
+                      <td>
+                        <div className="flex gap-1">
+                          {a.techniques.slice(0, 2).map(t => (
+                            <span key={t} className="soc-badge font-mono" style={{ backgroundColor: 'var(--soc-critical-bg)', color: 'var(--soc-critical)' }}>{t}</span>
+                          ))}
+                        </div>
+                      </td>
+                      <td><span className="text-xs tabular-nums" style={{ color: 'var(--soc-text-muted)' }}>{a.lastSeen}</span></td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          {/* IOCs */}
+          <div className="soc-card p-0 overflow-hidden">
+            <div className="px-4 py-3 border-b flex items-center justify-between" style={{ borderColor: 'var(--soc-border)' }}>
+              <p className="soc-label">INDICATORS OF COMPROMISE</p>
+              <button className="soc-link text-xs">Export all →</button>
+            </div>
+            <table className="soc-table">
+              <thead>
+                <tr>
+                  <th>Type</th>
+                  <th>Indicator</th>
+                  <th>Threat</th>
+                  <th className="text-right">Confidence</th>
+                  <th>Source</th>
+                </tr>
+              </thead>
+              <tbody>
+                {IOCS.map((ioc, i) => (
+                  <tr key={i}>
+                    <td><span className="soc-badge soc-badge-accent">{ioc.type}</span></td>
+                    <td><span className="text-xs font-mono" style={{ color: 'var(--soc-text)' }}>{ioc.value}</span></td>
+                    <td><span className="text-xs" style={{ color: 'var(--soc-text-secondary)' }}>{ioc.threat}</span></td>
+                    <td className="text-right">
+                      <span
+                        className="text-sm font-bold tabular-nums"
+                        style={{ color: ioc.confidence >= 90 ? 'var(--soc-critical)' : ioc.confidence >= 80 ? 'var(--soc-high)' : 'var(--soc-medium)' }}
+                      >
+                        {ioc.confidence}%
+                      </span>
+                    </td>
+                    <td><span className="soc-badge">{ioc.source}</span></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Right: CVEs + feed status */}
+        <div className="col-span-12 lg:col-span-4 space-y-4">
+
+          {/* Critical CVEs */}
+          <div className="soc-card">
+            <p className="soc-label mb-3">CRITICAL CVEs</p>
+            <div className="space-y-0">
+              {CVES.map((cve, i, arr) => {
+                const s = SEV[cve.severity]
+                return (
+                  <div
+                    key={cve.cve}
+                    className="py-3"
+                    style={{ borderBottom: i < arr.length - 1 ? '1px solid var(--soc-border)' : 'none' }}
+                  >
+                    <div className="flex items-start justify-between mb-1">
+                      <span className="text-xs font-mono font-bold" style={{ color: 'var(--soc-text)' }}>{cve.cve}</span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs font-bold" style={{ color: s.color }}>{cve.cvss}</span>
+                        {cve.exploited && <span className="soc-badge soc-badge-critical">EXPLOIT</span>}
                       </div>
                     </div>
+                    <p className="text-xs" style={{ color: 'var(--soc-text-secondary)' }}>{cve.desc}</p>
+                    <p className="text-xs mt-1" style={{ color: 'var(--soc-text-muted)' }}>Published {cve.daysAgo}d ago</p>
                   </div>
                 )
               })}
             </div>
           </div>
-        </div>
 
-        {/* Recent Indicators */}
-        <div className="col-span-12 lg:col-span-6">
-          <div className="hig-card">
-            <div className="flex items-center justify-between mb-3 pb-4 border-b border-gray-200 dark:border-gray-700/60">
-              <h2 className="hig-headline text-gray-900 dark:text-gray-100">Recent Indicators of Compromise</h2>
-              <Link href="/overview/threat-intelligence/overview" className="hig-caption hig-link-hover font-semibold">
-                View All →
-              </Link>
-            </div>
-            <div className="space-y-0">
-              {recentIndicators.map((ioc, idx) => {
-                const confidenceColor = ioc.confidence >= 90 ? '#e11d48' : '#ea580c'
-                
-                return (
-                  <div key={idx} className={`flex items-center gap-4 p-4 ${
-                    idx !== recentIndicators.length - 1 ? 'border-b border-gray-200 dark:border-gray-700/60' : ''
-                  }`}>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span 
-                          className="hig-badge"
-                          style={{
-                            backgroundColor: '#4f46e520',
-                            color: '#4f46e5'
-                          }}
-                        >
-                          {ioc.type}
-                        </span>
-                        <span className="hig-body font-mono text-gray-900 dark:text-gray-100">{ioc.value}</span>
-                      </div>
-                      <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">{ioc.threat}</div>
-                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                        <div 
-                          className="h-2 rounded-full" 
-                          style={{ 
-                            width: `${ioc.confidence}%`,
-                            backgroundColor: confidenceColor
-                          }}
-                        ></div>
-                      </div>
-                    </div>
-                    <div className="text-right flex-shrink-0">
-                      <div className="hig-body font-semibold text-gray-900 dark:text-gray-100">{ioc.confidence}%</div>
-                      <div className="hig-caption text-gray-500 dark:text-gray-400">{ioc.source}</div>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-        </div>
-
-        {/* Critical Vulnerabilities */}
-        <div className="col-span-12">
-          <div className="hig-card">
-            <div className="flex items-center justify-between mb-3 pb-4 border-b border-gray-200 dark:border-gray-700/60">
-              <h2 className="hig-headline text-gray-900 dark:text-gray-100">Critical Vulnerabilities</h2>
-              <Link href="/overview/vulnerability/dashboard" className="hig-caption hig-link-hover font-semibold">
-                View All →
-              </Link>
-            </div>
-            <div className="space-y-0">
-              {vulnerabilities.map((vuln, idx) => {
-                const severityColor = vuln.severity === 'Critical' ? '#e11d48' : '#ea580c'
-                
-                return (
-                  <div key={idx} className={`flex items-center gap-4 p-4 ${
-                    idx !== vulnerabilities.length - 1 ? 'border-b border-gray-200 dark:border-gray-700/60' : ''
-                  }`}>
-                    <div 
-                      className="w-1 h-12 rounded-full flex-shrink-0"
-                      style={{ 
-                        backgroundColor: severityColor,
-                        boxShadow: `0 0 8px ${severityColor}40`
-                      }}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="hig-body font-mono text-gray-900 dark:text-gray-100">{vuln.cve}</span>
-                        <span 
-                          className="hig-badge"
-                          style={{
-                            backgroundColor: `${severityColor}20`,
-                            color: severityColor
-                          }}
-                        >
-                          {vuln.severity}
-                        </span>
-                        {vuln.exploited && (
-                          <span 
-                            className="hig-badge"
-                            style={{
-                              backgroundColor: '#e11d4820',
-                              color: '#e11d48'
-                            }}
-                          >
-                            Actively Exploited
-                          </span>
-                        )}
-                      </div>
-                      <div className="hig-caption text-gray-600 dark:text-gray-400 mb-1">{vuln.description}</div>
-                      <div className="flex items-center gap-2 hig-caption text-gray-500 dark:text-gray-400">
-                        <span>CVSS: {vuln.cvss}</span>
-                        <span>•</span>
-                        <span>{vuln.publishedDays} days ago</span>
-                      </div>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-        </div>
-
-        {/* Threat Feed Status & Dark Web Quick Access */}
-        <div className="col-span-12 lg:col-span-6">
-          <div className="hig-card">
-            <div className="flex items-center justify-between mb-3 pb-4 border-b border-gray-200 dark:border-gray-700/60">
-              <h2 className="hig-headline text-gray-900 dark:text-gray-100">Threat Feed Status</h2>
-              <Link href="/overview/threat-intelligence/feeds" className="hig-caption hig-link-hover font-semibold">
-                Manage →
-              </Link>
-            </div>
-            <div className="space-y-0">
-              {[
-                { name: 'MISP Threat Sharing', status: 'active', lastUpdate: '2 min ago', indicators: 1247 },
-                { name: 'AlienVault OTX', status: 'active', lastUpdate: '5 min ago', indicators: 892 },
-                { name: 'Abuse.ch', status: 'active', lastUpdate: '10 min ago', indicators: 456 },
-                { name: 'VirusTotal', status: 'active', lastUpdate: '1 min ago', indicators: 2341 },
-              ].map((feed, idx) => (
-                <div key={idx} className={`flex items-center justify-between p-4 ${
-                  idx !== 3 ? 'border-b border-gray-200 dark:border-gray-700/60' : ''
-                }`}>
-                  <div className="flex items-center gap-3">
-                    <div className="w-2 h-2 bg-[#059669] rounded-full"></div>
-                    <div>
-                      <div className="hig-body font-medium text-gray-900 dark:text-gray-100">{feed.name}</div>
-                      <div className="hig-caption text-gray-500 dark:text-gray-400">{feed.lastUpdate} • {feed.indicators} indicators</div>
-                    </div>
-                  </div>
-                  <span className="hig-caption text-[#059669] font-medium">{feed.status.toUpperCase()}</span>
+          {/* Feed health */}
+          <div className="soc-card">
+            <p className="soc-label mb-3">FEED HEALTH</p>
+            {[
+              { name: 'MISP',         status: 'active', iocs: 523,  updated: '5m ago' },
+              { name: 'AlienVault OTX', status: 'active', iocs: 312,  updated: '12m ago' },
+              { name: 'VirusTotal',   status: 'active', iocs: 189,  updated: '3m ago' },
+              { name: 'URLhaus',      status: 'active', iocs: 78,   updated: '8m ago' },
+              { name: 'Internal',     status: 'active', iocs: 145,  updated: '1m ago' },
+            ].map((f, i, arr) => (
+              <div
+                key={f.name}
+                className="flex items-center justify-between py-2.5"
+                style={{ borderBottom: i < arr.length - 1 ? '1px solid var(--soc-border)' : 'none' }}
+              >
+                <div className="flex items-center gap-2">
+                  <div className="soc-dot" style={{ backgroundColor: 'var(--soc-low)' }} />
+                  <span className="text-xs" style={{ color: 'var(--soc-text)' }}>{f.name}</span>
                 </div>
-              ))}
-            </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-xs tabular-nums" style={{ color: 'var(--soc-text-muted)' }}>{f.iocs} IOCs</span>
+                  <span className="text-xs" style={{ color: 'var(--soc-text-muted)' }}>{f.updated}</span>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
-
-        {/* Dark Web Monitoring Quick Access */}
-        <div className="col-span-12 lg:col-span-6">
-          <div className="hig-card bg-gradient-to-br from-indigo-600 to-indigo-800 p-6 text-white">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="hig-headline text-white">Dark Web Monitoring</h2>
-              <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center text-2xl">
-                🌐
-              </div>
-            </div>
-            <p className="hig-body text-white/90 mb-4">Monitor mentions of your organization across dark web forums, marketplaces, and paste sites.</p>
-            <div className="grid grid-cols-3 gap-4 mb-4">
-              <div className="hig-card bg-white/10 p-3 text-center">
-                <div className="hig-metric-value text-white text-3xl" style={{ WebkitTextFillColor: 'white' }}>5</div>
-                <div className="hig-caption text-white/80 mt-1">New Mentions</div>
-              </div>
-              <div className="hig-card bg-white/10 p-3 text-center">
-                <div className="hig-metric-value text-white text-3xl" style={{ WebkitTextFillColor: 'white' }}>2</div>
-                <div className="hig-caption text-white/80 mt-1">Critical</div>
-              </div>
-              <div className="hig-card bg-white/10 p-3 text-center">
-                <div className="hig-metric-value text-white text-3xl" style={{ WebkitTextFillColor: 'white' }}>247</div>
-                <div className="hig-caption text-white/80 mt-1">Sources</div>
-              </div>
-            </div>
-            <Link href="/overview/threat-intelligence/dark-web" className="hig-button hig-button-secondary bg-white hover:bg-gray-100 text-indigo-700 w-full text-center">
-              View Dark Web Dashboard
-            </Link>
-          </div>
-        </div>
-
       </div>
     </div>
   )
 }
-

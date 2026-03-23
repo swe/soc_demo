@@ -11,142 +11,170 @@ export default function IntegrationsPage() {
     setPageTitle('Integrations')
   }, [setPageTitle])
 
-  return (
-    <div className="py-4 w-full max-w-7xl mx-auto">
-        {/* Integrations header */}
-        <div className="mb-6 px-4 hig-fade-in">
-          {/* Main title */}
-          <h1 className="hig-title-large text-gray-900 dark:text-gray-100 mb-2">Integrations</h1>
-          {/* Subheader */}
-          <p className="hig-body text-gray-600 dark:text-gray-400">Manage your third-party integrations and connections</p>
-        </div>
+  const integrations = [
+    { name: 'Splunk SIEM', type: 'SIEM', status: 'connected', lastSync: '2 min ago', events: '45,231', eventsDay: '45.2k/day', health: 100 },
+    { name: 'CrowdStrike Falcon', type: 'EDR', status: 'connected', lastSync: '1 min ago', events: '23,812', eventsDay: '23.8k/day', health: 98 },
+    { name: 'Palo Alto Firewall', type: 'Network', status: 'connected', lastSync: '5 min ago', events: '89,344', eventsDay: '89.3k/day', health: 100 },
+    { name: 'Microsoft Defender', type: 'Endpoint', status: 'connected', lastSync: '3 min ago', events: '34,109', eventsDay: '34.1k/day', health: 95 },
+    { name: 'Proofpoint Email', type: 'Email Security', status: 'connected', lastSync: '10 min ago', events: '12,700', eventsDay: '12.7k/day', health: 100 },
+    { name: 'Okta SSO', type: 'Identity', status: 'connected', lastSync: '1 min ago', events: '8,902', eventsDay: '8.9k/day', health: 100 },
+    { name: 'Tenable Nessus', type: 'Vulnerability', status: 'error', lastSync: '2 hours ago', events: '—', eventsDay: '0/day', health: 0 },
+    { name: 'Carbon Black', type: 'EDR', status: 'connected', lastSync: '4 min ago', events: '19,213', eventsDay: '19.2k/day', health: 97 },
+    { name: 'Cisco ISE', type: 'NAC', status: 'connected', lastSync: '7 min ago', events: '5,624', eventsDay: '5.6k/day', health: 92 },
+    { name: 'FortiGate', type: 'Firewall', status: 'warning', lastSync: '45 min ago', events: '67,421', eventsDay: '67.4k/day', health: 75 },
+    { name: 'AWS CloudTrail', type: 'Cloud', status: 'connected', lastSync: '2 min ago', events: '156,742', eventsDay: '156.7k/day', health: 100 },
+    { name: 'Azure Sentinel', type: 'SIEM', status: 'connected', lastSync: '3 min ago', events: '98,312', eventsDay: '98.3k/day', health: 99 },
+  ]
 
-        {/* Status bar - sticky top line */}
-        <div className="sticky top-16 z-40 before:absolute before:inset-0 before:backdrop-blur-xl before:bg-white/80 dark:before:bg-gray-950/80 before:-z-10 border-b border-gray-200 dark:border-gray-700/60 mb-6">
-          <div className="px-4 py-3 w-full">
-            <div className="flex items-center justify-between hig-caption">
-              <div className="flex items-center space-x-6">
-                {/* Errors */}
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-[#e11d48] rounded-full"></div>
-                  <span className="hig-caption font-semibold text-gray-900 dark:text-gray-100">Errors: 3</span>
-                </div>
-                
-                {/* Active integrations */}
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-[#059669] rounded-full"></div>
-                  <span className="hig-caption font-semibold text-gray-900 dark:text-gray-100">Active integrations: 8/12</span>
-                </div>
-                
-                {/* Last sync date and time */}
-                <div className="flex items-center gap-2">
-                  <svg className="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <span className="hig-caption text-gray-600 dark:text-gray-400">Last sync: Dec 15, 2024 14:30</span>
-                </div>
-              </div>
-              
-              {/* Buttons */}
-              <div className="flex items-center space-x-3">
-                {/* Sync All button */}
-                <button className="hig-button hig-button-secondary">
-                  Sync All
-                </button>
-                
-                {/* Add Integration button */}
-                <button className="hig-button hig-button-primary">
-                  Add Integration
-                </button>
-              </div>
-            </div>
+  const throughputRows = [
+    { name: 'AWS CloudTrail', type: 'Cloud', events: '156,742', alerts: 23, fp: '4.2%', health: 100 },
+    { name: 'Azure Sentinel', type: 'SIEM', events: '98,312', alerts: 45, fp: '6.1%', health: 99 },
+    { name: 'Splunk SIEM', type: 'SIEM', events: '45,231', alerts: 89, fp: '8.3%', health: 100 },
+    { name: 'Palo Alto Firewall', type: 'Network', events: '89,344', alerts: 12, fp: '2.1%', health: 100 },
+    { name: 'CrowdStrike Falcon', type: 'EDR', events: '23,812', alerts: 34, fp: '3.8%', health: 98 },
+    { name: 'FortiGate', type: 'Firewall', events: '67,421', alerts: 8, fp: '11.2%', health: 75 },
+    { name: 'Tenable Nessus', type: 'Vulnerability', events: '—', alerts: 0, fp: '—', health: 0 },
+  ]
+
+  const statusColor = (s: string) => s === 'connected' ? 'var(--soc-low)' : s === 'warning' ? 'var(--soc-high)' : 'var(--soc-critical)'
+  const statusBg = (s: string) => s === 'connected' ? 'var(--soc-low-bg)' : s === 'warning' ? 'var(--soc-high-bg)' : 'var(--soc-critical-bg)'
+  const healthColor = (h: number) => h >= 95 ? 'var(--soc-low)' : h >= 75 ? 'var(--soc-high)' : 'var(--soc-critical)'
+
+  const activeCount = integrations.filter(i => i.status === 'connected').length
+  const errorCount = integrations.filter(i => i.status === 'error').length
+  const totalEvents = '561.2k'
+
+  return (
+    <div className="w-full max-w-7xl mx-auto px-6 py-6 hig-fade-in">
+      {/* Header */}
+      <div className="flex items-start justify-between mb-6">
+        <div>
+          <div className="soc-label mb-1">ADMINISTRATION</div>
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 600, color: 'var(--soc-text)', lineHeight: 1.2 }}>Integrations</h1>
+          <p style={{ color: 'var(--soc-text-secondary)', fontSize: '0.875rem', marginTop: '0.25rem' }}>Manage third-party connections and data pipelines</p>
+        </div>
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <button className="soc-btn soc-btn-secondary">Sync All</button>
+          <button className="soc-btn soc-btn-primary">Add Integration</button>
+        </div>
+      </div>
+
+      {/* KPI Row */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {[
+          { label: 'ACTIVE', value: `${activeCount}/${integrations.length}`, sub: 'Integrations connected' },
+          { label: 'ERRORS', value: String(errorCount), sub: 'Require attention', accent: true, err: true },
+          { label: 'TOTAL EVENTS/DAY', value: totalEvents, sub: 'Across all sources', accent: true },
+          { label: 'LAST SYNC', value: '1 min ago', sub: 'Dec 15, 2024 14:30' },
+        ].map((kpi, i) => (
+          <div key={i} className="soc-card" style={{ padding: '1.25rem' }}>
+            <div className="soc-label mb-2">{kpi.label}</div>
+            <div className="soc-metric-lg" style={kpi.err ? { color: 'var(--soc-critical)' } : kpi.accent ? { color: 'var(--soc-accent)' } : {}}>{kpi.value}</div>
+            <div className="soc-metric-sm mt-1">{kpi.sub}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Integrations Table */}
+      <div className="soc-card mb-4" style={{ padding: 0 }}>
+        <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--soc-border)' }}>
+          <div className="flex items-center justify-between">
+            <span style={{ fontWeight: 600, color: 'var(--soc-text)', fontSize: '0.9375rem' }}>All Integrations</span>
+            <span className="soc-metric-sm">{integrations.length} total</span>
           </div>
         </div>
-
-        {/* Integrations Grid */}
-        <div className="grid grid-cols-12 gap-4 px-4">
-          {[
-            { name: 'Splunk SIEM', type: 'SIEM', status: 'connected', lastSync: '2 min ago', events: '45.2k/day', health: 100 },
-            { name: 'CrowdStrike Falcon', type: 'EDR', status: 'connected', lastSync: '1 min ago', events: '23.8k/day', health: 98 },
-            { name: 'Palo Alto Firewall', type: 'Network', status: 'connected', lastSync: '5 min ago', events: '89.3k/day', health: 100 },
-            { name: 'Microsoft Defender', type: 'Endpoint', status: 'connected', lastSync: '3 min ago', events: '34.1k/day', health: 95 },
-            { name: 'Proofpoint Email', type: 'Email Security', status: 'connected', lastSync: '10 min ago', events: '12.7k/day', health: 100 },
-            { name: 'Okta SSO', type: 'Identity', status: 'connected', lastSync: '1 min ago', events: '8.9k/day', health: 100 },
-            { name: 'Tenable Nessus', type: 'Vulnerability', status: 'error', lastSync: '2 hours ago', events: '0/day', health: 0 },
-            { name: 'Carbon Black', type: 'EDR', status: 'connected', lastSync: '4 min ago', events: '19.2k/day', health: 97 },
-            { name: 'Cisco ISE', type: 'NAC', status: 'connected', lastSync: '7 min ago', events: '5.6k/day', health: 92 },
-            { name: 'FortiGate', type: 'Firewall', status: 'warning', lastSync: '45 min ago', events: '67.4k/day', health: 75 },
-            { name: 'AWS CloudTrail', type: 'Cloud', status: 'connected', lastSync: '2 min ago', events: '156.7k/day', health: 100 },
-            { name: 'Azure Sentinel', type: 'SIEM', status: 'connected', lastSync: '3 min ago', events: '98.3k/day', health: 99 }
-          ].map((integration, idx) => (
-            <div key={idx} className="col-span-12 lg:col-span-6">
-              <div className="hig-card">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
-                      integration.status === 'connected' ? 'bg-[#059669]/20 dark:bg-[#059669]/20' :
-                      integration.status === 'warning' ? 'bg-[#ea580c]/20 dark:bg-[#ea580c]/20' :
-                      'bg-[#e11d48]/20 dark:bg-[#e11d48]/20'
-                    }`}>
-                      <svg className={`w-6 h-6 ${
-                        integration.status === 'connected' ? 'text-[#059669] dark:text-[#059669]' :
-                        integration.status === 'warning' ? 'text-[#ea580c] dark:text-[#ea580c]' :
-                        'text-[#e11d48] dark:text-[#e11d48]'
-                      }`} fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd" />
-                      </svg>
+        <div style={{ overflowX: 'auto' }}>
+          <table className="soc-table" style={{ width: '100%' }}>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Status</th>
+                <th>Events/Day</th>
+                <th>Health</th>
+                <th>Last Sync</th>
+                <th>Configure</th>
+              </tr>
+            </thead>
+            <tbody>
+              {integrations.map((intg, idx) => (
+                <tr key={idx}>
+                  <td style={{ fontWeight: 600, color: 'var(--soc-text)', fontSize: '0.875rem' }}>{intg.name}</td>
+                  <td>
+                    <span className="soc-badge" style={{ background: 'var(--soc-raised)', color: 'var(--soc-text-secondary)' }}>{intg.type}</span>
+                  </td>
+                  <td>
+                    <span className="soc-badge" style={{ backgroundColor: statusBg(intg.status), color: statusColor(intg.status) }}>
+                      {intg.status.toUpperCase()}
+                    </span>
+                  </td>
+                  <td style={{ color: 'var(--soc-text-secondary)', fontSize: '0.875rem', fontFamily: 'monospace' }}>{intg.eventsDay}</td>
+                  <td>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: '80px' }}>
+                      <div className="soc-progress-track" style={{ flex: 1 }}>
+                        <div className="soc-progress-fill" style={{ width: `${intg.health}%`, backgroundColor: healthColor(intg.health) }} />
+                      </div>
+                      <span style={{ fontSize: '0.8125rem', color: healthColor(intg.health), fontWeight: 600, minWidth: '2rem' }}>{intg.health}%</span>
                     </div>
-                    <div>
-                      <h3 className="hig-body font-semibold text-gray-900 dark:text-gray-100">{integration.name}</h3>
-                      <p className="hig-caption text-gray-600 dark:text-gray-400">{integration.type}</p>
-                    </div>
-                  </div>
-                  <span 
-                    className="hig-badge"
-                    style={{
-                      backgroundColor: integration.status === 'connected' ? '#05966920' :
-                                      integration.status === 'warning' ? '#ea580c20' :
-                                      '#e11d4820',
-                      color: integration.status === 'connected' ? '#059669' :
-                             integration.status === 'warning' ? '#ea580c' :
-                             '#e11d48'
-                    }}
-                  >
-                    {integration.status.toUpperCase()}
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4 mb-4">
-                  <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-3 text-center">
-                    <div className="hig-caption text-gray-600 dark:text-gray-400 mb-1">Events/Day</div>
-                    <div className="hig-body font-semibold text-gray-900 dark:text-gray-100">{integration.events}</div>
-                  </div>
-                  <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-3 text-center">
-                    <div className="hig-caption text-gray-600 dark:text-gray-400 mb-1">Health</div>
-                    <div 
-                      className="hig-body font-semibold"
-                      style={{
-                        color: integration.health >= 95 ? '#059669' :
-                               integration.health >= 75 ? '#ea580c' :
-                               '#e11d48',
-                        WebkitTextFillColor: integration.health >= 95 ? '#059669' :
-                                            integration.health >= 75 ? '#ea580c' :
-                                            '#e11d48'
-                      }}
-                    >
-                      {integration.health}%
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700/60">
-                  <span className="hig-caption text-gray-600 dark:text-gray-400">Last sync: {integration.lastSync}</span>
-                  <button className="hig-caption hig-link-hover">Configure →</button>
-                </div>
-              </div>
-            </div>
-          ))}
+                  </td>
+                  <td style={{ color: 'var(--soc-text-muted)', fontSize: '0.8125rem' }}>{intg.lastSync}</td>
+                  <td>
+                    <button className="soc-link" style={{ fontSize: '0.8125rem' }}>Configure →</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
+      </div>
+
+      {/* Throughput Summary */}
+      <div className="soc-card" style={{ padding: 0 }}>
+        <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--soc-border)' }}>
+          <div className="flex items-center justify-between">
+            <span style={{ fontWeight: 600, color: 'var(--soc-text)', fontSize: '0.9375rem' }}>Event Throughput Summary</span>
+            <span className="soc-metric-sm">Last 24 hours</span>
+          </div>
+        </div>
+        <div style={{ overflowX: 'auto' }}>
+          <table className="soc-table" style={{ width: '100%' }}>
+            <thead>
+              <tr>
+                <th>Integration</th>
+                <th>Type</th>
+                <th style={{ textAlign: 'right' }}>Events (24h)</th>
+                <th style={{ textAlign: 'right' }}>Alerts</th>
+                <th style={{ textAlign: 'right' }}>False Positive Rate</th>
+                <th>Health</th>
+              </tr>
+            </thead>
+            <tbody>
+              {throughputRows.map((row, i) => {
+                const hc = healthColor(row.health)
+                return (
+                  <tr key={i}>
+                    <td style={{ fontWeight: 600, color: 'var(--soc-text)', fontSize: '0.875rem' }}>{row.name}</td>
+                    <td>
+                      <span className="soc-badge" style={{ background: 'var(--soc-raised)', color: 'var(--soc-text-secondary)' }}>{row.type}</span>
+                    </td>
+                    <td style={{ textAlign: 'right', fontFamily: 'monospace', color: 'var(--soc-text)', fontSize: '0.875rem' }}>{row.events}</td>
+                    <td style={{ textAlign: 'right', color: 'var(--soc-text)', fontSize: '0.875rem' }}>{row.alerts}</td>
+                    <td style={{ textAlign: 'right', color: 'var(--soc-text-muted)', fontSize: '0.8125rem' }}>{row.fp}</td>
+                    <td>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: '90px' }}>
+                        <div className="soc-progress-track" style={{ flex: 1 }}>
+                          <div className="soc-progress-fill" style={{ width: `${row.health}%`, backgroundColor: hc }} />
+                        </div>
+                        <span style={{ fontSize: '0.8125rem', color: hc, fontWeight: 600, minWidth: '2.25rem' }}>{row.health}%</span>
+                      </div>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   )
 }

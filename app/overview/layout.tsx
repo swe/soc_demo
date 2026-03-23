@@ -10,13 +10,13 @@ export default function OverviewLayout({
 }) {  
   return (
     <div className="overview-dashboard">
-      <div className="flex h-[100dvh] overflow-hidden">
+      <div className="flex h-[100dvh] overflow-hidden" style={{ backgroundColor: 'var(--soc-bg)' }}>
 
         {/* Sidebar */}
         <Sidebar />
 
         {/* Content area */}
-        <div className="relative flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
+        <div className="relative flex flex-col flex-1 overflow-y-auto overflow-x-hidden" style={{ backgroundColor: 'var(--soc-bg)' }}>
 
           {/*  Site header */}
           <Header />

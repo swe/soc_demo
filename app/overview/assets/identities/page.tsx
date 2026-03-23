@@ -1,5 +1,4 @@
 'use client'
-
 import { useEffect, useState } from 'react'
 import { usePageTitle } from '@/app/page-title-context'
 
@@ -13,662 +12,251 @@ interface Identity {
   riskScore: number
   lastLogin: string
   mfaEnabled: boolean
-  permissions: string[]
   accessLevel: 'admin' | 'user' | 'guest'
-  // SOC-specific fields
   activeSessions?: number
-  accountCreated?: string
-  passwordLastChanged?: string
   failedLoginAttempts?: number
-  lastPasswordChange?: string
-  relatedIncidents?: Array<{
-    id: string
-    severity: 'critical' | 'high' | 'medium' | 'low'
-    title: string
-    date: string
-  }>
-  recentActivity?: Array<{
-    action: string
-    timestamp: string
-    location?: string
-    ip?: string
-  }>
   anomalousActivity?: boolean
+}
+
+const IDENTITIES: Identity[] = [
+  { id: 'USR-001', name: 'Peter Pan',       email: 'peter.pan@company.com',       role: 'Security Analyst',   department: 'Security Operations', status: 'active',   riskScore: 15, lastLogin: '5m ago',   mfaEnabled: true,  accessLevel: 'user',  activeSessions: 2, failedLoginAttempts: 0, anomalousActivity: false },
+  { id: 'USR-002', name: 'Sarah Chen',       email: 'sarah.chen@company.com',       role: 'SOC Manager',        department: 'Security Operations', status: 'active',   riskScore: 8,  lastLogin: '2h ago',   mfaEnabled: true,  accessLevel: 'admin', activeSessions: 1, failedLoginAttempts: 0, anomalousActivity: false },
+  { id: 'USR-003', name: 'Mike Johnson',     email: 'mike.johnson@company.com',     role: 'Developer',          department: 'Engineering',         status: 'inactive', riskScore: 42, lastLogin: '3d ago',   mfaEnabled: false, accessLevel: 'user',  activeSessions: 0, failedLoginAttempts: 3, anomalousActivity: true },
+  { id: 'USR-004', name: 'Sarah Williams',   email: 'sarah.williams@company.com',   role: 'Admin',              department: 'IT',                  status: 'active',   riskScore: 12, lastLogin: '1h ago',   mfaEnabled: true,  accessLevel: 'admin', activeSessions: 1, failedLoginAttempts: 0, anomalousActivity: false },
+  { id: 'USR-005', name: 'James Rodriguez', email: 'james.rodriguez@company.com',  role: 'Analyst II',         department: 'Security Operations', status: 'active',   riskScore: 20, lastLogin: '30m ago',  mfaEnabled: true,  accessLevel: 'user',  activeSessions: 2, failedLoginAttempts: 0, anomalousActivity: false },
+  { id: 'USR-006', name: 'Emily Taylor',    email: 'emily.taylor@company.com',     role: 'Analyst II',         department: 'Security Operations', status: 'active',   riskScore: 18, lastLogin: '1h ago',   mfaEnabled: true,  accessLevel: 'user',  activeSessions: 1, failedLoginAttempts: 0, anomalousActivity: false },
+  { id: 'USR-007', name: 'Alex Petrov',     email: 'alex.petrov@company.com',      role: 'Analyst I',          department: 'Security Operations', status: 'active',   riskScore: 25, lastLogin: '4h ago',   mfaEnabled: true,  accessLevel: 'user',  activeSessions: 1, failedLoginAttempts: 1, anomalousActivity: false },
+  { id: 'USR-008', name: 'Chris Thompson',  email: 'chris.thompson@company.com',   role: 'Finance Manager',    department: 'Finance',             status: 'active',   riskScore: 35, lastLogin: '20m ago',  mfaEnabled: false, accessLevel: 'user',  activeSessions: 1, failedLoginAttempts: 0, anomalousActivity: false },
+  { id: 'USR-009', name: 'Lisa Wong',       email: 'lisa.wong@company.com',        role: 'Cloud Architect',    department: 'Engineering',         status: 'active',   riskScore: 22, lastLogin: '3h ago',   mfaEnabled: true,  accessLevel: 'user',  activeSessions: 1, failedLoginAttempts: 0, anomalousActivity: false },
+  { id: 'USR-010', name: 'David Kim',       email: 'david.kim@company.com',        role: 'HR Director',        department: 'HR',                  status: 'locked',   riskScore: 58, lastLogin: '5d ago',   mfaEnabled: false, accessLevel: 'user',  activeSessions: 0, failedLoginAttempts: 7, anomalousActivity: true },
+]
+
+const STATUS_CONFIG = {
+  active:   { color: 'var(--soc-low)',      bg: 'var(--soc-low-bg)',      label: 'Active' },
+  inactive: { color: 'var(--soc-text-muted)',bg: 'var(--soc-overlay)',    label: 'Inactive' },
+  locked:   { color: 'var(--soc-critical)', bg: 'var(--soc-critical-bg)', label: 'Locked' },
+}
+
+const ACCESS_CONFIG = {
+  admin: { color: 'var(--soc-accent)', label: 'Admin' },
+  user:  { color: 'var(--soc-text-secondary)', label: 'User' },
+  guest: { color: 'var(--soc-text-muted)', label: 'Guest' },
 }
 
 export default function IdentitiesPage() {
   const { setPageTitle } = usePageTitle()
-  const [activeTab, setActiveTab] = useState<string>('all')
-  const [selectedIdentity, setSelectedIdentity] = useState<Identity | null>(null)
-  const [searchQuery, setSearchQuery] = useState('')
+  const [filter, setFilter] = useState('all')
+  const [search, setSearch] = useState('')
+  const [selected, setSelected] = useState<Identity | null>(null)
 
-  useEffect(() => {
-    setPageTitle('Identities')
-  }, [setPageTitle])
+  useEffect(() => { setPageTitle('Identities') }, [setPageTitle])
 
-  const identities: Identity[] = [
-    {
-      id: 'USR-001',
-      name: 'Peter Pan',
-      email: 'peter.pan@neverlands.art',
-      role: 'Security Analyst',
-      department: 'Security Operations',
-      status: 'active',
-      riskScore: 15,
-      lastLogin: '5 minutes ago',
-      mfaEnabled: true,
-      permissions: ['Read Alerts', 'Manage Incidents', 'View Reports'],
-      accessLevel: 'user',
-      activeSessions: 2,
-      accountCreated: '2023-03-15',
-      passwordLastChanged: '30 days ago',
-      failedLoginAttempts: 0,
-      relatedIncidents: [],
-      recentActivity: [
-        { action: 'Logged in', timestamp: '5 minutes ago', location: 'New York, US', ip: '192.168.1.45' },
-        { action: 'Viewed dashboard', timestamp: '1 hour ago', location: 'New York, US', ip: '192.168.1.45' },
-        { action: 'Accessed incident report', timestamp: '2 hours ago', location: 'New York, US', ip: '192.168.1.45' }
-      ],
-      anomalousActivity: false
-    },
-    {
-      id: 'USR-002',
-      name: 'Sarah Chen',
-      email: 'sarah.chen@neverlands.art',
-      role: 'SOC Manager',
-      department: 'Security Operations',
-      status: 'active',
-      riskScore: 8,
-      lastLogin: '2 hours ago',
-      mfaEnabled: true,
-      permissions: ['Full Access', 'User Management', 'System Configuration'],
-      accessLevel: 'admin',
-      activeSessions: 1,
-      accountCreated: '2022-11-20',
-      passwordLastChanged: '15 days ago',
-      failedLoginAttempts: 0,
-      relatedIncidents: [],
-      recentActivity: [
-        { action: 'Logged in', timestamp: '2 hours ago', location: 'San Francisco, US', ip: '10.0.2.15' },
-        { action: 'Modified user permissions', timestamp: '3 hours ago', location: 'San Francisco, US', ip: '10.0.2.15' }
-      ],
-      anomalousActivity: false
-    },
-    {
-      id: 'USR-003',
-      name: 'Mike Johnson',
-      email: 'mike.johnson@company.com',
-      role: 'Developer',
-      department: 'Engineering',
-      status: 'inactive',
-      riskScore: 42,
-      lastLogin: '3 days ago',
-      mfaEnabled: false,
-      permissions: ['Read Alerts', 'View Reports'],
-      accessLevel: 'user',
-      activeSessions: 0,
-      accountCreated: '2024-01-10',
-      passwordLastChanged: '90 days ago',
-      failedLoginAttempts: 3,
-      relatedIncidents: [
-        { id: 'INC-2024-0123', severity: 'medium', title: 'Suspicious login attempt', date: '3 days ago' }
-      ],
-      recentActivity: [
-        { action: 'Failed login attempt', timestamp: '3 days ago', location: 'Unknown', ip: '45.123.67.89' },
-        { action: 'Failed login attempt', timestamp: '4 days ago', location: 'Unknown', ip: '45.123.67.89' }
-      ],
-      anomalousActivity: true
-    },
-    {
-      id: 'USR-004',
-      name: 'Sarah Williams',
-      email: 'sarah.williams@company.com',
-      role: 'Admin',
-      department: 'IT',
-      status: 'active',
-      riskScore: 12,
-      lastLogin: '1 hour ago',
-      mfaEnabled: true,
-      permissions: ['Full Access', 'System Configuration'],
-      accessLevel: 'admin',
-      activeSessions: 3,
-      accountCreated: '2023-06-05',
-      passwordLastChanged: '7 days ago',
-      failedLoginAttempts: 0,
-      relatedIncidents: [],
-      recentActivity: [
-        { action: 'Logged in', timestamp: '1 hour ago', location: 'London, UK', ip: '172.16.0.42' },
-        { action: 'System configuration changed', timestamp: '2 hours ago', location: 'London, UK', ip: '172.16.0.42' }
-      ],
-      anomalousActivity: false
-    },
-    {
-      id: 'USR-005',
-      name: 'Robert Brown',
-      email: 'robert.brown@company.com',
-      role: 'Contractor',
-      department: 'External',
-      status: 'locked',
-      riskScore: 78,
-      lastLogin: '1 week ago',
-      mfaEnabled: false,
-      permissions: ['Read Only'],
-      accessLevel: 'guest',
-      activeSessions: 0,
-      accountCreated: '2024-02-01',
-      passwordLastChanged: 'Never',
-      failedLoginAttempts: 12,
-      relatedIncidents: [
-        { id: 'INC-2024-0189', severity: 'high', title: 'Multiple failed login attempts', date: '1 week ago' },
-        { id: 'INC-2024-0190', severity: 'critical', title: 'Account locked due to security breach', date: '1 week ago' }
-      ],
-      recentActivity: [
-        { action: 'Account locked', timestamp: '1 week ago', location: 'Unknown', ip: '203.0.113.45' },
-        { action: 'Multiple failed login attempts', timestamp: '1 week ago', location: 'Unknown', ip: '203.0.113.45' }
-      ],
-      anomalousActivity: true
-    }
-  ]
+  const filtered = IDENTITIES
+    .filter(i => filter === 'all' || i.status === filter || (filter === 'risk' && i.riskScore >= 40) || (filter === 'no-mfa' && !i.mfaEnabled))
+    .filter(i => !search || i.name.toLowerCase().includes(search.toLowerCase()) || i.email.toLowerCase().includes(search.toLowerCase()) || i.department.toLowerCase().includes(search.toLowerCase()))
 
-  const getStatusColor = (status: string): string => {
-    const colors: Record<string, string> = {
-      active: '#059669',      // System green
-      inactive: '#ea580c',    // System orange
-      locked: '#e11d48'       // System red
-    }
-    return colors[status] || '#6b7280'
-  }
-
-  const getRiskColor = (score: number): string => {
-    if (score >= 70) return '#e11d48'  // System red
-    if (score >= 40) return '#ea580c'  // System orange
-    return '#059669'                   // System green
-  }
-
-  const getAccessLevelColor = (level: string): string => {
-    const colors: Record<string, string> = {
-      admin: '#4f46e5',    // System purple
-      user: '#4f46e5',     // System blue
-      guest: '#6b7280'     // System gray
-    }
-    return colors[level] || '#6b7280'
-  }
-
-  const filteredIdentities = identities.filter(identity => {
-    const matchesTab = activeTab === 'all' || identity.accessLevel === activeTab
-    const matchesSearch = identity.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         identity.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         identity.department.toLowerCase().includes(searchQuery.toLowerCase())
-    return matchesTab && matchesSearch
-  })
-
-  const stats = {
-    total: identities.length,
-    active: identities.filter(i => i.status === 'active').length,
-    mfaEnabled: identities.filter(i => i.mfaEnabled).length,
-    atRisk: identities.filter(i => i.riskScore >= 70).length
+  const counts = {
+    total:    IDENTITIES.length,
+    active:   IDENTITIES.filter(i => i.status === 'active').length,
+    mfa:      IDENTITIES.filter(i => i.mfaEnabled).length,
+    anomalous:IDENTITIES.filter(i => i.anomalousActivity).length,
+    admins:   IDENTITIES.filter(i => i.accessLevel === 'admin').length,
   }
 
   return (
-    <div className="py-4 w-full max-w-7xl mx-auto">
-      <div className="mb-6 px-4 hig-fade-in">
-        <h1 className="hig-title-large text-gray-900 dark:text-gray-100 mb-2">Identity & Access Management</h1>
-        <p className="hig-body text-gray-600 dark:text-gray-400">Manage and monitor user identities, access rights, and permissions</p>
-      </div>
+    <div className="w-full max-w-7xl mx-auto px-6 py-6">
 
-      {/* Sticky User Statistics Bar */}
-      <div className="sticky top-16 z-40 before:absolute before:inset-0 before:backdrop-blur-xl before:bg-white/80 dark:before:bg-gray-950/80 before:-z-10 border-b border-gray-200 dark:border-gray-700/60 mb-3 -mx-4 sm:-mx-6 lg:-mx-8">
-        <div className="px-4 sm:px-6 lg:px-8 py-3">
-          <div className="flex items-center gap-8 flex-wrap">
-            <span className="hig-caption text-gray-600 dark:text-gray-400 font-medium">Users:</span>
-            <div className="flex items-center gap-2">
-              <span className="hig-caption font-semibold text-gray-900 dark:text-gray-100">{stats.total}</span>
-              <span className="hig-caption text-gray-600 dark:text-gray-400">Total</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-[#059669] rounded-full"></div>
-              <span className="hig-caption font-semibold text-[#059669]">{stats.active}</span>
-              <span className="hig-caption text-gray-600 dark:text-gray-400">Active</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-[#4f46e5] rounded-full"></div>
-              <span className="hig-caption font-semibold text-[#4f46e5]">{stats.mfaEnabled}</span>
-              <span className="hig-caption text-gray-600 dark:text-gray-400">MFA Enabled</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-[#e11d48] rounded-full"></div>
-              <span className="hig-caption font-semibold text-[#e11d48]">{stats.atRisk}</span>
-              <span className="hig-caption text-gray-600 dark:text-gray-400">High Risk</span>
-            </div>
-          </div>
+      {/* Header */}
+      <div className="flex items-start justify-between mb-5 hig-fade-in">
+        <div>
+          <p className="soc-label mb-1">IDENTITY & ACCESS</p>
+          <h1 className="text-xl font-bold tracking-tight mb-1.5" style={{ color: 'var(--soc-text)' }}>
+            Identities
+          </h1>
+          <p className="text-sm" style={{ color: 'var(--soc-text-secondary)' }}>
+            MFA coverage <strong style={{ color: Math.round((counts.mfa / counts.total) * 100) >= 80 ? 'var(--soc-low)' : 'var(--soc-medium)' }}>{Math.round((counts.mfa / counts.total) * 100)}%</strong> ·{' '}
+            {counts.anomalous > 0 && <><strong style={{ color: 'var(--soc-critical)' }}>{counts.anomalous}</strong> anomalous activity</>}
+          </p>
+        </div>
+        <div className="flex items-center gap-2 mt-1">
+          <button className="soc-btn soc-btn-secondary">Export</button>
+          <button className="soc-btn soc-btn-primary">Add User</button>
         </div>
       </div>
 
-      {/* Search and Filters */}
-      <div className="mb-6 px-4">
-        <div className="flex flex-col sm:flex-row gap-4 mb-4">
-          <div className="flex-1">
-            <input 
-              type="text"
-              placeholder="Search users..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="hig-input w-full"
-            />
+      {/* KPI row */}
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-5">
+        {[
+          { label: 'TOTAL',      value: counts.total,    color: 'var(--soc-text)' },
+          { label: 'ACTIVE',     value: counts.active,   color: 'var(--soc-low)' },
+          { label: 'MFA ENABLED',value: `${Math.round((counts.mfa / counts.total) * 100)}%`, color: counts.mfa / counts.total >= 0.8 ? 'var(--soc-low)' : 'var(--soc-medium)' },
+          { label: 'ADMINS',     value: counts.admins,   color: 'var(--soc-accent)' },
+          { label: 'ANOMALOUS',  value: counts.anomalous, color: counts.anomalous > 0 ? 'var(--soc-critical)' : 'var(--soc-low)' },
+        ].map(({ label, value, color }) => (
+          <div key={label} className="soc-card">
+            <p className="soc-label mb-2">{label}</p>
+            <p className="soc-metric-sm" style={{ color }}>{value}</p>
           </div>
-          <button className="hig-button hig-button-primary">
-            + Add User
-          </button>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {['all', 'admin', 'user', 'guest'].map(level => (
-            <button
-              key={level}
-              onClick={() => setActiveTab(level)}
-              className={`hig-button ${
-                activeTab === level
-                  ? 'hig-button-primary'
-                  : 'hig-button-secondary'
-              }`}
-            >
-              {level === 'all' ? 'All Users' : level.charAt(0).toUpperCase() + level.slice(1)}
-            </button>
-          ))}
-        </div>
+        ))}
       </div>
 
-      {/* Identities List */}
-      <div className="px-4">
-        <div className="hig-card">
-          <div className="p-6 border-b border-gray-200 dark:border-gray-700/60 mb-0">
-            <h2 className="hig-headline text-gray-900 dark:text-gray-100">Users & Access</h2>
-          </div>
-          <div className="divide-y divide-gray-200 dark:divide-gray-700/60">
-          {filteredIdentities.map((identity) => {
-            const statusColor = getStatusColor(identity.status)
-            const riskColor = getRiskColor(identity.riskScore)
-            const accessColor = getAccessLevelColor(identity.accessLevel)
-            
-            return (
-              <div
-                key={identity.id}
-                onClick={() => setSelectedIdentity(identity)}
-                className="p-6 hover:bg-gray-50 dark:hover:bg-gray-700/30 cursor-pointer"
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex items-center gap-4 flex-1">
-                    <div className="w-12 h-12 bg-[#4f46e5]/20 dark:bg-[#4f46e5]/20 rounded-full flex items-center justify-center flex-shrink-0">
-                      <span className="hig-body font-semibold text-[#4f46e5] dark:text-[#4f46e5]">
-                        {identity.name.split(' ').map(n => n[0]).join('')}
-                      </span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1 flex-wrap">
-                        <h3 className="hig-body font-semibold text-gray-900 dark:text-gray-100">{identity.name}</h3>
-                        <span 
-                          className="hig-badge"
-                          style={{
-                            backgroundColor: `${accessColor}20`,
-                            color: accessColor
-                          }}
-                        >
-                          {identity.accessLevel.toUpperCase()}
-                        </span>
-                        {identity.mfaEnabled && (
-                          <span 
-                            className="hig-badge"
-                            style={{
-                              backgroundColor: '#05966920',
-                              color: '#059669'
-                            }}
-                          >
-                            MFA
-                          </span>
-                        )}
-                      </div>
-                      <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">{identity.email}</div>
-                      <div className="flex items-center gap-4 flex-wrap hig-caption text-gray-600 dark:text-gray-400">
-                        <span>{identity.role} • {identity.department}</span>
-                        <span>Last login: {identity.lastLogin}</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4 flex-shrink-0">
-                    <div className="text-right">
-                      <div className="hig-caption text-gray-600 dark:text-gray-400 mb-1">Risk Score</div>
-                      <div 
-                        className="hig-metric-value text-3xl"
-                        style={{ 
-                          color: riskColor,
-                          WebkitTextFillColor: riskColor
-                        }}
-                      >
-                        {identity.riskScore}
-                      </div>
-                    </div>
-                    <span 
-                      className="hig-badge"
-                      style={{
-                        backgroundColor: `${statusColor}20`,
-                        color: statusColor
-                      }}
-                    >
-                      {identity.status.toUpperCase()}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            )
-          })}
-          </div>
-        </div>
-      </div>
-
-      {/* Identity Detail Modal */}
-      {selectedIdentity && (
-        <div 
-          className="hig-modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4"
-          onClick={() => setSelectedIdentity(null)}
-        >
-          <div 
-            className="hig-modal p-0 max-w-4xl w-full flex flex-col max-h-[90vh]" 
-            onClick={(e) => e.stopPropagation()}
+      {/* Filters + search */}
+      <div className="flex items-center gap-2 flex-wrap mb-4">
+        <input
+          className="soc-input text-xs"
+          placeholder="Search name, email, department…"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          style={{ width: '220px' }}
+        />
+        {['all', 'active', 'inactive', 'locked', 'no-mfa', 'risk'].map(f => (
+          <button
+            key={f}
+            onClick={() => setFilter(f)}
+            className="soc-btn text-xs"
+            style={filter === f
+              ? { backgroundColor: 'var(--soc-accent)', borderColor: 'var(--soc-accent)', color: '#fff' }
+              : { borderColor: 'var(--soc-border-mid)', color: 'var(--soc-text-secondary)', background: 'transparent' }}
           >
-            {/* Modal Header - Fixed */}
-            <div 
-              className="sticky top-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-gray-900/80 border-b border-gray-200 dark:border-gray-700/60 p-6 pb-4"
-              style={{
-                WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-                backdropFilter: 'blur(20px) saturate(180%)'
-              }}
-            >
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 bg-[#4f46e5]/20 dark:bg-[#4f46e5]/20 rounded-full flex items-center justify-center">
-                    <span className="hig-body font-semibold text-[#4f46e5] dark:text-[#4f46e5]">
-                      {selectedIdentity.name.split(' ').map(n => n[0]).join('')}
-                    </span>
-                  </div>
-                  <div>
-                    <h2 className="hig-headline text-gray-900 dark:text-gray-100 mb-1">
-                      {selectedIdentity.name}
-                    </h2>
-                    <div className="flex items-center gap-3 flex-wrap">
-                      <span className="hig-caption text-gray-600 dark:text-gray-400 font-mono">
-                        {selectedIdentity.id}
-                      </span>
-                      <span className="hig-caption text-gray-400">•</span>
-                      <span 
-                        className="hig-badge"
-                        style={{ 
-                          backgroundColor: `${getStatusColor(selectedIdentity.status)}20`,
-                          color: getStatusColor(selectedIdentity.status)
-                        }}
-                      >
-                        {selectedIdentity.status.toUpperCase()}
-                      </span>
-                      <span className="hig-caption text-gray-400">•</span>
-                      <span className="hig-caption text-gray-600 dark:text-gray-400">
-                        Last login: {selectedIdentity.lastLogin}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setSelectedIdentity(null)}
-                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+            {f === 'all' ? 'All' : f === 'no-mfa' ? 'No MFA' : f === 'risk' ? 'High Risk' : f.charAt(0).toUpperCase() + f.slice(1)}
+          </button>
+        ))}
+        <span className="text-xs" style={{ color: 'var(--soc-text-muted)' }}>{filtered.length} identities</span>
+      </div>
+
+      {/* Table */}
+      <div className="soc-card p-0 overflow-hidden">
+        <table className="soc-table">
+          <thead>
+            <tr>
+              <th>Identity</th>
+              <th>Role</th>
+              <th>Department</th>
+              <th>Access</th>
+              <th className="text-center">MFA</th>
+              <th className="text-center">Sessions</th>
+              <th className="text-center">Failed</th>
+              <th className="text-right">Risk</th>
+              <th>Status</th>
+              <th>Last Login</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map((id) => {
+              const sc = STATUS_CONFIG[id.status]
+              const ac = ACCESS_CONFIG[id.accessLevel]
+              return (
+                <tr
+                  key={id.id}
+                  className="cursor-pointer"
+                  onClick={() => setSelected(id)}
                 >
-                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-              {/* Risk Indicator Bar */}
-              <div 
-                className="h-1 rounded-full"
-                style={{
-                  backgroundColor: getRiskColor(selectedIdentity.riskScore),
-                  boxShadow: `0 0 8px ${getRiskColor(selectedIdentity.riskScore)}40`
-                }}
-              />
-            </div>
-
-            {/* User Info - Scrollable */}
-            <div className="flex-1 overflow-y-auto px-6 py-6">
-              <div className="space-y-6">
-                {/* Key Metrics */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                  <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
-                    <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Risk Score</div>
-                    <div 
-                      className="hig-metric-value text-4xl"
-                      style={{ 
-                        color: getRiskColor(selectedIdentity.riskScore),
-                        WebkitTextFillColor: getRiskColor(selectedIdentity.riskScore)
-                      }}
-                    >
-                      {selectedIdentity.riskScore}
-                    </div>
-                  </div>
-                  <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
-                    <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Active Sessions</div>
-                    <div className="hig-metric-value text-4xl text-gray-900 dark:text-gray-100">
-                      {selectedIdentity.activeSessions ?? 0}
-                    </div>
-                  </div>
-                  <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
-                    <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Failed Logins</div>
-                    <div 
-                      className="hig-metric-value text-4xl"
-                      style={{ 
-                        color: (selectedIdentity.failedLoginAttempts ?? 0) > 5 ? '#e11d48' : (selectedIdentity.failedLoginAttempts ?? 0) > 0 ? '#ea580c' : '#059669',
-                        WebkitTextFillColor: (selectedIdentity.failedLoginAttempts ?? 0) > 5 ? '#e11d48' : (selectedIdentity.failedLoginAttempts ?? 0) > 0 ? '#ea580c' : '#059669'
-                      }}
-                    >
-                      {selectedIdentity.failedLoginAttempts ?? 0}
-                    </div>
-                  </div>
-                  <div className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4 text-center">
-                    <div className="hig-caption text-gray-600 dark:text-gray-400 mb-2">Permissions</div>
-                    <div className="hig-metric-value text-4xl text-gray-900 dark:text-gray-100">
-                      {selectedIdentity.permissions.length}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Anomalous Activity Alert */}
-                {selectedIdentity.anomalousActivity && (
-                  <div className="hig-card bg-[#e11d48]/10 dark:bg-[#e11d48]/20 border border-[#e11d48]/30 p-4">
-                    <div className="flex items-center gap-3">
-                      <svg className="w-5 h-5 text-[#e11d48] flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                      </svg>
+                  <td>
+                    <div className="flex items-center gap-2.5">
+                      <div
+                        className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold"
+                        style={{ backgroundColor: 'var(--soc-accent-bg)', color: 'var(--soc-accent-text)' }}
+                      >
+                        {id.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                      </div>
                       <div>
-                        <div className="hig-body font-semibold text-[#e11d48] mb-1">Anomalous Activity Detected</div>
-                        <div className="hig-caption text-gray-600 dark:text-gray-400">This account shows unusual patterns and requires review</div>
+                        <div className="flex items-center gap-1.5">
+                          <p className="text-sm font-medium" style={{ color: 'var(--soc-text)' }}>{id.name}</p>
+                          {id.anomalousActivity && <span className="soc-badge soc-badge-critical">!</span>}
+                        </div>
+                        <p className="text-xs" style={{ color: 'var(--soc-text-muted)' }}>{id.email}</p>
                       </div>
                     </div>
-                  </div>
-                )}
+                  </td>
+                  <td><span className="text-xs" style={{ color: 'var(--soc-text-secondary)' }}>{id.role}</span></td>
+                  <td><span className="text-xs" style={{ color: 'var(--soc-text-secondary)' }}>{id.department}</span></td>
+                  <td><span className="soc-badge" style={{ color: ac.color, border: `1px solid ${ac.color}44`, background: 'transparent' }}>{ac.label}</span></td>
+                  <td className="text-center">
+                    {id.mfaEnabled
+                      ? <span style={{ color: 'var(--soc-low)', fontSize: '14px' }}>✓</span>
+                      : <span style={{ color: 'var(--soc-critical)', fontSize: '14px' }}>✗</span>
+                    }
+                  </td>
+                  <td className="text-center">
+                    <span className="text-sm tabular-nums" style={{ color: 'var(--soc-text)' }}>{id.activeSessions ?? 0}</span>
+                  </td>
+                  <td className="text-center">
+                    <span
+                      className="text-sm tabular-nums font-semibold"
+                      style={{ color: (id.failedLoginAttempts ?? 0) >= 3 ? 'var(--soc-critical)' : (id.failedLoginAttempts ?? 0) > 0 ? 'var(--soc-medium)' : 'var(--soc-text-muted)' }}
+                    >
+                      {id.failedLoginAttempts ?? 0}
+                    </span>
+                  </td>
+                  <td className="text-right">
+                    <span
+                      className="text-sm font-bold tabular-nums"
+                      style={{ color: id.riskScore >= 50 ? 'var(--soc-critical)' : id.riskScore >= 30 ? 'var(--soc-medium)' : 'var(--soc-low)' }}
+                    >
+                      {id.riskScore}
+                    </span>
+                  </td>
+                  <td>
+                    <span className="soc-badge" style={{ backgroundColor: sc.bg, color: sc.color }}>{sc.label}</span>
+                  </td>
+                  <td>
+                    <span className="text-xs" style={{ color: 'var(--soc-text-muted)' }}>{id.lastLogin}</span>
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
+      </div>
 
-                {/* Account Information */}
-                <div className="pb-4 border-b border-gray-200 dark:border-gray-700/60">
-                  <h3 className="hig-headline mb-4">Account Information</h3>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="hig-caption text-gray-600 dark:text-gray-400">Email:</span>
-                      <span className="hig-body text-gray-900 dark:text-gray-100 font-medium">{selectedIdentity.email}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="hig-caption text-gray-600 dark:text-gray-400">Role:</span>
-                      <span className="hig-body text-gray-900 dark:text-gray-100 font-medium">{selectedIdentity.role}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="hig-caption text-gray-600 dark:text-gray-400">Department:</span>
-                      <span className="hig-body text-gray-900 dark:text-gray-100 font-medium">{selectedIdentity.department}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="hig-caption text-gray-600 dark:text-gray-400">Access Level:</span>
-                      <span 
-                        className="hig-badge"
-                        style={{
-                          backgroundColor: `${getAccessLevelColor(selectedIdentity.accessLevel)}20`,
-                          color: getAccessLevelColor(selectedIdentity.accessLevel)
-                        }}
-                      >
-                        {selectedIdentity.accessLevel.toUpperCase()}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="hig-caption text-gray-600 dark:text-gray-400">MFA Status:</span>
-                      <span 
-                        className="hig-badge"
-                        style={{
-                          backgroundColor: selectedIdentity.mfaEnabled ? '#05966920' : '#e11d4820',
-                          color: selectedIdentity.mfaEnabled ? '#059669' : '#e11d48'
-                        }}
-                      >
-                        {selectedIdentity.mfaEnabled ? 'ENABLED' : 'DISABLED'}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="hig-caption text-gray-600 dark:text-gray-400">Account Created:</span>
-                      <span className="hig-body text-gray-900 dark:text-gray-100 font-medium">{selectedIdentity.accountCreated || 'N/A'}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="hig-caption text-gray-600 dark:text-gray-400">Password Last Changed:</span>
-                      <span className="hig-body text-gray-900 dark:text-gray-100 font-medium">{selectedIdentity.passwordLastChanged || 'Never'}</span>
-                    </div>
+      {/* Modal */}
+      {selected && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}
+          onClick={() => setSelected(null)}
+        >
+          <div
+            className="w-full max-w-lg flex flex-col max-h-[85vh] rounded-xl overflow-hidden"
+            style={{ backgroundColor: 'var(--soc-surface)', border: '1px solid var(--soc-border-mid)' }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="px-5 py-4 border-b flex items-center gap-3" style={{ borderColor: 'var(--soc-border)' }}>
+              <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold" style={{ backgroundColor: 'var(--soc-accent-bg)', color: 'var(--soc-accent-text)' }}>
+                {selected.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+              </div>
+              <div className="flex-1">
+                <h2 className="text-base font-bold" style={{ color: 'var(--soc-text)' }}>{selected.name}</h2>
+                <p className="text-xs" style={{ color: 'var(--soc-text-muted)' }}>{selected.email}</p>
+              </div>
+              <button onClick={() => setSelected(null)} className="text-sm w-7 h-7 flex items-center justify-center rounded" style={{ color: 'var(--soc-text-muted)', backgroundColor: 'var(--soc-raised)' }}>✕</button>
+            </div>
+            <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
+              <div className="flex gap-2">
+                <span className="soc-badge" style={{ backgroundColor: STATUS_CONFIG[selected.status].bg, color: STATUS_CONFIG[selected.status].color }}>{STATUS_CONFIG[selected.status].label}</span>
+                <span className="soc-badge" style={{ color: ACCESS_CONFIG[selected.accessLevel].color, border: `1px solid ${ACCESS_CONFIG[selected.accessLevel].color}44`, background: 'transparent' }}>{ACCESS_CONFIG[selected.accessLevel].label}</span>
+                {!selected.mfaEnabled && <span className="soc-badge soc-badge-high">MFA DISABLED</span>}
+                {selected.anomalousActivity && <span className="soc-badge soc-badge-critical">ANOMALOUS</span>}
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { label: 'ROLE',         value: selected.role },
+                  { label: 'DEPARTMENT',   value: selected.department },
+                  { label: 'RISK SCORE',   value: String(selected.riskScore) },
+                  { label: 'LAST LOGIN',   value: selected.lastLogin },
+                  { label: 'SESSIONS',     value: String(selected.activeSessions ?? 0) },
+                  { label: 'FAILED LOGINS',value: String(selected.failedLoginAttempts ?? 0) },
+                ].map(({ label, value }) => (
+                  <div key={label} className="p-3 rounded" style={{ backgroundColor: 'var(--soc-raised)' }}>
+                    <p className="soc-label mb-1">{label}</p>
+                    <p className="text-sm font-medium" style={{ color: 'var(--soc-text)' }}>{value}</p>
                   </div>
-                </div>
-
-                {/* Related Incidents */}
-                {selectedIdentity.relatedIncidents && selectedIdentity.relatedIncidents.length > 0 && (
-                  <div className="pb-4 border-b border-gray-200 dark:border-gray-700/60">
-                    <h3 className="hig-headline mb-4">Related Security Incidents</h3>
-                    <div className="space-y-3">
-                      {selectedIdentity.relatedIncidents.map((incident, idx) => {
-                        const severityColors: Record<string, string> = {
-                          critical: '#e11d48',
-                          high: '#ea580c',
-                          medium: '#d97706',
-                          low: '#4f46e5'
-                        }
-                        const severityColor = severityColors[incident.severity] || '#6b7280'
-                        return (
-                          <div key={idx} className="hig-card bg-gray-50 dark:bg-gray-700/30 p-4">
-                            <div className="flex items-start justify-between gap-3">
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <span className="hig-body font-semibold text-gray-900 dark:text-gray-100">{incident.title}</span>
-                                  <span 
-                                    className="hig-badge"
-                                    style={{
-                                      backgroundColor: `${severityColor}20`,
-                                      color: severityColor
-                                    }}
-                                  >
-                                    {incident.severity.toUpperCase()}
-                                  </span>
-                                </div>
-                                <div className="flex items-center gap-2 flex-wrap">
-                                  <span className="hig-caption text-gray-600 dark:text-gray-400 font-mono">{incident.id}</span>
-                                  <span className="hig-caption text-gray-400">•</span>
-                                  <span className="hig-caption text-gray-600 dark:text-gray-400">{incident.date}</span>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        )
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                {/* Recent Activity */}
-                {selectedIdentity.recentActivity && selectedIdentity.recentActivity.length > 0 && (
-                  <div className="pb-4 border-b border-gray-200 dark:border-gray-700/60">
-                    <h3 className="hig-headline mb-4">Recent Activity</h3>
-                    <div className="space-y-3">
-                      {selectedIdentity.recentActivity.slice(0, 5).map((activity, idx) => (
-                        <div key={idx} className="flex items-start gap-3 pb-3 border-b border-gray-200 dark:border-gray-700/60 last:border-0 last:pb-0">
-                          <div className="w-2 h-2 rounded-full bg-[#4f46e5] mt-2 flex-shrink-0"></div>
-                          <div className="flex-1 min-w-0">
-                            <div className="hig-body text-gray-900 dark:text-gray-100 font-medium mb-1">{activity.action}</div>
-                            <div className="flex items-center gap-2 flex-wrap hig-caption text-gray-600 dark:text-gray-400">
-                              <span>{activity.timestamp}</span>
-                              {activity.location && (
-                                <>
-                                  <span>•</span>
-                                  <span>{activity.location}</span>
-                                </>
-                              )}
-                              {activity.ip && (
-                                <>
-                                  <span>•</span>
-                                  <span className="font-mono">{activity.ip}</span>
-                                </>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Permissions */}
-                {selectedIdentity.permissions.length > 0 && (
-                  <div>
-                    <h3 className="hig-headline mb-4">Permissions</h3>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedIdentity.permissions.map((permission, idx) => (
-                        <span 
-                          key={idx} 
-                          className="hig-badge"
-                          style={{
-                            backgroundColor: 'rgba(107, 114, 128, 0.2)',
-                            color: '#6b7280'
-                          }}
-                        >
-                          {permission}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                ))}
               </div>
             </div>
-
-            {/* Fixed Footer */}
-            <div 
-              className="sticky bottom-0 z-10 backdrop-blur-xl backdrop-saturate-150 bg-white/80 dark:bg-gray-900/80 border-t border-gray-200 dark:border-gray-700/60 p-6 pt-4"
-              style={{
-                WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-                backdropFilter: 'blur(20px) saturate(180%)'
-              }}
-            >
-              <div className="grid grid-cols-2 gap-4">
-                <button className="hig-button hig-button-primary">
-                  Edit User
-                </button>
-                <button 
-                  className="hig-button"
-                  style={{
-                    backgroundColor: '#e11d48',
-                    color: 'white',
-                    transition: 'opacity 0.2s'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.opacity = '0.9'
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.opacity = '1'
-                  }}
-                >
-                  {selectedIdentity.status === 'locked' ? 'Unlock User' : 'Lock User'}
-                </button>
-              </div>
+            <div className="px-5 py-4 flex gap-3 border-t" style={{ borderColor: 'var(--soc-border)' }}>
+              <button className="soc-btn soc-btn-primary flex-1">Manage Access</button>
+              <button onClick={() => setSelected(null)} className="soc-btn soc-btn-secondary flex-1">Close</button>
             </div>
           </div>
         </div>
