@@ -1,8 +1,20 @@
 'use client'
 
-import { formatDate } from '@/lib/utils'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { usePageTitle } from '@/app/page-title-context'
+import {
+  OverviewAlert,
+  OverviewFilterMenu,
+  OverviewKpiRow,
+  OverviewModal,
+  OverviewPageHeader,
+  OverviewPageShell,
+  OverviewPagination,
+  OverviewProgressBar,
+  OverviewRowsPerPageMenu,
+  OverviewSection,
+  OverviewToggle,
+} from '@/components/overview/unified-ui'
 
 interface Training {
   id: string
@@ -23,8 +35,24 @@ interface Training {
 
 export default function TrainingsPage() {
   const { setPageTitle } = usePageTitle()
-  const [selectedCategory, setSelectedCategory] = useState<string>('all')
+  const [query, setQuery] = useState('')
+  const [selectedFilters, setSelectedFilters] = useState<string[]>([
+    'category:security-awareness',
+    'category:technical',
+    'category:incident-response',
+    'category:compliance',
+    'level:beginner',
+    'level:intermediate',
+    'level:advanced',
+  ])
+  const [certificateOnly, setCertificateOnly] = useState(false)
+  const [page, setPage] = useState(1)
+  const [rowsPerPage, setRowsPerPage] = useState(5)
   const [selectedTraining, setSelectedTraining] = useState<Training | null>(null)
+  const [enrollTraining, setEnrollTraining] = useState<Training | null>(null)
+  const [notifyManager, setNotifyManager] = useState(true)
+  const [enforceDeadline, setEnforceDeadline] = useState(false)
+  const [toast, setToast] = useState<string | null>(null)
 
   useEffect(() => {
     setPageTitle('Trainings')
@@ -58,7 +86,40 @@ export default function TrainingsPage() {
     return map[level] || 'var(--soc-border)'
   }
 
-  const filteredTrainings = selectedCategory === 'all' ? trainings : trainings.filter(t => t.category === selectedCategory)
+  const filterOptions = [
+    { id: 'category:security-awareness', label: 'Security Awareness', section: 'Category' },
+    { id: 'category:technical', label: 'Technical', section: 'Category' },
+    { id: 'category:incident-response', label: 'Incident Response', section: 'Category' },
+    { id: 'category:compliance', label: 'Compliance', section: 'Category' },
+    { id: 'level:beginner', label: 'Beginner', section: 'Level' },
+    { id: 'level:intermediate', label: 'Intermediate', section: 'Level' },
+    { id: 'level:advanced', label: 'Advanced', section: 'Level' },
+  ]
+
+  const visible = useMemo(() => {
+    const categories = new Set(selectedFilters.filter((id) => id.startsWith('category:')).map((id) => id.replace('category:', '')))
+    const levels = new Set(selectedFilters.filter((id) => id.startsWith('level:')).map((id) => id.replace('level:', '')))
+    const q = query.trim().toLowerCase()
+    return trainings
+      .filter((training) => categories.has(training.category))
+      .filter((training) => levels.has(training.level))
+      .filter((training) => !certificateOnly || training.certificate)
+      .filter((training) => {
+        if (!q) return true
+        return (
+          training.id.toLowerCase().includes(q) ||
+          training.title.toLowerCase().includes(q) ||
+          training.instructor.toLowerCase().includes(q)
+        )
+      })
+  }, [certificateOnly, query, selectedFilters, trainings])
+
+  const totalPages = Math.max(1, Math.ceil(visible.length / rowsPerPage))
+  const pagedRows = visible.slice((page - 1) * rowsPerPage, page * rowsPerPage)
+
+  useEffect(() => {
+    if (page > totalPages) setPage(1)
+  }, [page, totalPages])
 
   const stats = {
     total: trainings.length,
@@ -68,55 +129,77 @@ export default function TrainingsPage() {
   }
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-6 py-6 soc-fade-in">
-      {/* Header */}
-      <div className="flex items-start justify-between mb-5">
-        <div>
-          <p className="soc-label mb-1">KNOWLEDGE BASE</p>
-          <h1 className="text-xl font-bold tracking-tight mb-1.5" style={{ color: 'var(--soc-text)' }}>Security Training</h1>
-          <p className="text-sm" style={{ color: 'var(--soc-text-secondary)' }}>Access training courses and learning resources for security professionals</p>
+    <OverviewPageShell>
+      {toast ? (
+        <div className="mb-4">
+          <OverviewAlert tone="success" title={toast} />
         </div>
-      </div>
+      ) : null}
 
-      {/* KPI Row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
-        {[
-          { label: 'COURSES', value: String(stats.total), sub: 'Available' },
-          { label: 'TOTAL ENROLLED', value: String(stats.totalEnrolled), sub: 'Across all courses', accent: true },
-          { label: 'AVG COMPLETION', value: `${stats.avgCompletion}%`, sub: 'Completion rate', accent: true },
+      <OverviewPageHeader
+        section="KNOWLEDGE BASE"
+        title="Security Training"
+        description="Access training courses and learning resources for security professionals."
+      />
+
+      <OverviewKpiRow
+        items={[
+          { label: 'COURSES', value: stats.total, sub: 'Available' },
+          { label: 'TOTAL ENROLLED', value: stats.totalEnrolled, sub: 'Across all courses', tone: 'accent' },
+          { label: 'AVG COMPLETION', value: `${stats.avgCompletion}%`, sub: 'Completion rate', tone: 'accent' },
           { label: 'AVG SCORE', value: `${stats.avgScore}%`, sub: 'Test average' },
-        ].map((kpi, i) => (
-          <div key={i} className="soc-card">
-            <p className="soc-label mb-2">{kpi.label}</p>
-            <p className="soc-metric-lg" style={kpi.accent ? { color: 'var(--soc-accent)' } : {}}>{kpi.value}</p>
-            <p className="text-xs" style={{ color: 'var(--soc-text-muted)' }}>{kpi.sub}</p>
-          </div>
-        ))}
-      </div>
+        ]}
+      />
 
-      {/* Filters */}
-      <div style={{ marginBottom: '1.25rem', display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-        {['all', 'security-awareness', 'technical', 'incident-response', 'compliance'].map(category => (
-          <button
-            key={category}
-            onClick={() => setSelectedCategory(category)}
-            className={`soc-btn ${selectedCategory === category ? 'soc-btn-primary' : 'soc-btn-secondary'}`}
-          >
-            {category === 'all' ? 'All Categories' : category.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
-          </button>
-        ))}
-      </div>
-
-      {/* Courses Table */}
-      <div className="soc-card" style={{ padding: 0 }}>
-        <div className="px-4 py-3 border-b flex items-center justify-between" style={{ borderColor: 'var(--soc-border)' }}>
-          <p className="soc-label">COURSES</p>
-          <span className="text-xs" style={{ color: 'var(--soc-text-muted)' }}>{filteredTrainings.length} shown</span>
+      <div className="mb-4 flex items-center gap-2 flex-nowrap">
+        <input
+          className="soc-input h-9 min-h-9 w-72 shrink-0 text-sm"
+          placeholder="Search id, title, instructor..."
+          value={query}
+          onChange={(e) => {
+            setQuery(e.target.value)
+            setPage(1)
+          }}
+        />
+        <div className="ml-auto flex items-center gap-2">
+          <OverviewFilterMenu
+            options={filterOptions}
+            selected={selectedFilters}
+            onApply={(next) => {
+              setSelectedFilters(next)
+              setPage(1)
+            }}
+          />
+          <OverviewToggle
+            label="Certificate only"
+            checked={certificateOnly}
+            onChange={(next) => {
+              setCertificateOnly(next)
+              setPage(1)
+            }}
+          />
         </div>
-        <div style={{ overflowX: 'auto' }}>
+      </div>
+
+      <OverviewSection
+        title="COURSES"
+        flush
+        right={(
+          <OverviewRowsPerPageMenu
+            value={rowsPerPage}
+            options={[5, 10]}
+            onChange={(next) => {
+              setRowsPerPage(next)
+              setPage(1)
+            }}
+          />
+        )}
+      >
+        <div className="overflow-x-auto">
           <table className="soc-table" style={{ width: '100%' }}>
             <thead>
               <tr>
+                <th>ID</th>
                 <th>Course</th>
                 <th>Category</th>
                 <th>Level</th>
@@ -125,19 +208,22 @@ export default function TrainingsPage() {
                 <th>Avg Score</th>
                 <th>Completion</th>
                 <th>Due Date</th>
-                <th>Actions</th>
+                <th className="text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {filteredTrainings.map((training) => (
-                <tr key={training.id} style={{ cursor: 'pointer' }} onClick={() => setSelectedTraining(training)}>
+              {pagedRows.map((training) => (
+                <tr key={training.id}>
+                  <td className="font-mono text-xs" style={{ color: 'var(--soc-text-muted)' }}>{training.id}</td>
                   <td>
-                    <div style={{ fontWeight: 600, color: 'var(--soc-text)', fontSize: '0.875rem' }}>{training.title}</div>
-                    <div style={{ color: 'var(--soc-text-muted)', fontSize: '0.75rem' }}>{training.duration} · {training.modules} modules</div>
+                    <button type="button" className="text-left" onClick={() => setSelectedTraining(training)}>
+                      <p className="text-sm font-semibold" style={{ color: 'var(--soc-text)' }}>{training.title}</p>
+                      <p className="text-xs" style={{ color: 'var(--soc-text-muted)' }}>{training.duration} · {training.modules} modules</p>
+                    </button>
                   </td>
                   <td>
                     <span className="soc-badge" style={{ backgroundColor: getCategoryBg(training.category), color: getCategoryColor(training.category) }}>
-                      {training.category.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                      {training.category.split('-').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
                     </span>
                   </td>
                   <td>
@@ -145,84 +231,126 @@ export default function TrainingsPage() {
                       {training.level.toUpperCase()}
                     </span>
                   </td>
-                  <td style={{ color: 'var(--soc-text-secondary)', fontSize: '0.875rem' }}>{training.enrolled}</td>
-                  <td style={{ color: 'var(--soc-text-secondary)', fontSize: '0.875rem' }}>{training.completed}</td>
-                  <td style={{ color: 'var(--soc-text-secondary)', fontSize: '0.875rem' }}>{training.avgScore}%</td>
+                  <td style={{ color: 'var(--soc-text-secondary)' }}>{training.enrolled}</td>
+                  <td style={{ color: 'var(--soc-text-secondary)' }}>{training.completed}</td>
+                  <td style={{ color: 'var(--soc-text-secondary)' }}>{training.avgScore}%</td>
                   <td>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: '80px' }}>
-                      <div className="soc-progress-track" style={{ flex: 1 }}>
-                        <div className="soc-progress-fill" style={{ width: `${training.completionRate}%`, backgroundColor: 'var(--soc-accent)' }} />
-                      </div>
-                      <span style={{ fontSize: '0.8125rem', color: 'var(--soc-text-secondary)', fontWeight: 600, minWidth: '2.25rem' }}>{training.completionRate}%</span>
-                    </div>
+                    <OverviewProgressBar value={training.completionRate} color="var(--soc-accent)" />
                   </td>
-                  <td style={{ color: 'var(--soc-text-muted)', fontSize: '0.8125rem' }}>{training.dueDate}</td>
+                  <td style={{ color: 'var(--soc-text-muted)' }}>{training.dueDate}</td>
                   <td>
-                    <button className="soc-link" style={{ fontSize: '0.8125rem' }} onClick={(e) => { e.stopPropagation(); setSelectedTraining(training) }}>Start →</button>
+                    <div className="flex items-center justify-end gap-2">
+                      <button type="button" className="soc-link text-xs" onClick={() => setSelectedTraining(training)}>View</button>
+                      <button
+                        type="button"
+                        className="soc-link text-xs"
+                        onClick={() => {
+                          setEnrollTraining(training)
+                          setNotifyManager(true)
+                          setEnforceDeadline(false)
+                        }}
+                      >
+                        Start
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-      </div>
+        <OverviewPagination page={page} totalPages={totalPages} totalItems={visible.length} onPageChange={setPage} />
+      </OverviewSection>
 
-      {/* Training Detail Modal */}
-      {selectedTraining && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }} onClick={() => setSelectedTraining(null)}>
-          <div className="w-full max-w-lg rounded-xl overflow-hidden flex flex-col" style={{ backgroundColor: 'var(--soc-surface)', border: '1px solid var(--soc-border-mid)', maxHeight: '90vh' }} onClick={(e) => e.stopPropagation()}>
-            <div className="px-5 py-4 border-b flex items-start justify-between flex-shrink-0" style={{ borderColor: 'var(--soc-border)' }}>
-              <div>
-                <p className="soc-label mb-1 font-mono">{selectedTraining.id}</p>
-                <h2 className="text-base font-bold" style={{ color: 'var(--soc-text)' }}>{selectedTraining.title}</h2>
-              </div>
-              <button onClick={() => setSelectedTraining(null)} className="text-sm w-7 h-7 flex items-center justify-center rounded flex-shrink-0" style={{ color: 'var(--soc-text-muted)', backgroundColor: 'var(--soc-raised)' }}>✕</button>
-            </div>
-            <div className="px-5 py-4 overflow-y-auto space-y-4">
-              <div className="flex gap-2">
-                <span className="soc-badge" style={{ backgroundColor: getCategoryBg(selectedTraining.category), color: getCategoryColor(selectedTraining.category) }}>
-                  {selectedTraining.category.split('-').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
-                </span>
-                <span className="soc-badge" style={{ backgroundColor: getLevelBg(selectedTraining.level), color: getLevelColor(selectedTraining.level) }}>
-                  {selectedTraining.level.toUpperCase()}
-                </span>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  { label: 'DURATION',   value: selectedTraining.duration },
-                  { label: 'MODULES',    value: String(selectedTraining.modules) },
-                  { label: 'ENROLLED',   value: String(selectedTraining.enrolled) },
-                  { label: 'INSTRUCTOR', value: selectedTraining.instructor },
-                ].map(({ label, value }) => (
-                  <div key={label} className="p-3 rounded" style={{ backgroundColor: 'var(--soc-raised)' }}>
-                    <p className="soc-label mb-1">{label}</p>
-                    <p className="text-sm font-medium" style={{ color: 'var(--soc-text)' }}>{value}</p>
-                  </div>
-                ))}
-              </div>
-              <div>
-                <p className="soc-label mb-2">COMPLETION RATE</p>
-                <div className="flex items-center gap-3">
-                  <div className="flex-1 soc-progress-track">
-                    <div className="soc-progress-fill" style={{ width: `${selectedTraining.completionRate}%`, backgroundColor: 'var(--soc-accent)' }} />
-                  </div>
-                  <span className="text-sm font-bold" style={{ color: 'var(--soc-text)' }}>{selectedTraining.completionRate}%</span>
-                </div>
-              </div>
-              {selectedTraining.certificate && (
-                <div className="p-3 rounded" style={{ backgroundColor: 'var(--soc-medium-bg)' }}>
-                  <p className="text-sm font-semibold" style={{ color: 'var(--soc-medium)' }}>Certificate Available</p>
-                  <p className="text-xs mt-0.5" style={{ color: 'var(--soc-text-secondary)' }}>Certificate awarded upon completion</p>
-                </div>
-              )}
-            </div>
-            <div className="px-5 py-4 flex gap-3 border-t flex-shrink-0" style={{ borderColor: 'var(--soc-border)' }}>
-              <button className="soc-btn soc-btn-primary flex-1">Start Training</button>
-              <button onClick={() => setSelectedTraining(null)} className="soc-btn soc-btn-secondary flex-1">Close</button>
-            </div>
+      <OverviewModal
+        open={!!selectedTraining}
+        title={selectedTraining?.title || ''}
+        subtitle={selectedTraining?.id}
+        onClose={() => setSelectedTraining(null)}
+        maxWidth="max-w-2xl"
+        footer={(
+          <div className="flex items-center justify-end gap-2">
+            <button type="button" className="soc-btn soc-btn-secondary" onClick={() => setSelectedTraining(null)}>
+              Close
+            </button>
+            <button
+              type="button"
+              className="soc-btn soc-btn-primary"
+              onClick={() => {
+                if (!selectedTraining) return
+                setEnrollTraining(selectedTraining)
+                setSelectedTraining(null)
+              }}
+            >
+              Start Training
+            </button>
           </div>
+        )}
+      >
+        {selectedTraining ? (
+          <div className="space-y-4">
+            <div className="flex flex-wrap gap-2">
+              <span className="soc-badge" style={{ backgroundColor: getCategoryBg(selectedTraining.category), color: getCategoryColor(selectedTraining.category) }}>
+                {selectedTraining.category.split('-').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+              </span>
+              <span className="soc-badge" style={{ backgroundColor: getLevelBg(selectedTraining.level), color: getLevelColor(selectedTraining.level) }}>
+                {selectedTraining.level.toUpperCase()}
+              </span>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { label: 'Duration', value: selectedTraining.duration },
+                { label: 'Modules', value: String(selectedTraining.modules) },
+                { label: 'Enrolled', value: String(selectedTraining.enrolled) },
+                { label: 'Instructor', value: selectedTraining.instructor },
+              ].map((item) => (
+                <div key={item.label} className="soc-card-raised p-3">
+                  <p className="soc-label mb-1">{item.label.toUpperCase()}</p>
+                  <p className="text-sm font-semibold" style={{ color: 'var(--soc-text)' }}>{item.value}</p>
+                </div>
+              ))}
+            </div>
+            <div>
+              <p className="soc-label mb-2">COMPLETION RATE</p>
+              <OverviewProgressBar value={selectedTraining.completionRate} color="var(--soc-accent)" />
+            </div>
+            {selectedTraining.certificate ? (
+              <OverviewAlert tone="info" title="Certificate available for this course." />
+            ) : null}
+          </div>
+        ) : null}
+      </OverviewModal>
+
+      <OverviewModal
+        open={!!enrollTraining}
+        title={enrollTraining ? `Start ${enrollTraining.title}` : ''}
+        subtitle={enrollTraining?.id}
+        onClose={() => setEnrollTraining(null)}
+        maxWidth="max-w-xl"
+        footer={(
+          <div className="flex items-center justify-end gap-2">
+            <button type="button" className="soc-btn soc-btn-secondary" onClick={() => setEnrollTraining(null)}>
+              Cancel
+            </button>
+            <button
+              type="button"
+              className="soc-btn soc-btn-primary"
+              onClick={() => {
+                if (!enrollTraining) return
+                setToast(`${enrollTraining.id} enrollment started.`)
+                setEnrollTraining(null)
+              }}
+            >
+              Confirm Start
+            </button>
+          </div>
+        )}
+      >
+        <div className="space-y-3">
+          <OverviewToggle label="Notify manager" checked={notifyManager} onChange={setNotifyManager} />
+          <OverviewToggle label="Enforce due-date reminders" checked={enforceDeadline} onChange={setEnforceDeadline} />
         </div>
-      )}
-    </div>
+      </OverviewModal>
+    </OverviewPageShell>
   )
 }
