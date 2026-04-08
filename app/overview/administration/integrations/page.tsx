@@ -1,176 +1,469 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { usePageTitle } from '@/app/page-title-context'
+import {
+  type IntegrationRow,
+  IntegrationTable,
+  OverviewFilterMenu,
+  OverviewKpiRow,
+  OverviewModal,
+  OverviewPageHeader,
+  OverviewPageShell,
+  OverviewPagination,
+  OverviewRowsPerPageMenu,
+  OverviewSection,
+  OverviewStepModal,
+  OverviewTableToolbar,
+  OverviewToggle,
+} from '@/components/overview/unified-ui'
+
+const INTEGRATION_ROWS: IntegrationRow[] = [
+  { id: 'INT-401', name: 'Splunk SIEM', vendor: 'Splunk', category: 'siem', status: 'connected', lastSync: '2 min ago', eventsPerDay: 45231, version: '8.2.4', region: 'eu-central', healthScore: 100, description: 'Primary SIEM ingest path.', configKeys: ['index', 'token', 'sourcetype'] },
+  { id: 'INT-402', name: 'CrowdStrike Falcon', vendor: 'CrowdStrike', category: 'edr', status: 'connected', lastSync: '1 min ago', eventsPerDay: 23812, version: '7.1', region: 'global', healthScore: 98, description: 'Endpoint telemetry and prevention stream.', configKeys: ['client_id', 'client_secret'] },
+  { id: 'INT-403', name: 'Palo Alto Firewall', vendor: 'Palo Alto', category: 'network', status: 'connected', lastSync: '5 min ago', eventsPerDay: 89344, version: '11.0', region: 'hq', healthScore: 100, description: 'North-south network logs.', configKeys: ['collector', 'api_key'] },
+  { id: 'INT-404', name: 'Microsoft Defender', vendor: 'Microsoft', category: 'edr', status: 'connected', lastSync: '3 min ago', eventsPerDay: 34109, version: 'MDE', region: 'eu', healthScore: 95, description: 'Endpoint and identity signals.', configKeys: ['tenant', 'app_id'] },
+  { id: 'INT-405', name: 'Proofpoint Email', vendor: 'Proofpoint', category: 'email', status: 'connected', lastSync: '10 min ago', eventsPerDay: 12700, version: '2026.1', region: 'eu', healthScore: 100, description: 'Email threat telemetry and detections.' },
+  { id: 'INT-406', name: 'Okta SSO', vendor: 'Okta', category: 'identity', status: 'connected', lastSync: '1 min ago', eventsPerDay: 8902, version: 'v1', region: 'us-east', healthScore: 100, description: 'Identity/authentication events and risk context.' },
+  { id: 'INT-407', name: 'Tenable Nessus', vendor: 'Tenable', category: 'vulnerability', status: 'disconnected', lastSync: '2 hours ago', eventsPerDay: 0, version: '10.6', region: 'eu-central', healthScore: 0, description: 'Scanner token expired. Re-authentication required.' },
+  { id: 'INT-408', name: 'Carbon Black', vendor: 'VMware', category: 'edr', status: 'connected', lastSync: '4 min ago', eventsPerDay: 19213, version: '8.9', region: 'eu', healthScore: 97, description: 'Secondary EDR source for contractor fleet.' },
+  { id: 'INT-409', name: 'Cisco ISE', vendor: 'Cisco', category: 'network', status: 'connected', lastSync: '7 min ago', eventsPerDay: 5624, version: '3.2', region: 'hq', healthScore: 92, description: 'NAC and identity-device linkage.' },
+  { id: 'INT-410', name: 'FortiGate', vendor: 'Fortinet', category: 'network', status: 'degraded', lastSync: '45 min ago', eventsPerDay: 67421, version: '7.4', region: 'branch', healthScore: 75, description: 'Intermittent API throttling on branch clusters.' },
+  { id: 'INT-411', name: 'AWS CloudTrail', vendor: 'AWS', category: 'other', status: 'connected', lastSync: '2 min ago', eventsPerDay: 156742, version: 'native', region: 'multi-region', healthScore: 100, description: 'Cloud control-plane telemetry.' },
+  { id: 'INT-412', name: 'Azure Sentinel', vendor: 'Microsoft', category: 'siem', status: 'connected', lastSync: '3 min ago', eventsPerDay: 98312, version: 'native', region: 'westeurope', healthScore: 99, description: 'Dedicated azure-native telemetry route.' },
+]
+
+const FILTER_OPTIONS = [
+  { id: 'status:connected', label: 'Connected', section: 'Status' },
+  { id: 'status:degraded', label: 'Degraded', section: 'Status' },
+  { id: 'status:disconnected', label: 'Disconnected', section: 'Status' },
+  { id: 'category:siem', label: 'SIEM', section: 'Category' },
+  { id: 'category:edr', label: 'EDR', section: 'Category' },
+  { id: 'category:network', label: 'Network', section: 'Category' },
+  { id: 'category:identity', label: 'Identity', section: 'Category' },
+  { id: 'category:vulnerability', label: 'Vulnerability', section: 'Category' },
+  { id: 'category:email', label: 'Email', section: 'Category' },
+]
 
 export default function IntegrationsPage() {
   const { setPageTitle } = usePageTitle()
-  const [activeTab, setActiveTab] = useState('tab-a')
+  const [rows, setRows] = useState<IntegrationRow[]>(INTEGRATION_ROWS)
+  const [query, setQuery] = useState('')
+  const [selectedFilters, setSelectedFilters] = useState<string[]>([])
+  const [showOnlyIssues, setShowOnlyIssues] = useState(false)
+  const [syncOpen, setSyncOpen] = useState(false)
+  const [addOpen, setAddOpen] = useState(false)
+  const [addStep, setAddStep] = useState(0)
+  const [activeAction, setActiveAction] = useState<{
+    type: 'test' | 'reconnect' | 'configure' | 'logs'
+    row: IntegrationRow
+  } | null>(null)
+  const [page, setPage] = useState(1)
+  const [rowsPerPage, setRowsPerPage] = useState(5)
+
+  const [newName, setNewName] = useState('')
+  const [newVendor, setNewVendor] = useState('')
+  const [newCategory, setNewCategory] = useState<IntegrationRow['category']>('siem')
+  const [newRegion, setNewRegion] = useState('eu-central')
+  const [syncScope, setSyncScope] = useState<'all' | 'connected' | 'issues'>('all')
+  const [syncIncludeDisconnected, setSyncIncludeDisconnected] = useState(true)
+  const [syncNotify, setSyncNotify] = useState(true)
+  const [syncReason, setSyncReason] = useState('Routine platform sync window')
+  const [actionNote, setActionNote] = useState('')
+  const [configRegion, setConfigRegion] = useState('eu-central')
+  const [configVersionTag, setConfigVersionTag] = useState('patch')
 
   useEffect(() => {
     setPageTitle('Integrations')
   }, [setPageTitle])
 
-  const integrations = [
-    { name: 'Splunk SIEM', type: 'SIEM', status: 'connected', lastSync: '2 min ago', events: '45,231', eventsDay: '45.2k/day', health: 100 },
-    { name: 'CrowdStrike Falcon', type: 'EDR', status: 'connected', lastSync: '1 min ago', events: '23,812', eventsDay: '23.8k/day', health: 98 },
-    { name: 'Palo Alto Firewall', type: 'Network', status: 'connected', lastSync: '5 min ago', events: '89,344', eventsDay: '89.3k/day', health: 100 },
-    { name: 'Microsoft Defender', type: 'Endpoint', status: 'connected', lastSync: '3 min ago', events: '34,109', eventsDay: '34.1k/day', health: 95 },
-    { name: 'Proofpoint Email', type: 'Email Security', status: 'connected', lastSync: '10 min ago', events: '12,700', eventsDay: '12.7k/day', health: 100 },
-    { name: 'Okta SSO', type: 'Identity', status: 'connected', lastSync: '1 min ago', events: '8,902', eventsDay: '8.9k/day', health: 100 },
-    { name: 'Tenable Nessus', type: 'Vulnerability', status: 'error', lastSync: '2 hours ago', events: '—', eventsDay: '0/day', health: 0 },
-    { name: 'Carbon Black', type: 'EDR', status: 'connected', lastSync: '4 min ago', events: '19,213', eventsDay: '19.2k/day', health: 97 },
-    { name: 'Cisco ISE', type: 'NAC', status: 'connected', lastSync: '7 min ago', events: '5,624', eventsDay: '5.6k/day', health: 92 },
-    { name: 'FortiGate', type: 'Firewall', status: 'warning', lastSync: '45 min ago', events: '67,421', eventsDay: '67.4k/day', health: 75 },
-    { name: 'AWS CloudTrail', type: 'Cloud', status: 'connected', lastSync: '2 min ago', events: '156,742', eventsDay: '156.7k/day', health: 100 },
-    { name: 'Azure Sentinel', type: 'SIEM', status: 'connected', lastSync: '3 min ago', events: '98,312', eventsDay: '98.3k/day', health: 99 },
-  ]
+  useEffect(() => {
+    if (!activeAction) return
+    setActionNote('')
+    setConfigRegion(activeAction.row.region ?? 'eu-central')
+    setConfigVersionTag('patch')
+  }, [activeAction])
 
-  const throughputRows = [
-    { name: 'AWS CloudTrail', type: 'Cloud', events: '156,742', alerts: 23, fp: '4.2%', health: 100 },
-    { name: 'Azure Sentinel', type: 'SIEM', events: '98,312', alerts: 45, fp: '6.1%', health: 99 },
-    { name: 'Splunk SIEM', type: 'SIEM', events: '45,231', alerts: 89, fp: '8.3%', health: 100 },
-    { name: 'Palo Alto Firewall', type: 'Network', events: '89,344', alerts: 12, fp: '2.1%', health: 100 },
-    { name: 'CrowdStrike Falcon', type: 'EDR', events: '23,812', alerts: 34, fp: '3.8%', health: 98 },
-    { name: 'FortiGate', type: 'Firewall', events: '67,421', alerts: 8, fp: '11.2%', health: 75 },
-    { name: 'Tenable Nessus', type: 'Vulnerability', events: '—', alerts: 0, fp: '—', health: 0 },
-  ]
+  const visibleRows = useMemo(() => {
+    const statusFilters = selectedFilters
+      .filter((id) => id.startsWith('status:'))
+      .map((id) => id.replace('status:', '')) as IntegrationRow['status'][]
+    const categoryFilters = selectedFilters
+      .filter((id) => id.startsWith('category:'))
+      .map((id) => id.replace('category:', '')) as IntegrationRow['category'][]
+    const q = query.trim().toLowerCase()
 
-  const statusColor = (s: string) => s === 'connected' ? 'var(--soc-low)' : s === 'warning' ? 'var(--soc-high)' : 'var(--soc-critical)'
-  const statusBg = (s: string) => s === 'connected' ? 'var(--soc-low-bg)' : s === 'warning' ? 'var(--soc-high-bg)' : 'var(--soc-critical-bg)'
-  const healthColor = (h: number) => h >= 95 ? 'var(--soc-low)' : h >= 75 ? 'var(--soc-high)' : 'var(--soc-critical)'
+    return rows
+      .filter((row) => statusFilters.length === 0 || statusFilters.includes(row.status))
+      .filter((row) => categoryFilters.length === 0 || categoryFilters.includes(row.category))
+      .filter((row) => !showOnlyIssues || row.status !== 'connected' || row.healthScore < 95)
+      .filter((row) => !q || row.name.toLowerCase().includes(q) || row.vendor.toLowerCase().includes(q) || row.id.toLowerCase().includes(q))
+  }, [rows, selectedFilters, showOnlyIssues, query])
 
-  const activeCount = integrations.filter(i => i.status === 'connected').length
-  const errorCount = integrations.filter(i => i.status === 'error').length
-  const totalEvents = '561.2k'
+  const totalPages = Math.max(1, Math.ceil(visibleRows.length / rowsPerPage))
+  const pagedRows = visibleRows.slice((page - 1) * rowsPerPage, page * rowsPerPage)
+
+  useEffect(() => {
+    if (page > totalPages) setPage(1)
+  }, [page, totalPages])
+
+  const connectedCount = rows.filter((i) => i.status === 'connected').length
+  const issueCount = rows.filter((i) => i.status !== 'connected' || i.healthScore < 95).length
+  const totalEvents = rows.reduce((sum, row) => sum + row.eventsPerDay, 0)
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-6 py-6 soc-fade-in">
-      {/* Header */}
-      <div className="flex items-start justify-between mb-5">
-        <div>
-          <p className="soc-label mb-1">ADMINISTRATION</p>
-          <h1 className="text-xl font-bold tracking-tight mb-1.5" style={{ color: 'var(--soc-text)' }}>Integrations</h1>
-          <p className="text-sm" style={{ color: 'var(--soc-text-secondary)' }}>Manage third-party connections and data pipelines</p>
-        </div>
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <button className="soc-btn soc-btn-secondary">Sync All</button>
-          <button className="soc-btn soc-btn-primary">Add Integration</button>
-        </div>
-      </div>
+    <OverviewPageShell>
+      <OverviewPageHeader
+        section="ADMINISTRATION"
+        title="Integrations"
+        description="Manage third-party connections, sync posture, and ingestion health through one standardized administration layout."
+        actions={[
+          { id: 'sync-all', label: 'Sync All', variant: 'secondary', onClick: () => setSyncOpen(true) },
+          { id: 'add-integration', label: 'Add Integration', variant: 'primary', onClick: () => setAddOpen(true) },
+        ]}
+      />
 
-      {/* KPI Row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
-        {[
-          { label: 'ACTIVE', value: `${activeCount}/${integrations.length}`, sub: 'Integrations connected' },
-          { label: 'ERRORS', value: String(errorCount), sub: 'Require attention', accent: true, err: true },
-          { label: 'TOTAL EVENTS/DAY', value: totalEvents, sub: 'Across all sources', accent: true },
-          { label: 'LAST SYNC', value: '1 min ago', sub: 'Dec 15, 2024 14:30' },
-        ].map((kpi, i) => (
-          <div key={i} className="soc-card">
-            <p className="soc-label mb-2">{kpi.label}</p>
-            <p className="soc-metric-lg" style={kpi.err ? { color: 'var(--soc-critical)' } : kpi.accent ? { color: 'var(--soc-accent)' } : {}}>{kpi.value}</p>
-            <p className="text-xs" style={{ color: 'var(--soc-text-muted)' }}>{kpi.sub}</p>
+      <OverviewKpiRow
+        columns={4}
+        items={[
+          { label: 'ACTIVE', value: `${connectedCount}/${rows.length}`, sub: 'Integrations connected', tone: 'low' },
+          { label: 'ISSUES', value: issueCount, sub: 'Need attention', tone: issueCount > 0 ? 'critical' : 'default' },
+          { label: 'TOTAL EVENTS/DAY', value: totalEvents.toLocaleString(), sub: 'Across all integrations', tone: 'accent' },
+          { label: 'LATEST SYNC', value: '1 min ago', sub: 'Platform-wide refresh clock' },
+        ]}
+      />
+
+      <OverviewTableToolbar
+        searchValue={query}
+        onSearchChange={(value) => {
+          setQuery(value)
+          setPage(1)
+        }}
+        searchPlaceholder="Search integration, vendor, or id..."
+        end={(
+          <div className="flex w-full items-center justify-end gap-2 whitespace-nowrap">
+            <OverviewFilterMenu
+              options={FILTER_OPTIONS}
+              selected={selectedFilters}
+              onApply={(next) => {
+                setSelectedFilters(next)
+                setPage(1)
+              }}
+            />
+            <OverviewToggle
+              label="Issue focus"
+              checked={showOnlyIssues}
+              onChange={(next) => {
+                setShowOnlyIssues(next)
+                setPage(1)
+              }}
+            />
           </div>
-        ))}
-      </div>
+        )}
+      />
 
-      {/* Integrations Table */}
-      <div className="soc-card mb-4" style={{ padding: 0 }}>
-        <div className="px-4 py-3 border-b flex items-center justify-between" style={{ borderColor: 'var(--soc-border)' }}>
-          <p className="soc-label">ALL INTEGRATIONS</p>
-          <span className="text-xs" style={{ color: 'var(--soc-text-muted)' }}>{integrations.length} total</span>
-        </div>
-        <div style={{ overflowX: 'auto' }}>
-          <table className="soc-table" style={{ width: '100%' }}>
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Type</th>
-                <th>Status</th>
-                <th>Events/Day</th>
-                <th>Health</th>
-                <th>Last Sync</th>
-                <th>Configure</th>
-              </tr>
-            </thead>
-            <tbody>
-              {integrations.map((intg, idx) => (
-                <tr key={idx}>
-                  <td style={{ fontWeight: 600, color: 'var(--soc-text)', fontSize: '0.875rem' }}>{intg.name}</td>
-                  <td>
-                    <span className="soc-badge" style={{ background: 'var(--soc-raised)', color: 'var(--soc-text-secondary)' }}>{intg.type}</span>
-                  </td>
-                  <td>
-                    <span className="soc-badge" style={{ backgroundColor: statusBg(intg.status), color: statusColor(intg.status) }}>
-                      {intg.status.toUpperCase()}
-                    </span>
-                  </td>
-                  <td style={{ color: 'var(--soc-text-secondary)', fontSize: '0.875rem', fontFamily: 'monospace' }}>{intg.eventsDay}</td>
-                  <td>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: '80px' }}>
-                      <div className="soc-progress-track" style={{ flex: 1 }}>
-                        <div className="soc-progress-fill" style={{ width: `${intg.health}%`, backgroundColor: healthColor(intg.health) }} />
-                      </div>
-                      <span style={{ fontSize: '0.8125rem', color: healthColor(intg.health), fontWeight: 600, minWidth: '2rem' }}>{intg.health}%</span>
-                    </div>
-                  </td>
-                  <td style={{ color: 'var(--soc-text-muted)', fontSize: '0.8125rem' }}>{intg.lastSync}</td>
-                  <td>
-                    <button className="soc-link" style={{ fontSize: '0.8125rem' }}>Configure →</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <OverviewSection
+        title="ALL INTEGRATIONS"
+        right={(
+          <OverviewRowsPerPageMenu
+            value={rowsPerPage}
+            options={[5, 10]}
+            onChange={(next) => {
+              setRowsPerPage(next)
+              setPage(1)
+            }}
+          />
+        )}
+      >
+        <IntegrationTable
+          rows={pagedRows}
+          onAction={(type, row) => {
+            setActiveAction({ type, row })
+          }}
+        />
+        <OverviewPagination page={page} totalPages={totalPages} totalItems={visibleRows.length} onPageChange={setPage} />
+      </OverviewSection>
 
-      {/* Throughput Summary */}
-      <div className="soc-card" style={{ padding: 0 }}>
-        <div className="px-4 py-3 border-b flex items-center justify-between" style={{ borderColor: 'var(--soc-border)' }}>
-          <p className="soc-label">EVENT THROUGHPUT</p>
-          <span className="text-xs" style={{ color: 'var(--soc-text-muted)' }}>Last 24 hours</span>
-        </div>
-        <div style={{ overflowX: 'auto' }}>
-          <table className="soc-table" style={{ width: '100%' }}>
-            <thead>
-              <tr>
-                <th>Integration</th>
-                <th>Type</th>
-                <th style={{ textAlign: 'right' }}>Events (24h)</th>
-                <th style={{ textAlign: 'right' }}>Alerts</th>
-                <th style={{ textAlign: 'right' }}>False Positive Rate</th>
-                <th>Health</th>
-              </tr>
-            </thead>
-            <tbody>
-              {throughputRows.map((row, i) => {
-                const hc = healthColor(row.health)
-                return (
-                  <tr key={i}>
-                    <td style={{ fontWeight: 600, color: 'var(--soc-text)', fontSize: '0.875rem' }}>{row.name}</td>
-                    <td>
-                      <span className="soc-badge" style={{ background: 'var(--soc-raised)', color: 'var(--soc-text-secondary)' }}>{row.type}</span>
-                    </td>
-                    <td style={{ textAlign: 'right', fontFamily: 'monospace', color: 'var(--soc-text)', fontSize: '0.875rem' }}>{row.events}</td>
-                    <td style={{ textAlign: 'right', color: 'var(--soc-text)', fontSize: '0.875rem' }}>{row.alerts}</td>
-                    <td style={{ textAlign: 'right', color: 'var(--soc-text-muted)', fontSize: '0.8125rem' }}>{row.fp}</td>
-                    <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: '90px' }}>
-                        <div className="soc-progress-track" style={{ flex: 1 }}>
-                          <div className="soc-progress-fill" style={{ width: `${row.health}%`, backgroundColor: hc }} />
-                        </div>
-                        <span style={{ fontSize: '0.8125rem', color: hc, fontWeight: 600, minWidth: '2.25rem' }}>{row.health}%</span>
-                      </div>
-                    </td>
-                  </tr>
+      <OverviewModal
+        open={syncOpen}
+        title="Sync All Integrations"
+        subtitle="PIPELINE ACTION"
+        onClose={() => setSyncOpen(false)}
+        footer={(
+          <div className="flex justify-end gap-2">
+            <button type="button" className="soc-btn soc-btn-secondary text-xs" onClick={() => setSyncOpen(false)}>
+              Cancel
+            </button>
+            <button
+              type="button"
+              className="soc-btn soc-btn-primary text-xs"
+              onClick={() => {
+                setRows((prev) =>
+                  prev.map((row) => ({
+                    ...row,
+                    lastSync: 'Just now',
+                    status: row.status === 'disconnected' ? 'pending' : row.status,
+                  }))
                 )
-              })}
-            </tbody>
-          </table>
+                setSyncOpen(false)
+              }}
+            >
+              Run Sync
+            </button>
+          </div>
+        )}
+      >
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+            <label className="text-xs font-medium text-[color:var(--soc-text-muted)]">
+              Sync scope
+              <select className="soc-input mt-1 w-full text-sm" value={syncScope} onChange={(e) => setSyncScope(e.target.value as 'all' | 'connected' | 'issues')}>
+                <option value="all">All integrations</option>
+                <option value="connected">Connected only</option>
+                <option value="issues">Issue-only (degraded/disconnected)</option>
+              </select>
+            </label>
+            <label className="text-xs font-medium text-[color:var(--soc-text-muted)]">
+              Change note
+              <input className="soc-input mt-1 w-full text-sm" value={syncReason} onChange={(e) => setSyncReason(e.target.value)} />
+            </label>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <OverviewToggle label="Include disconnected" checked={syncIncludeDisconnected} onChange={setSyncIncludeDisconnected} />
+            <OverviewToggle label="Notify on completion" checked={syncNotify} onChange={setSyncNotify} />
+          </div>
+          <div className="rounded-md border border-[color:var(--soc-border)] bg-[color:var(--soc-raised)] p-3 text-xs text-[color:var(--soc-text-secondary)]">
+            <p className="font-semibold text-[color:var(--soc-text)]">Execution preview</p>
+            <p className="mt-1">
+              Scope: {syncScope}. {syncIncludeDisconnected ? 'Disconnected integrations will move to pending.' : 'Disconnected integrations are skipped.'}
+            </p>
+            <p className="mt-1">Completion signal: {syncNotify ? 'SOC notification + activity log entry.' : 'Activity log entry only.'}</p>
+          </div>
         </div>
-      </div>
-    </div>
+      </OverviewModal>
+
+      <OverviewModal
+        open={!!activeAction}
+        title={
+          activeAction?.type === 'test'
+            ? `Test Connection: ${activeAction.row.name}`
+            : activeAction?.type === 'reconnect'
+              ? `Reconnect Integration: ${activeAction.row.name}`
+            : activeAction?.type === 'configure'
+              ? `Configure Integration: ${activeAction.row.name}`
+              : activeAction?.type === 'logs'
+                ? `View Logs: ${activeAction.row.name}`
+                : ''
+        }
+        subtitle="INTEGRATION ACTION"
+        onClose={() => setActiveAction(null)}
+        footer={(
+          <div className="flex justify-end gap-2">
+            <button type="button" className="soc-btn soc-btn-secondary text-xs" onClick={() => setActiveAction(null)}>
+              Cancel
+            </button>
+            <button
+              type="button"
+              className="soc-btn soc-btn-primary text-xs"
+              onClick={() => {
+                if (!activeAction) return
+                if (activeAction.type === 'test') {
+                  setRows((prev) =>
+                    prev.map((r) =>
+                      r.id === activeAction.row.id
+                        ? { ...r, status: 'connected', healthScore: Math.max(85, r.healthScore), lastSync: 'Just now' }
+                        : r
+                    )
+                  )
+                }
+                if (activeAction.type === 'reconnect') {
+                  setRows((prev) =>
+                    prev.map((r) =>
+                      r.id === activeAction.row.id
+                        ? { ...r, status: 'pending', lastSync: 'Reconnect queued', healthScore: Math.max(40, r.healthScore) }
+                        : r
+                    )
+                  )
+                }
+                if (activeAction.type === 'configure') {
+                  setRows((prev) =>
+                    prev.map((r) =>
+                      r.id === activeAction.row.id
+                        ? { ...r, version: `${configVersionTag}:${r.version ?? 'configured'}`, region: configRegion, lastSync: 'Just now' }
+                        : r
+                    )
+                  )
+                }
+                setActiveAction(null)
+              }}
+            >
+              {activeAction?.type === 'logs' ? 'Close' : 'Apply'}
+            </button>
+          </div>
+        )}
+      >
+        {activeAction?.type === 'test' ? (
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-3 text-xs">
+              <div className="rounded-md border border-[color:var(--soc-border)] p-3">
+                <p className="soc-label mb-1">Current Health</p>
+                <p className="text-sm font-semibold text-[color:var(--soc-text)]">{activeAction.row.healthScore}%</p>
+              </div>
+              <div className="rounded-md border border-[color:var(--soc-border)] p-3">
+                <p className="soc-label mb-1">Last Sync</p>
+                <p className="text-sm font-semibold text-[color:var(--soc-text)]">{activeAction.row.lastSync}</p>
+              </div>
+            </div>
+            <label className="text-xs font-medium text-[color:var(--soc-text-muted)]">
+              Test note
+              <input className="soc-input mt-1 w-full text-sm" value={actionNote} onChange={(e) => setActionNote(e.target.value)} placeholder="Connectivity validation before release cutover" />
+            </label>
+            <p className="text-xs text-[color:var(--soc-text-secondary)]">
+              Test executes auth handshake, API latency probe, and event sample ingestion check.
+            </p>
+          </div>
+        ) : activeAction?.type === 'reconnect' ? (
+          <div className="space-y-4">
+            <div className="rounded-md border border-[color:var(--soc-border)] bg-[color:var(--soc-raised)] p-3 text-xs text-[color:var(--soc-text-secondary)]">
+              <p className="font-semibold text-[color:var(--soc-text)]">Reconnect flow</p>
+              <p className="mt-1">Queues credential handshake, endpoint reachability test, and initial event poll.</p>
+            </div>
+            <label className="text-xs font-medium text-[color:var(--soc-text-muted)]">
+              Reconnect reason
+              <textarea className="soc-input mt-1 w-full text-sm" rows={3} value={actionNote} onChange={(e) => setActionNote(e.target.value)} />
+            </label>
+          </div>
+        ) : activeAction?.type === 'configure' ? (
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+              <label className="text-xs font-medium text-[color:var(--soc-text-muted)]">
+                Target region
+                <input className="soc-input mt-1 w-full text-sm" value={configRegion} onChange={(e) => setConfigRegion(e.target.value)} />
+              </label>
+              <label className="text-xs font-medium text-[color:var(--soc-text-muted)]">
+                Version tag
+                <select className="soc-input mt-1 w-full text-sm" value={configVersionTag} onChange={(e) => setConfigVersionTag(e.target.value)}>
+                  <option value="patch">Patch update</option>
+                  <option value="minor">Minor upgrade</option>
+                  <option value="major">Major upgrade</option>
+                </select>
+              </label>
+            </div>
+            <label className="text-xs font-medium text-[color:var(--soc-text-muted)]">
+              Change note
+              <textarea className="soc-input mt-1 w-full text-sm" rows={3} value={actionNote} onChange={(e) => setActionNote(e.target.value)} />
+            </label>
+            <p className="text-xs text-[color:var(--soc-text-secondary)]">
+              Configuration update writes metadata, rotates connector token references, and records an audit entry.
+            </p>
+          </div>
+        ) : activeAction?.type === 'logs' ? (
+          <div className="space-y-3">
+            <div className="rounded-md border border-[color:var(--soc-border)] bg-[color:var(--soc-raised)] p-3 text-xs font-mono text-[color:var(--soc-text-secondary)]">
+              <p>[INFO] Last poll 00:00:45 ago</p>
+              <p>[INFO] Event pipeline healthy</p>
+              <p>[WARN] Retry spikes 14:22-14:24 UTC</p>
+              <p>[INFO] Backpressure normalized</p>
+            </div>
+            <p className="text-xs text-[color:var(--soc-text-secondary)]">
+              Log window shows most recent connector heartbeat, ingestion throughput checks, and retry diagnostics.
+            </p>
+          </div>
+        ) : null}
+      </OverviewModal>
+
+      <OverviewStepModal
+        open={addOpen}
+        subtitle="NEW INTEGRATION"
+        currentStep={addStep}
+        onStepChange={setAddStep}
+        onClose={() => {
+          setAddOpen(false)
+          setAddStep(0)
+        }}
+        onFinish={() => {
+          setRows((prev) => [
+            {
+              id: `INT-${500 + prev.length}`,
+              name: newName.trim(),
+              vendor: newVendor.trim(),
+              category: newCategory,
+              status: 'pending',
+              lastSync: 'Not synced',
+              eventsPerDay: 0,
+              version: 'new',
+              region: newRegion,
+              healthScore: 0,
+              description: 'Newly created integration awaiting credential validation.',
+            },
+            ...prev,
+          ])
+          setNewName('')
+          setNewVendor('')
+          setNewCategory('siem')
+          setNewRegion('eu-central')
+          setAddOpen(false)
+          setAddStep(0)
+          setPage(1)
+        }}
+        steps={[
+          {
+            id: 'identity',
+            title: 'Step 1: Integration Identity',
+            canProceed: () => newName.trim().length > 1 && newVendor.trim().length > 1,
+            validationHint: 'Integration name and vendor are required.',
+            content: (
+              <div className="grid gap-3">
+                <label className="text-xs font-medium text-[color:var(--soc-text-muted)]">
+                  Integration Name
+                  <input className="soc-input mt-1 w-full text-sm" value={newName} onChange={(e) => setNewName(e.target.value)} />
+                </label>
+                <label className="text-xs font-medium text-[color:var(--soc-text-muted)]">
+                  Vendor
+                  <input className="soc-input mt-1 w-full text-sm" value={newVendor} onChange={(e) => setNewVendor(e.target.value)} />
+                </label>
+              </div>
+            ),
+          },
+          {
+            id: 'type',
+            title: 'Step 2: Type & Region',
+            content: (
+              <div className="grid gap-3">
+                <label className="text-xs font-medium text-[color:var(--soc-text-muted)]">
+                  Category
+                  <select className="soc-input mt-1 w-full text-sm" value={newCategory} onChange={(e) => setNewCategory(e.target.value as IntegrationRow['category'])}>
+                    <option value="siem">SIEM</option>
+                    <option value="edr">EDR</option>
+                    <option value="ticketing">Ticketing</option>
+                    <option value="identity">Identity</option>
+                    <option value="email">Email</option>
+                    <option value="network">Network</option>
+                    <option value="vulnerability">Vulnerability</option>
+                    <option value="other">Other</option>
+                  </select>
+                </label>
+                <label className="text-xs font-medium text-[color:var(--soc-text-muted)]">
+                  Region
+                  <input className="soc-input mt-1 w-full text-sm" value={newRegion} onChange={(e) => setNewRegion(e.target.value)} />
+                </label>
+              </div>
+            ),
+          },
+          {
+            id: 'review',
+            title: 'Step 3: Review & Create',
+            content: (
+              <div className="space-y-2 text-sm text-[color:var(--soc-text-secondary)]">
+                <p><span className="font-semibold text-[color:var(--soc-text)]">Name:</span> {newName || '—'}</p>
+                <p><span className="font-semibold text-[color:var(--soc-text)]">Vendor:</span> {newVendor || '—'}</p>
+                <p><span className="font-semibold text-[color:var(--soc-text)]">Category:</span> {newCategory}</p>
+                <p><span className="font-semibold text-[color:var(--soc-text)]">Region:</span> {newRegion}</p>
+              </div>
+            ),
+          },
+        ]}
+      />
+    </OverviewPageShell>
   )
 }

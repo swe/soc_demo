@@ -3237,7 +3237,16 @@ const adminStatusClass: Record<AdminUserRow['status'], string> = {
   suspended: 'soc-badge soc-badge-critical',
 }
 
-export function AdminUserTableRow({ row, colorIndex = 0 }: { row: AdminUserRow; colorIndex?: number }) {
+export function AdminUserTableRow({
+  row,
+  colorIndex = 0,
+  onAction,
+}: {
+  row: AdminUserRow
+  colorIndex?: number
+  onAction?: (action: 'edit' | 'disable' | 'enable', row: AdminUserRow) => void
+}) {
+  const canEnable = row.status === 'suspended' || row.status === 'inactive'
   return (
     <tr className={staticRowClass}>
       <td>
@@ -3264,18 +3273,24 @@ export function AdminUserTableRow({ row, colorIndex = 0 }: { row: AdminUserRow; 
       <td className="text-xs text-[color:var(--soc-text-muted)]">{row.createdAt}</td>
       <td>
         <div className="flex gap-1">
-          <RowAction label="Edit" />
-          <RowAction label="Disable" />
+          <RowAction label="Edit" onClick={() => onAction?.('edit', row)} />
+          <RowAction label={canEnable ? 'Enable' : 'Disable'} onClick={() => onAction?.(canEnable ? 'enable' : 'disable', row)} />
         </div>
       </td>
     </tr>
   )
 }
 
-export function AdminUserTable({ rows }: { rows: AdminUserRow[] }) {
+export function AdminUserTable({
+  rows,
+  onAction,
+}: {
+  rows: AdminUserRow[]
+  onAction?: (action: 'edit' | 'disable' | 'enable', row: AdminUserRow) => void
+}) {
   return (
     <SocTable columns={['User', 'Role', 'Status', 'MFA', 'Teams', 'Last Login', 'Created', 'Actions']}>
-      {rows.map((r, i) => <AdminUserTableRow key={r.id} row={r} colorIndex={i} />)}
+      {rows.map((r, i) => <AdminUserTableRow key={r.id} row={r} colorIndex={i} onAction={onAction} />)}
     </SocTable>
   )
 }
@@ -3317,8 +3332,21 @@ const intCategoryClass: Record<IntegrationRow['category'], string> = {
   other:         'soc-badge',
 }
 
-export function IntegrationTableRow({ row }: { row: IntegrationRow }) {
+export function IntegrationTableRow({
+  row,
+  onAction,
+}: {
+  row: IntegrationRow
+  onAction?: (action: 'test' | 'reconnect' | 'configure' | 'logs', row: IntegrationRow) => void
+}) {
   const [open, setOpen] = useState(false)
+  const primaryActionLabel =
+    row.status === 'disconnected'
+      ? 'Reconnect'
+      : row.status === 'degraded'
+        ? 'Run Health Check'
+        : 'Test Connection'
+  const primaryActionType = row.status === 'disconnected' ? 'reconnect' : 'test'
   return (
     <>
       <tr className={interactiveRowClass} onClick={() => setOpen((o) => !o)}>
@@ -3378,9 +3406,9 @@ export function IntegrationTableRow({ row }: { row: IntegrationRow }) {
             </div>
           )}
           <div className="mt-4 flex gap-2">
-            <RowAction label="Test Connection" />
-            <RowAction label="Configure" />
-            <RowAction label="View Logs" />
+            <RowAction label={primaryActionLabel} onClick={() => onAction?.(primaryActionType, row)} />
+            <RowAction label="Configure" onClick={() => onAction?.('configure', row)} />
+            <RowAction label="View Logs" onClick={() => onAction?.('logs', row)} />
           </div>
         </ExpandPanel>
       )}
@@ -3388,10 +3416,16 @@ export function IntegrationTableRow({ row }: { row: IntegrationRow }) {
   )
 }
 
-export function IntegrationTable({ rows }: { rows: IntegrationRow[] }) {
+export function IntegrationTable({
+  rows,
+  onAction,
+}: {
+  rows: IntegrationRow[]
+  onAction?: (action: 'test' | 'reconnect' | 'configure' | 'logs', row: IntegrationRow) => void
+}) {
   return (
     <SocTable columns={['Integration', 'Category', 'Status', 'Health', 'Events', 'Last Sync', '']}>
-      {rows.map((r) => <IntegrationTableRow key={r.id} row={r} />)}
+      {rows.map((r) => <IntegrationTableRow key={r.id} row={r} onAction={onAction} />)}
     </SocTable>
   )
 }
@@ -3430,8 +3464,16 @@ const cloudStatusClass: Record<CloudIntegrationRow['status'], string> = {
   error:    'soc-badge soc-badge-critical',
 }
 
-export function CloudIntegrationTableRow({ row }: { row: CloudIntegrationRow }) {
+export function CloudIntegrationTableRow({
+  row,
+  onAction,
+}: {
+  row: CloudIntegrationRow
+  onAction?: (action: 'scan' | 'activate' | 'assets' | 'report', row: CloudIntegrationRow) => void
+}) {
   const [open, setOpen] = useState(false)
+  const primaryActionLabel = row.status === 'inactive' || row.status === 'error' ? 'Activate Connection' : 'Scan Now'
+  const primaryActionType = row.status === 'inactive' || row.status === 'error' ? 'activate' : 'scan'
   return (
     <>
       <tr className={interactiveRowClass} onClick={() => setOpen((o) => !o)}>
@@ -3514,9 +3556,9 @@ export function CloudIntegrationTableRow({ row }: { row: CloudIntegrationRow }) 
             </div>
           )}
           <div className="mt-4 flex gap-2">
-            <RowAction label="Scan Now" />
-            <RowAction label="View Assets" />
-            <RowAction label="Compliance Report" />
+            <RowAction label={primaryActionLabel} onClick={() => onAction?.(primaryActionType, row)} />
+            <RowAction label="View Assets" onClick={() => onAction?.('assets', row)} />
+            <RowAction label="Compliance Report" onClick={() => onAction?.('report', row)} />
           </div>
         </ExpandPanel>
       )}
@@ -3524,10 +3566,16 @@ export function CloudIntegrationTableRow({ row }: { row: CloudIntegrationRow }) 
   )
 }
 
-export function CloudIntegrationTable({ rows }: { rows: CloudIntegrationRow[] }) {
+export function CloudIntegrationTable({
+  rows,
+  onAction,
+}: {
+  rows: CloudIntegrationRow[]
+  onAction?: (action: 'scan' | 'activate' | 'assets' | 'report', row: CloudIntegrationRow) => void
+}) {
   return (
     <SocTable columns={['Account', 'Status', 'Resources', 'Alerts', 'Misconfigs', 'Compliance', 'Last Scan', '']}>
-      {rows.map((r) => <CloudIntegrationTableRow key={r.id} row={r} />)}
+      {rows.map((r) => <CloudIntegrationTableRow key={r.id} row={r} onAction={onAction} />)}
     </SocTable>
   )
 }

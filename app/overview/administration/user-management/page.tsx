@@ -1,211 +1,477 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { usePageTitle } from '@/app/page-title-context'
+import {
+  AdminUserTable,
+  type AdminUserRow,
+  OverviewFilterMenu,
+  OverviewKpiRow,
+  OverviewModal,
+  OverviewPageHeader,
+  OverviewPageShell,
+  OverviewPagination,
+  OverviewRowsPerPageMenu,
+  OverviewSection,
+  OverviewStepModal,
+  OverviewTableToolbar,
+  OverviewToggle,
+} from '@/components/overview/unified-ui'
+
+const INITIAL_USERS: AdminUserRow[] = [
+  { id: 'ADM-1001', name: 'Peter Pan', email: 'peter.pan@neverlands.art', role: 'analyst', status: 'active', lastLogin: '2 min ago', mfaEnabled: true, teamsCount: 3, createdAt: '2025-07-11' },
+  { id: 'ADM-1002', name: 'Sarah Chen', email: 'sarah.chen@neverlands.art', role: 'admin', status: 'active', lastLogin: '1 hour ago', mfaEnabled: true, teamsCount: 4, createdAt: '2025-04-20' },
+  { id: 'ADM-1003', name: 'James Rodriguez', email: 'james.rodriguez@neverlands.art', role: 'admin', status: 'active', lastLogin: '3 hours ago', mfaEnabled: true, teamsCount: 2, createdAt: '2025-09-30' },
+  { id: 'ADM-1004', name: 'Emily Taylor', email: 'emily.taylor@neverlands.art', role: 'super-admin', status: 'active', lastLogin: 'Today, 09:14', mfaEnabled: true, teamsCount: 5, createdAt: '2024-12-03' },
+  { id: 'ADM-1005', name: 'Michael Kim', email: 'michael.kim@neverlands.art', role: 'analyst', status: 'inactive', lastLogin: '2 days ago', mfaEnabled: false, teamsCount: 1, createdAt: '2025-11-12' },
+  { id: 'ADM-1006', name: 'Olivia Martinez', email: 'o.martinez@neverlands.art', role: 'responder', status: 'active', lastLogin: '30 min ago', mfaEnabled: true, teamsCount: 3, createdAt: '2025-06-18' },
+  { id: 'ADM-1007', name: 'Daniel Park', email: 'd.park@neverlands.art', role: 'analyst', status: 'active', lastLogin: '1 day ago', mfaEnabled: true, teamsCount: 2, createdAt: '2025-08-07' },
+  { id: 'ADM-1008', name: 'Aisha Johnson', email: 'a.johnson@neverlands.art', role: 'responder', status: 'active', lastLogin: 'Today, 11:47', mfaEnabled: true, teamsCount: 3, createdAt: '2025-03-26' },
+  { id: 'ADM-1009', name: 'Tom Walsh', email: 't.walsh@neverlands.art', role: 'viewer', status: 'active', lastLogin: 'Yesterday', mfaEnabled: true, teamsCount: 1, createdAt: '2025-01-15' },
+  { id: 'ADM-1010', name: 'Nina Patel', email: 'n.patel@neverlands.art', role: 'admin', status: 'active', lastLogin: 'Today, 08:30', mfaEnabled: true, teamsCount: 2, createdAt: '2025-05-09' },
+  { id: 'ADM-1011', name: 'Ryan Lee', email: 'r.lee@neverlands.art', role: 'analyst', status: 'pending', lastLogin: '5 hours ago', mfaEnabled: false, teamsCount: 2, createdAt: '2026-03-29' },
+  { id: 'ADM-1012', name: 'Zoe Brooks', email: 'z.brooks@neverlands.art', role: 'super-admin', status: 'active', lastLogin: 'Today, 07:55', mfaEnabled: true, teamsCount: 4, createdAt: '2024-10-01' },
+]
+
+const USER_FILTERS = [
+  { id: 'status:active', label: 'Active', section: 'Status' },
+  { id: 'status:inactive', label: 'Inactive', section: 'Status' },
+  { id: 'status:pending', label: 'Pending', section: 'Status' },
+  { id: 'status:suspended', label: 'Suspended', section: 'Status' },
+  { id: 'role:super-admin', label: 'Super Admin', section: 'Role' },
+  { id: 'role:admin', label: 'Admin', section: 'Role' },
+  { id: 'role:analyst', label: 'Analyst', section: 'Role' },
+  { id: 'role:responder', label: 'Responder', section: 'Role' },
+  { id: 'role:viewer', label: 'Viewer', section: 'Role' },
+  { id: 'mfa:on', label: 'MFA Enabled', section: 'Security' },
+  { id: 'mfa:off', label: 'MFA Missing', section: 'Security' },
+]
 
 export default function UserManagementPage() {
   const { setPageTitle } = usePageTitle()
+  const [users, setUsers] = useState<AdminUserRow[]>(INITIAL_USERS)
+  const [query, setQuery] = useState('')
+  const [selectedFilters, setSelectedFilters] = useState<string[]>([])
+  const [highRiskOnly, setHighRiskOnly] = useState(false)
+  const [showInviteFlow, setShowInviteFlow] = useState(false)
+  const [inviteStep, setInviteStep] = useState(0)
+  const [showBulkSuspendModal, setShowBulkSuspendModal] = useState(false)
+  const [activeUserAction, setActiveUserAction] = useState<{
+    type: 'edit' | 'disable' | 'enable'
+    row: AdminUserRow
+  } | null>(null)
+  const [page, setPage] = useState(1)
+  const [rowsPerPage, setRowsPerPage] = useState(5)
+
+  const [inviteName, setInviteName] = useState('')
+  const [inviteEmail, setInviteEmail] = useState('')
+  const [inviteRole, setInviteRole] = useState<AdminUserRow['role']>('analyst')
+  const [inviteMfa, setInviteMfa] = useState(true)
+  const [bulkReason, setBulkReason] = useState('Dormant and non-compliant account sweep')
+  const [bulkCreateTicket, setBulkCreateTicket] = useState(true)
+  const [bulkNotifyOwners, setBulkNotifyOwners] = useState(true)
+  const [editRole, setEditRole] = useState<AdminUserRow['role']>('analyst')
+  const [editStatus, setEditStatus] = useState<AdminUserRow['status']>('active')
+  const [editMfa, setEditMfa] = useState(true)
+  const [editTeamCount, setEditTeamCount] = useState(1)
+  const [actionReason, setActionReason] = useState('')
 
   useEffect(() => {
     setPageTitle('User Management')
   }, [setPageTitle])
 
-  const users = [
-    { name: 'Peter Pan', email: 'peter.pan@neverlands.art', role: 'SOC Analyst L2', dept: 'Security', lastLogin: '2 min ago', status: 'active', mfa: true },
-    { name: 'Sarah Chen', email: 'sarah.chen@neverlands.art', role: 'SOC Manager', dept: 'Security', lastLogin: '1 hour ago', status: 'active', mfa: true },
-    { name: 'James Rodriguez', email: 'james.rodriguez@neverlands.art', role: 'Security Engineer', dept: 'Security', lastLogin: '3 hours ago', status: 'active', mfa: true },
-    { name: 'Emily Taylor', email: 'emily.taylor@neverlands.art', role: 'Admin', dept: 'IT', lastLogin: 'Today, 09:14', status: 'active', mfa: true },
-    { name: 'Michael Kim', email: 'michael.kim@neverlands.art', role: 'SOC Analyst L1', dept: 'Operations', lastLogin: '2 days ago', status: 'inactive', mfa: false },
-    { name: 'Olivia Martinez', email: 'o.martinez@neverlands.art', role: 'Threat Hunter', dept: 'Security', lastLogin: '30 min ago', status: 'active', mfa: true },
-    { name: 'Daniel Park', email: 'd.park@neverlands.art', role: 'Vulnerability Analyst', dept: 'Security', lastLogin: '1 day ago', status: 'active', mfa: true },
-    { name: 'Aisha Johnson', email: 'a.johnson@neverlands.art', role: 'Incident Responder', dept: 'Security', lastLogin: 'Today, 11:47', status: 'active', mfa: true },
-    { name: 'Tom Walsh', email: 't.walsh@neverlands.art', role: 'Compliance Officer', dept: 'Legal', lastLogin: 'Yesterday', status: 'active', mfa: true },
-    { name: 'Nina Patel', email: 'n.patel@neverlands.art', role: 'Cloud Security', dept: 'Infrastructure', lastLogin: 'Today, 08:30', status: 'active', mfa: true },
-    { name: 'Ryan Lee', email: 'r.lee@neverlands.art', role: 'SOC Analyst L1', dept: 'Security', lastLogin: '5 hours ago', status: 'active', mfa: false },
-    { name: 'Zoe Brooks', email: 'z.brooks@neverlands.art', role: 'CISO', dept: 'Executive', lastLogin: 'Today, 07:55', status: 'active', mfa: true },
-  ]
+  useEffect(() => {
+    if (!activeUserAction) return
+    const row = activeUserAction.row
+    setEditRole(row.role)
+    setEditStatus(row.status)
+    setEditMfa(row.mfaEnabled)
+    setEditTeamCount(row.teamsCount)
+    setActionReason('')
+  }, [activeUserAction])
 
-  const roleDistribution = [
-    { role: 'SOC Analyst', count: 487, color: 'var(--soc-accent)' },
-    { role: 'Security Engineer', count: 234, color: 'var(--soc-low)' },
-    { role: 'Incident Responder', count: 156, color: 'var(--soc-critical)' },
-    { role: 'Threat Hunter', count: 89, color: 'var(--soc-high)' },
-    { role: 'Compliance', count: 67, color: 'var(--soc-medium)' },
-    { role: 'Admin / Other', count: 214, color: 'var(--soc-text-muted)' },
-  ]
+  const filteredUsers = useMemo(() => {
+    const statusFilters = selectedFilters
+      .filter((id) => id.startsWith('status:'))
+      .map((id) => id.replace('status:', '')) as AdminUserRow['status'][]
+    const roleFilters = selectedFilters
+      .filter((id) => id.startsWith('role:'))
+      .map((id) => id.replace('role:', '')) as AdminUserRow['role'][]
+    const wantsMfaOn = selectedFilters.includes('mfa:on')
+    const wantsMfaOff = selectedFilters.includes('mfa:off')
+    const q = query.trim().toLowerCase()
 
-  const mfaByDept = [
-    { dept: 'Security', mfaRate: 100, users: 423 },
-    { dept: 'IT', mfaRate: 98, users: 187 },
-    { dept: 'Executive', mfaRate: 100, users: 24 },
-    { dept: 'Operations', mfaRate: 89, users: 312 },
-    { dept: 'Legal', mfaRate: 94, users: 67 },
-    { dept: 'Infrastructure', mfaRate: 97, users: 234 },
-  ]
+    return users
+      .filter((u) => statusFilters.length === 0 || statusFilters.includes(u.status))
+      .filter((u) => roleFilters.length === 0 || roleFilters.includes(u.role))
+      .filter((u) => {
+        if (wantsMfaOn && !wantsMfaOff) return u.mfaEnabled
+        if (!wantsMfaOn && wantsMfaOff) return !u.mfaEnabled
+        return true
+      })
+      .filter((u) => !highRiskOnly || !u.mfaEnabled || u.status === 'pending' || u.status === 'suspended')
+      .filter((u) => !q || u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q) || u.id.toLowerCase().includes(q))
+  }, [users, selectedFilters, highRiskOnly, query])
+
+  const totalPages = Math.max(1, Math.ceil(filteredUsers.length / rowsPerPage))
+  const pagedUsers = filteredUsers.slice((page - 1) * rowsPerPage, page * rowsPerPage)
+
+  useEffect(() => {
+    if (page > totalPages) setPage(1)
+  }, [page, totalPages])
+
+  const activeUsers = users.filter((u) => u.status === 'active').length
+  const mfaEnabledUsers = users.filter((u) => u.mfaEnabled).length
+  const adminUsers = users.filter((u) => u.role === 'admin' || u.role === 'super-admin').length
+  const pendingOrSuspended = users.filter((u) => u.status === 'pending' || u.status === 'suspended').length
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-6 py-6 soc-fade-in">
-      {/* Header */}
-      <div className="flex items-start justify-between mb-5">
-        <div>
-          <p className="soc-label mb-1">ADMINISTRATION</p>
-          <h1 className="text-xl font-bold tracking-tight mb-1.5" style={{ color: 'var(--soc-text)' }}>User Management</h1>
-          <p className="text-sm" style={{ color: 'var(--soc-text-secondary)' }}>Manage portal users, roles, and permissions</p>
-        </div>
-        <button className="soc-btn soc-btn-primary">Add User</button>
-      </div>
+    <OverviewPageShell>
+      <OverviewPageHeader
+        section="ADMINISTRATION"
+        title="User Management"
+        description="Manage portal users, roles, permissions, and identity hygiene with a unified control pattern."
+        actions={[
+          { id: 'bulk-suspend', label: 'Bulk Suspend', variant: 'secondary', onClick: () => setShowBulkSuspendModal(true) },
+          { id: 'invite-user', label: 'Invite User', variant: 'primary', onClick: () => setShowInviteFlow(true) },
+        ]}
+      />
 
-      {/* KPI Row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
-        {[
-          { label: 'TOTAL USERS', value: '1,500', sub: 'Across all departments' },
-          { label: 'ACTIVE', value: '1,247', sub: '83% of total', accent: true },
-          { label: 'MFA COVERAGE', value: '95%', sub: '1,425 users protected', accent: true },
-          { label: 'ADMINS', value: '18', sub: 'With elevated privileges' },
-        ].map((kpi, i) => (
-          <div key={i} className="soc-card">
-            <p className="soc-label mb-2">{kpi.label}</p>
-            <p className="soc-metric-lg" style={kpi.accent ? { color: 'var(--soc-accent)' } : {}}>{kpi.value}</p>
-            <p className="text-xs" style={{ color: 'var(--soc-text-muted)' }}>{kpi.sub}</p>
+      <OverviewKpiRow
+        columns={4}
+        items={[
+          { label: 'TOTAL USERS', value: users.length, sub: 'Across all departments' },
+          { label: 'ACTIVE', value: activeUsers, sub: `${Math.round((activeUsers / users.length) * 100)}% operational`, tone: 'low' },
+          { label: 'MFA COVERAGE', value: `${Math.round((mfaEnabledUsers / users.length) * 100)}%`, sub: `${mfaEnabledUsers} accounts protected`, tone: 'accent' },
+          { label: 'PRIVILEGED + PENDING', value: `${adminUsers} / ${pendingOrSuspended}`, sub: 'Admins and accounts requiring action', tone: 'high' },
+        ]}
+      />
+
+      <OverviewTableToolbar
+        searchValue={query}
+        onSearchChange={(value) => {
+          setQuery(value)
+          setPage(1)
+        }}
+        searchPlaceholder="Search user, email, or id..."
+        end={(
+          <div className="flex w-full items-center justify-end gap-2 whitespace-nowrap">
+            <OverviewFilterMenu
+              options={USER_FILTERS}
+              selected={selectedFilters}
+              onApply={(next) => {
+                setSelectedFilters(next)
+                setPage(1)
+              }}
+            />
+            <OverviewToggle
+              label="Risk focus"
+              checked={highRiskOnly}
+              onChange={(next) => {
+                setHighRiskOnly(next)
+                setPage(1)
+              }}
+            />
           </div>
-        ))}
-      </div>
+        )}
+      />
 
-      {/* Main content */}
-      <div className="grid grid-cols-12 gap-4">
-        {/* Users Table */}
-        <div className="col-span-12 lg:col-span-8">
-          <div className="soc-card" style={{ padding: 0 }}>
-            <div className="px-4 py-3 border-b flex items-center justify-between" style={{ borderColor: 'var(--soc-border)' }}>
-              <p className="soc-label">USERS</p>
-              <span className="text-xs" style={{ color: 'var(--soc-text-muted)' }}>{users.length} shown</span>
-            </div>
-            <div style={{ overflowX: 'auto' }}>
-              <table className="soc-table" style={{ width: '100%' }}>
-                <thead>
-                  <tr>
-                    <th>User</th>
-                    <th>Role</th>
-                    <th>Department</th>
-                    <th>MFA</th>
-                    <th>Status</th>
-                    <th>Last Active</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {users.map((user, idx) => {
-                    const initials = user.name.split(' ').map(n => n[0]).join('')
-                    return (
-                      <tr key={idx}>
-                        <td>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
-                            <div style={{
-                              width: '2rem', height: '2rem', borderRadius: '50%',
-                              background: 'var(--soc-accent-bg)', color: 'var(--soc-accent)',
-                              display: 'flex', alignItems: 'center', justifyContent: 'center',
-                              fontSize: '0.75rem', fontWeight: 700, flexShrink: 0
-                            }}>
-                              {initials}
-                            </div>
-                            <div>
-                              <div style={{ fontWeight: 600, color: 'var(--soc-text)', fontSize: '0.875rem' }}>{user.name}</div>
-                              <div style={{ color: 'var(--soc-text-muted)', fontSize: '0.75rem', fontFamily: 'monospace' }}>{user.email}</div>
-                            </div>
-                          </div>
-                        </td>
-                        <td style={{ color: 'var(--soc-text-secondary)', fontSize: '0.875rem' }}>{user.role}</td>
-                        <td style={{ color: 'var(--soc-text-secondary)', fontSize: '0.875rem' }}>{user.dept}</td>
-                        <td>
-                          {user.mfa ? (
-                            <span style={{ color: 'var(--soc-low)', fontWeight: 700 }}>✓</span>
-                          ) : (
-                            <span style={{ color: 'var(--soc-critical)', fontWeight: 700 }}>✗</span>
-                          )}
-                        </td>
-                        <td>
-                          <span className="soc-badge" style={{
-                            backgroundColor: user.status === 'active' ? 'var(--soc-low-bg)' : 'var(--soc-border)',
-                            color: user.status === 'active' ? 'var(--soc-low)' : 'var(--soc-text-muted)'
-                          }}>
-                            {user.status.toUpperCase()}
-                          </span>
-                        </td>
-                        <td style={{ color: 'var(--soc-text-muted)', fontSize: '0.8125rem' }}>{user.lastLogin}</td>
-                        <td>
-                          <button className="soc-link" style={{ fontSize: '0.8125rem' }}>Edit</button>
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
+      <OverviewSection
+        title="PLATFORM USERS"
+        right={(
+          <OverviewRowsPerPageMenu
+            value={rowsPerPage}
+            options={[5, 10]}
+            onChange={(next) => {
+              setRowsPerPage(next)
+              setPage(1)
+            }}
+          />
+        )}
+      >
+        <AdminUserTable
+          rows={pagedUsers}
+          onAction={(type, row) => {
+            setActiveUserAction({ type, row })
+          }}
+        />
+        <OverviewPagination page={page} totalPages={totalPages} totalItems={filteredUsers.length} onPageChange={setPage} />
+      </OverviewSection>
 
-        {/* Sidebar */}
-        <div className="col-span-12 lg:col-span-4" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          {/* Role Distribution */}
-          <div className="soc-card">
-            <p className="soc-label mb-3">ROLE DISTRIBUTION</p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              {roleDistribution.map((item, i) => (
-                <div key={i}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
-                    <span style={{ color: 'var(--soc-text-secondary)', fontSize: '0.875rem' }}>{item.role}</span>
-                    <span style={{ color: 'var(--soc-text)', fontWeight: 600, fontSize: '0.875rem' }}>{item.count}</span>
-                  </div>
-                  <div className="soc-progress-track">
-                    <div className="soc-progress-fill" style={{ width: `${(item.count / 1247) * 100}%`, backgroundColor: item.color }} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* MFA Coverage */}
-          <div className="soc-card">
-            <p className="soc-label mb-3">MFA BY DEPARTMENT</p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              {mfaByDept.map((d, i) => {
-                const color = d.mfaRate >= 99 ? 'var(--soc-low)' : d.mfaRate >= 90 ? 'var(--soc-medium)' : 'var(--soc-critical)'
-                const bg = d.mfaRate >= 99 ? 'var(--soc-low-bg)' : d.mfaRate >= 90 ? 'var(--soc-medium-bg)' : 'var(--soc-critical-bg)'
-                return (
-                  <div key={i} style={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                    padding: '0.625rem 0.75rem', background: 'var(--soc-raised)', borderRadius: '6px',
-                    border: '1px solid var(--soc-border)'
-                  }}>
-                    <div>
-                      <div style={{ fontWeight: 500, color: 'var(--soc-text)', fontSize: '0.875rem' }}>{d.dept}</div>
-                      <div style={{ color: 'var(--soc-text-muted)', fontSize: '0.75rem' }}>{d.users} users</div>
-                    </div>
-                    <span className="soc-badge" style={{ backgroundColor: bg, color }}>{d.mfaRate}%</span>
-                  </div>
+      <OverviewModal
+        open={showBulkSuspendModal}
+        title="Bulk Suspend Accounts"
+        subtitle="ADMIN ACTION"
+        onClose={() => setShowBulkSuspendModal(false)}
+        footer={(
+          <div className="flex justify-end gap-2">
+            <button type="button" className="soc-btn soc-btn-secondary text-xs" onClick={() => setShowBulkSuspendModal(false)}>
+              Cancel
+            </button>
+            <button
+              type="button"
+              className="soc-btn soc-btn-primary text-xs"
+              onClick={() => {
+                setUsers((prev) =>
+                  prev.map((u) =>
+                    u.status === 'inactive' || (!u.mfaEnabled && u.status !== 'active')
+                      ? { ...u, status: 'suspended' }
+                      : u
+                  )
                 )
-              })}
-            </div>
+                if (bulkCreateTicket || bulkNotifyOwners) {
+                  // In demo mode we reflect workflow side-effects as recent activity markers.
+                  setUsers((prev) => prev.map((u) => (u.status === 'suspended' ? { ...u, lastLogin: 'Bulk action applied' } : u)))
+                }
+                setShowBulkSuspendModal(false)
+              }}
+            >
+              Suspend Matching Accounts
+            </button>
           </div>
-
-          {/* Active Sessions */}
-          <div className="soc-card">
-            <p className="soc-label mb-3">ACTIVE SESSIONS</p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              {[
-                { label: 'Total concurrent', value: '342' },
-                { label: 'Peak today', value: '891' },
-                { label: 'Avg session length', value: '2.4h' },
-              ].map((s, i) => (
-                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem 0', borderBottom: i < 2 ? '1px solid var(--soc-border)' : 'none' }}>
-                  <span style={{ color: 'var(--soc-text-secondary)', fontSize: '0.875rem' }}>{s.label}</span>
-                  <span style={{ fontWeight: 600, color: 'var(--soc-text)', fontSize: '0.875rem' }}>{s.value}</span>
-                </div>
-              ))}
-            </div>
+        )}
+      >
+        <div className="space-y-4">
+          <div className="rounded-md border border-[color:var(--soc-border)] bg-[color:var(--soc-raised)] p-3 text-xs text-[color:var(--soc-text-secondary)]">
+            <p className="font-semibold text-[color:var(--soc-text)]">Targeted accounts</p>
+            <p className="mt-1">
+              {users.filter((u) => u.status === 'inactive' || (!u.mfaEnabled && u.status !== 'active')).length} users will be suspended by this policy.
+            </p>
+          </div>
+          <label className="text-xs font-medium text-[color:var(--soc-text-muted)]">
+            Reason
+            <textarea className="soc-input mt-1 w-full text-sm" rows={3} value={bulkReason} onChange={(e) => setBulkReason(e.target.value)} />
+          </label>
+          <div className="flex flex-wrap gap-2">
+            <OverviewToggle label="Create incident ticket" checked={bulkCreateTicket} onChange={setBulkCreateTicket} />
+            <OverviewToggle label="Notify account owners" checked={bulkNotifyOwners} onChange={setBulkNotifyOwners} />
           </div>
         </div>
-      </div>
-    </div>
+      </OverviewModal>
+
+      <OverviewModal
+        open={!!activeUserAction}
+        title={
+          activeUserAction?.type === 'edit'
+            ? `Edit User: ${activeUserAction.row.name}`
+            : activeUserAction?.type === 'disable'
+              ? `Disable User: ${activeUserAction.row.name}`
+              : activeUserAction?.type === 'enable'
+                ? `Enable User: ${activeUserAction.row.name}`
+              : ''
+        }
+        subtitle="USER ACTION"
+        onClose={() => setActiveUserAction(null)}
+        footer={(
+          <div className="flex justify-end gap-2">
+            <button type="button" className="soc-btn soc-btn-secondary text-xs" onClick={() => setActiveUserAction(null)}>
+              Cancel
+            </button>
+            <button
+              type="button"
+              className="soc-btn soc-btn-primary text-xs"
+              onClick={() => {
+                if (!activeUserAction) return
+                if (activeUserAction.type === 'edit') {
+                  setUsers((prev) =>
+                    prev.map((u) =>
+                      u.id === activeUserAction.row.id
+                        ? {
+                            ...u,
+                            role: editRole,
+                            status: editStatus,
+                            mfaEnabled: editMfa,
+                            teamsCount: editTeamCount,
+                            lastLogin: actionReason ? `Updated: ${actionReason}` : 'Just updated',
+                          }
+                        : u
+                    )
+                  )
+                }
+                if (activeUserAction.type === 'disable') {
+                  setUsers((prev) =>
+                    prev.map((u) =>
+                      u.id === activeUserAction.row.id
+                        ? { ...u, status: 'suspended', lastLogin: actionReason ? `Disabled: ${actionReason}` : 'Disabled by admin' }
+                        : u
+                    )
+                  )
+                }
+                if (activeUserAction.type === 'enable') {
+                  setUsers((prev) =>
+                    prev.map((u) =>
+                      u.id === activeUserAction.row.id
+                        ? {
+                            ...u,
+                            status: 'active',
+                            mfaEnabled: editMfa,
+                            lastLogin: actionReason ? `Enabled: ${actionReason}` : 'Enabled by admin',
+                          }
+                        : u
+                    )
+                  )
+                }
+                setActiveUserAction(null)
+              }}
+            >
+              Apply
+            </button>
+          </div>
+        )}
+      >
+        {activeUserAction?.type === 'edit' ? (
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+              <label className="text-xs font-medium text-[color:var(--soc-text-muted)]">
+                Role
+                <select className="soc-input mt-1 w-full text-sm" value={editRole} onChange={(e) => setEditRole(e.target.value as AdminUserRow['role'])}>
+                  <option value="viewer">Viewer</option>
+                  <option value="analyst">Analyst</option>
+                  <option value="responder">Responder</option>
+                  <option value="admin">Admin</option>
+                  <option value="super-admin">Super Admin</option>
+                </select>
+              </label>
+              <label className="text-xs font-medium text-[color:var(--soc-text-muted)]">
+                Status
+                <select className="soc-input mt-1 w-full text-sm" value={editStatus} onChange={(e) => setEditStatus(e.target.value as AdminUserRow['status'])}>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                  <option value="pending">Pending</option>
+                  <option value="suspended">Suspended</option>
+                </select>
+              </label>
+            </div>
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+              <label className="text-xs font-medium text-[color:var(--soc-text-muted)]">
+                Teams
+                <input type="number" min={0} className="soc-input mt-1 w-full text-sm" value={editTeamCount} onChange={(e) => setEditTeamCount(Number(e.target.value) || 0)} />
+              </label>
+              <div className="flex items-end">
+                <OverviewToggle label="MFA enabled" checked={editMfa} onChange={setEditMfa} />
+              </div>
+            </div>
+            <label className="text-xs font-medium text-[color:var(--soc-text-muted)]">
+              Change note
+              <textarea className="soc-input mt-1 w-full text-sm" rows={2} value={actionReason} onChange={(e) => setActionReason(e.target.value)} />
+            </label>
+          </div>
+        ) : activeUserAction?.type === 'disable' ? (
+          <div className="space-y-4">
+            <div className="rounded-md border border-[color:var(--soc-border)] bg-[color:var(--soc-raised)] p-3 text-xs text-[color:var(--soc-text-secondary)]">
+              <p className="font-semibold text-[color:var(--soc-text)]">Account impact</p>
+              <p className="mt-1">Active sessions are revoked immediately and API tokens are invalidated on next auth check.</p>
+            </div>
+            <label className="text-xs font-medium text-[color:var(--soc-text-muted)]">
+              Disable reason
+              <textarea className="soc-input mt-1 w-full text-sm" rows={3} value={actionReason} onChange={(e) => setActionReason(e.target.value)} />
+            </label>
+          </div>
+        ) : activeUserAction?.type === 'enable' ? (
+          <div className="space-y-4">
+            <div className="rounded-md border border-[color:var(--soc-border)] bg-[color:var(--soc-raised)] p-3 text-xs text-[color:var(--soc-text-secondary)]">
+              <p className="font-semibold text-[color:var(--soc-text)]">Enable impact</p>
+              <p className="mt-1">Restores interactive login and API access according to assigned role and MFA policy.</p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <OverviewToggle label="Require MFA at next login" checked={editMfa} onChange={setEditMfa} />
+            </div>
+            <label className="text-xs font-medium text-[color:var(--soc-text-muted)]">
+              Enable reason
+              <textarea className="soc-input mt-1 w-full text-sm" rows={3} value={actionReason} onChange={(e) => setActionReason(e.target.value)} />
+            </label>
+          </div>
+        ) : null}
+      </OverviewModal>
+
+      <OverviewStepModal
+        open={showInviteFlow}
+        subtitle="NEW USER"
+        currentStep={inviteStep}
+        onStepChange={setInviteStep}
+        onClose={() => {
+          setShowInviteFlow(false)
+          setInviteStep(0)
+        }}
+        onFinish={() => {
+          setUsers((prev) => [
+            {
+              id: `ADM-${1000 + prev.length + 1}`,
+              name: inviteName.trim(),
+              email: inviteEmail.trim().toLowerCase(),
+              role: inviteRole,
+              status: 'pending',
+              lastLogin: 'Never',
+              mfaEnabled: inviteMfa,
+              teamsCount: 1,
+              createdAt: new Date().toISOString().slice(0, 10),
+            },
+            ...prev,
+          ])
+          setInviteName('')
+          setInviteEmail('')
+          setInviteRole('analyst')
+          setInviteMfa(true)
+          setShowInviteFlow(false)
+          setInviteStep(0)
+          setPage(1)
+        }}
+        steps={[
+          {
+            id: 'identity',
+            title: 'Step 1: Identity',
+            canProceed: () => inviteName.trim().length > 1 && inviteEmail.includes('@'),
+            validationHint: 'Name and a valid email are required.',
+            content: (
+              <div className="grid gap-3">
+                <label className="text-xs font-medium text-[color:var(--soc-text-muted)]">
+                  Full name
+                  <input className="soc-input mt-1 w-full text-sm" value={inviteName} onChange={(e) => setInviteName(e.target.value)} />
+                </label>
+                <label className="text-xs font-medium text-[color:var(--soc-text-muted)]">
+                  Email
+                  <input className="soc-input mt-1 w-full text-sm" value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} />
+                </label>
+              </div>
+            ),
+          },
+          {
+            id: 'access',
+            title: 'Step 2: Access',
+            content: (
+              <div className="grid gap-3">
+                <label className="text-xs font-medium text-[color:var(--soc-text-muted)]">
+                  Role
+                  <select
+                    className="soc-input mt-1 w-full text-sm"
+                    value={inviteRole}
+                    onChange={(e) => setInviteRole(e.target.value as AdminUserRow['role'])}
+                  >
+                    <option value="viewer">Viewer</option>
+                    <option value="analyst">Analyst</option>
+                    <option value="responder">Responder</option>
+                    <option value="admin">Admin</option>
+                    <option value="super-admin">Super Admin</option>
+                  </select>
+                </label>
+                <OverviewToggle label="Require MFA on first login" checked={inviteMfa} onChange={setInviteMfa} />
+              </div>
+            ),
+          },
+          {
+            id: 'review',
+            title: 'Step 3: Review & Invite',
+            content: (
+              <div className="space-y-2 text-sm text-[color:var(--soc-text-secondary)]">
+                <p><span className="font-semibold text-[color:var(--soc-text)]">Name:</span> {inviteName || '—'}</p>
+                <p><span className="font-semibold text-[color:var(--soc-text)]">Email:</span> {inviteEmail || '—'}</p>
+                <p><span className="font-semibold text-[color:var(--soc-text)]">Role:</span> {inviteRole}</p>
+                <p><span className="font-semibold text-[color:var(--soc-text)]">MFA:</span> {inviteMfa ? 'Required' : 'Optional'}</p>
+              </div>
+            ),
+          },
+        ]}
+      />
+    </OverviewPageShell>
   )
 }
