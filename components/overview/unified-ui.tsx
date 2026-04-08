@@ -244,7 +244,7 @@ export function OverviewToggle({
         }`}
         aria-hidden
       >
-        <span className="pointer-events-none block h-[18px] w-[18px] shrink-0 translate-y-px rounded-full bg-white shadow-sm transition-transform duration-200 ease-out" />
+        <span className="pointer-events-none block h-[18px] w-[18px] shrink-0 rounded-full bg-white shadow-sm transition-transform duration-200 ease-out" />
       </span>
     </button>
   )
