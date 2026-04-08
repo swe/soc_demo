@@ -62,28 +62,28 @@ export default function ReportsPage() {
   }
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-6 py-6 hig-fade-in">
+    <div className="w-full max-w-7xl mx-auto px-6 py-6 soc-fade-in">
       {/* Header */}
-      <div className="flex items-start justify-between mb-6">
+      <div className="flex items-start justify-between mb-5">
         <div>
-          <div className="soc-label mb-1">KNOWLEDGE BASE</div>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 600, color: 'var(--soc-text)', lineHeight: 1.2 }}>Security Reports</h1>
-          <p style={{ color: 'var(--soc-text-secondary)', fontSize: '0.875rem', marginTop: '0.25rem' }}>Access security reports, compliance documents, and incident analyses</p>
+          <p className="soc-label mb-1">KNOWLEDGE BASE</p>
+          <h1 className="text-xl font-bold tracking-tight mb-1.5" style={{ color: 'var(--soc-text)' }}>Security Reports</h1>
+          <p className="text-sm" style={{ color: 'var(--soc-text-secondary)' }}>Access security reports, compliance documents, and incident analyses</p>
         </div>
         <button className="soc-btn soc-btn-primary">Generate Report</button>
       </div>
 
       {/* KPI Row */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-3 gap-3 mb-5">
         {[
           { label: 'TOTAL REPORTS', value: String(stats.total), sub: 'In library' },
           { label: 'FINAL', value: String(stats.final), sub: 'Ready to distribute', accent: true },
           { label: 'THIS MONTH', value: String(stats.thisMonth), sub: 'Generated in March 2024', accent: true },
         ].map((kpi, i) => (
-          <div key={i} className="soc-card" style={{ padding: '1.25rem' }}>
-            <div className="soc-label mb-2">{kpi.label}</div>
-            <div className="soc-metric-lg" style={kpi.accent ? { color: 'var(--soc-accent)' } : {}}>{kpi.value}</div>
-            <div className="soc-metric-sm mt-1">{kpi.sub}</div>
+          <div key={i} className="soc-card">
+            <p className="soc-label mb-2">{kpi.label}</p>
+            <p className="soc-metric-lg" style={kpi.accent ? { color: 'var(--soc-accent)' } : {}}>{kpi.value}</p>
+            <p className="text-xs" style={{ color: 'var(--soc-text-muted)' }}>{kpi.sub}</p>
           </div>
         ))}
       </div>
@@ -103,11 +103,9 @@ export default function ReportsPage() {
 
       {/* Reports Table */}
       <div className="soc-card" style={{ padding: 0 }}>
-        <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--soc-border)' }}>
-          <div className="flex items-center justify-between">
-            <span style={{ fontWeight: 600, color: 'var(--soc-text)', fontSize: '0.9375rem' }}>Reports</span>
-            <span className="soc-metric-sm">{filteredReports.length} total</span>
-          </div>
+        <div className="px-4 py-3 border-b flex items-center justify-between" style={{ borderColor: 'var(--soc-border)' }}>
+          <p className="soc-label">REPORTS</p>
+          <span className="text-xs" style={{ color: 'var(--soc-text-muted)' }}>{filteredReports.length} total</span>
         </div>
         <div style={{ overflowX: 'auto' }}>
           <table className="soc-table" style={{ width: '100%' }}>

@@ -51,7 +51,7 @@ low:      #16a34a / #4ade80
 - Variables defined in `.overview-dashboard {}` (light default)
 - Dark overrides in `.dark .overview-dashboard {}`
 - Token prefix: `--soc-*` (primary) with legacy `--color-sot-*` aliases
-- File: `app/css/overview-hig-style.css`
+- Tokens in `@theme` + `app/css/landing-overview.css` (SOC section; imported from `app/css/style.css`)
 
 ## Components
 | Class | Purpose |

@@ -1,6 +1,24 @@
 'use client'
-import { useEffect, useState } from 'react'
+
+import { Fragment, useEffect, useMemo, useState } from 'react'
 import { usePageTitle } from '@/app/page-title-context'
+import {
+  OverviewAlert,
+  OverviewFilterMenu,
+  OverviewKpiRow,
+  OverviewModal,
+  OverviewPageHeader,
+  OverviewPageShell,
+  OverviewPagination,
+  OverviewRowsPerPageMenu,
+  OverviewSection,
+  OverviewStepModal,
+  OverviewTableToolbar,
+  OverviewToggle,
+} from '@/components/overview/unified-ui'
+
+type IdentityStatus = 'active' | 'inactive' | 'locked'
+type AccessLevel = 'admin' | 'user' | 'guest'
 
 interface Identity {
   id: string
@@ -8,259 +26,773 @@ interface Identity {
   email: string
   role: string
   department: string
-  status: 'active' | 'inactive' | 'locked'
+  status: IdentityStatus
   riskScore: number
   lastLogin: string
+  updatedDate: string
   mfaEnabled: boolean
-  accessLevel: 'admin' | 'user' | 'guest'
-  activeSessions?: number
-  failedLoginAttempts?: number
-  anomalousActivity?: boolean
+  accessLevel: AccessLevel
+  activeSessions: number
+  failedLoginAttempts: number
+  anomalousActivity: boolean
 }
 
-const IDENTITIES: Identity[] = [
-  { id: 'USR-001', name: 'Peter Pan',       email: 'peter.pan@company.com',       role: 'Security Analyst',   department: 'Security Operations', status: 'active',   riskScore: 15, lastLogin: '5m ago',   mfaEnabled: true,  accessLevel: 'user',  activeSessions: 2, failedLoginAttempts: 0, anomalousActivity: false },
-  { id: 'USR-002', name: 'Sarah Chen',       email: 'sarah.chen@company.com',       role: 'SOC Manager',        department: 'Security Operations', status: 'active',   riskScore: 8,  lastLogin: '2h ago',   mfaEnabled: true,  accessLevel: 'admin', activeSessions: 1, failedLoginAttempts: 0, anomalousActivity: false },
-  { id: 'USR-003', name: 'Mike Johnson',     email: 'mike.johnson@company.com',     role: 'Developer',          department: 'Engineering',         status: 'inactive', riskScore: 42, lastLogin: '3d ago',   mfaEnabled: false, accessLevel: 'user',  activeSessions: 0, failedLoginAttempts: 3, anomalousActivity: true },
-  { id: 'USR-004', name: 'Sarah Williams',   email: 'sarah.williams@company.com',   role: 'Admin',              department: 'IT',                  status: 'active',   riskScore: 12, lastLogin: '1h ago',   mfaEnabled: true,  accessLevel: 'admin', activeSessions: 1, failedLoginAttempts: 0, anomalousActivity: false },
-  { id: 'USR-005', name: 'James Rodriguez', email: 'james.rodriguez@company.com',  role: 'Analyst II',         department: 'Security Operations', status: 'active',   riskScore: 20, lastLogin: '30m ago',  mfaEnabled: true,  accessLevel: 'user',  activeSessions: 2, failedLoginAttempts: 0, anomalousActivity: false },
-  { id: 'USR-006', name: 'Emily Taylor',    email: 'emily.taylor@company.com',     role: 'Analyst II',         department: 'Security Operations', status: 'active',   riskScore: 18, lastLogin: '1h ago',   mfaEnabled: true,  accessLevel: 'user',  activeSessions: 1, failedLoginAttempts: 0, anomalousActivity: false },
-  { id: 'USR-007', name: 'Alex Petrov',     email: 'alex.petrov@company.com',      role: 'Analyst I',          department: 'Security Operations', status: 'active',   riskScore: 25, lastLogin: '4h ago',   mfaEnabled: true,  accessLevel: 'user',  activeSessions: 1, failedLoginAttempts: 1, anomalousActivity: false },
-  { id: 'USR-008', name: 'Chris Thompson',  email: 'chris.thompson@company.com',   role: 'Finance Manager',    department: 'Finance',             status: 'active',   riskScore: 35, lastLogin: '20m ago',  mfaEnabled: false, accessLevel: 'user',  activeSessions: 1, failedLoginAttempts: 0, anomalousActivity: false },
-  { id: 'USR-009', name: 'Lisa Wong',       email: 'lisa.wong@company.com',        role: 'Cloud Architect',    department: 'Engineering',         status: 'active',   riskScore: 22, lastLogin: '3h ago',   mfaEnabled: true,  accessLevel: 'user',  activeSessions: 1, failedLoginAttempts: 0, anomalousActivity: false },
-  { id: 'USR-010', name: 'David Kim',       email: 'david.kim@company.com',        role: 'HR Director',        department: 'HR',                  status: 'locked',   riskScore: 58, lastLogin: '5d ago',   mfaEnabled: false, accessLevel: 'user',  activeSessions: 0, failedLoginAttempts: 7, anomalousActivity: true },
+const INITIAL_IDENTITIES: Identity[] = [
+  { id: 'USR-001', name: 'Peter Pan', email: 'peter.pan@company.com', role: 'Security Analyst', department: 'Security Operations', status: 'active', riskScore: 15, lastLogin: '5m ago', updatedDate: '2026-04-08', mfaEnabled: true, accessLevel: 'user', activeSessions: 2, failedLoginAttempts: 0, anomalousActivity: false },
+  { id: 'USR-002', name: 'Sarah Chen', email: 'sarah.chen@company.com', role: 'SOC Manager', department: 'Security Operations', status: 'active', riskScore: 8, lastLogin: '2h ago', updatedDate: '2026-04-08', mfaEnabled: true, accessLevel: 'admin', activeSessions: 1, failedLoginAttempts: 0, anomalousActivity: false },
+  { id: 'USR-003', name: 'Mike Johnson', email: 'mike.johnson@company.com', role: 'Developer', department: 'Engineering', status: 'inactive', riskScore: 42, lastLogin: '3d ago', updatedDate: '2026-04-06', mfaEnabled: false, accessLevel: 'user', activeSessions: 0, failedLoginAttempts: 3, anomalousActivity: true },
+  { id: 'USR-004', name: 'Sarah Williams', email: 'sarah.williams@company.com', role: 'Admin', department: 'IT', status: 'active', riskScore: 12, lastLogin: '1h ago', updatedDate: '2026-04-08', mfaEnabled: true, accessLevel: 'admin', activeSessions: 1, failedLoginAttempts: 0, anomalousActivity: false },
+  { id: 'USR-005', name: 'James Rodriguez', email: 'james.rodriguez@company.com', role: 'Analyst II', department: 'Security Operations', status: 'active', riskScore: 20, lastLogin: '30m ago', updatedDate: '2026-04-08', mfaEnabled: true, accessLevel: 'user', activeSessions: 2, failedLoginAttempts: 0, anomalousActivity: false },
+  { id: 'USR-006', name: 'Emily Taylor', email: 'emily.taylor@company.com', role: 'Analyst II', department: 'Security Operations', status: 'active', riskScore: 18, lastLogin: '1h ago', updatedDate: '2026-04-08', mfaEnabled: true, accessLevel: 'user', activeSessions: 1, failedLoginAttempts: 0, anomalousActivity: false },
+  { id: 'USR-007', name: 'Alex Petrov', email: 'alex.petrov@company.com', role: 'Analyst I', department: 'Security Operations', status: 'active', riskScore: 25, lastLogin: '4h ago', updatedDate: '2026-04-07', mfaEnabled: true, accessLevel: 'user', activeSessions: 1, failedLoginAttempts: 1, anomalousActivity: false },
+  { id: 'USR-008', name: 'Chris Thompson', email: 'chris.thompson@company.com', role: 'Finance Manager', department: 'Finance', status: 'active', riskScore: 35, lastLogin: '20m ago', updatedDate: '2026-04-08', mfaEnabled: false, accessLevel: 'user', activeSessions: 1, failedLoginAttempts: 0, anomalousActivity: false },
+  { id: 'USR-009', name: 'Lisa Wong', email: 'lisa.wong@company.com', role: 'Cloud Architect', department: 'Engineering', status: 'active', riskScore: 22, lastLogin: '3h ago', updatedDate: '2026-04-07', mfaEnabled: true, accessLevel: 'user', activeSessions: 1, failedLoginAttempts: 0, anomalousActivity: false },
+  { id: 'USR-010', name: 'David Kim', email: 'david.kim@company.com', role: 'HR Director', department: 'HR', status: 'locked', riskScore: 58, lastLogin: '5d ago', updatedDate: '2026-04-05', mfaEnabled: false, accessLevel: 'user', activeSessions: 0, failedLoginAttempts: 7, anomalousActivity: true },
 ]
 
-const STATUS_CONFIG = {
-  active:   { color: 'var(--soc-low)',      bg: 'var(--soc-low-bg)',      label: 'Active' },
-  inactive: { color: 'var(--soc-text-muted)',bg: 'var(--soc-overlay)',    label: 'Inactive' },
-  locked:   { color: 'var(--soc-critical)', bg: 'var(--soc-critical-bg)', label: 'Locked' },
+const STATUS_CONFIG: Record<IdentityStatus, { color: string; bg: string; bar: string; label: string }> = {
+  active: { color: 'var(--soc-low)', bg: 'var(--soc-low-bg)', bar: 'var(--soc-low)', label: 'Active' },
+  inactive: { color: 'var(--soc-text-muted)', bg: 'var(--soc-overlay)', bar: 'var(--soc-text-muted)', label: 'Inactive' },
+  locked: { color: 'var(--soc-critical)', bg: 'var(--soc-critical-bg)', bar: 'var(--soc-critical)', label: 'Locked' },
 }
 
-const ACCESS_CONFIG = {
+const ACCESS_CONFIG: Record<AccessLevel, { color: string; label: string }> = {
   admin: { color: 'var(--soc-accent)', label: 'Admin' },
-  user:  { color: 'var(--soc-text-secondary)', label: 'User' },
+  user: { color: 'var(--soc-text-secondary)', label: 'User' },
   guest: { color: 'var(--soc-text-muted)', label: 'Guest' },
+}
+
+type PendingAction = { type: 'reset-mfa' | 'lock' | 'unlock'; identityId: string }
+type Flash = { tone: 'success' | 'attention'; title: string; description: string } | null
+
+function getTodayIso() {
+  return new Date().toISOString().slice(0, 10)
 }
 
 export default function IdentitiesPage() {
   const { setPageTitle } = usePageTitle()
-  const [filter, setFilter] = useState('all')
-  const [search, setSearch] = useState('')
-  const [selected, setSelected] = useState<Identity | null>(null)
+  const [identities, setIdentities] = useState<Identity[]>(INITIAL_IDENTITIES)
+  const [query, setQuery] = useState('')
+  const [combinedFilters, setCombinedFilters] = useState<string[]>([
+    'active',
+    'inactive',
+    'locked',
+    'admin',
+    'user',
+    'guest',
+  ])
+  const [criticalOnly, setCriticalOnly] = useState(false)
+  const [mfaOnly, setMfaOnly] = useState(false)
+  const [expanded, setExpanded] = useState<string[]>([])
+  const [page, setPage] = useState(1)
+  const [rowsPerPage, setRowsPerPage] = useState(5)
 
-  useEffect(() => { setPageTitle('Identities') }, [setPageTitle])
+  const [selectedIdentityId, setSelectedIdentityId] = useState<string | null>(null)
+  const [pendingAction, setPendingAction] = useState<PendingAction | null>(null)
+  const [actionBusy, setActionBusy] = useState(false)
+  const [flash, setFlash] = useState<Flash>(null)
 
-  const filtered = IDENTITIES
-    .filter(i => filter === 'all' || i.status === filter || (filter === 'risk' && i.riskScore >= 40) || (filter === 'no-mfa' && !i.mfaEnabled))
-    .filter(i => !search || i.name.toLowerCase().includes(search.toLowerCase()) || i.email.toLowerCase().includes(search.toLowerCase()) || i.department.toLowerCase().includes(search.toLowerCase()))
+  const [exportOpen, setExportOpen] = useState(false)
+  const [exportFormat, setExportFormat] = useState<'csv' | 'json' | 'pdf'>('csv')
+  const [exportFilteredOnly, setExportFilteredOnly] = useState(true)
+  const [exportState, setExportState] = useState<'idle' | 'running' | 'done'>('idle')
 
-  const counts = {
-    total:    IDENTITIES.length,
-    active:   IDENTITIES.filter(i => i.status === 'active').length,
-    mfa:      IDENTITIES.filter(i => i.mfaEnabled).length,
-    anomalous:IDENTITIES.filter(i => i.anomalousActivity).length,
-    admins:   IDENTITIES.filter(i => i.accessLevel === 'admin').length,
+  const [addOpen, setAddOpen] = useState(false)
+  const [addStep, setAddStep] = useState(0)
+  const [newIdentity, setNewIdentity] = useState({
+    name: '',
+    email: '',
+    role: '',
+    department: '',
+    accessLevel: 'user' as AccessLevel,
+  })
+
+  useEffect(() => {
+    setPageTitle('Identities')
+  }, [setPageTitle])
+
+  const counts = useMemo(() => {
+    const total = identities.length
+    const active = identities.filter((i) => i.status === 'active').length
+    const locked = identities.filter((i) => i.status === 'locked').length
+    const noMfa = identities.filter((i) => !i.mfaEnabled).length
+    const admins = identities.filter((i) => i.accessLevel === 'admin').length
+    const anomalous = identities.filter((i) => i.anomalousActivity).length
+    const highRisk = identities.filter((i) => i.riskScore >= 40).length
+    return { total, active, locked, noMfa, admins, anomalous, highRisk }
+  }, [identities])
+
+  const visible = useMemo(() => {
+    const q = query.toLowerCase()
+    const selectedStatuses = combinedFilters.filter((id): id is IdentityStatus =>
+      ['active', 'inactive', 'locked'].includes(id),
+    )
+    const selectedAccess = combinedFilters.filter((id): id is AccessLevel =>
+      ['admin', 'user', 'guest'].includes(id),
+    )
+    return identities
+      .filter((i) => selectedStatuses.length === 0 || selectedStatuses.includes(i.status))
+      .filter((i) => selectedAccess.length === 0 || selectedAccess.includes(i.accessLevel))
+      .filter((i) => !criticalOnly || i.riskScore >= 40 || i.anomalousActivity)
+      .filter((i) => !mfaOnly || i.mfaEnabled)
+      .filter(
+        (i) =>
+          !q ||
+          i.name.toLowerCase().includes(q) ||
+          i.email.toLowerCase().includes(q) ||
+          i.role.toLowerCase().includes(q) ||
+          i.department.toLowerCase().includes(q),
+      )
+  }, [identities, combinedFilters, criticalOnly, mfaOnly, query])
+
+  const totalPages = Math.max(1, Math.ceil(visible.length / rowsPerPage))
+  const pagedRows = visible.slice((page - 1) * rowsPerPage, page * rowsPerPage)
+  const selectedIdentity = selectedIdentityId ? identities.find((i) => i.id === selectedIdentityId) ?? null : null
+  const pendingIdentity = pendingAction ? identities.find((i) => i.id === pendingAction.identityId) ?? null : null
+
+  useEffect(() => {
+    if (page > totalPages) setPage(1)
+  }, [page, totalPages])
+
+  const executeIdentityAction = async () => {
+    if (!pendingAction || !pendingIdentity) return
+    setActionBusy(true)
+    await new Promise((resolve) => setTimeout(resolve, 900))
+    const today = getTodayIso()
+
+    setIdentities((prev) =>
+      prev.map((identity) => {
+        if (identity.id !== pendingAction.identityId) return identity
+        if (pendingAction.type === 'reset-mfa') {
+          return {
+            ...identity,
+            mfaEnabled: true,
+            failedLoginAttempts: 0,
+            lastLogin: 'just now',
+            updatedDate: today,
+          }
+        }
+        if (pendingAction.type === 'lock') {
+          return {
+            ...identity,
+            status: 'locked',
+            activeSessions: 0,
+            updatedDate: today,
+          }
+        }
+        return {
+          ...identity,
+          status: 'active',
+          failedLoginAttempts: Math.max(0, identity.failedLoginAttempts - 2),
+          updatedDate: today,
+        }
+      }),
+    )
+
+    setActionBusy(false)
+    const actionTitle =
+      pendingAction.type === 'reset-mfa'
+        ? `MFA reset completed for ${pendingIdentity.name}`
+        : pendingAction.type === 'lock'
+          ? `${pendingIdentity.name} account locked`
+          : `${pendingIdentity.name} account unlocked`
+
+    setFlash({
+      tone: pendingAction.type === 'reset-mfa' ? 'success' : 'attention',
+      title: actionTitle,
+      description: 'Identity posture was updated and reflected in table metrics.',
+    })
+    setPendingAction(null)
   }
 
+  const startExport = async () => {
+    setExportState('running')
+    await new Promise((resolve) => setTimeout(resolve, 1000))
+    setExportState('done')
+  }
+
+  const resetAddFlow = () => {
+    setAddOpen(false)
+    setAddStep(0)
+    setNewIdentity({
+      name: '',
+      email: '',
+      role: '',
+      department: '',
+      accessLevel: 'user',
+    })
+  }
+
+  const addIdentity = () => {
+    const nextNumber =
+      Math.max(
+        ...identities
+          .map((i) => Number.parseInt(i.id.replace('USR-', ''), 10))
+          .filter((n) => Number.isFinite(n)),
+      ) + 1
+    const today = getTodayIso()
+    setIdentities((prev) => [
+      {
+        id: `USR-${String(nextNumber).padStart(3, '0')}`,
+        name: newIdentity.name,
+        email: newIdentity.email,
+        role: newIdentity.role,
+        department: newIdentity.department,
+        status: 'active',
+        riskScore: 18,
+        lastLogin: 'Never',
+        updatedDate: today,
+        mfaEnabled: true,
+        accessLevel: newIdentity.accessLevel,
+        activeSessions: 0,
+        failedLoginAttempts: 0,
+        anomalousActivity: false,
+      },
+      ...prev,
+    ])
+    setFlash({
+      tone: 'success',
+      title: `Identity ${newIdentity.name} created`,
+      description: 'New identity was added with baseline security controls.',
+    })
+    resetAddFlow()
+  }
+
+  const combinedFilterOptions = [
+    { id: 'active', label: 'Active', section: 'Status' },
+    { id: 'inactive', label: 'Inactive', section: 'Status' },
+    { id: 'locked', label: 'Locked', section: 'Status' },
+    { id: 'admin', label: 'Admin', section: 'Access level' },
+    { id: 'user', label: 'User', section: 'Access level' },
+    { id: 'guest', label: 'Guest', section: 'Access level' },
+  ]
+
   return (
-    <div className="w-full max-w-7xl mx-auto px-6 py-6">
+    <OverviewPageShell>
+      <OverviewPageHeader
+        section="IDENTITY & ACCESS"
+        title="Identities"
+        description="Identity inventory for access hygiene, risky behavior detection, and account containment."
+        actions={[
+          {
+            id: 'export',
+            label: 'Export',
+            variant: 'secondary',
+            onClick: () => {
+              setExportOpen(true)
+              setExportState('idle')
+            },
+          },
+          { id: 'add-identity', label: 'Add Identity', variant: 'primary', onClick: () => setAddOpen(true) },
+        ]}
+      />
 
-      {/* Header */}
-      <div className="flex items-start justify-between mb-5 hig-fade-in">
-        <div>
-          <p className="soc-label mb-1">IDENTITY & ACCESS</p>
-          <h1 className="text-xl font-bold tracking-tight mb-1.5" style={{ color: 'var(--soc-text)' }}>
-            Identities
-          </h1>
-          <p className="text-sm" style={{ color: 'var(--soc-text-secondary)' }}>
-            MFA coverage <strong style={{ color: Math.round((counts.mfa / counts.total) * 100) >= 80 ? 'var(--soc-low)' : 'var(--soc-medium)' }}>{Math.round((counts.mfa / counts.total) * 100)}%</strong> ·{' '}
-            {counts.anomalous > 0 && <><strong style={{ color: 'var(--soc-critical)' }}>{counts.anomalous}</strong> anomalous activity</>}
-          </p>
+      {flash && (
+        <div className="mb-4">
+          <OverviewAlert tone={flash.tone} title={flash.title} description={flash.description} />
         </div>
-        <div className="flex items-center gap-2 mt-1">
-          <button className="soc-btn soc-btn-secondary">Export</button>
-          <button className="soc-btn soc-btn-primary">Add User</button>
-        </div>
-      </div>
+      )}
 
-      {/* KPI row */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-5">
-        {[
-          { label: 'TOTAL',      value: counts.total,    color: 'var(--soc-text)' },
-          { label: 'ACTIVE',     value: counts.active,   color: 'var(--soc-low)' },
-          { label: 'MFA ENABLED',value: `${Math.round((counts.mfa / counts.total) * 100)}%`, color: counts.mfa / counts.total >= 0.8 ? 'var(--soc-low)' : 'var(--soc-medium)' },
-          { label: 'ADMINS',     value: counts.admins,   color: 'var(--soc-accent)' },
-          { label: 'ANOMALOUS',  value: counts.anomalous, color: counts.anomalous > 0 ? 'var(--soc-critical)' : 'var(--soc-low)' },
-        ].map(({ label, value, color }) => (
-          <div key={label} className="soc-card">
-            <p className="soc-label mb-2">{label}</p>
-            <p className="soc-metric-sm" style={{ color }}>{value}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Filters + search */}
-      <div className="flex items-center gap-2 flex-wrap mb-4">
-        <input
-          className="soc-input text-xs"
-          placeholder="Search name, email, department…"
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          style={{ width: '220px' }}
+      <div className="mb-5 grid grid-cols-1 gap-3 md:grid-cols-2">
+        <OverviewAlert
+          tone={counts.highRisk > 0 ? 'critical' : 'success'}
+          title={counts.highRisk > 0 ? `${counts.highRisk} risky identities need review` : 'Identity risk posture is stable'}
+          description="High risk includes score >= 40 or anomalous activity marker."
         />
-        {['all', 'active', 'inactive', 'locked', 'no-mfa', 'risk'].map(f => (
-          <button
-            key={f}
-            onClick={() => setFilter(f)}
-            className="soc-btn text-xs"
-            style={filter === f
-              ? { backgroundColor: 'var(--soc-accent)', borderColor: 'var(--soc-accent)', color: '#fff' }
-              : { borderColor: 'var(--soc-border-mid)', color: 'var(--soc-text-secondary)', background: 'transparent' }}
-          >
-            {f === 'all' ? 'All' : f === 'no-mfa' ? 'No MFA' : f === 'risk' ? 'High Risk' : f.charAt(0).toUpperCase() + f.slice(1)}
-          </button>
-        ))}
-        <span className="text-xs" style={{ color: 'var(--soc-text-muted)' }}>{filtered.length} identities</span>
+        <OverviewAlert
+          tone={counts.noMfa > 0 ? 'attention' : 'info'}
+          title={counts.noMfa > 0 ? `${counts.noMfa} identities without MFA` : 'MFA coverage complete'}
+          description="Use Reset MFA from row details or identity modal to remediate accounts."
+        />
       </div>
 
-      {/* Table */}
-      <div className="soc-card p-0 overflow-hidden">
-        <table className="soc-table">
+      <OverviewKpiRow
+        columns={5}
+        items={[
+          { label: 'TOTAL IDENTITIES', value: counts.total, sub: 'Managed accounts' },
+          { label: 'ACTIVE', value: counts.active, sub: 'Operational', tone: 'low' },
+          { label: 'LOCKED', value: counts.locked, sub: 'Restricted', tone: counts.locked > 0 ? 'critical' : 'default' },
+          { label: 'ADMINS', value: counts.admins, sub: 'Privileged', tone: 'high' },
+          { label: 'ANOMALOUS', value: counts.anomalous, sub: 'Behavioral flags', tone: counts.anomalous > 0 ? 'critical' : 'low' },
+        ]}
+      />
+
+      <OverviewTableToolbar
+        searchValue={query}
+        onSearchChange={setQuery}
+        searchPlaceholder="Search name, email, role, department..."
+        end={
+          <div className="flex w-full flex-wrap gap-2 sm:justify-end">
+            <OverviewFilterMenu
+              options={combinedFilterOptions}
+              selected={combinedFilters}
+              onApply={(next) => {
+                setCombinedFilters(next)
+                setPage(1)
+              }}
+            />
+            <OverviewToggle
+              label="Critical only"
+              checked={criticalOnly}
+              onChange={(next) => {
+                setCriticalOnly(next)
+                setPage(1)
+              }}
+            />
+            <OverviewToggle
+              label="MFA enabled only"
+              checked={mfaOnly}
+              onChange={(next) => {
+                setMfaOnly(next)
+                setPage(1)
+              }}
+            />
+          </div>
+        }
+      />
+
+      <OverviewSection
+        title="IDENTITY INVENTORY"
+        right={
+          <OverviewRowsPerPageMenu
+            value={rowsPerPage}
+            options={[5, 10]}
+            onChange={(n) => {
+              setRowsPerPage(n)
+              setPage(1)
+            }}
+          />
+        }
+        flush
+      >
+        <table className="soc-table" style={{ tableLayout: 'fixed', width: '100%' }}>
           <thead>
             <tr>
-              <th>Identity</th>
-              <th>Role</th>
-              <th>Department</th>
-              <th>Access</th>
-              <th className="text-center">MFA</th>
-              <th className="text-center">Sessions</th>
-              <th className="text-center">Failed</th>
-              <th className="text-right">Risk</th>
-              <th>Status</th>
-              <th>Last Login</th>
+              <th style={{ width: '6px', padding: 0 }} />
+              <th style={{ width: '25%' }}>Identity</th>
+              <th style={{ width: '12%' }}>Role</th>
+              <th style={{ width: '12%' }}>Department</th>
+              <th style={{ width: '10%' }}>Access</th>
+              <th className="text-center" style={{ width: '8%' }}>MFA</th>
+              <th className="text-center" style={{ width: '8%' }}>Failed</th>
+              <th className="text-right" style={{ width: '8%' }}>Risk</th>
+              <th style={{ width: '9%' }}>Status</th>
+              <th style={{ width: '8%' }}>Last Login</th>
             </tr>
           </thead>
           <tbody>
-            {filtered.map((id) => {
-              const sc = STATUS_CONFIG[id.status]
-              const ac = ACCESS_CONFIG[id.accessLevel]
+            {pagedRows.map((identity) => {
+              const status = STATUS_CONFIG[identity.status]
+              const access = ACCESS_CONFIG[identity.accessLevel]
+              const isExpanded = expanded.includes(identity.id)
               return (
-                <tr
-                  key={id.id}
-                  className="cursor-pointer"
-                  onClick={() => setSelected(id)}
-                >
-                  <td>
-                    <div className="flex items-center gap-2.5">
-                      <div
-                        className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold"
-                        style={{ backgroundColor: 'var(--soc-accent-bg)', color: 'var(--soc-accent-text)' }}
-                      >
-                        {id.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-1.5">
-                          <p className="text-sm font-medium" style={{ color: 'var(--soc-text)' }}>{id.name}</p>
-                          {id.anomalousActivity && <span className="soc-badge soc-badge-critical">!</span>}
-                        </div>
-                        <p className="text-xs" style={{ color: 'var(--soc-text-muted)' }}>{id.email}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td><span className="text-xs" style={{ color: 'var(--soc-text-secondary)' }}>{id.role}</span></td>
-                  <td><span className="text-xs" style={{ color: 'var(--soc-text-secondary)' }}>{id.department}</span></td>
-                  <td><span className="soc-badge" style={{ color: ac.color, border: `1px solid ${ac.color}44`, background: 'transparent' }}>{ac.label}</span></td>
-                  <td className="text-center">
-                    {id.mfaEnabled
-                      ? <span style={{ color: 'var(--soc-low)', fontSize: '14px' }}>✓</span>
-                      : <span style={{ color: 'var(--soc-critical)', fontSize: '14px' }}>✗</span>
+                <Fragment key={identity.id}>
+                  <tr
+                    className="cursor-pointer"
+                    onClick={() =>
+                      setExpanded((prev) =>
+                        prev.includes(identity.id) ? prev.filter((id) => id !== identity.id) : [...prev, identity.id],
+                      )
                     }
-                  </td>
-                  <td className="text-center">
-                    <span className="text-sm tabular-nums" style={{ color: 'var(--soc-text)' }}>{id.activeSessions ?? 0}</span>
-                  </td>
-                  <td className="text-center">
-                    <span
-                      className="text-sm tabular-nums font-semibold"
-                      style={{ color: (id.failedLoginAttempts ?? 0) >= 3 ? 'var(--soc-critical)' : (id.failedLoginAttempts ?? 0) > 0 ? 'var(--soc-medium)' : 'var(--soc-text-muted)' }}
-                    >
-                      {id.failedLoginAttempts ?? 0}
-                    </span>
-                  </td>
-                  <td className="text-right">
-                    <span
-                      className="text-sm font-bold tabular-nums"
-                      style={{ color: id.riskScore >= 50 ? 'var(--soc-critical)' : id.riskScore >= 30 ? 'var(--soc-medium)' : 'var(--soc-low)' }}
-                    >
-                      {id.riskScore}
-                    </span>
-                  </td>
-                  <td>
-                    <span className="soc-badge" style={{ backgroundColor: sc.bg, color: sc.color }}>{sc.label}</span>
-                  </td>
-                  <td>
-                    <span className="text-xs" style={{ color: 'var(--soc-text-muted)' }}>{id.lastLogin}</span>
-                  </td>
-                </tr>
+                  >
+                    <td style={{ padding: 0 }}>
+                      <div
+                        style={{
+                          width: '3px',
+                          marginLeft: '1px',
+                          height: '100%',
+                          minHeight: '2.7rem',
+                          backgroundColor: status.bar,
+                          borderRadius: '0 2px 2px 0',
+                        }}
+                      />
+                    </td>
+                    <td>
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div
+                          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold"
+                          style={{ backgroundColor: 'var(--soc-accent-bg)', color: 'var(--soc-accent-text)' }}
+                        >
+                          {identity.name
+                            .split(' ')
+                            .map((n) => n[0])
+                            .join('')
+                            .slice(0, 2)}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <p className="truncate text-sm font-medium" style={{ color: 'var(--soc-text)' }}>{identity.name}</p>
+                            {identity.anomalousActivity && <span className="soc-badge soc-badge-critical">!</span>}
+                          </div>
+                          <p className="truncate text-xs" style={{ color: 'var(--soc-text-muted)' }}>{identity.email}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td><span className="text-xs" style={{ color: 'var(--soc-text-secondary)' }}>{identity.role}</span></td>
+                    <td><span className="text-xs" style={{ color: 'var(--soc-text-secondary)' }}>{identity.department}</span></td>
+                    <td>
+                      <span className="soc-badge" style={{ color: access.color, border: `1px solid ${access.color}44`, background: 'transparent' }}>
+                        {access.label}
+                      </span>
+                    </td>
+                    <td className="text-center">
+                      <span style={{ color: identity.mfaEnabled ? 'var(--soc-low)' : 'var(--soc-critical)', fontSize: '14px' }}>
+                        {identity.mfaEnabled ? '✓' : '✗'}
+                      </span>
+                    </td>
+                    <td className="text-center">
+                      <span
+                        className="text-sm font-semibold tabular-nums"
+                        style={{
+                          color:
+                            identity.failedLoginAttempts >= 3
+                              ? 'var(--soc-critical)'
+                              : identity.failedLoginAttempts > 0
+                                ? 'var(--soc-medium)'
+                                : 'var(--soc-text-muted)',
+                        }}
+                      >
+                        {identity.failedLoginAttempts}
+                      </span>
+                    </td>
+                    <td className="text-right">
+                      <span
+                        className="text-sm font-bold tabular-nums"
+                        style={{
+                          color:
+                            identity.riskScore >= 50
+                              ? 'var(--soc-critical)'
+                              : identity.riskScore >= 30
+                                ? 'var(--soc-medium)'
+                                : 'var(--soc-low)',
+                        }}
+                      >
+                        {identity.riskScore}
+                      </span>
+                    </td>
+                    <td>
+                      <span className="soc-badge" style={{ backgroundColor: status.bg, color: status.color }}>
+                        {status.label}
+                      </span>
+                    </td>
+                    <td>
+                      <span className="text-xs" style={{ color: 'var(--soc-text-muted)' }}>{identity.lastLogin}</span>
+                    </td>
+                  </tr>
+                  {isExpanded && (
+                    <tr>
+                      <td colSpan={10} style={{ padding: 0, backgroundColor: 'var(--soc-raised)', borderTop: '1px solid var(--soc-border)' }}>
+                        <div className="space-y-3 px-4 py-3">
+                          <div className="grid grid-cols-1 gap-2 text-xs sm:grid-cols-2 lg:grid-cols-4" style={{ color: 'var(--soc-text-secondary)' }}>
+                            <p><span className="font-semibold" style={{ color: 'var(--soc-text)' }}>Identity ID:</span> {identity.id}</p>
+                            <p><span className="font-semibold" style={{ color: 'var(--soc-text)' }}>Sessions:</span> {identity.activeSessions}</p>
+                            <p><span className="font-semibold" style={{ color: 'var(--soc-text)' }}>Updated:</span> {identity.updatedDate}</p>
+                            <p><span className="font-semibold" style={{ color: 'var(--soc-text)' }}>Anomaly:</span> {identity.anomalousActivity ? 'Detected' : 'None'}</p>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            <button
+                              type="button"
+                              className="soc-btn soc-btn-secondary text-xs"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                setSelectedIdentityId(identity.id)
+                              }}
+                            >
+                              View details
+                            </button>
+                            <button
+                              type="button"
+                              className="soc-btn soc-btn-secondary text-xs"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                setPendingAction({ type: 'reset-mfa', identityId: identity.id })
+                              }}
+                            >
+                              Reset MFA
+                            </button>
+                            <button
+                              type="button"
+                              className={`soc-btn text-xs ${identity.status === 'locked' ? 'soc-btn-primary' : 'soc-btn-secondary'}`}
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                setPendingAction({
+                                  type: identity.status === 'locked' ? 'unlock' : 'lock',
+                                  identityId: identity.id,
+                                })
+                              }}
+                            >
+                              {identity.status === 'locked' ? 'Unlock account' : 'Lock account'}
+                            </button>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </Fragment>
               )
             })}
           </tbody>
         </table>
-      </div>
+        <OverviewPagination page={page} totalPages={totalPages} totalItems={visible.length} onPageChange={setPage} />
+      </OverviewSection>
 
-      {/* Modal */}
-      {selected && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}
-          onClick={() => setSelected(null)}
-        >
-          <div
-            className="w-full max-w-lg flex flex-col max-h-[85vh] rounded-xl overflow-hidden"
-            style={{ backgroundColor: 'var(--soc-surface)', border: '1px solid var(--soc-border-mid)' }}
-            onClick={e => e.stopPropagation()}
-          >
-            <div className="px-5 py-4 border-b flex items-center gap-3" style={{ borderColor: 'var(--soc-border)' }}>
-              <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold" style={{ backgroundColor: 'var(--soc-accent-bg)', color: 'var(--soc-accent-text)' }}>
-                {selected.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
-              </div>
-              <div className="flex-1">
-                <h2 className="text-base font-bold" style={{ color: 'var(--soc-text)' }}>{selected.name}</h2>
-                <p className="text-xs" style={{ color: 'var(--soc-text-muted)' }}>{selected.email}</p>
-              </div>
-              <button onClick={() => setSelected(null)} className="text-sm w-7 h-7 flex items-center justify-center rounded" style={{ color: 'var(--soc-text-muted)', backgroundColor: 'var(--soc-raised)' }}>✕</button>
+      <OverviewModal
+        open={!!selectedIdentity}
+        title={selectedIdentity?.name ?? ''}
+        subtitle={selectedIdentity?.id}
+        onClose={() => setSelectedIdentityId(null)}
+        maxWidth="max-w-2xl"
+        footer={
+          selectedIdentity ? (
+            <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                className="soc-btn soc-btn-secondary"
+                onClick={() => setPendingAction({ type: 'reset-mfa', identityId: selectedIdentity.id })}
+              >
+                Reset MFA
+              </button>
+              <button
+                type="button"
+                className="soc-btn soc-btn-primary"
+                onClick={() =>
+                  setPendingAction({
+                    type: selectedIdentity.status === 'locked' ? 'unlock' : 'lock',
+                    identityId: selectedIdentity.id,
+                  })
+                }
+              >
+                {selectedIdentity.status === 'locked' ? 'Unlock account' : 'Lock account'}
+              </button>
             </div>
-            <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
-              <div className="flex gap-2">
-                <span className="soc-badge" style={{ backgroundColor: STATUS_CONFIG[selected.status].bg, color: STATUS_CONFIG[selected.status].color }}>{STATUS_CONFIG[selected.status].label}</span>
-                <span className="soc-badge" style={{ color: ACCESS_CONFIG[selected.accessLevel].color, border: `1px solid ${ACCESS_CONFIG[selected.accessLevel].color}44`, background: 'transparent' }}>{ACCESS_CONFIG[selected.accessLevel].label}</span>
-                {!selected.mfaEnabled && <span className="soc-badge soc-badge-high">MFA DISABLED</span>}
-                {selected.anomalousActivity && <span className="soc-badge soc-badge-critical">ANOMALOUS</span>}
+          ) : null
+        }
+      >
+        {selectedIdentity && (
+          <div className="space-y-4">
+            <div className="flex flex-wrap gap-2">
+              <span className="soc-badge" style={{ backgroundColor: STATUS_CONFIG[selectedIdentity.status].bg, color: STATUS_CONFIG[selectedIdentity.status].color }}>
+                {STATUS_CONFIG[selectedIdentity.status].label}
+              </span>
+              <span className="soc-badge" style={{ color: ACCESS_CONFIG[selectedIdentity.accessLevel].color, border: `1px solid ${ACCESS_CONFIG[selectedIdentity.accessLevel].color}44`, background: 'transparent' }}>
+                {ACCESS_CONFIG[selectedIdentity.accessLevel].label}
+              </span>
+              <span className="soc-badge">Risk {selectedIdentity.riskScore}</span>
+            </div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {[
+                ['Email', selectedIdentity.email],
+                ['Role', selectedIdentity.role],
+                ['Department', selectedIdentity.department],
+                ['MFA', selectedIdentity.mfaEnabled ? 'Enabled' : 'Disabled'],
+                ['Last login', selectedIdentity.lastLogin],
+                ['Active sessions', String(selectedIdentity.activeSessions)],
+                ['Failed logins', String(selectedIdentity.failedLoginAttempts)],
+                ['Anomalous activity', selectedIdentity.anomalousActivity ? 'Detected' : 'None'],
+              ].map(([label, value]) => (
+                <div key={label} className="rounded-md border p-3" style={{ borderColor: 'var(--soc-border)', backgroundColor: 'var(--soc-raised)' }}>
+                  <p className="soc-label mb-1">{label}</p>
+                  <p className="text-sm font-medium" style={{ color: 'var(--soc-text)' }}>{value}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </OverviewModal>
+
+      <OverviewModal
+        open={!!pendingAction && !!pendingIdentity}
+        title={
+          pendingAction?.type === 'reset-mfa'
+            ? 'Reset MFA enrollment'
+            : pendingAction?.type === 'lock'
+              ? 'Lock identity'
+              : 'Unlock identity'
+        }
+        subtitle={pendingIdentity?.name}
+        onClose={() => (actionBusy ? undefined : setPendingAction(null))}
+        maxWidth="max-w-lg"
+        footer={
+          <div className="flex gap-2 sm:justify-end">
+            <button type="button" className="soc-btn soc-btn-secondary" disabled={actionBusy} onClick={() => setPendingAction(null)}>
+              Cancel
+            </button>
+            <button type="button" className="soc-btn soc-btn-primary" disabled={actionBusy} onClick={() => void executeIdentityAction()}>
+              {actionBusy ? 'Applying...' : 'Confirm action'}
+            </button>
+          </div>
+        }
+      >
+        {pendingIdentity && pendingAction && (
+          <div className="space-y-3">
+            <p className="text-sm" style={{ color: 'var(--soc-text-secondary)' }}>
+              {pendingAction.type === 'reset-mfa' && 'This will reset MFA enrollment and require re-registration on next sign-in.'}
+              {pendingAction.type === 'lock' && 'This will block interactive sign-ins and terminate active identity sessions.'}
+              {pendingAction.type === 'unlock' && 'This will restore identity access and move status back to active.'}
+            </p>
+            <div className="rounded-md border p-3 text-xs" style={{ borderColor: 'var(--soc-border)', backgroundColor: 'var(--soc-raised)', color: 'var(--soc-text-secondary)' }}>
+              <p><span className="font-semibold" style={{ color: 'var(--soc-text)' }}>Identity:</span> {pendingIdentity.name}</p>
+              <p><span className="font-semibold" style={{ color: 'var(--soc-text)' }}>Current status:</span> {STATUS_CONFIG[pendingIdentity.status].label}</p>
+              <p><span className="font-semibold" style={{ color: 'var(--soc-text)' }}>Current risk:</span> {pendingIdentity.riskScore}</p>
+            </div>
+          </div>
+        )}
+      </OverviewModal>
+
+      <OverviewModal
+        open={exportOpen}
+        title="Export identities"
+        subtitle="IDENTITY REPORT"
+        onClose={() => setExportOpen(false)}
+        maxWidth="max-w-xl"
+        footer={
+          <div className="flex gap-2 sm:justify-end">
+            <button type="button" className="soc-btn soc-btn-secondary" onClick={() => setExportOpen(false)}>
+              Close
+            </button>
+            <button
+              type="button"
+              className="soc-btn soc-btn-primary"
+              onClick={() => void startExport()}
+              disabled={exportState === 'running'}
+            >
+              {exportState === 'running' ? 'Preparing...' : exportState === 'done' ? 'Export again' : 'Start export'}
+            </button>
+          </div>
+        }
+      >
+        <div className="space-y-4">
+          <div>
+            <p className="soc-label mb-2">FORMAT</p>
+            <div className="flex flex-wrap gap-2">
+              {(['csv', 'json', 'pdf'] as const).map((format) => (
+                <button
+                  key={format}
+                  type="button"
+                  className={`soc-btn text-xs ${exportFormat === format ? 'soc-btn-primary' : 'soc-btn-secondary'}`}
+                  onClick={() => setExportFormat(format)}
+                >
+                  {format.toUpperCase()}
+                </button>
+              ))}
+            </div>
+          </div>
+          <OverviewToggle label="Export filtered results only" checked={exportFilteredOnly} onChange={setExportFilteredOnly} />
+          <div className="rounded-md border p-3 text-xs" style={{ borderColor: 'var(--soc-border)', backgroundColor: 'var(--soc-raised)', color: 'var(--soc-text-secondary)' }}>
+            Export scope: {exportFilteredOnly ? `${visible.length} visible identities` : `${identities.length} total identities`}
+          </div>
+          {exportState === 'done' && (
+            <OverviewAlert
+              tone="success"
+              title="Export package ready"
+              description={`Generated ${exportFormat.toUpperCase()} package for ${exportFilteredOnly ? 'filtered' : 'full'} identity inventory.`}
+            />
+          )}
+        </div>
+      </OverviewModal>
+
+      <OverviewStepModal
+        open={addOpen}
+        subtitle="ADD IDENTITY"
+        currentStep={addStep}
+        onStepChange={setAddStep}
+        onClose={resetAddFlow}
+        onFinish={addIdentity}
+        steps={[
+          {
+            id: 'identity',
+            title: 'Step 1: Identity profile',
+            canProceed: () => newIdentity.name.trim().length > 2 && newIdentity.email.trim().length > 5,
+            validationHint: 'Name and email are required.',
+            content: (
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="text-xs font-medium" style={{ color: 'var(--soc-text-secondary)' }}>
+                  Full name
+                  <input
+                    className="soc-input mt-1 w-full text-sm"
+                    value={newIdentity.name}
+                    onChange={(e) => setNewIdentity((prev) => ({ ...prev, name: e.target.value }))}
+                    placeholder="Jane Doe"
+                  />
+                </label>
+                <label className="text-xs font-medium" style={{ color: 'var(--soc-text-secondary)' }}>
+                  Email
+                  <input
+                    className="soc-input mt-1 w-full text-sm"
+                    value={newIdentity.email}
+                    onChange={(e) => setNewIdentity((prev) => ({ ...prev, email: e.target.value }))}
+                    placeholder="jane.doe@company.com"
+                  />
+                </label>
+                <label className="text-xs font-medium" style={{ color: 'var(--soc-text-secondary)' }}>
+                  Role
+                  <input
+                    className="soc-input mt-1 w-full text-sm"
+                    value={newIdentity.role}
+                    onChange={(e) => setNewIdentity((prev) => ({ ...prev, role: e.target.value }))}
+                    placeholder="Security Analyst"
+                  />
+                </label>
+                <label className="text-xs font-medium" style={{ color: 'var(--soc-text-secondary)' }}>
+                  Department
+                  <input
+                    className="soc-input mt-1 w-full text-sm"
+                    value={newIdentity.department}
+                    onChange={(e) => setNewIdentity((prev) => ({ ...prev, department: e.target.value }))}
+                    placeholder="Security Operations"
+                  />
+                </label>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+            ),
+          },
+          {
+            id: 'access',
+            title: 'Step 2: Access setup',
+            canProceed: () => newIdentity.role.trim().length > 1 && newIdentity.department.trim().length > 1,
+            validationHint: 'Role and department are required.',
+            content: (
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="text-xs font-medium" style={{ color: 'var(--soc-text-secondary)' }}>
+                  Access level
+                  <select
+                    className="soc-input mt-1 w-full text-sm"
+                    value={newIdentity.accessLevel}
+                    onChange={(e) => setNewIdentity((prev) => ({ ...prev, accessLevel: e.target.value as AccessLevel }))}
+                  >
+                    <option value="user">User</option>
+                    <option value="admin">Admin</option>
+                    <option value="guest">Guest</option>
+                  </select>
+                </label>
+                <div className="rounded-md border p-3 text-xs" style={{ borderColor: 'var(--soc-border)', backgroundColor: 'var(--soc-raised)', color: 'var(--soc-text-secondary)' }}>
+                  MFA will be enabled by default and first login will require enrollment.
+                </div>
+              </div>
+            ),
+          },
+          {
+            id: 'review',
+            title: 'Step 3: Review',
+            content: (
+              <div className="space-y-3 rounded-md border p-4" style={{ borderColor: 'var(--soc-border)', backgroundColor: 'var(--soc-raised)' }}>
                 {[
-                  { label: 'ROLE',         value: selected.role },
-                  { label: 'DEPARTMENT',   value: selected.department },
-                  { label: 'RISK SCORE',   value: String(selected.riskScore) },
-                  { label: 'LAST LOGIN',   value: selected.lastLogin },
-                  { label: 'SESSIONS',     value: String(selected.activeSessions ?? 0) },
-                  { label: 'FAILED LOGINS',value: String(selected.failedLoginAttempts ?? 0) },
-                ].map(({ label, value }) => (
-                  <div key={label} className="p-3 rounded" style={{ backgroundColor: 'var(--soc-raised)' }}>
-                    <p className="soc-label mb-1">{label}</p>
+                  ['Name', newIdentity.name || '—'],
+                  ['Email', newIdentity.email || '—'],
+                  ['Role', newIdentity.role || '—'],
+                  ['Department', newIdentity.department || '—'],
+                  ['Access level', ACCESS_CONFIG[newIdentity.accessLevel].label],
+                  ['MFA', 'Enabled by default'],
+                ].map(([label, value]) => (
+                  <div key={label} className="flex items-center justify-between border-b pb-2 last:border-b-0 last:pb-0" style={{ borderColor: 'var(--soc-border)' }}>
+                    <p className="soc-label">{label}</p>
                     <p className="text-sm font-medium" style={{ color: 'var(--soc-text)' }}>{value}</p>
                   </div>
                 ))}
               </div>
-            </div>
-            <div className="px-5 py-4 flex gap-3 border-t" style={{ borderColor: 'var(--soc-border)' }}>
-              <button className="soc-btn soc-btn-primary flex-1">Manage Access</button>
-              <button onClick={() => setSelected(null)} className="soc-btn soc-btn-secondary flex-1">Close</button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+            ),
+          },
+        ]}
+      />
+    </OverviewPageShell>
   )
 }

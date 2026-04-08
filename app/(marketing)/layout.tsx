@@ -1,7 +1,5 @@
 import MarketingShell from '@/components/landing/marketing-shell'
 
-import '../css/landing-full.css'
-
 export default function MarketingLayout({
   children,
 }: {

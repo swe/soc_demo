@@ -32,28 +32,28 @@ export default function CloudIntegrations() {
       accounts: 5, regions: ['us-east-1', 'eu-west-1', 'ap-southeast-1'], lastSync: '2 minutes ago',
       resources: { total: 1247, monitored: 1189 },
       alerts: { critical: 3, high: 12, medium: 45, low: 89 },
-      logo: '☁️', color: 'bg-orange-600 dark:bg-orange-700'
+      logo: '☁️', color: '#ea580c'
     },
     {
       id: 'azure-1', name: 'Azure Enterprise', type: 'azure', status: 'connected',
       accounts: 3, regions: ['East US', 'West Europe', 'Southeast Asia'], lastSync: '5 minutes ago',
       resources: { total: 843, monitored: 821 },
       alerts: { critical: 1, high: 8, medium: 23, low: 67 },
-      logo: '☁️', color: 'bg-indigo-600 dark:bg-indigo-500'
+      logo: '☁️', color: '#4f46e5'
     },
     {
       id: 'gcp-1', name: 'Google Cloud', type: 'gcp', status: 'connected',
       accounts: 2, regions: ['us-central1', 'europe-west1'], lastSync: '8 minutes ago',
       resources: { total: 456, monitored: 445 },
       alerts: { critical: 0, high: 5, medium: 18, low: 34 },
-      logo: '☁️', color: 'bg-[#e11d48] dark:bg-[#e11d48]'
+      logo: '☁️', color: '#e11d48'
     },
     {
       id: 'oci-1', name: 'Oracle Cloud', type: 'oci', status: 'disconnected',
       accounts: 1, regions: ['us-ashburn-1'], lastSync: '2 hours ago',
       resources: { total: 123, monitored: 0 },
       alerts: { critical: 0, high: 0, medium: 0, low: 0 },
-      logo: '☁️', color: 'bg-red-600'
+      logo: '☁️', color: '#dc2626'
     },
   ]
 
@@ -77,29 +77,29 @@ export default function CloudIntegrations() {
   const totalResources = cloudProviders.reduce((s, p) => s + p.resources.total, 0)
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-6 py-6 hig-fade-in">
+    <div className="w-full max-w-7xl mx-auto px-6 py-6 soc-fade-in">
       {/* Header */}
-      <div className="flex items-start justify-between mb-6">
+      <div className="flex items-start justify-between mb-5">
         <div>
-          <div className="soc-label mb-1">ADMINISTRATION</div>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 600, color: 'var(--soc-text)', lineHeight: 1.2 }}>Cloud Integrations</h1>
-          <p style={{ color: 'var(--soc-text-secondary)', fontSize: '0.875rem', marginTop: '0.25rem' }}>Manage and monitor cloud provider connections</p>
+          <p className="soc-label mb-1">ADMINISTRATION</p>
+          <h1 className="text-xl font-bold tracking-tight mb-1.5" style={{ color: 'var(--soc-text)' }}>Cloud Integrations</h1>
+          <p className="text-sm" style={{ color: 'var(--soc-text-secondary)' }}>Manage and monitor cloud provider connections</p>
         </div>
         <button className="soc-btn soc-btn-primary" onClick={() => setShowAddModal(true)}>Add Integration</button>
       </div>
 
       {/* KPI Row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
         {[
           { label: 'PROVIDERS', value: String(cloudProviders.length), sub: 'Configured' },
           { label: 'CONNECTED', value: String(connectedProviders.length), sub: 'Active connections', accent: true },
           { label: 'CRITICAL ALERTS', value: String(totalCritical), sub: 'Across all providers', err: totalCritical > 0 },
           { label: 'RESOURCES MONITORED', value: formatNumber(totalMonitored), sub: `of ${formatNumber(totalResources)} total` },
         ].map((kpi, i) => (
-          <div key={i} className="soc-card" style={{ padding: '1.25rem' }}>
-            <div className="soc-label mb-2">{kpi.label}</div>
-            <div className="soc-metric-lg" style={kpi.err ? { color: 'var(--soc-critical)' } : kpi.accent ? { color: 'var(--soc-accent)' } : {}}>{kpi.value}</div>
-            <div className="soc-metric-sm mt-1">{kpi.sub}</div>
+          <div key={i} className="soc-card">
+            <p className="soc-label mb-2">{kpi.label}</p>
+            <p className="soc-metric-lg" style={kpi.err ? { color: 'var(--soc-critical)' } : kpi.accent ? { color: 'var(--soc-accent)' } : {}}>{kpi.value}</p>
+            <p className="text-xs" style={{ color: 'var(--soc-text-muted)' }}>{kpi.sub}</p>
           </div>
         ))}
       </div>
@@ -111,7 +111,7 @@ export default function CloudIntegrations() {
             <div className="soc-card" style={{ padding: '1.25rem' }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '1rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                  <div className={`${provider.color} text-white p-2 rounded-lg`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '2.5rem', height: '2.5rem', borderRadius: '8px', flexShrink: 0 }}>
+                  <div style={{ backgroundColor: provider.color, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '2.5rem', height: '2.5rem', borderRadius: '8px', flexShrink: 0 }}>
                     {getProviderIcon(provider.type)}
                   </div>
                   <div>
@@ -180,8 +180,8 @@ export default function CloudIntegrations() {
       <div className="grid grid-cols-12 gap-4">
         <div className="col-span-12 lg:col-span-8">
           <div className="soc-card" style={{ padding: '1.25rem' }}>
-            <div style={{ borderBottom: '1px solid var(--soc-border)', paddingBottom: '0.75rem', marginBottom: '1rem' }}>
-              <span style={{ fontWeight: 600, color: 'var(--soc-text)', fontSize: '0.9375rem' }}>Resource Distribution by Provider</span>
+            <div className="border-b mb-4 pb-3" style={{ borderColor: 'var(--soc-border)' }}>
+              <p className="soc-label">RESOURCE DISTRIBUTION BY PROVIDER</p>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               {connectedProviders.map((provider, idx) => {
@@ -206,8 +206,8 @@ export default function CloudIntegrations() {
 
         <div className="col-span-12 lg:col-span-4">
           <div className="soc-card" style={{ padding: '1.25rem' }}>
-            <div style={{ borderBottom: '1px solid var(--soc-border)', paddingBottom: '0.75rem', marginBottom: '1rem' }}>
-              <span style={{ fontWeight: 600, color: 'var(--soc-text)', fontSize: '0.9375rem' }}>Quick Stats</span>
+            <div className="border-b mb-4 pb-3" style={{ borderColor: 'var(--soc-border)' }}>
+              <p className="soc-label">QUICK STATS</p>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               {[

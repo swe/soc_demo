@@ -2,8 +2,6 @@
 
 import Icon from '@/components/ui/icon'
 
-import Logo from './logo'
-
 export default function Footer() {
   return (
     <footer>
@@ -13,7 +11,7 @@ export default function Footer() {
             <div className="h-full flex flex-col justify-between gap-6">
               <div>
                 <div className="mb-4">
-                  <Logo />
+                  <img src="/logo.png" alt="Svalbard Intelligence" className="w-[100px] h-auto" />
                 </div>
                 <div className="text-sm text-slate-300">
                   © Svalbard Security <span className="text-slate-500">·</span> We care about getting this right.

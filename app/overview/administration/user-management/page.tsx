@@ -44,29 +44,29 @@ export default function UserManagementPage() {
   ]
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-6 py-6 hig-fade-in">
+    <div className="w-full max-w-7xl mx-auto px-6 py-6 soc-fade-in">
       {/* Header */}
-      <div className="flex items-start justify-between mb-6">
+      <div className="flex items-start justify-between mb-5">
         <div>
-          <div className="soc-label mb-1">ADMINISTRATION</div>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 600, color: 'var(--soc-text)', lineHeight: 1.2 }}>User Management</h1>
-          <p style={{ color: 'var(--soc-text-secondary)', fontSize: '0.875rem', marginTop: '0.25rem' }}>Manage portal users, roles, and permissions</p>
+          <p className="soc-label mb-1">ADMINISTRATION</p>
+          <h1 className="text-xl font-bold tracking-tight mb-1.5" style={{ color: 'var(--soc-text)' }}>User Management</h1>
+          <p className="text-sm" style={{ color: 'var(--soc-text-secondary)' }}>Manage portal users, roles, and permissions</p>
         </div>
         <button className="soc-btn soc-btn-primary">Add User</button>
       </div>
 
       {/* KPI Row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
         {[
           { label: 'TOTAL USERS', value: '1,500', sub: 'Across all departments' },
           { label: 'ACTIVE', value: '1,247', sub: '83% of total', accent: true },
           { label: 'MFA COVERAGE', value: '95%', sub: '1,425 users protected', accent: true },
           { label: 'ADMINS', value: '18', sub: 'With elevated privileges' },
         ].map((kpi, i) => (
-          <div key={i} className="soc-card" style={{ padding: '1.25rem' }}>
-            <div className="soc-label mb-2">{kpi.label}</div>
-            <div className="soc-metric-lg" style={kpi.accent ? { color: 'var(--soc-accent)' } : {}}>{kpi.value}</div>
-            <div className="soc-metric-sm mt-1">{kpi.sub}</div>
+          <div key={i} className="soc-card">
+            <p className="soc-label mb-2">{kpi.label}</p>
+            <p className="soc-metric-lg" style={kpi.accent ? { color: 'var(--soc-accent)' } : {}}>{kpi.value}</p>
+            <p className="text-xs" style={{ color: 'var(--soc-text-muted)' }}>{kpi.sub}</p>
           </div>
         ))}
       </div>
@@ -76,11 +76,9 @@ export default function UserManagementPage() {
         {/* Users Table */}
         <div className="col-span-12 lg:col-span-8">
           <div className="soc-card" style={{ padding: 0 }}>
-            <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--soc-border)' }}>
-              <div className="flex items-center justify-between">
-                <span style={{ fontWeight: 600, color: 'var(--soc-text)', fontSize: '0.9375rem' }}>Users</span>
-                <span className="soc-metric-sm">{users.length} shown</span>
-              </div>
+            <div className="px-4 py-3 border-b flex items-center justify-between" style={{ borderColor: 'var(--soc-border)' }}>
+              <p className="soc-label">USERS</p>
+              <span className="text-xs" style={{ color: 'var(--soc-text-muted)' }}>{users.length} shown</span>
             </div>
             <div style={{ overflowX: 'auto' }}>
               <table className="soc-table" style={{ width: '100%' }}>
@@ -149,10 +147,8 @@ export default function UserManagementPage() {
         {/* Sidebar */}
         <div className="col-span-12 lg:col-span-4" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {/* Role Distribution */}
-          <div className="soc-card" style={{ padding: '1.25rem' }}>
-            <div style={{ borderBottom: '1px solid var(--soc-border)', paddingBottom: '0.75rem', marginBottom: '1rem' }}>
-              <span style={{ fontWeight: 600, color: 'var(--soc-text)', fontSize: '0.9375rem' }}>Role Distribution</span>
-            </div>
+          <div className="soc-card">
+            <p className="soc-label mb-3">ROLE DISTRIBUTION</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
               {roleDistribution.map((item, i) => (
                 <div key={i}>
@@ -169,10 +165,8 @@ export default function UserManagementPage() {
           </div>
 
           {/* MFA Coverage */}
-          <div className="soc-card" style={{ padding: '1.25rem' }}>
-            <div style={{ borderBottom: '1px solid var(--soc-border)', paddingBottom: '0.75rem', marginBottom: '1rem' }}>
-              <span style={{ fontWeight: 600, color: 'var(--soc-text)', fontSize: '0.9375rem' }}>MFA by Department</span>
-            </div>
+          <div className="soc-card">
+            <p className="soc-label mb-3">MFA BY DEPARTMENT</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               {mfaByDept.map((d, i) => {
                 const color = d.mfaRate >= 99 ? 'var(--soc-low)' : d.mfaRate >= 90 ? 'var(--soc-medium)' : 'var(--soc-critical)'
@@ -195,10 +189,8 @@ export default function UserManagementPage() {
           </div>
 
           {/* Active Sessions */}
-          <div className="soc-card" style={{ padding: '1.25rem' }}>
-            <div style={{ borderBottom: '1px solid var(--soc-border)', paddingBottom: '0.75rem', marginBottom: '1rem' }}>
-              <span style={{ fontWeight: 600, color: 'var(--soc-text)', fontSize: '0.9375rem' }}>Active Sessions</span>
-            </div>
+          <div className="soc-card">
+            <p className="soc-label mb-3">ACTIVE SESSIONS</p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               {[
                 { label: 'Total concurrent', value: '342' },

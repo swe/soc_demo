@@ -64,28 +64,28 @@ export default function ProceduresPage() {
   }
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-6 py-6 hig-fade-in">
+    <div className="w-full max-w-7xl mx-auto px-6 py-6 soc-fade-in">
       {/* Header */}
-      <div className="flex items-start justify-between mb-6">
+      <div className="flex items-start justify-between mb-5">
         <div>
-          <div className="soc-label mb-1">KNOWLEDGE BASE</div>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 600, color: 'var(--soc-text)', lineHeight: 1.2 }}>Security Procedures</h1>
-          <p style={{ color: 'var(--soc-text-secondary)', fontSize: '0.875rem', marginTop: '0.25rem' }}>Standard operating procedures for security operations and incident response</p>
+          <p className="soc-label mb-1">KNOWLEDGE BASE</p>
+          <h1 className="text-xl font-bold tracking-tight mb-1.5" style={{ color: 'var(--soc-text)' }}>Security Procedures</h1>
+          <p className="text-sm" style={{ color: 'var(--soc-text-secondary)' }}>Standard operating procedures for security operations and incident response</p>
         </div>
       </div>
 
       {/* KPI Row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
         {[
           { label: 'TOTAL PROCEDURES', value: String(stats.total), sub: 'Across all types' },
           { label: 'CRITICAL PRIORITY', value: String(stats.critical), sub: 'Require immediate action', err: true },
           { label: 'INCIDENT RESPONSE', value: String(stats.incident), sub: 'IR procedures', accent: true },
           { label: 'AVG STEPS', value: String(stats.avgSteps), sub: 'Per procedure' },
         ].map((kpi, i) => (
-          <div key={i} className="soc-card" style={{ padding: '1.25rem' }}>
-            <div className="soc-label mb-2">{kpi.label}</div>
-            <div className="soc-metric-lg" style={kpi.err ? { color: 'var(--soc-critical)' } : kpi.accent ? { color: 'var(--soc-accent)' } : {}}>{kpi.value}</div>
-            <div className="soc-metric-sm mt-1">{kpi.sub}</div>
+          <div key={i} className="soc-card">
+            <p className="soc-label mb-2">{kpi.label}</p>
+            <p className="soc-metric-lg" style={kpi.err ? { color: 'var(--soc-critical)' } : kpi.accent ? { color: 'var(--soc-accent)' } : {}}>{kpi.value}</p>
+            <p className="text-xs" style={{ color: 'var(--soc-text-muted)' }}>{kpi.sub}</p>
           </div>
         ))}
       </div>
@@ -105,11 +105,9 @@ export default function ProceduresPage() {
 
       {/* Procedures Table */}
       <div className="soc-card" style={{ padding: 0 }}>
-        <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--soc-border)' }}>
-          <div className="flex items-center justify-between">
-            <span style={{ fontWeight: 600, color: 'var(--soc-text)', fontSize: '0.9375rem' }}>Procedures</span>
-            <span className="soc-metric-sm">{filteredProcedures.length} shown</span>
-          </div>
+        <div className="px-4 py-3 border-b flex items-center justify-between" style={{ borderColor: 'var(--soc-border)' }}>
+          <p className="soc-label">PROCEDURES</p>
+          <span className="text-xs" style={{ color: 'var(--soc-text-muted)' }}>{filteredProcedures.length} shown</span>
         </div>
         <div style={{ overflowX: 'auto' }}>
           <table className="soc-table" style={{ width: '100%' }}>

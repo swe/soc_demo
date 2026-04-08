@@ -68,28 +68,28 @@ export default function TrainingsPage() {
   }
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-6 py-6 hig-fade-in">
+    <div className="w-full max-w-7xl mx-auto px-6 py-6 soc-fade-in">
       {/* Header */}
-      <div className="flex items-start justify-between mb-6">
+      <div className="flex items-start justify-between mb-5">
         <div>
-          <div className="soc-label mb-1">KNOWLEDGE BASE</div>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 600, color: 'var(--soc-text)', lineHeight: 1.2 }}>Security Training</h1>
-          <p style={{ color: 'var(--soc-text-secondary)', fontSize: '0.875rem', marginTop: '0.25rem' }}>Access training courses and learning resources for security professionals</p>
+          <p className="soc-label mb-1">KNOWLEDGE BASE</p>
+          <h1 className="text-xl font-bold tracking-tight mb-1.5" style={{ color: 'var(--soc-text)' }}>Security Training</h1>
+          <p className="text-sm" style={{ color: 'var(--soc-text-secondary)' }}>Access training courses and learning resources for security professionals</p>
         </div>
       </div>
 
       {/* KPI Row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
         {[
           { label: 'COURSES', value: String(stats.total), sub: 'Available' },
           { label: 'TOTAL ENROLLED', value: String(stats.totalEnrolled), sub: 'Across all courses', accent: true },
           { label: 'AVG COMPLETION', value: `${stats.avgCompletion}%`, sub: 'Completion rate', accent: true },
           { label: 'AVG SCORE', value: `${stats.avgScore}%`, sub: 'Test average' },
         ].map((kpi, i) => (
-          <div key={i} className="soc-card" style={{ padding: '1.25rem' }}>
-            <div className="soc-label mb-2">{kpi.label}</div>
-            <div className="soc-metric-lg" style={kpi.accent ? { color: 'var(--soc-accent)' } : {}}>{kpi.value}</div>
-            <div className="soc-metric-sm mt-1">{kpi.sub}</div>
+          <div key={i} className="soc-card">
+            <p className="soc-label mb-2">{kpi.label}</p>
+            <p className="soc-metric-lg" style={kpi.accent ? { color: 'var(--soc-accent)' } : {}}>{kpi.value}</p>
+            <p className="text-xs" style={{ color: 'var(--soc-text-muted)' }}>{kpi.sub}</p>
           </div>
         ))}
       </div>
@@ -109,11 +109,9 @@ export default function TrainingsPage() {
 
       {/* Courses Table */}
       <div className="soc-card" style={{ padding: 0 }}>
-        <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--soc-border)' }}>
-          <div className="flex items-center justify-between">
-            <span style={{ fontWeight: 600, color: 'var(--soc-text)', fontSize: '0.9375rem' }}>Courses</span>
-            <span className="soc-metric-sm">{filteredTrainings.length} shown</span>
-          </div>
+        <div className="px-4 py-3 border-b flex items-center justify-between" style={{ borderColor: 'var(--soc-border)' }}>
+          <p className="soc-label">COURSES</p>
+          <span className="text-xs" style={{ color: 'var(--soc-text-muted)' }}>{filteredTrainings.length} shown</span>
         </div>
         <div style={{ overflowX: 'auto' }}>
           <table className="soc-table" style={{ width: '100%' }}>
