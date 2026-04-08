@@ -4,8 +4,6 @@ import Header from '@/components/landing/ui/header'
 import Illustration01 from '@/public/images/hero-illustration.svg'
 import Illustration02 from '@/public/images/auth-illustration.svg'
 
-import '../css/landing-full.css'
-
 export default function AuthLayout({
   children,
 }: {

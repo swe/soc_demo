@@ -19,7 +19,7 @@ export default function Sidebar({
   const { sidebarOpen, setSidebarOpen, sidebarExpanded, setSidebarExpanded } = useAppProvider()
   const segments = useSelectedLayoutSegments()  
   const breakpoint = useWindowWidth();
-  const expandOnly = !sidebarExpanded && breakpoint && (breakpoint >= 1024 && breakpoint < 1536)
+  const expandOnly = !sidebarExpanded && breakpoint && (breakpoint >= 1024 && breakpoint < 1280)
 
   // close on click outside
   useEffect(() => {
@@ -63,14 +63,15 @@ export default function Sidebar({
       <div
         id="sidebar"
         ref={sidebar}
-        className={`flex lg:flex! flex-col absolute z-50 left-0 top-0 lg:static lg:left-auto lg:top-auto lg:translate-x-0 h-[100dvh] overflow-hidden no-scrollbar w-64 lg:w-20 lg:sidebar-expanded:!w-64 2xl:w-64! shrink-0 bg-white dark:bg-gray-800 transition-all duration-200 ease-in-out ${sidebarOpen ? "translate-x-0" : "-translate-x-64"} border-r border-gray-200 dark:border-gray-700/60 shadow-xl`}
+        className={`flex lg:flex! flex-col absolute z-50 left-0 top-0 lg:static lg:left-auto lg:top-auto lg:translate-x-0 h-[100dvh] overflow-hidden no-scrollbar w-64 lg:w-20 lg:sidebar-expanded:!w-64 xl:w-64! shrink-0 bg-white dark:bg-gray-800 transition-all duration-200 ease-in-out ${sidebarOpen ? "translate-x-0" : "-translate-x-64"} border-r border-gray-200 dark:border-gray-700/60 shadow-xl`}
       >      
         {/* Sidebar header - Fixed */}
         <div className="sticky top-0 z-10 before:absolute before:inset-0 before:backdrop-blur-md before:bg-white/90 dark:before:bg-gray-800/90 before:-z-10">
-          <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
-            {/* Close button */}
+          <div className="relative flex h-16 items-center justify-center px-4 sm:px-6 lg:px-8">
+            {/* Close button: absolute so logo + title stay centered on mobile */}
             <button
-              className="lg:hidden text-gray-500 hover:text-gray-400"
+              type="button"
+              className="absolute inset-y-0 left-0 z-10 flex items-center pl-4 sm:pl-6 lg:hidden text-gray-500 hover:text-gray-400"
               onClick={() => setSidebarOpen(!sidebarOpen)}
               aria-controls="sidebar"
               aria-expanded={sidebarOpen}
@@ -79,9 +80,9 @@ export default function Sidebar({
               <Icon name="arrow-back-outline" className="w-6 h-6 text-gray-500" />
             </button>
             {/* Logo and Title */}
-            <Link href="/" className="flex items-center lg:justify-center lg:w-full hover:opacity-80 transition-opacity duration-200">
+            <Link href="/" className="flex items-center justify-center lg:w-full lg:justify-center hover:opacity-80 transition-opacity duration-200">
               <Logo withLink={false} />
-              <span className="text-lg font-semibold text-gray-800 dark:text-gray-100 ml-3 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 transition-opacity duration-200">
+              <span className="text-lg font-semibold text-gray-800 dark:text-gray-100 ml-3 lg:opacity-0 lg:sidebar-expanded:opacity-100 xl:opacity-100 transition-opacity duration-200">
                 Heimdall
               </span>
             </Link>
@@ -93,10 +94,10 @@ export default function Sidebar({
           {/* Security Dashboard */}
           <div>
             <h3 className="text-xs uppercase text-gray-400 dark:text-gray-500 font-semibold pl-3">
-              <span className="hidden lg:block lg:sidebar-expanded:hidden 2xl:hidden text-center w-6" aria-hidden="true">
+              <span className="hidden lg:block lg:sidebar-expanded:hidden xl:hidden text-center w-6" aria-hidden="true">
                 •••
               </span>
-              <span className="lg:hidden lg:sidebar-expanded:block 2xl:block">Security Dashboard</span>
+              <span className="lg:hidden lg:sidebar-expanded:block xl:block">Security Dashboard</span>
             </h3>
             <ul className="mt-3">
               {/* Overview */}
@@ -104,8 +105,18 @@ export default function Sidebar({
                 <SidebarLink href="/overview">
                   <div className="flex items-center">
                     <Icon name="pie-chart-outline" className={`text-base flex-shrink-0 ${segments.length === 0 ? 'text-indigo-600' : 'text-gray-400 dark:text-gray-500'}`} />
-                    <span className="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
+                    <span className="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 xl:opacity-100 duration-200">
                       Overview
+                    </span>
+                  </div>
+                </SidebarLink>
+              </li>
+              <li className={`pl-4 pr-3 py-2 rounded-lg mb-0.5 last:mb-0 bg-linear-to-r ${segments[0] === 'unified-preview' ? 'from-indigo-500/[0.12] dark:from-indigo-500/[0.24] to-indigo-500/[0.04]' : ''}`}>
+                <SidebarLink href="/overview/unified-preview">
+                  <div className="flex items-center">
+                    <Icon name="library-outline" className={`text-base flex-shrink-0 ${segments[0] === 'unified-preview' ? 'text-indigo-600' : 'text-gray-400 dark:text-gray-500'}`} />
+                    <span className="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 xl:opacity-100 duration-200">
+                      Unified pattern
                     </span>
                   </div>
                 </SidebarLink>
@@ -130,7 +141,7 @@ export default function Sidebar({
                         <div className="flex items-center justify-between">
                           <div className="flex items-center">
                             <Icon name="notifications-outline" className={`text-base flex-shrink-0 ${segments.includes('alerts') || segments.includes('incidents') ? 'text-indigo-600' : 'text-gray-400 dark:text-gray-500'}`} />
-                            <span className="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
+                            <span className="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 xl:opacity-100 duration-200">
                               Alerts & Incidents
                             </span>
                           </div>
@@ -143,18 +154,18 @@ export default function Sidebar({
                           </div>
                         </div>
                       </a>
-                      <div className="lg:hidden lg:sidebar-expanded:block 2xl:block">
+                      <div className="lg:hidden lg:sidebar-expanded:block xl:block">
                         <ul className={`pl-8 mt-1 ${!open && 'hidden'}`}>
                           <li className="mb-1 last:mb-0">
                             <SidebarLink href="/overview/alerts">
-                              <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
+                              <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 xl:opacity-100 duration-200">
                                 All Alerts
                               </span>
                             </SidebarLink>
                           </li>
                           <li className="mb-1 last:mb-0">
                             <SidebarLink href="/overview/incidents">
-                              <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
+                              <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 xl:opacity-100 duration-200">
                                 Incidents
                               </span>
                             </SidebarLink>
@@ -185,7 +196,7 @@ export default function Sidebar({
                         <div className="flex items-center justify-between">
                           <div className="flex items-center">
                             <Icon name="hardware-chip-outline" className={`text-base flex-shrink-0 ${segments.includes('assets') ? 'text-indigo-600' : 'text-gray-400 dark:text-gray-500'}`} />
-                            <span className="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
+                            <span className="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 xl:opacity-100 duration-200">
                               Assets
                             </span>
                           </div>
@@ -198,18 +209,18 @@ export default function Sidebar({
                           </div>
                         </div>
                       </a>
-                      <div className="lg:hidden lg:sidebar-expanded:block 2xl:block">
+                      <div className="lg:hidden lg:sidebar-expanded:block xl:block">
                         <ul className={`pl-8 mt-1 ${!open && 'hidden'}`}>
                           <li className="mb-1 last:mb-0">
                             <SidebarLink href="/overview/assets/devices">
-                              <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
+                              <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 xl:opacity-100 duration-200">
                                 Devices
                               </span>
                             </SidebarLink>
                           </li>
                           <li className="mb-1 last:mb-0">
                             <SidebarLink href="/overview/assets/identities">
-                              <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
+                              <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 xl:opacity-100 duration-200">
                                 Identities
                               </span>
                             </SidebarLink>
@@ -240,7 +251,7 @@ export default function Sidebar({
                         <div className="flex items-center justify-between">
                           <div className="flex items-center">
                             <Icon name="shield-checkmark-outline" className={`text-base flex-shrink-0 ${segments.includes('vulnerability') ? 'text-indigo-600' : 'text-gray-400 dark:text-gray-500'}`} />
-                            <span className="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
+                            <span className="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 xl:opacity-100 duration-200">
                               Vulnerabilities
                             </span>
                           </div>
@@ -253,46 +264,46 @@ export default function Sidebar({
                           </div>
                         </div>
                       </a>
-                      <div className="lg:hidden lg:sidebar-expanded:block 2xl:block">
+                      <div className="lg:hidden lg:sidebar-expanded:block xl:block">
                         <ul className={`pl-8 mt-1 ${!open && 'hidden'}`}>
                           <li className="mb-1 last:mb-0">
                             <SidebarLink href="/overview/vulnerability/dashboard">
-                              <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
+                              <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 xl:opacity-100 duration-200">
                                 Dashboard
                               </span>
                             </SidebarLink>
                           </li>
                           <li className="mb-1 last:mb-0">
                             <SidebarLink href="/overview/vulnerability/recommendations">
-                              <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
+                              <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 xl:opacity-100 duration-200">
                                 Recommendations
                               </span>
                             </SidebarLink>
                           </li>
                           <li className="mb-1 last:mb-0">
                             <SidebarLink href="/overview/vulnerability/remediations">
-                              <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
+                              <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 xl:opacity-100 duration-200">
                                 Remediations
                               </span>
                             </SidebarLink>
                           </li>
                           <li className="mb-1 last:mb-0">
                             <SidebarLink href="/overview/vulnerability/inventories">
-                              <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
+                              <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 xl:opacity-100 duration-200">
                                 Inventories
                               </span>
                             </SidebarLink>
                           </li>
                           <li className="mb-1 last:mb-0">
                             <SidebarLink href="/overview/vulnerability/weaknesses">
-                              <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
+                              <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 xl:opacity-100 duration-200">
                                 Weaknesses
                               </span>
                             </SidebarLink>
                           </li>
                           <li className="mb-1 last:mb-0">
                             <SidebarLink href="/overview/vulnerability/event-timeline">
-                              <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
+                              <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 xl:opacity-100 duration-200">
                                 Event Timeline
                               </span>
                             </SidebarLink>
@@ -323,7 +334,7 @@ export default function Sidebar({
                         <div className="flex items-center justify-between">
                           <div className="flex items-center">
                             <Icon name="search-outline" className={`text-base flex-shrink-0 ${segments.includes('threat-hunting') ? 'text-indigo-600' : 'text-gray-400 dark:text-gray-500'}`} />
-                            <span className="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
+                            <span className="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 xl:opacity-100 duration-200">
                               Threat Hunting
                             </span>
                           </div>
@@ -336,18 +347,18 @@ export default function Sidebar({
                           </div>
                         </div>
                       </a>
-                      <div className="lg:hidden lg:sidebar-expanded:block 2xl:block">
+                      <div className="lg:hidden lg:sidebar-expanded:block xl:block">
                         <ul className={`pl-8 mt-1 ${!open && 'hidden'}`}>
                           <li className="mb-1 last:mb-0">
                             <SidebarLink href="/overview/threat-hunting/analytics">
-                              <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
+                              <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 xl:opacity-100 duration-200">
                                 Threat Analytics
                               </span>
                             </SidebarLink>
                           </li>
                           <li className="mb-1 last:mb-0">
                             <SidebarLink href="/overview/threat-hunting/map">
-                              <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
+                              <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 xl:opacity-100 duration-200">
                                 Threat Map
                               </span>
                             </SidebarLink>
@@ -378,7 +389,7 @@ export default function Sidebar({
                         <div className="flex items-center justify-between">
                           <div className="flex items-center">
                             <Icon name="analytics-outline" className={`text-base flex-shrink-0 ${segments.includes('threat-intelligence') ? 'text-indigo-600' : 'text-gray-400 dark:text-gray-500'}`} />
-                            <span className="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
+                            <span className="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 xl:opacity-100 duration-200">
                               Threat Intelligence
                             </span>
                           </div>
@@ -391,25 +402,25 @@ export default function Sidebar({
                           </div>
                         </div>
                       </a>
-                      <div className="lg:hidden lg:sidebar-expanded:block 2xl:block">
+                      <div className="lg:hidden lg:sidebar-expanded:block xl:block">
                         <ul className={`pl-8 mt-1 ${!open && 'hidden'}`}>
                           <li className="mb-1 last:mb-0">
                             <SidebarLink href="/overview/threat-intelligence/overview">
-                              <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
+                              <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 xl:opacity-100 duration-200">
                                 Overview
                               </span>
                             </SidebarLink>
                           </li>
                           <li className="mb-1 last:mb-0">
                             <SidebarLink href="/overview/threat-intelligence/dark-web">
-                              <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
+                              <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 xl:opacity-100 duration-200">
                                 Dark Web Monitoring
                               </span>
                             </SidebarLink>
                           </li>
                           <li className="mb-1 last:mb-0">
                             <SidebarLink href="/overview/threat-intelligence/feeds">
-                              <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
+                              <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 xl:opacity-100 duration-200">
                                 Threat Feeds
                               </span>
                             </SidebarLink>
@@ -425,7 +436,7 @@ export default function Sidebar({
                 <SidebarLink href="/overview/compliance">
                   <div className="flex items-center">
                     <Icon name="document-text-outline" className={`text-base flex-shrink-0 ${segments.includes('compliance') ? 'text-indigo-600' : 'text-gray-400 dark:text-gray-500'}`} />
-                    <span className="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
+                    <span className="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 xl:opacity-100 duration-200">
                       Compliance
                     </span>
                   </div>
@@ -451,7 +462,7 @@ export default function Sidebar({
                         <div className="flex items-center justify-between">
                           <div className="flex items-center">
                             <Icon name="library-outline" className={`text-base flex-shrink-0 ${segments.includes('knowledge-base') ? 'text-indigo-600' : 'text-gray-400 dark:text-gray-500'}`} />
-                            <span className="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
+                            <span className="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 xl:opacity-100 duration-200">
                               Knowledge Base
                             </span>
                           </div>
@@ -464,32 +475,32 @@ export default function Sidebar({
                           </div>
                         </div>
                       </a>
-                      <div className="lg:hidden lg:sidebar-expanded:block 2xl:block">
+                      <div className="lg:hidden lg:sidebar-expanded:block xl:block">
                         <ul className={`pl-8 mt-1 ${!open && 'hidden'}`}>
                           <li className="mb-1 last:mb-0">
                             <SidebarLink href="/overview/knowledge-base/documentation">
-                              <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
+                              <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 xl:opacity-100 duration-200">
                                 Documentation
                               </span>
                             </SidebarLink>
                           </li>
                           <li className="mb-1 last:mb-0">
                             <SidebarLink href="/overview/knowledge-base/procedures">
-                              <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
+                              <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 xl:opacity-100 duration-200">
                                 Procedures
                               </span>
                             </SidebarLink>
                           </li>
                           <li className="mb-1 last:mb-0">
                             <SidebarLink href="/overview/knowledge-base/reports">
-                              <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
+                              <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 xl:opacity-100 duration-200">
                                 Reports
                               </span>
                             </SidebarLink>
                           </li>
                           <li className="mb-1 last:mb-0">
                             <SidebarLink href="/overview/knowledge-base/trainings">
-                              <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
+                              <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 xl:opacity-100 duration-200">
                                 Trainings
                               </span>
                             </SidebarLink>
@@ -520,7 +531,7 @@ export default function Sidebar({
                         <div className="flex items-center justify-between">
                           <div className="flex items-center">
                             <Icon name="settings-outline" className={`text-base flex-shrink-0 ${segments.includes('administration') ? 'text-indigo-600' : 'text-gray-400 dark:text-gray-500'}`} />
-                            <span className="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
+                            <span className="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 xl:opacity-100 duration-200">
                               Administration
                             </span>
                           </div>
@@ -533,25 +544,25 @@ export default function Sidebar({
                           </div>
                         </div>
                       </a>
-                      <div className="lg:hidden lg:sidebar-expanded:block 2xl:block">
+                      <div className="lg:hidden lg:sidebar-expanded:block xl:block">
                         <ul className={`pl-8 mt-1 ${!open && 'hidden'}`}>
                           <li className="mb-1 last:mb-0">
                             <SidebarLink href="/overview/administration/user-management">
-                              <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
+                              <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 xl:opacity-100 duration-200">
                                 User Management
                               </span>
                             </SidebarLink>
                           </li>
                           <li className="mb-1 last:mb-0">
                             <SidebarLink href="/overview/administration/integrations">
-                              <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
+                              <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 xl:opacity-100 duration-200">
                                 Integrations
                               </span>
                             </SidebarLink>
                           </li>
                           <li className="mb-1 last:mb-0">
                             <SidebarLink href="/overview/administration/cloud-integrations">
-                              <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
+                              <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 xl:opacity-100 duration-200">
                                 Cloud Integrations
                               </span>
                             </SidebarLink>
@@ -567,7 +578,7 @@ export default function Sidebar({
                 <SidebarLink href="/overview/settings">
                   <div className="flex items-center">
                     <Icon name="person-circle-outline" className={`text-base flex-shrink-0 ${segments.includes('settings') ? 'text-indigo-600' : 'text-gray-400 dark:text-gray-500'}`} />
-                    <span className="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 2xl:opacity-100 duration-200">
+                    <span className="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 xl:opacity-100 duration-200">
                       Profile Settings
                     </span>
                   </div>
@@ -578,7 +589,7 @@ export default function Sidebar({
         </div>
 
         {/* Expand / collapse button */}
-        <div className="pt-3 hidden lg:inline-flex 2xl:hidden justify-end mt-auto px-4">
+        <div className="pt-3 hidden lg:inline-flex xl:hidden justify-end mt-auto px-4">
           <div className="w-12 pl-4 pr-3 py-2">
             <button className="text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400" onClick={() => setSidebarExpanded(!sidebarExpanded)}>
               <span className="sr-only">Expand / collapse sidebar</span>

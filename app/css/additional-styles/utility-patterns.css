@@ -1,123 +1,29 @@
-/* Typography */
-.h1 {
-    @apply text-4xl font-extrabold tracking-tighter;
-}
+/* Shared layout / auth — minimal utilities still used outside landing + SOC surfaces.
+   (Landing-specific .h1/.btn live in app/css/landing-overview.css under .landing-wrapper.) */
 
 .h2 {
-    @apply text-3xl font-extrabold tracking-tighter;
-}
-
-.h3 {
-    @apply text-3xl font-extrabold;
-}
-
-.h4 {
-    @apply text-2xl font-extrabold tracking-tight;
+  @apply text-3xl font-extrabold tracking-tighter;
 }
 
 @media (width >= theme(--breakpoint-md)) {
-    .h1 {
-        @apply text-5xl;
-    }
-
-    .h2 {
-        @apply text-4xl;
-    }
+  .h2 {
+    @apply text-4xl;
+  }
 }
 
-/* Buttons */
 .btn,
-.btn-lg,
-.btn-sm,
-.btn-xs {
-    @apply font-medium text-sm inline-flex items-center justify-center border border-transparent rounded-lg leading-5 shadow-sm transition duration-200 cursor-pointer;
+.btn-sm {
+  @apply font-medium text-sm inline-flex items-center justify-center border border-transparent rounded-lg leading-5 shadow-sm transition duration-200 cursor-pointer;
 }
 
 .btn {
-    @apply px-3 py-2;
-}
-
-.btn-lg {
-    @apply px-4 py-3;
+  @apply px-3 py-2;
 }
 
 .btn-sm {
-    @apply px-2 py-1;
+  @apply px-2 py-1;
 }
 
-.btn-xs {
-    @apply px-2 py-0.5;
-}
-
-/* Filters & Tabs */
-.filter-btn {
-    @apply inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200;
-}
-
-.filter-btn-active {
-    @apply bg-slate-700 dark:bg-slate-600 text-white shadow-sm;
-}
-
-.filter-btn-inactive {
-    @apply bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700/50;
-}
-
-.tab-btn {
-    @apply inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-all duration-200;
-}
-
-.tab-btn-active {
-    @apply border-indigo-600 text-indigo-600 dark:text-indigo-500;
-}
-
-.tab-btn-inactive {
-    @apply border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:border-gray-300 dark:hover:border-gray-600;
-}
-
-/* Badges & Tags */
-.badge {
-    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
-}
-
-.badge-sm {
-    @apply px-2 py-0.5 text-xs;
-}
-
-.badge-lg {
-    @apply px-3 py-1 text-sm;
-}
-
-/* Severity Badges */
-.badge-critical {
-    @apply bg-rose-100 dark:bg-rose-900/40 text-rose-800 dark:text-rose-300 border border-rose-200 dark:border-rose-800;
-}
-
-.badge-high {
-    @apply bg-orange-100 dark:bg-orange-900/40 text-orange-800 dark:text-orange-300 border border-orange-200 dark:border-orange-800;
-}
-
-.badge-medium {
-    @apply bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800;
-}
-
-.badge-low {
-    @apply bg-slate-100 dark:bg-slate-900/40 text-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-800;
-}
-
-.badge-info {
-    @apply bg-sky-100 dark:bg-sky-900/40 text-sky-800 dark:text-sky-300 border border-sky-200 dark:border-sky-800;
-}
-
-.badge-success {
-    @apply bg-emerald-100 dark:bg-emerald-900/40 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800;
-}
-
-/* Tag Style (more subtle) */
-.tag {
-    @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-normal bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300;
-}
-
-/* Forms */
 input[type="search"]::-webkit-search-decoration,
 input[type="search"]::-webkit-search-cancel-button,
 input[type="search"]::-webkit-search-results-button,
@@ -125,86 +31,17 @@ input[type="search"]::-webkit-search-results-decoration {
   -webkit-appearance: none;
 }
 
-.form-input,
-.form-textarea,
-.form-multiselect,
-.form-select,
-.form-checkbox,
-.form-radio {
-    @apply bg-white dark:bg-gray-900/30 border focus:ring-0 focus:ring-offset-0 dark:disabled:bg-gray-700/30 dark:disabled:border-gray-700 dark:disabled:hover:border-gray-700;
+.form-input {
+  @apply bg-white dark:bg-gray-900/30 border focus:ring-0 focus:ring-offset-0 dark:disabled:bg-gray-700/30 dark:disabled:border-gray-700 dark:disabled:hover:border-gray-700;
+  @apply text-sm text-gray-800 dark:text-gray-100 leading-5 py-2 px-3 border-gray-200 hover:border-gray-300 focus:border-gray-300 dark:border-gray-700/60 dark:hover:border-gray-600 dark:focus:border-gray-600 shadow-sm rounded-lg;
+  @apply placeholder-gray-400 dark:placeholder-gray-500;
 }
 
-.form-checkbox {
-    @apply rounded-sm;
-}
-
-.form-input,
-.form-textarea,
-.form-multiselect,
-.form-select {
-    @apply text-sm text-gray-800 dark:text-gray-100 leading-5 py-2 px-3 border-gray-200 hover:border-gray-300 focus:border-gray-300 dark:border-gray-700/60 dark:hover:border-gray-600 dark:focus:border-gray-600 shadow-sm rounded-lg;
-}
-
-.form-input,
-.form-textarea {
-    @apply placeholder-gray-400 dark:placeholder-gray-500;
-}
-
-.form-select {
-    @apply pr-10;
-}
-
-.form-checkbox,
-.form-radio {
-    @apply text-indigo-600 checked:bg-indigo-600 checked:border-transparent border border-gray-300 dark:border-gray-700/60 dark:checked:border-transparent focus-visible:not-checked:ring-2 focus-visible:not-checked:ring-indigo-500/50;
-}
-
-/* Switch element */
-.form-switch {
-    @apply relative select-none;
-    width: 44px;
-}
-
-.form-switch label {
-    @apply block overflow-hidden cursor-pointer h-6 rounded-full;
-}
-
-.form-switch label > span:first-child {
-    @apply absolute block rounded-full;
-    width: 20px;
-    height: 20px;
-    top: 2px;
-    left: 2px;
-    right: 50%;
-    transition: all .15s ease-out;
-}
-
-.form-switch input[type="checkbox"] + label {
-  @apply bg-gray-400 dark:bg-gray-700;
-}
-
-.form-switch input[type="checkbox"]:checked + label {
-  @apply bg-indigo-600;
-}
-
-.form-switch input[type="checkbox"]:checked + label > span:first-child {
-    left: 22px;
-}
-
-.form-switch input[type="checkbox"]:disabled + label {
-    @apply cursor-not-allowed bg-gray-100 dark:bg-gray-700/20 border border-gray-200 dark:border-gray-700/60;
-}
-
-.form-switch input[type="checkbox"]:disabled + label > span:first-child {
-    @apply bg-gray-400 dark:bg-gray-600;
-}
-
-/* Chrome, Safari and Opera */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
 
 .no-scrollbar {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

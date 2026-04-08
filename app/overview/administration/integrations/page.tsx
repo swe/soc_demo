@@ -45,13 +45,13 @@ export default function IntegrationsPage() {
   const totalEvents = '561.2k'
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-6 py-6 hig-fade-in">
+    <div className="w-full max-w-7xl mx-auto px-6 py-6 soc-fade-in">
       {/* Header */}
-      <div className="flex items-start justify-between mb-6">
+      <div className="flex items-start justify-between mb-5">
         <div>
-          <div className="soc-label mb-1">ADMINISTRATION</div>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 600, color: 'var(--soc-text)', lineHeight: 1.2 }}>Integrations</h1>
-          <p style={{ color: 'var(--soc-text-secondary)', fontSize: '0.875rem', marginTop: '0.25rem' }}>Manage third-party connections and data pipelines</p>
+          <p className="soc-label mb-1">ADMINISTRATION</p>
+          <h1 className="text-xl font-bold tracking-tight mb-1.5" style={{ color: 'var(--soc-text)' }}>Integrations</h1>
+          <p className="text-sm" style={{ color: 'var(--soc-text-secondary)' }}>Manage third-party connections and data pipelines</p>
         </div>
         <div style={{ display: 'flex', gap: '0.5rem' }}>
           <button className="soc-btn soc-btn-secondary">Sync All</button>
@@ -60,28 +60,26 @@ export default function IntegrationsPage() {
       </div>
 
       {/* KPI Row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
         {[
           { label: 'ACTIVE', value: `${activeCount}/${integrations.length}`, sub: 'Integrations connected' },
           { label: 'ERRORS', value: String(errorCount), sub: 'Require attention', accent: true, err: true },
           { label: 'TOTAL EVENTS/DAY', value: totalEvents, sub: 'Across all sources', accent: true },
           { label: 'LAST SYNC', value: '1 min ago', sub: 'Dec 15, 2024 14:30' },
         ].map((kpi, i) => (
-          <div key={i} className="soc-card" style={{ padding: '1.25rem' }}>
-            <div className="soc-label mb-2">{kpi.label}</div>
-            <div className="soc-metric-lg" style={kpi.err ? { color: 'var(--soc-critical)' } : kpi.accent ? { color: 'var(--soc-accent)' } : {}}>{kpi.value}</div>
-            <div className="soc-metric-sm mt-1">{kpi.sub}</div>
+          <div key={i} className="soc-card">
+            <p className="soc-label mb-2">{kpi.label}</p>
+            <p className="soc-metric-lg" style={kpi.err ? { color: 'var(--soc-critical)' } : kpi.accent ? { color: 'var(--soc-accent)' } : {}}>{kpi.value}</p>
+            <p className="text-xs" style={{ color: 'var(--soc-text-muted)' }}>{kpi.sub}</p>
           </div>
         ))}
       </div>
 
       {/* Integrations Table */}
       <div className="soc-card mb-4" style={{ padding: 0 }}>
-        <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--soc-border)' }}>
-          <div className="flex items-center justify-between">
-            <span style={{ fontWeight: 600, color: 'var(--soc-text)', fontSize: '0.9375rem' }}>All Integrations</span>
-            <span className="soc-metric-sm">{integrations.length} total</span>
-          </div>
+        <div className="px-4 py-3 border-b flex items-center justify-between" style={{ borderColor: 'var(--soc-border)' }}>
+          <p className="soc-label">ALL INTEGRATIONS</p>
+          <span className="text-xs" style={{ color: 'var(--soc-text-muted)' }}>{integrations.length} total</span>
         </div>
         <div style={{ overflowX: 'auto' }}>
           <table className="soc-table" style={{ width: '100%' }}>
@@ -130,11 +128,9 @@ export default function IntegrationsPage() {
 
       {/* Throughput Summary */}
       <div className="soc-card" style={{ padding: 0 }}>
-        <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid var(--soc-border)' }}>
-          <div className="flex items-center justify-between">
-            <span style={{ fontWeight: 600, color: 'var(--soc-text)', fontSize: '0.9375rem' }}>Event Throughput Summary</span>
-            <span className="soc-metric-sm">Last 24 hours</span>
-          </div>
+        <div className="px-4 py-3 border-b flex items-center justify-between" style={{ borderColor: 'var(--soc-border)' }}>
+          <p className="soc-label">EVENT THROUGHPUT</p>
+          <span className="text-xs" style={{ color: 'var(--soc-text-muted)' }}>Last 24 hours</span>
         </div>
         <div style={{ overflowX: 'auto' }}>
           <table className="soc-table" style={{ width: '100%' }}>

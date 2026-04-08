@@ -1,7 +1,21 @@
 'use client'
-import { useEffect, useState } from 'react'
+
+import { Fragment, useEffect, useMemo, useState } from 'react'
 import { usePageTitle } from '@/app/page-title-context'
 import { formatDateTime } from '@/lib/utils'
+import {
+  OverviewDateRangeMenu,
+  OverviewFilterMenu,
+  OverviewKpiRow,
+  OverviewModal,
+  OverviewPageHeader,
+  OverviewPageShell,
+  OverviewPagination,
+  OverviewRowsPerPageMenu,
+  OverviewSection,
+  OverviewStepModal,
+  OverviewTableToolbar,
+} from '@/components/overview/unified-ui'
 
 interface AlertData {
   id: string
@@ -35,8 +49,6 @@ interface AlertData {
   evidenceUrls: string[]
   createdBy: string
 }
-
-type FilterType = 'all' | 'critical' | 'high' | 'active'
 
 const SEV_COLOR: Record<string, string> = {
   CRITICAL: 'var(--soc-critical)',
@@ -125,14 +137,40 @@ export default function AllAlerts() {
   const [alertsData, setAlertsData] = useState<AlertData[]>([])
   const [loading, setLoading] = useState(true)
   const [currentPage, setCurrentPage] = useState(1)
-  const [activeFilter, setActiveFilter] = useState<FilterType>('all')
   const [searchQuery, setSearchQuery] = useState('')
-  const [dateRange, setDateRange] = useState<'all' | 'today' | 'week' | 'month'>('all')
+  const [fromDate, setFromDate] = useState('')
+  const [toDate, setToDate] = useState('')
+  const [severityFilters, setSeverityFilters] = useState<string[]>(['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'])
+  const [itemsPerPage, setItemsPerPage] = useState(15)
   const [selectedAlert, setSelectedAlert] = useState<AlertData | null>(null)
   const [expandedId, setExpandedId] = useState<string | null>(null)
-  const itemsPerPage = 15
+  const [createOpen, setCreateOpen] = useState(false)
+  const [createStep, setCreateStep] = useState(0)
+  const [createdAlertId, setCreatedAlertId] = useState('')
+  const [createDraft, setCreateDraft] = useState({
+    title: '',
+    severity: 'HIGH',
+    source: 'SIEM',
+    analyst: '',
+    team: 'Security Team A',
+    description: '',
+  })
+  const [investigateOpen, setInvestigateOpen] = useState(false)
+  const [investigateNote, setInvestigateNote] = useState('')
+  const [escalateOpen, setEscalateOpen] = useState(false)
+  const [escalateStep, setEscalateStep] = useState(0)
+  const [escalateLevel, setEscalateLevel] = useState(2)
+  const [escalateReason, setEscalateReason] = useState('')
 
   useEffect(() => { setPageTitle('All Alerts') }, [setPageTitle])
+
+  useEffect(() => {
+    const now = new Date()
+    const from = new Date()
+    from.setDate(now.getDate() - 30)
+    setFromDate(from.toISOString().slice(0, 10))
+    setToDate(now.toISOString().slice(0, 10))
+  }, [])
 
   useEffect(() => {
     const fetchData = async () => {
@@ -157,37 +195,30 @@ export default function AllAlerts() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const getFiltered = () => {
-    let d = alertsData
-    if (activeFilter === 'critical') d = d.filter(a => a.severity === 'CRITICAL')
-    else if (activeFilter === 'high') d = d.filter(a => a.severity === 'HIGH')
-    else if (activeFilter === 'active') d = d.filter(a => a.status === 'ACTIVE')
+  const filtered = useMemo(() => {
+    return alertsData
+      .filter((a) => severityFilters.includes(a.severity))
+      .filter((a) => !fromDate || a.detectedAt.slice(0, 10) >= fromDate)
+      .filter((a) => !toDate || a.detectedAt.slice(0, 10) <= toDate)
+      .filter((a) => {
+        const q = searchQuery.trim().toLowerCase()
+        return !q
+          || a.id.toLowerCase().includes(q)
+          || a.title.toLowerCase().includes(q)
+          || a.severity.toLowerCase().includes(q)
+          || a.status.toLowerCase().includes(q)
+          || a.source.toLowerCase().includes(q)
+          || a.sourceIp.toLowerCase().includes(q)
+          || a.assignedTo.analyst.toLowerCase().includes(q)
+      })
+  }, [alertsData, severityFilters, fromDate, toDate, searchQuery])
 
-    if (dateRange !== 'all') {
-      const now = new Date()
-      const start = dateRange === 'today'
-        ? new Date(now.getFullYear(), now.getMonth(), now.getDate())
-        : new Date(now.getTime() - (dateRange === 'week' ? 7 : 30) * 24 * 60 * 60 * 1000)
-      d = d.filter(a => new Date(a.detectedAt) >= start)
-    }
-
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase()
-      d = d.filter(a =>
-        a.id.toLowerCase().includes(q) ||
-        a.title.toLowerCase().includes(q) ||
-        a.severity.toLowerCase().includes(q) ||
-        a.status.toLowerCase().includes(q) ||
-        a.source.toLowerCase().includes(q) ||
-        a.sourceIp.toLowerCase().includes(q)
-      )
-    }
-    return d
-  }
-
-  const filtered = getFiltered()
-  const totalPages = Math.ceil(filtered.length / itemsPerPage)
+  const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage))
   const pageAlerts = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+
+  useEffect(() => {
+    if (currentPage > totalPages) setCurrentPage(1)
+  }, [currentPage, totalPages])
 
   const changePage = (p: number) => {
     setCurrentPage(p)
@@ -195,103 +226,213 @@ export default function AllAlerts() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  const changeFilter = (f: FilterType) => {
-    setActiveFilter(f)
-    setCurrentPage(1)
-    setExpandedId(null)
-  }
-
   const critical = alertsData.filter(a => a.severity === 'CRITICAL').length
   const high = alertsData.filter(a => a.severity === 'HIGH').length
   const active = alertsData.filter(a => a.status === 'ACTIVE')?.length ?? 0
   const newCount = alertsData.filter(a => a.status === 'NEW').length
+  const severityOptions = [
+    { id: 'CRITICAL', label: 'Critical' },
+    { id: 'HIGH', label: 'High' },
+    { id: 'MEDIUM', label: 'Medium' },
+    { id: 'LOW', label: 'Low' },
+  ]
+
+  const resetCreateFlow = () => {
+    setCreateOpen(false)
+    setCreateStep(0)
+    setCreateDraft({
+      title: '',
+      severity: 'HIGH',
+      source: 'SIEM',
+      analyst: '',
+      team: 'Security Team A',
+      description: '',
+    })
+  }
+
+  const handleCreateFinish = () => {
+    const now = new Date().toISOString()
+    const newAlert: AlertData = {
+      id: `SA-${generateUUID().slice(0, 8)}`,
+      status: 'NEW',
+      title: createDraft.title.trim(),
+      severity: createDraft.severity,
+      detectedAt: now,
+      lastUpdated: now,
+      closingDate: null,
+      slaDeadline: new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString(),
+      assignedTo: {
+        analyst: createDraft.analyst.trim() || 'Unassigned',
+        team: createDraft.team,
+        assignedAt: now,
+      },
+      source: createDraft.source,
+      alertRule: { id: 'rule-manual-001', name: 'Manual Alert', version: '1.0' },
+      sourceIp: '0.0.0.0',
+      geolocation: { country: 'Unknown', city: 'Unknown', coordinates: [0, 0], asn: 'AS00000' },
+      affectedDevices: [],
+      userRisk: { score: 50, factors: ['Manual creation'], lastRiskAssessment: now },
+      businessImpact: { level: 'MEDIUM', affectedSystems: ['TBD'], potentialDataExposure: 'Under review' },
+      containmentStatus: { isContained: false, actions: [], containedAt: null },
+      tags: ['Manual'],
+      description: createDraft.description.trim() || 'Created from All Alerts flow.',
+      recommendedAction: 'Triage and assign ownership.',
+      remediationSteps: [],
+      relatedEvents: [],
+      similarIncidents: [],
+      confidence: 70,
+      falsePositiveRisk: 20,
+      escalationLevel: 1,
+      escalationCriteria: 'Manual triage',
+      mitreTechniques: [],
+      evidenceUrls: [],
+      createdBy: 'SOC Analyst',
+    }
+    setAlertsData((prev) => [newAlert, ...prev])
+    setCreatedAlertId(newAlert.id)
+    resetCreateFlow()
+  }
+
+  const handleInvestigate = () => {
+    if (!selectedAlert) return
+    const now = new Date().toISOString()
+    setAlertsData((prev) =>
+      prev.map((a) =>
+        a.id === selectedAlert.id
+          ? {
+              ...a,
+              status: 'INVESTIGATING',
+              lastUpdated: now,
+              recommendedAction: investigateNote.trim()
+                ? `Investigation note: ${investigateNote.trim()}`
+                : a.recommendedAction,
+            }
+          : a,
+      ),
+    )
+    setSelectedAlert((prev) =>
+      prev ? {
+        ...prev,
+        status: 'INVESTIGATING',
+        lastUpdated: now,
+        recommendedAction: investigateNote.trim()
+          ? `Investigation note: ${investigateNote.trim()}`
+          : prev.recommendedAction,
+      } : prev)
+    setInvestigateOpen(false)
+    setEscalateOpen(false)
+    setEscalateStep(0)
+    setInvestigateNote('')
+    setSelectedAlert(null)
+  }
+
+  const handleEscalateFinish = () => {
+    if (!selectedAlert) return
+    const now = new Date().toISOString()
+    setAlertsData((prev) =>
+      prev.map((a) =>
+        a.id === selectedAlert.id
+          ? {
+              ...a,
+              status: 'ACTIVE',
+              escalationLevel: escalateLevel,
+              escalationCriteria: escalateReason.trim() || a.escalationCriteria,
+              lastUpdated: now,
+            }
+          : a,
+      ),
+    )
+    setSelectedAlert((prev) =>
+      prev ? {
+        ...prev,
+        status: 'ACTIVE',
+        escalationLevel: escalateLevel,
+        escalationCriteria: escalateReason.trim() || prev.escalationCriteria,
+        lastUpdated: now,
+      } : prev)
+    setEscalateOpen(false)
+    setEscalateStep(0)
+    setInvestigateOpen(false)
+    setInvestigateNote('')
+    setEscalateReason('')
+    setSelectedAlert(null)
+  }
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-6 py-6">
+    <OverviewPageShell>
+      <OverviewPageHeader
+        section="SECURITY OPERATIONS"
+        title="All Alerts"
+        description={`${critical} critical · ${high} high · ${newCount} new · ${alertsData.length} total alerts`}
+        actions={[
+          {
+            id: 'create-alert',
+            label: 'Create Alert',
+            variant: 'primary',
+            onClick: () => setCreateOpen(true),
+          },
+        ]}
+      />
 
-      {/* Header */}
-      <div className="flex items-start justify-between mb-5 hig-fade-in">
-        <div>
-          <p className="soc-label mb-1">SECURITY OPERATIONS</p>
-          <h1 className="text-xl font-bold tracking-tight mb-1.5" style={{ color: 'var(--soc-text)' }}>
-            All Alerts
-          </h1>
-          <p className="text-sm" style={{ color: 'var(--soc-text-secondary)' }}>
-            <strong style={{ color: 'var(--soc-critical)' }}>{critical}</strong> critical ·{' '}
-            <strong style={{ color: 'var(--soc-high)' }}>{high}</strong> high ·{' '}
-            <strong style={{ color: 'var(--soc-accent)' }}>{newCount}</strong> new ·{' '}
-            <strong style={{ color: 'var(--soc-text)' }}>{alertsData.length}</strong> total
-          </p>
-        </div>
-        <div className="flex items-center gap-2 mt-1">
-          <button className="soc-btn soc-btn-secondary">Export</button>
-          <button className="soc-btn soc-btn-primary">Create Alert</button>
-        </div>
-      </div>
+      <OverviewKpiRow
+        columns={4}
+        items={[
+          { label: 'TOTAL ALERTS', value: loading ? '…' : alertsData.length, sub: 'All time', tone: 'default' },
+          { label: 'CRITICAL', value: loading ? '…' : critical, sub: 'Needs action', tone: 'critical' },
+          { label: 'ACTIVE', value: loading ? '…' : active, sub: 'In progress', tone: 'high' },
+          { label: 'NEW', value: loading ? '…' : newCount, sub: 'Unassigned', tone: 'accent' },
+        ]}
+      />
 
-      {/* KPIs */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
-        {[
-          { label: 'TOTAL ALERTS', value: alertsData.length, sub: 'All time',        color: 'var(--soc-text)' },
-          { label: 'CRITICAL',     value: critical,           sub: 'Needs action',    color: 'var(--soc-critical)' },
-          { label: 'ACTIVE',       value: active,             sub: 'In progress',     color: 'var(--soc-high)' },
-          { label: 'NEW',          value: newCount,           sub: 'Unassigned',      color: 'var(--soc-accent)' },
-        ].map(({ label, value, sub, color }) => (
-          <div key={label} className="soc-card">
-            <p className="soc-label mb-2">{label}</p>
-            <p className="soc-metric-sm mb-1" style={{ color }}>{loading ? '…' : value}</p>
-            <p className="text-xs" style={{ color: 'var(--soc-text-muted)' }}>{sub}</p>
+      <OverviewTableToolbar
+        searchValue={searchQuery}
+        onSearchChange={(value) => {
+          setSearchQuery(value)
+          setCurrentPage(1)
+        }}
+        searchPlaceholder="Search id, title, source, analyst..."
+        end={(
+          <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-stretch sm:justify-end sm:gap-2">
+            <OverviewFilterMenu
+              options={severityOptions}
+              selected={severityFilters}
+              onApply={(next) => {
+                setSeverityFilters(next)
+                setCurrentPage(1)
+              }}
+            />
+            <OverviewDateRangeMenu
+              fromDate={fromDate}
+              toDate={toDate}
+              onApply={(from, to) => {
+                setFromDate(from)
+                setToDate(to)
+                setCurrentPage(1)
+              }}
+            />
           </div>
-        ))}
-      </div>
+        )}
+      />
 
-      {/* Filters + Search */}
-      <div className="flex items-center gap-2 mb-4 flex-wrap">
-        {(['all', 'critical', 'high', 'active'] as FilterType[]).map(f => {
-          const count = f === 'all' ? alertsData.length : f === 'critical' ? critical : f === 'high' ? high : active
-          return (
-            <button
-              key={f}
-              onClick={() => changeFilter(f)}
-              className="soc-btn text-xs"
-              style={activeFilter === f
-                ? { backgroundColor: 'var(--soc-accent)', borderColor: 'var(--soc-accent)', color: '#fff' }
-                : { borderColor: 'var(--soc-border-mid)', color: 'var(--soc-text-secondary)', background: 'transparent' }}
-            >
-              {f === 'all' ? 'All' : f.charAt(0).toUpperCase() + f.slice(1)}{' '}
-              <span style={{ opacity: 0.7 }}>{loading ? '' : count}</span>
-            </button>
-          )
-        })}
-        <div className="flex-1" />
-        <input
-          type="search"
-          placeholder="Search alerts…"
-          value={searchQuery}
-          onChange={e => { setSearchQuery(e.target.value); setCurrentPage(1) }}
-          className="text-sm px-3 py-1.5 rounded-md w-48"
-          style={{ backgroundColor: 'var(--soc-raised)', border: '1px solid var(--soc-border-mid)', color: 'var(--soc-text)', outline: 'none' }}
-        />
-        <select
-          value={dateRange}
-          onChange={e => { setDateRange(e.target.value as typeof dateRange); setCurrentPage(1) }}
-          className="text-sm px-3 py-1.5 rounded-md"
-          style={{ backgroundColor: 'var(--soc-raised)', border: '1px solid var(--soc-border-mid)', color: 'var(--soc-text)', outline: 'none' }}
-        >
-          <option value="all">All Time</option>
-          <option value="today">Today</option>
-          <option value="week">Last 7 Days</option>
-          <option value="month">Last 30 Days</option>
-        </select>
-      </div>
-
-      {/* Alerts table */}
-      <div className="soc-card p-0 overflow-hidden mb-4">
-        <div className="px-4 py-3 border-b flex items-center justify-between" style={{ borderColor: 'var(--soc-border)' }}>
-          <p className="soc-label">SECURITY ALERTS</p>
-          <span className="text-xs" style={{ color: 'var(--soc-text-muted)' }}>{loading ? 'Loading…' : `${filtered.length} results`}</span>
-        </div>
-
+      <OverviewSection
+        title="SECURITY ALERTS"
+        flush
+        right={(
+          <div className="flex items-center gap-2">
+            <span className="text-xs" style={{ color: 'var(--soc-text-muted)' }}>
+              {loading ? 'Loading…' : `${filtered.length} results`}
+            </span>
+            <OverviewRowsPerPageMenu
+              value={itemsPerPage}
+              options={[10, 15, 25]}
+              onChange={(n) => {
+                setItemsPerPage(n)
+                setCurrentPage(1)
+              }}
+            />
+          </div>
+        )}
+      >
         {loading ? (
           <div className="py-12 text-center">
             <p className="text-sm" style={{ color: 'var(--soc-text-muted)' }}>Loading alerts…</p>
@@ -301,245 +442,514 @@ export default function AllAlerts() {
             <p className="text-sm" style={{ color: 'var(--soc-text-muted)' }}>No alerts found</p>
           </div>
         ) : (
-          <table className="soc-table">
+          <div className="overflow-x-auto">
+          <table className="soc-table min-w-[1180px]" style={{ tableLayout: 'auto', width: '100%' }}>
             <thead>
               <tr>
-                <th>ID</th>
-                <th>Alert</th>
-                <th>Source</th>
-                <th>Source IP</th>
-                <th>Assigned To</th>
-                <th>Severity</th>
-                <th>Status</th>
-                <th>Confidence</th>
-                <th>Detected</th>
-                <th></th>
+                <th style={{ width: '6px', padding: 0 }} />
+                <th className="whitespace-nowrap">ID</th>
+                <th className="whitespace-nowrap">Alert</th>
+                <th className="whitespace-nowrap">Source</th>
+                <th className="whitespace-nowrap">Assigned To</th>
+                <th className="whitespace-nowrap">Severity</th>
+                <th className="whitespace-nowrap">Status</th>
+                <th className="text-right whitespace-nowrap">Conf.</th>
+                <th className="text-right whitespace-nowrap">Detected</th>
+                <th className="whitespace-nowrap text-right" />
               </tr>
             </thead>
             <tbody>
-              {pageAlerts.map(alert => {
+              {pageAlerts.map((alert) => {
                 const sevColor = SEV_COLOR[alert.severity] || 'var(--soc-text-muted)'
-                const sevBg    = SEV_BG[alert.severity]    || 'transparent'
-                const stColor  = STATUS_COLOR[alert.status] || 'var(--soc-text-muted)'
+                const sevBg = SEV_BG[alert.severity] || 'transparent'
+                const stColor = STATUS_COLOR[alert.status] || 'var(--soc-text-muted)'
                 const isExpanded = expandedId === alert.id
-                return [
-                  <tr
-                    key={alert.id}
-                    className="cursor-pointer"
-                    style={isExpanded ? { backgroundColor: 'var(--soc-raised)' } : undefined}
-                    onClick={() => setExpandedId(isExpanded ? null : alert.id)}
-                  >
-                    <td><span className="text-xs font-mono font-bold" style={{ color: 'var(--soc-accent)' }}>{alert.id}</span></td>
-                    <td>
-                      <p className="text-sm font-medium" style={{ color: 'var(--soc-text)' }}>{alert.title}</p>
-                    </td>
-                    <td><span className="soc-badge">{alert.source}</span></td>
-                    <td><span className="text-xs font-mono" style={{ color: 'var(--soc-text-secondary)' }}>{alert.sourceIp}</span></td>
-                    <td>
-                      <p className="text-xs" style={{ color: 'var(--soc-text-secondary)' }}>{alert.assignedTo.analyst}</p>
-                      <p className="text-xs mt-0.5" style={{ color: 'var(--soc-text-muted)' }}>{alert.assignedTo.team}</p>
-                    </td>
-                    <td><span className="soc-badge" style={{ backgroundColor: sevBg, color: sevColor }}>{alert.severity}</span></td>
-                    <td><span className="soc-badge" style={{ color: stColor, border: `1px solid ${stColor}44`, background: 'transparent' }}>{alert.status}</span></td>
-                    <td>
-                      <span className="text-sm tabular-nums font-bold" style={{ color: alert.confidence >= 80 ? 'var(--soc-low)' : alert.confidence >= 60 ? 'var(--soc-medium)' : 'var(--soc-high)' }}>
-                        {alert.confidence}%
-                      </span>
-                    </td>
-                    <td><span className="text-xs tabular-nums" style={{ color: 'var(--soc-text-muted)' }}>{formatDateTime(alert.detectedAt)}</span></td>
-                    <td>
-                      <button
-                        className="soc-link text-xs"
-                        onClick={e => { e.stopPropagation(); setSelectedAlert(alert) }}
-                      >
-                        Details →
-                      </button>
-                    </td>
-                  </tr>,
-                  isExpanded && (
-                    <tr key={`${alert.id}-expanded`} style={{ backgroundColor: 'var(--soc-raised)' }}>
-                      <td colSpan={10} style={{ padding: '12px 16px' }}>
-                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
-                          <div>
-                            <p className="soc-label mb-1">LOCATION</p>
-                            <p style={{ color: 'var(--soc-text)' }}>{alert.geolocation.city}, {alert.geolocation.country}</p>
-                            <p style={{ color: 'var(--soc-text-muted)' }}>{alert.geolocation.asn}</p>
-                          </div>
-                          <div>
-                            <p className="soc-label mb-1">AFFECTED DEVICE</p>
-                            <p className="font-mono" style={{ color: 'var(--soc-text)' }}>{alert.affectedDevices[0]?.hostname}</p>
-                            <p style={{ color: 'var(--soc-text-muted)' }}>{alert.affectedDevices[0]?.os}</p>
-                          </div>
-                          <div>
-                            <p className="soc-label mb-1">MITRE ATT&CK</p>
-                            <div className="flex gap-1 flex-wrap">
-                              {alert.mitreTechniques.map(t => (
-                                <span key={t} className="soc-badge font-mono" style={{ color: 'var(--soc-critical)', backgroundColor: 'var(--soc-critical-bg)' }}>{t}</span>
-                              ))}
-                            </div>
-                          </div>
-                          <div>
-                            <p className="soc-label mb-1">DESCRIPTION</p>
-                            <p style={{ color: 'var(--soc-text-secondary)' }}>{alert.description}</p>
-                          </div>
-                        </div>
-                        <div className="mt-3 flex gap-2">
-                          <button
-                            className="soc-btn soc-btn-primary text-xs"
-                            onClick={e => { e.stopPropagation(); setSelectedAlert(alert) }}
+                return (
+                  <Fragment key={alert.id}>
+                    <tr
+                      className="cursor-pointer"
+                      style={isExpanded ? { backgroundColor: 'var(--soc-raised)' } : undefined}
+                      onClick={() => setExpandedId(isExpanded ? null : alert.id)}
+                    >
+                      <td style={{ padding: 0, width: '6px', verticalAlign: 'middle' }}>
+                        <div
+                          style={{
+                            width: '3px',
+                            marginLeft: '1px',
+                            height: '100%',
+                            minHeight: '2.8rem',
+                            backgroundColor: sevColor,
+                            borderRadius: '0 2px 2px 0',
+                          }}
+                        />
+                      </td>
+                      <td>
+                        <span className="text-xs font-mono font-semibold truncate block" style={{ color: 'var(--soc-text-muted)' }}>
+                          {alert.id}
+                        </span>
+                      </td>
+                      <td className="align-top">
+                        <p className="text-sm font-medium leading-snug whitespace-nowrap" style={{ color: 'var(--soc-text)' }} title={alert.title}>
+                          {alert.title}
+                        </p>
+                      </td>
+                      <td className="align-top">
+                        <span className="soc-badge">{alert.source}</span>
+                        <span className="text-[11px] font-mono whitespace-nowrap block mt-1" style={{ color: 'var(--soc-text-secondary)' }} title={alert.sourceIp}>
+                          {alert.sourceIp}
+                        </span>
+                      </td>
+                      <td className="align-top">
+                        <p className="text-xs leading-snug whitespace-nowrap" style={{ color: 'var(--soc-text-secondary)' }} title={alert.assignedTo.analyst}>
+                          {alert.assignedTo.analyst}
+                        </p>
+                        <p className="text-xs mt-0.5 whitespace-nowrap" style={{ color: 'var(--soc-text-muted)' }} title={alert.assignedTo.team}>
+                          {alert.assignedTo.team}
+                        </p>
+                      </td>
+                      <td className="align-top">
+                        <span className="soc-badge whitespace-nowrap" style={{ backgroundColor: sevBg, color: sevColor }}>
+                          {alert.severity}
+                        </span>
+                      </td>
+                      <td className="align-top">
+                        <span className="soc-badge whitespace-nowrap" style={{ color: stColor, border: `1px solid ${stColor}44`, background: 'transparent' }}>
+                          {alert.status}
+                        </span>
+                      </td>
+                      <td className="text-right align-top">
+                        <span
+                          className="text-sm tabular-nums font-bold"
+                          style={{
+                            color:
+                              alert.confidence >= 80
+                                ? 'var(--soc-low)'
+                                : alert.confidence >= 60
+                                  ? 'var(--soc-medium)'
+                                  : 'var(--soc-high)',
+                          }}
+                        >
+                          {alert.confidence}%
+                        </span>
+                      </td>
+                      <td className="text-right align-top">
+                        <span className="text-xs tabular-nums whitespace-nowrap" style={{ color: 'var(--soc-text-muted)' }}>
+                          {formatDateTime(alert.detectedAt)}
+                        </span>
+                      </td>
+                      <td className="text-right align-top">
+                        <button
+                          type="button"
+                          className="inline-flex items-center justify-center h-7 w-7 text-[color:var(--soc-text-muted)]"
+                          aria-label={isExpanded ? 'Collapse row' : 'Expand row'}
+                          aria-expanded={isExpanded}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setExpandedId(isExpanded ? null : alert.id)
+                          }}
+                        >
+                          <svg
+                            width="14"
+                            height="14"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className={`shrink-0 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+                            aria-hidden
                           >
-                            View Full Details
-                          </button>
-                        </div>
+                            <path d="M6 9l6 6 6-6" />
+                          </svg>
+                        </button>
                       </td>
                     </tr>
-                  )
-                ]
+                    {isExpanded && (
+                      <tr style={{ backgroundColor: 'var(--soc-raised)' }}>
+                        <td colSpan={10} style={{ padding: '12px 16px' }}>
+                          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+                            <div>
+                              <p className="soc-label mb-1">LOCATION</p>
+                              <p style={{ color: 'var(--soc-text)' }}>
+                                {alert.geolocation.city}, {alert.geolocation.country}
+                              </p>
+                              <p style={{ color: 'var(--soc-text-muted)' }}>{alert.geolocation.asn}</p>
+                            </div>
+                            <div>
+                              <p className="soc-label mb-1">AFFECTED DEVICE</p>
+                              <p className="font-mono" style={{ color: 'var(--soc-text)' }}>{alert.affectedDevices[0]?.hostname || '—'}</p>
+                              <p style={{ color: 'var(--soc-text-muted)' }}>{alert.affectedDevices[0]?.os || '—'}</p>
+                            </div>
+                            <div>
+                              <p className="soc-label mb-1">MITRE ATT&CK</p>
+                              <div className="flex gap-1 flex-wrap">
+                                {alert.mitreTechniques.length ? alert.mitreTechniques.map((t) => (
+                                  <span key={t} className="soc-badge font-mono" style={{ color: 'var(--soc-critical)', backgroundColor: 'var(--soc-critical-bg)' }}>
+                                    {t}
+                                  </span>
+                                )) : <span style={{ color: 'var(--soc-text-muted)' }}>—</span>}
+                              </div>
+                            </div>
+                            <div>
+                              <p className="soc-label mb-1">DESCRIPTION</p>
+                              <p style={{ color: 'var(--soc-text-secondary)' }}>{alert.description}</p>
+                            </div>
+                          </div>
+                          <div className="mt-3 flex gap-2">
+                            <button
+                              className="soc-btn soc-btn-primary text-xs"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                setSelectedAlert(alert)
+                              }}
+                            >
+                              View Full Details
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </Fragment>
+                )
               })}
             </tbody>
           </table>
+          </div>
         )}
-      </div>
+        {!loading && (
+          <OverviewPagination
+            page={currentPage}
+            totalPages={totalPages}
+            totalItems={filtered.length}
+            onPageChange={changePage}
+          />
+        )}
+      </OverviewSection>
 
-      {/* Pagination */}
-      {!loading && totalPages > 1 && (
-        <div className="flex items-center justify-between mb-6">
-          <p className="text-xs" style={{ color: 'var(--soc-text-muted)' }}>
-            Showing {(currentPage - 1) * itemsPerPage + 1}–{Math.min(currentPage * itemsPerPage, filtered.length)} of {filtered.length}
-          </p>
-          <div className="flex items-center gap-1">
+      <OverviewModal
+        open={!!selectedAlert}
+        title={selectedAlert?.title ?? ''}
+        subtitle={selectedAlert ? `${selectedAlert.id} · ${selectedAlert.source}` : ''}
+        onClose={() => setSelectedAlert(null)}
+        maxWidth="max-w-3xl"
+        footer={(
+          <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
             <button
-              className="soc-btn text-xs"
-              disabled={currentPage === 1}
-              onClick={() => changePage(currentPage - 1)}
-              style={{ opacity: currentPage === 1 ? 0.4 : 1 }}
+              type="button"
+              className="soc-btn soc-btn-primary"
+              onClick={() => setInvestigateOpen(true)}
             >
-              ‹ Prev
+              Investigate
             </button>
-            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-              let p: number
-              if (totalPages <= 5) p = i + 1
-              else if (currentPage <= 3) p = i + 1
-              else if (currentPage >= totalPages - 2) p = totalPages - 4 + i
-              else p = currentPage - 2 + i
-              return (
-                <button
-                  key={p}
-                  className="soc-btn text-xs"
-                  onClick={() => changePage(p)}
-                  style={currentPage === p
-                    ? { backgroundColor: 'var(--soc-accent)', borderColor: 'var(--soc-accent)', color: '#fff' }
-                    : { borderColor: 'var(--soc-border-mid)', color: 'var(--soc-text-secondary)', background: 'transparent' }}
-                >
-                  {p}
-                </button>
-              )
-            })}
             <button
-              className="soc-btn text-xs"
-              disabled={currentPage === totalPages}
-              onClick={() => changePage(currentPage + 1)}
-              style={{ opacity: currentPage === totalPages ? 0.4 : 1 }}
+              type="button"
+              className="soc-btn"
+              style={{ borderColor: 'var(--soc-medium)', color: 'var(--soc-medium)' }}
+              onClick={() => setEscalateOpen(true)}
             >
-              Next ›
+              Escalate
+            </button>
+            <button type="button" className="soc-btn soc-btn-secondary" onClick={() => setSelectedAlert(null)}>
+              Close
             </button>
           </div>
-        </div>
-      )}
-
-      {/* Detail modal */}
-      {selectedAlert && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}
-          onClick={() => setSelectedAlert(null)}
-        >
-          <div
-            className="w-full max-w-2xl rounded-xl overflow-hidden flex flex-col"
-            style={{ backgroundColor: 'var(--soc-surface)', border: '1px solid var(--soc-border-mid)', maxHeight: '90vh' }}
-            onClick={e => e.stopPropagation()}
-          >
-            {/* Modal header */}
-            <div className="px-5 py-4 border-b flex items-start justify-between flex-shrink-0" style={{ borderColor: 'var(--soc-border)' }}>
-              <div>
-                <p className="soc-label mb-1 font-mono">{selectedAlert.id} · {selectedAlert.source}</p>
-                <h2 className="text-base font-bold" style={{ color: 'var(--soc-text)' }}>{selectedAlert.title}</h2>
-              </div>
-              <button onClick={() => setSelectedAlert(null)} className="text-sm w-7 h-7 flex items-center justify-center rounded flex-shrink-0" style={{ color: 'var(--soc-text-muted)', backgroundColor: 'var(--soc-raised)' }}>✕</button>
+        )}
+      >
+        {selectedAlert && (
+          <div className="space-y-4">
+            <div className="flex gap-2 flex-wrap">
+              <span className="soc-badge" style={{ backgroundColor: SEV_BG[selectedAlert.severity], color: SEV_COLOR[selectedAlert.severity] }}>
+                {selectedAlert.severity}
+              </span>
+              <span className="soc-badge" style={{ color: STATUS_COLOR[selectedAlert.status], border: `1px solid ${STATUS_COLOR[selectedAlert.status]}44`, background: 'transparent' }}>
+                {selectedAlert.status}
+              </span>
+              {selectedAlert.containmentStatus.isContained && (
+                <span className="soc-badge" style={{ color: 'var(--soc-low)', border: '1px solid var(--soc-low-bg)', backgroundColor: 'var(--soc-low-bg)' }}>
+                  CONTAINED
+                </span>
+              )}
             </div>
 
-            {/* Modal body */}
-            <div className="px-5 py-4 overflow-y-auto space-y-4">
-              <div className="flex gap-2 flex-wrap">
-                <span className="soc-badge" style={{ backgroundColor: SEV_BG[selectedAlert.severity], color: SEV_COLOR[selectedAlert.severity] }}>{selectedAlert.severity}</span>
-                <span className="soc-badge" style={{ color: STATUS_COLOR[selectedAlert.status], border: `1px solid ${STATUS_COLOR[selectedAlert.status]}44`, background: 'transparent' }}>{selectedAlert.status}</span>
-                {selectedAlert.containmentStatus.isContained && <span className="soc-badge" style={{ color: 'var(--soc-low)', border: '1px solid var(--soc-low-bg)', backgroundColor: 'var(--soc-low-bg)' }}>Contained</span>}
+            <p className="text-sm leading-relaxed" style={{ color: 'var(--soc-text-secondary)' }}>{selectedAlert.description}</p>
+
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {[
+                { label: 'DETECTED', value: formatDateTime(selectedAlert.detectedAt) },
+                { label: 'LAST UPDATED', value: formatDateTime(selectedAlert.lastUpdated) },
+                { label: 'SOURCE IP', value: selectedAlert.sourceIp },
+                { label: 'LOCATION', value: `${selectedAlert.geolocation.city}, ${selectedAlert.geolocation.country}` },
+                { label: 'ASSIGNED TO', value: selectedAlert.assignedTo.analyst },
+                { label: 'TEAM', value: selectedAlert.assignedTo.team },
+                { label: 'CONFIDENCE', value: `${selectedAlert.confidence}%` },
+                { label: 'FP RISK', value: `${selectedAlert.falsePositiveRisk}%` },
+              ].map(({ label, value }) => (
+                <div key={label} className="rounded-md border p-3" style={{ borderColor: 'var(--soc-border)', backgroundColor: 'var(--soc-raised)' }}>
+                  <p className="soc-label mb-1">{label}</p>
+                  <p className="text-sm font-medium" style={{ color: 'var(--soc-text)' }}>{value}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </OverviewModal>
+
+      <OverviewModal
+        open={investigateOpen && !!selectedAlert}
+        title="Start Investigation"
+        subtitle={selectedAlert?.id}
+        onClose={() => {
+          setInvestigateOpen(false)
+          setInvestigateNote('')
+        }}
+        footer={(
+          <div className="flex justify-end gap-2">
+            <button
+              type="button"
+              className="soc-btn soc-btn-secondary"
+              onClick={() => {
+                setInvestigateOpen(false)
+                setInvestigateNote('')
+              }}
+            >
+              Cancel
+            </button>
+            <button type="button" className="soc-btn soc-btn-primary" onClick={handleInvestigate}>
+              Confirm Investigate
+            </button>
+          </div>
+        )}
+      >
+        <div className="space-y-3">
+          <p className="text-sm" style={{ color: 'var(--soc-text-secondary)' }}>
+            This flow moves the alert to <strong>INVESTIGATING</strong> and records your triage note.
+          </p>
+          <label className="block">
+            <span className="soc-label mb-1 block">Investigation note</span>
+            <textarea
+              value={investigateNote}
+              onChange={(e) => setInvestigateNote(e.target.value)}
+              className="soc-input w-full min-h-[100px]"
+              placeholder="Example: Started timeline review and identity correlation."
+            />
+          </label>
+        </div>
+      </OverviewModal>
+
+      <OverviewStepModal
+        open={createOpen}
+        subtitle="ALERT CREATION"
+        currentStep={createStep}
+        onStepChange={setCreateStep}
+        onClose={resetCreateFlow}
+        onFinish={handleCreateFinish}
+        steps={[
+          {
+            id: 'details',
+            title: 'Step 1: Alert details',
+            canProceed: () => createDraft.title.trim().length > 5,
+            validationHint: 'Add an alert title (at least 6 chars) to continue.',
+            content: (
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="block sm:col-span-2">
+                  <span className="soc-label mb-1 block">Alert title</span>
+                  <input
+                    type="text"
+                    className="soc-input w-full"
+                    value={createDraft.title}
+                    onChange={(e) => setCreateDraft((prev) => ({ ...prev, title: e.target.value }))}
+                    placeholder="Example: Suspicious privileged login from unmanaged device"
+                  />
+                </label>
+                <label className="block">
+                  <span className="soc-label mb-1 block">Severity</span>
+                  <select
+                    className="soc-input w-full"
+                    value={createDraft.severity}
+                    onChange={(e) => setCreateDraft((prev) => ({ ...prev, severity: e.target.value }))}
+                  >
+                    <option value="CRITICAL">CRITICAL</option>
+                    <option value="HIGH">HIGH</option>
+                    <option value="MEDIUM">MEDIUM</option>
+                    <option value="LOW">LOW</option>
+                  </select>
+                </label>
+                <label className="block">
+                  <span className="soc-label mb-1 block">Source</span>
+                  <select
+                    className="soc-input w-full"
+                    value={createDraft.source}
+                    onChange={(e) => setCreateDraft((prev) => ({ ...prev, source: e.target.value }))}
+                  >
+                    <option value="SIEM">SIEM</option>
+                    <option value="EDR">EDR</option>
+                    <option value="Cloud Security">Cloud Security</option>
+                    <option value="Network IDS">Network IDS</option>
+                    <option value="Email Security">Email Security</option>
+                  </select>
+                </label>
               </div>
-
-              <p className="text-sm" style={{ color: 'var(--soc-text-secondary)' }}>{selectedAlert.description}</p>
-
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  { label: 'DETECTED',      value: formatDateTime(selectedAlert.detectedAt) },
-                  { label: 'LAST UPDATED',  value: formatDateTime(selectedAlert.lastUpdated) },
-                  { label: 'SOURCE IP',     value: selectedAlert.sourceIp },
-                  { label: 'LOCATION',      value: `${selectedAlert.geolocation.city}, ${selectedAlert.geolocation.country}` },
-                  { label: 'ASSIGNED TO',   value: selectedAlert.assignedTo.analyst },
-                  { label: 'TEAM',          value: selectedAlert.assignedTo.team },
-                  { label: 'CONFIDENCE',    value: `${selectedAlert.confidence}%` },
-                  { label: 'FP RISK',       value: `${selectedAlert.falsePositiveRisk}%` },
-                ].map(({ label, value }) => (
-                  <div key={label} className="p-3 rounded" style={{ backgroundColor: 'var(--soc-raised)' }}>
-                    <p className="soc-label mb-1">{label}</p>
-                    <p className="text-sm font-medium" style={{ color: 'var(--soc-text)' }}>{value}</p>
-                  </div>
-                ))}
+            ),
+          },
+          {
+            id: 'assignment',
+            title: 'Step 2: Assignment',
+            canProceed: () => createDraft.analyst.trim().length > 1,
+            validationHint: 'Provide an analyst name to continue.',
+            content: (
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="block">
+                  <span className="soc-label mb-1 block">Analyst</span>
+                  <input
+                    type="text"
+                    className="soc-input w-full"
+                    value={createDraft.analyst}
+                    onChange={(e) => setCreateDraft((prev) => ({ ...prev, analyst: e.target.value }))}
+                    placeholder="Example: Sarah Chen"
+                  />
+                </label>
+                <label className="block">
+                  <span className="soc-label mb-1 block">Team</span>
+                  <select
+                    className="soc-input w-full"
+                    value={createDraft.team}
+                    onChange={(e) => setCreateDraft((prev) => ({ ...prev, team: e.target.value }))}
+                  >
+                    <option value="Security Team A">Security Team A</option>
+                    <option value="Security Team B">Security Team B</option>
+                    <option value="Incident Response">Incident Response</option>
+                  </select>
+                </label>
+                <label className="block sm:col-span-2">
+                  <span className="soc-label mb-1 block">Description</span>
+                  <textarea
+                    className="soc-input w-full min-h-[100px]"
+                    value={createDraft.description}
+                    onChange={(e) => setCreateDraft((prev) => ({ ...prev, description: e.target.value }))}
+                    placeholder="Optional context for responders."
+                  />
+                </label>
               </div>
-
-              {selectedAlert.affectedDevices.length > 0 && (
-                <div>
-                  <p className="soc-label mb-2">AFFECTED DEVICES</p>
-                  {selectedAlert.affectedDevices.map((d, i) => (
-                    <div key={i} className="p-3 rounded mb-2" style={{ backgroundColor: 'var(--soc-raised)' }}>
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-mono font-medium" style={{ color: 'var(--soc-text)' }}>{d.hostname}</p>
-                          <p className="text-xs mt-0.5" style={{ color: 'var(--soc-text-muted)' }}>{d.ip} · {d.os} · {d.department}</p>
-                        </div>
-                        <span className="text-sm font-bold" style={{ color: d.riskScore >= 70 ? 'var(--soc-critical)' : d.riskScore >= 40 ? 'var(--soc-medium)' : 'var(--soc-low)' }}>
-                          Risk {d.riskScore}
-                        </span>
-                      </div>
+            ),
+          },
+          {
+            id: 'review',
+            title: 'Step 3: Review',
+            content: (
+              <div className="space-y-3">
+                <p className="text-sm" style={{ color: 'var(--soc-text-secondary)' }}>
+                  Review values before creating the alert.
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    ['Title', createDraft.title || '—'],
+                    ['Severity', createDraft.severity],
+                    ['Source', createDraft.source],
+                    ['Analyst', createDraft.analyst || '—'],
+                    ['Team', createDraft.team],
+                  ].map(([label, value]) => (
+                    <div key={label} className="rounded-md border p-3" style={{ borderColor: 'var(--soc-border)', backgroundColor: 'var(--soc-raised)' }}>
+                      <p className="soc-label mb-1">{label}</p>
+                      <p className="text-sm font-medium" style={{ color: 'var(--soc-text)' }}>{value}</p>
                     </div>
                   ))}
                 </div>
-              )}
-
-              {selectedAlert.mitreTechniques.length > 0 && (
-                <div>
-                  <p className="soc-label mb-2">MITRE ATT&CK TECHNIQUES</p>
-                  <div className="flex gap-1 flex-wrap">
-                    {selectedAlert.mitreTechniques.map(t => (
-                      <span key={t} className="soc-badge font-mono" style={{ color: 'var(--soc-critical)', backgroundColor: 'var(--soc-critical-bg)' }}>{t}</span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              <div>
-                <p className="soc-label mb-2">RECOMMENDED ACTION</p>
-                <p className="text-sm" style={{ color: 'var(--soc-text-secondary)' }}>{selectedAlert.recommendedAction}</p>
               </div>
-            </div>
+            ),
+          },
+        ]}
+      />
 
-            <div className="px-5 py-4 flex gap-3 border-t flex-shrink-0" style={{ borderColor: 'var(--soc-border)' }}>
-              <button className="soc-btn soc-btn-primary flex-1">Investigate</button>
-              <button className="soc-btn flex-1" style={{ borderColor: 'var(--soc-medium)', color: 'var(--soc-medium)' }}>Escalate</button>
-              <button onClick={() => setSelectedAlert(null)} className="soc-btn soc-btn-secondary flex-1">Close</button>
-            </div>
+      <OverviewStepModal
+        open={escalateOpen && !!selectedAlert}
+        subtitle={selectedAlert?.id ? `ESCALATION · ${selectedAlert.id}` : 'ESCALATION'}
+        currentStep={escalateStep}
+        onStepChange={setEscalateStep}
+        onClose={() => {
+          setEscalateOpen(false)
+          setEscalateStep(0)
+          setEscalateReason('')
+        }}
+        onFinish={handleEscalateFinish}
+        steps={[
+          {
+            id: 'level',
+            title: 'Step 1: Escalation level',
+            content: (
+              <div className="space-y-3">
+                <p className="text-sm" style={{ color: 'var(--soc-text-secondary)' }}>
+                  Select the response level for this alert.
+                </p>
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                  {[1, 2, 3].map((lvl) => (
+                    <button
+                      key={lvl}
+                      type="button"
+                      className={`soc-btn ${escalateLevel === lvl ? 'soc-btn-primary' : 'soc-btn-secondary'}`}
+                      onClick={() => setEscalateLevel(lvl)}
+                    >
+                      Level {lvl}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ),
+          },
+          {
+            id: 'reason',
+            title: 'Step 2: Reason',
+            canProceed: () => escalateReason.trim().length > 7,
+            validationHint: 'Add a reason (at least 8 chars).',
+            content: (
+              <label className="block">
+                <span className="soc-label mb-1 block">Escalation reason</span>
+                <textarea
+                  className="soc-input w-full min-h-[130px]"
+                  value={escalateReason}
+                  onChange={(e) => setEscalateReason(e.target.value)}
+                  placeholder="Example: Confirmed privilege misuse and cross-system impact."
+                />
+              </label>
+            ),
+          },
+          {
+            id: 'review',
+            title: 'Step 3: Review',
+            content: (
+              <div className="space-y-3">
+                <p className="text-sm" style={{ color: 'var(--soc-text-secondary)' }}>
+                  Confirm escalation to update status and criteria.
+                </p>
+                <div className="rounded-md border p-3" style={{ borderColor: 'var(--soc-border)', backgroundColor: 'var(--soc-raised)' }}>
+                  <p className="soc-label mb-1">Outcome</p>
+                  <p className="text-sm" style={{ color: 'var(--soc-text)' }}>
+                    Set <strong>Level {escalateLevel}</strong> and status to <strong>ACTIVE</strong>.
+                  </p>
+                </div>
+              </div>
+            ),
+          },
+        ]}
+      />
+
+      <OverviewModal
+        open={!!createdAlertId}
+        title="Alert Created"
+        subtitle={createdAlertId}
+        onClose={() => setCreatedAlertId('')}
+        footer={(
+          <div className="flex justify-end">
+            <button type="button" className="soc-btn soc-btn-primary" onClick={() => setCreatedAlertId('')}>
+              Done
+            </button>
           </div>
-        </div>
-      )}
-    </div>
+        )}
+      >
+        <p className="text-sm" style={{ color: 'var(--soc-text-secondary)' }}>
+          The alert was created successfully and added to the top of the table.
+        </p>
+      </OverviewModal>
+    </OverviewPageShell>
   )
 }

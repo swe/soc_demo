@@ -3,7 +3,6 @@ import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import localFont from 'next/font/local'
 
-import { THEME_INIT_SCRIPT } from '@/lib/theme-script'
 import AppProvider from './app-provider'
 import Theme from './theme-provider'
 

@@ -1,11 +1,9 @@
 'use client'
 
-// import { useState } from 'react'
 import { useAppProvider } from '@/app/app-provider'
 import { usePageTitle } from '@/app/page-title-context'
 import { useScroll } from '@/components/utils/use-scroll'
 
-// import SearchModal from '@/components/search-modal'
 import Icon from '@/components/ui/icon'
 import ThemeToggle from '@/components/theme-toggle'
 import DropdownProfile from '@/components/dropdown-profile'
@@ -19,7 +17,6 @@ export default function Header({
   const { sidebarOpen, setSidebarOpen } = useAppProvider()
   const { pageTitle } = usePageTitle()
   const isScrolled = useScroll(100)
-  // const [searchModalOpen, setSearchModalOpen] = useState<boolean>(false)
 
   return (
     <header className={`sticky top-0 z-40 before:absolute before:inset-0 before:backdrop-blur-md before:bg-white/90 dark:before:bg-gray-800/90 before:-z-10 border-b border-gray-200 dark:border-gray-700`}>
@@ -66,16 +63,6 @@ export default function Header({
 
           {/* Header: Right side */}
           <div className="flex items-center space-x-3">
-            {/* <div>
-              <button
-                className={`w-8 h-8 flex items-center justify-center hover:bg-gray-100 lg:hover:bg-gray-200 dark:hover:bg-gray-700/50 dark:lg:hover:bg-gray-800 rounded-full ml-3 cursor-pointer ${searchModalOpen && 'bg-gray-200 dark:bg-gray-800'}`}
-                onClick={() => { setSearchModalOpen(true) }}
-              >
-                <span className="sr-only">Search</span>
-                <ion-icon name="search-outline" class="text-lg text-gray-500 dark:text-gray-400"></ion-icon>
-              </button>
-              <SearchModal isOpen={searchModalOpen} setIsOpen={setSearchModalOpen} />
-            </div> */}
             <ThemeToggle />
             {/*  Divider */}
             <hr className="w-px h-6 bg-gray-200 dark:bg-gray-700/60 border-none" />

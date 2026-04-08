@@ -74,12 +74,12 @@ export default function SettingsPage() {
   const initials = profile.name.split(' ').map(n => n[0]).join('')
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-6 py-6 hig-fade-in">
+    <div className="w-full max-w-7xl mx-auto px-6 py-6 soc-fade-in">
       {/* Header */}
-      <div className="mb-6">
-        <div className="soc-label mb-1">ACCOUNT</div>
-        <h1 style={{ fontSize: '1.5rem', fontWeight: 600, color: 'var(--soc-text)', lineHeight: 1.2 }}>Profile &amp; Settings</h1>
-        <p style={{ color: 'var(--soc-text-secondary)', fontSize: '0.875rem', marginTop: '0.25rem' }}>Manage your profile, security, and notification preferences</p>
+      <div className="mb-5">
+        <p className="soc-label mb-1">ACCOUNT</p>
+        <h1 className="text-xl font-bold tracking-tight mb-1.5" style={{ color: 'var(--soc-text)' }}>Profile &amp; Settings</h1>
+        <p className="text-sm" style={{ color: 'var(--soc-text-secondary)' }}>Manage your profile, security, and notification preferences</p>
       </div>
 
       {/* Two-column layout */}
@@ -90,8 +90,8 @@ export default function SettingsPage() {
 
           {/* Profile Card */}
           <div className="soc-card" style={{ padding: '1.5rem' }}>
-            <div style={{ borderBottom: '1px solid var(--soc-border)', paddingBottom: '0.75rem', marginBottom: '1.25rem' }}>
-              <span style={{ fontWeight: 600, color: 'var(--soc-text)', fontSize: '0.9375rem' }}>Profile</span>
+            <div className="border-b mb-5 pb-3" style={{ borderColor: 'var(--soc-border)' }}>
+              <p className="soc-label">PROFILE</p>
             </div>
 
             {/* Avatar */}
@@ -119,7 +119,7 @@ export default function SettingsPage() {
                   type="text"
                   value={profile.name}
                   onChange={(e) => setProfile(prev => ({ ...prev, name: e.target.value }))}
-                  className="hig-input"
+                  className="soc-input"
                   style={{ width: '100%' }}
                 />
               </div>
@@ -129,7 +129,7 @@ export default function SettingsPage() {
                   type="email"
                   value={profile.email}
                   readOnly
-                  className="hig-input"
+                  className="soc-input"
                   style={{ width: '100%', opacity: 0.6, cursor: 'not-allowed' }}
                 />
                 <p style={{ fontSize: '0.75rem', color: 'var(--soc-text-muted)', marginTop: '0.25rem' }}>Email cannot be changed</p>
@@ -140,7 +140,7 @@ export default function SettingsPage() {
                   type="tel"
                   value={profile.phone}
                   onChange={(e) => setProfile(prev => ({ ...prev, phone: e.target.value }))}
-                  className="hig-input"
+                  className="soc-input"
                   style={{ width: '100%' }}
                 />
               </div>
@@ -149,7 +149,7 @@ export default function SettingsPage() {
                 <select
                   value={profile.timezone}
                   onChange={(e) => setProfile(prev => ({ ...prev, timezone: e.target.value }))}
-                  className="hig-input"
+                  className="soc-input"
                   style={{ width: '100%' }}
                 >
                   <option value="UTC">UTC (GMT+0)</option>
@@ -170,8 +170,8 @@ export default function SettingsPage() {
 
           {/* Appearance */}
           <div className="soc-card" style={{ padding: '1.5rem' }}>
-            <div style={{ borderBottom: '1px solid var(--soc-border)', paddingBottom: '0.75rem', marginBottom: '1.25rem' }}>
-              <span style={{ fontWeight: 600, color: 'var(--soc-text)', fontSize: '0.9375rem' }}>Appearance</span>
+            <div className="border-b mb-5 pb-3" style={{ borderColor: 'var(--soc-border)' }}>
+              <p className="soc-label">APPEARANCE</p>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem' }}>
               {['light', 'dark', 'system'].map((t) => (
@@ -202,8 +202,8 @@ export default function SettingsPage() {
 
           {/* Security */}
           <div className="soc-card" style={{ padding: '1.5rem' }}>
-            <div style={{ borderBottom: '1px solid var(--soc-border)', paddingBottom: '0.75rem', marginBottom: '1.25rem' }}>
-              <span style={{ fontWeight: 600, color: 'var(--soc-text)', fontSize: '0.9375rem' }}>Security</span>
+            <div className="border-b mb-5 pb-3" style={{ borderColor: 'var(--soc-border)' }}>
+              <p className="soc-label">SECURITY</p>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.875rem', background: 'var(--soc-raised)', borderRadius: '6px', border: '1px solid var(--soc-border)' }}>
               <div>
@@ -223,8 +223,8 @@ export default function SettingsPage() {
 
           {/* Notifications */}
           <div className="soc-card" style={{ padding: '1.5rem' }}>
-            <div style={{ borderBottom: '1px solid var(--soc-border)', paddingBottom: '0.75rem', marginBottom: '1.25rem' }}>
-              <span style={{ fontWeight: 600, color: 'var(--soc-text)', fontSize: '0.9375rem' }}>Notification Preferences</span>
+            <div className="border-b mb-5 pb-3" style={{ borderColor: 'var(--soc-border)' }}>
+              <p className="soc-label">NOTIFICATION PREFERENCES</p>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               {([
@@ -248,8 +248,8 @@ export default function SettingsPage() {
 
           {/* Active Sessions */}
           <div className="soc-card" style={{ padding: '1.5rem' }}>
-            <div style={{ borderBottom: '1px solid var(--soc-border)', paddingBottom: '0.75rem', marginBottom: '1.25rem' }}>
-              <span style={{ fontWeight: 600, color: 'var(--soc-text)', fontSize: '0.9375rem' }}>Active Sessions</span>
+            <div className="border-b mb-5 pb-3" style={{ borderColor: 'var(--soc-border)' }}>
+              <p className="soc-label">ACTIVE SESSIONS</p>
             </div>
             <div style={{ overflowX: 'auto' }}>
               <table className="soc-table" style={{ width: '100%' }}>
@@ -294,8 +294,8 @@ export default function SettingsPage() {
 
           {/* SOC Preferences */}
           <div className="soc-card" style={{ padding: '1.5rem' }}>
-            <div style={{ borderBottom: '1px solid var(--soc-border)', paddingBottom: '0.75rem', marginBottom: '1.25rem' }}>
-              <span style={{ fontWeight: 600, color: 'var(--soc-text)', fontSize: '0.9375rem' }}>SOC Preferences</span>
+            <div className="border-b mb-5 pb-3" style={{ borderColor: 'var(--soc-border)' }}>
+              <p className="soc-label">SOC PREFERENCES</p>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div>
@@ -303,7 +303,7 @@ export default function SettingsPage() {
                 <select
                   value={socPrefs.defaultSeverity}
                   onChange={(e) => setSocPrefs(prev => ({ ...prev, defaultSeverity: e.target.value }))}
-                  className="hig-input"
+                  className="soc-input"
                   style={{ width: '100%' }}
                 >
                   <option value="all">All Severities</option>
