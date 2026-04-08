@@ -1,8 +1,21 @@
 'use client'
 
-import { formatDate } from '@/lib/utils'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { usePageTitle } from '@/app/page-title-context'
+import { formatDate } from '@/lib/utils'
+import {
+  OverviewAlert,
+  OverviewFilterMenu,
+  OverviewKpiRow,
+  OverviewModal,
+  OverviewPageHeader,
+  OverviewPageShell,
+  OverviewPagination,
+  OverviewRowsPerPageMenu,
+  OverviewSection,
+  OverviewStepModal,
+  OverviewToggle,
+} from '@/components/overview/unified-ui'
 
 interface Procedure {
   id: string
@@ -19,8 +32,26 @@ interface Procedure {
 
 export default function ProceduresPage() {
   const { setPageTitle } = usePageTitle()
-  const [selectedType, setSelectedType] = useState<string>('all')
+  const [query, setQuery] = useState('')
+  const [selectedFilters, setSelectedFilters] = useState<string[]>([
+    'type:incident-response',
+    'type:threat-hunting',
+    'type:vulnerability',
+    'type:compliance',
+    'priority:critical',
+    'priority:high',
+    'priority:medium',
+    'priority:low',
+  ])
+  const [criticalOnly, setCriticalOnly] = useState(false)
+  const [page, setPage] = useState(1)
+  const [rowsPerPage, setRowsPerPage] = useState(5)
   const [selectedProcedure, setSelectedProcedure] = useState<Procedure | null>(null)
+  const [runProcedure, setRunProcedure] = useState<Procedure | null>(null)
+  const [runStep, setRunStep] = useState(0)
+  const [notifyOnCompletion, setNotifyOnCompletion] = useState(true)
+  const [requireApproval, setRequireApproval] = useState(false)
+  const [toast, setToast] = useState<string | null>(null)
 
   useEffect(() => {
     setPageTitle('Procedures')
@@ -54,7 +85,42 @@ export default function ProceduresPage() {
     return map[priority] || 'var(--soc-border)'
   }
 
-  const filteredProcedures = selectedType === 'all' ? procedures : procedures.filter(p => p.type === selectedType)
+  const filterOptions = [
+    { id: 'type:incident-response', label: 'Incident Response', section: 'Type' },
+    { id: 'type:threat-hunting', label: 'Threat Hunting', section: 'Type' },
+    { id: 'type:vulnerability', label: 'Vulnerability', section: 'Type' },
+    { id: 'type:compliance', label: 'Compliance', section: 'Type' },
+    { id: 'priority:critical', label: 'Critical', section: 'Priority' },
+    { id: 'priority:high', label: 'High', section: 'Priority' },
+    { id: 'priority:medium', label: 'Medium', section: 'Priority' },
+    { id: 'priority:low', label: 'Low', section: 'Priority' },
+  ]
+
+  const visible = useMemo(() => {
+    const typeSet = new Set(selectedFilters.filter((id) => id.startsWith('type:')).map((id) => id.replace('type:', '')))
+    const prioritySet = new Set(selectedFilters.filter((id) => id.startsWith('priority:')).map((id) => id.replace('priority:', '')))
+    const q = query.trim().toLowerCase()
+    return procedures
+      .filter((proc) => typeSet.has(proc.type))
+      .filter((proc) => prioritySet.has(proc.priority))
+      .filter((proc) => !criticalOnly || proc.priority === 'critical')
+      .filter((proc) => {
+        if (!q) return true
+        return (
+          proc.id.toLowerCase().includes(q) ||
+          proc.title.toLowerCase().includes(q) ||
+          proc.description.toLowerCase().includes(q) ||
+          proc.owner.toLowerCase().includes(q)
+        )
+      })
+  }, [criticalOnly, procedures, query, selectedFilters])
+
+  const totalPages = Math.max(1, Math.ceil(visible.length / rowsPerPage))
+  const pagedRows = visible.slice((page - 1) * rowsPerPage, page * rowsPerPage)
+
+  useEffect(() => {
+    if (page > totalPages) setPage(1)
+  }, [page, totalPages])
 
   const stats = {
     total: procedures.length,
@@ -64,55 +130,77 @@ export default function ProceduresPage() {
   }
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-6 py-6 soc-fade-in">
-      {/* Header */}
-      <div className="flex items-start justify-between mb-5">
-        <div>
-          <p className="soc-label mb-1">KNOWLEDGE BASE</p>
-          <h1 className="text-xl font-bold tracking-tight mb-1.5" style={{ color: 'var(--soc-text)' }}>Security Procedures</h1>
-          <p className="text-sm" style={{ color: 'var(--soc-text-secondary)' }}>Standard operating procedures for security operations and incident response</p>
+    <OverviewPageShell>
+      {toast ? (
+        <div className="mb-4">
+          <OverviewAlert tone="success" title={toast} />
+        </div>
+      ) : null}
+
+      <OverviewPageHeader
+        section="KNOWLEDGE BASE"
+        title="Security Procedures"
+        description="Standard operating procedures for incident response, threat hunting, vulnerability, and compliance workflows."
+      />
+
+      <OverviewKpiRow
+        items={[
+          { label: 'TOTAL PROCEDURES', value: stats.total, sub: 'Across all types' },
+          { label: 'CRITICAL PRIORITY', value: stats.critical, sub: 'Require immediate action', tone: 'critical' },
+          { label: 'INCIDENT RESPONSE', value: stats.incident, sub: 'IR procedures', tone: 'accent' },
+          { label: 'AVG STEPS', value: stats.avgSteps, sub: 'Per procedure' },
+        ]}
+      />
+
+      <div className="mb-4 flex items-center gap-2 flex-nowrap">
+        <input
+          className="soc-input h-9 min-h-9 w-72 shrink-0 text-sm"
+          placeholder="Search id, title, owner, description..."
+          value={query}
+          onChange={(e) => {
+            setQuery(e.target.value)
+            setPage(1)
+          }}
+        />
+        <div className="ml-auto flex items-center gap-2">
+          <OverviewFilterMenu
+            options={filterOptions}
+            selected={selectedFilters}
+            onApply={(next) => {
+              setSelectedFilters(next)
+              setPage(1)
+            }}
+          />
+          <OverviewToggle
+            label="Critical only"
+            checked={criticalOnly}
+            onChange={(next) => {
+              setCriticalOnly(next)
+              setPage(1)
+            }}
+          />
         </div>
       </div>
 
-      {/* KPI Row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
-        {[
-          { label: 'TOTAL PROCEDURES', value: String(stats.total), sub: 'Across all types' },
-          { label: 'CRITICAL PRIORITY', value: String(stats.critical), sub: 'Require immediate action', err: true },
-          { label: 'INCIDENT RESPONSE', value: String(stats.incident), sub: 'IR procedures', accent: true },
-          { label: 'AVG STEPS', value: String(stats.avgSteps), sub: 'Per procedure' },
-        ].map((kpi, i) => (
-          <div key={i} className="soc-card">
-            <p className="soc-label mb-2">{kpi.label}</p>
-            <p className="soc-metric-lg" style={kpi.err ? { color: 'var(--soc-critical)' } : kpi.accent ? { color: 'var(--soc-accent)' } : {}}>{kpi.value}</p>
-            <p className="text-xs" style={{ color: 'var(--soc-text-muted)' }}>{kpi.sub}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Filters */}
-      <div style={{ marginBottom: '1.25rem', display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-        {['all', 'incident-response', 'threat-hunting', 'vulnerability', 'compliance'].map(type => (
-          <button
-            key={type}
-            onClick={() => setSelectedType(type)}
-            className={`soc-btn ${selectedType === type ? 'soc-btn-primary' : 'soc-btn-secondary'}`}
-          >
-            {type === 'all' ? 'All Types' : type.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
-          </button>
-        ))}
-      </div>
-
-      {/* Procedures Table */}
-      <div className="soc-card" style={{ padding: 0 }}>
-        <div className="px-4 py-3 border-b flex items-center justify-between" style={{ borderColor: 'var(--soc-border)' }}>
-          <p className="soc-label">PROCEDURES</p>
-          <span className="text-xs" style={{ color: 'var(--soc-text-muted)' }}>{filteredProcedures.length} shown</span>
-        </div>
-        <div style={{ overflowX: 'auto' }}>
+      <OverviewSection
+        title="PROCEDURES"
+        flush
+        right={(
+          <OverviewRowsPerPageMenu
+            value={rowsPerPage}
+            options={[5, 10]}
+            onChange={(next) => {
+              setRowsPerPage(next)
+              setPage(1)
+            }}
+          />
+        )}
+      >
+        <div className="overflow-x-auto">
           <table className="soc-table" style={{ width: '100%' }}>
             <thead>
               <tr>
+                <th>ID</th>
                 <th>Title</th>
                 <th>Type</th>
                 <th>Priority</th>
@@ -120,19 +208,22 @@ export default function ProceduresPage() {
                 <th>Est. Time</th>
                 <th>Owner</th>
                 <th>Last Reviewed</th>
-                <th>Actions</th>
+                <th className="text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {filteredProcedures.map((proc) => (
-                <tr key={proc.id} style={{ cursor: 'pointer' }} onClick={() => setSelectedProcedure(proc)}>
+              {pagedRows.map((proc) => (
+                <tr key={proc.id}>
+                  <td className="font-mono text-xs" style={{ color: 'var(--soc-text-muted)' }}>{proc.id}</td>
                   <td>
-                    <div style={{ fontWeight: 600, color: 'var(--soc-text)', fontSize: '0.875rem' }}>{proc.title}</div>
-                    <div style={{ color: 'var(--soc-text-muted)', fontSize: '0.75rem', fontFamily: 'monospace' }}>{proc.id}</div>
+                    <button type="button" className="text-left" onClick={() => setSelectedProcedure(proc)}>
+                      <p className="text-sm font-semibold" style={{ color: 'var(--soc-text)' }}>{proc.title}</p>
+                      <p className="text-xs" style={{ color: 'var(--soc-text-muted)' }}>{proc.description}</p>
+                    </button>
                   </td>
                   <td>
                     <span className="soc-badge" style={{ backgroundColor: getTypeBg(proc.type), color: getTypeColor(proc.type) }}>
-                      {proc.type.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                      {proc.type.split('-').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
                     </span>
                   </td>
                   <td>
@@ -140,70 +231,167 @@ export default function ProceduresPage() {
                       {proc.priority.toUpperCase()}
                     </span>
                   </td>
-                  <td style={{ color: 'var(--soc-text-secondary)', fontSize: '0.875rem' }}>{proc.steps}</td>
-                  <td style={{ color: 'var(--soc-text-secondary)', fontSize: '0.875rem' }}>{proc.estimatedTime}</td>
-                  <td style={{ color: 'var(--soc-text-secondary)', fontSize: '0.875rem' }}>{proc.owner}</td>
-                  <td style={{ color: 'var(--soc-text-muted)', fontSize: '0.8125rem' }}>{formatDate(proc.lastReviewed)}</td>
+                  <td style={{ color: 'var(--soc-text-secondary)' }}>{proc.steps}</td>
+                  <td style={{ color: 'var(--soc-text-secondary)' }}>{proc.estimatedTime}</td>
+                  <td style={{ color: 'var(--soc-text-secondary)' }}>{proc.owner}</td>
+                  <td style={{ color: 'var(--soc-text-muted)' }}>{formatDate(proc.lastReviewed)}</td>
                   <td>
-                    <button className="soc-link" style={{ fontSize: '0.8125rem' }} onClick={(e) => { e.stopPropagation(); setSelectedProcedure(proc) }}>View →</button>
+                    <div className="flex items-center justify-end gap-2">
+                      <button type="button" className="soc-link text-xs" onClick={() => setSelectedProcedure(proc)}>View</button>
+                      <button
+                        type="button"
+                        className="soc-link text-xs"
+                        onClick={() => {
+                          setRunProcedure(proc)
+                          setRunStep(0)
+                          setNotifyOnCompletion(true)
+                          setRequireApproval(false)
+                        }}
+                      >
+                        Execute
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-      </div>
+        <OverviewPagination page={page} totalPages={totalPages} totalItems={visible.length} onPageChange={setPage} />
+      </OverviewSection>
 
-      {/* Procedure Detail Modal */}
-      {selectedProcedure && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }} onClick={() => setSelectedProcedure(null)}>
-          <div className="w-full max-w-lg rounded-xl overflow-hidden flex flex-col" style={{ backgroundColor: 'var(--soc-surface)', border: '1px solid var(--soc-border-mid)', maxHeight: '90vh' }} onClick={(e) => e.stopPropagation()}>
-            <div className="px-5 py-4 border-b flex items-start justify-between flex-shrink-0" style={{ borderColor: 'var(--soc-border)' }}>
-              <div>
-                <p className="soc-label mb-1 font-mono">{selectedProcedure.id}</p>
-                <h2 className="text-base font-bold" style={{ color: 'var(--soc-text)' }}>{selectedProcedure.title}</h2>
-              </div>
-              <button onClick={() => setSelectedProcedure(null)} className="text-sm w-7 h-7 flex items-center justify-center rounded flex-shrink-0" style={{ color: 'var(--soc-text-muted)', backgroundColor: 'var(--soc-raised)' }}>✕</button>
+      <OverviewModal
+        open={!!selectedProcedure}
+        title={selectedProcedure?.title || ''}
+        subtitle={selectedProcedure?.id}
+        onClose={() => setSelectedProcedure(null)}
+        maxWidth="max-w-2xl"
+        footer={(
+          <div className="flex items-center justify-end gap-2">
+            <button type="button" className="soc-btn soc-btn-secondary" onClick={() => setSelectedProcedure(null)}>
+              Close
+            </button>
+            <button
+              type="button"
+              className="soc-btn soc-btn-primary"
+              onClick={() => {
+                if (!selectedProcedure) return
+                setSelectedProcedure(null)
+                setRunProcedure(selectedProcedure)
+                setRunStep(0)
+              }}
+            >
+              Run Procedure
+            </button>
+          </div>
+        )}
+      >
+        {selectedProcedure ? (
+          <div className="space-y-4">
+            <div className="flex flex-wrap gap-2">
+              <span className="soc-badge" style={{ backgroundColor: getTypeBg(selectedProcedure.type), color: getTypeColor(selectedProcedure.type) }}>
+                {selectedProcedure.type.split('-').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+              </span>
+              <span className="soc-badge" style={{ backgroundColor: getPriorityBg(selectedProcedure.priority), color: getPriorityColor(selectedProcedure.priority) }}>
+                {selectedProcedure.priority.toUpperCase()}
+              </span>
             </div>
-            <div className="px-5 py-4 overflow-y-auto space-y-4">
-              <div className="flex gap-2">
-                <span className="soc-badge" style={{ backgroundColor: getTypeBg(selectedProcedure.type), color: getTypeColor(selectedProcedure.type) }}>
-                  {selectedProcedure.type.split('-').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
-                </span>
-                <span className="soc-badge" style={{ backgroundColor: getPriorityBg(selectedProcedure.priority), color: getPriorityColor(selectedProcedure.priority) }}>
-                  {selectedProcedure.priority.toUpperCase()}
-                </span>
-              </div>
-              <p className="text-sm" style={{ color: 'var(--soc-text-secondary)' }}>{selectedProcedure.description}</p>
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  { label: 'STEPS',        value: String(selectedProcedure.steps) },
-                  { label: 'EST. TIME',    value: selectedProcedure.estimatedTime },
-                  { label: 'OWNER',        value: selectedProcedure.owner },
-                  { label: 'LAST REVIEWED',value: formatDate(selectedProcedure.lastReviewed) },
-                ].map(({ label, value }) => (
-                  <div key={label} className="p-3 rounded" style={{ backgroundColor: 'var(--soc-raised)' }}>
-                    <p className="soc-label mb-1">{label}</p>
-                    <p className="text-sm font-medium" style={{ color: 'var(--soc-text)' }}>{value}</p>
-                  </div>
+            <p className="text-sm" style={{ color: 'var(--soc-text-secondary)' }}>{selectedProcedure.description}</p>
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { label: 'Steps', value: String(selectedProcedure.steps) },
+                { label: 'Estimated time', value: selectedProcedure.estimatedTime },
+                { label: 'Owner', value: selectedProcedure.owner },
+                { label: 'Last reviewed', value: formatDate(selectedProcedure.lastReviewed) },
+              ].map((item) => (
+                <div key={item.label} className="soc-card-raised p-3">
+                  <p className="soc-label mb-1">{item.label.toUpperCase()}</p>
+                  <p className="text-sm font-semibold" style={{ color: 'var(--soc-text)' }}>{item.value}</p>
+                </div>
+              ))}
+            </div>
+            <div>
+              <p className="soc-label mb-2">RELATED PROCEDURES</p>
+              <div className="flex flex-wrap gap-1">
+                {selectedProcedure.related.map((id) => (
+                  <span key={id} className="soc-badge">{id}</span>
                 ))}
               </div>
-              <div>
-                <p className="soc-label mb-2">RELATED PROCEDURES</p>
-                <div className="flex flex-wrap gap-1">
-                  {selectedProcedure.related.map((relId: string, idx: number) => (
-                    <span key={idx} className="soc-badge">{relId}</span>
-                  ))}
-                </div>
-              </div>
-            </div>
-            <div className="px-5 py-4 flex gap-3 border-t flex-shrink-0" style={{ borderColor: 'var(--soc-border)' }}>
-              <button className="soc-btn soc-btn-primary flex-1">View Full Procedure</button>
-              <button onClick={() => setSelectedProcedure(null)} className="soc-btn soc-btn-secondary flex-1">Close</button>
             </div>
           </div>
-        </div>
-      )}
-    </div>
+        ) : null}
+      </OverviewModal>
+
+      <OverviewStepModal
+        open={!!runProcedure}
+        subtitle="PROCEDURE EXECUTION"
+        currentStep={runStep}
+        onStepChange={setRunStep}
+        onClose={() => {
+          setRunProcedure(null)
+          setRunStep(0)
+        }}
+        onFinish={() => {
+          if (!runProcedure) return
+          setToast(`${runProcedure.id} execution launched and routed to ${runProcedure.owner}.`)
+          setRunProcedure(null)
+          setRunStep(0)
+        }}
+        steps={[
+          {
+            id: 'scope',
+            title: 'Step 1: Scope',
+            content: (
+              <div className="space-y-3">
+                <p className="text-sm" style={{ color: 'var(--soc-text-secondary)' }}>
+                  Validate the execution scope and target systems before launch.
+                </p>
+                <div className="soc-card-raised p-3">
+                  <p className="soc-label">TARGET</p>
+                  <p className="text-sm font-semibold" style={{ color: 'var(--soc-text)' }}>
+                    {runProcedure?.title || 'Procedure'}
+                  </p>
+                </div>
+              </div>
+            ),
+          },
+          {
+            id: 'controls',
+            title: 'Step 2: Controls',
+            content: (
+              <div className="space-y-3">
+                <OverviewToggle
+                  label="Notify owner on completion"
+                  checked={notifyOnCompletion}
+                  onChange={setNotifyOnCompletion}
+                />
+                <OverviewToggle
+                  label="Require manual approval before final step"
+                  checked={requireApproval}
+                  onChange={setRequireApproval}
+                />
+              </div>
+            ),
+          },
+          {
+            id: 'review',
+            title: 'Step 3: Review',
+            content: (
+              <div className="space-y-3">
+                <p className="text-sm" style={{ color: 'var(--soc-text-secondary)' }}>
+                  Review execution safeguards and submit run request.
+                </p>
+                <div className="soc-card-raised p-3 space-y-1">
+                  <p className="soc-label">NOTIFY OWNER</p>
+                  <p className="text-sm font-semibold" style={{ color: 'var(--soc-text)' }}>{notifyOnCompletion ? 'Enabled' : 'Disabled'}</p>
+                  <p className="soc-label pt-2">MANUAL APPROVAL</p>
+                  <p className="text-sm font-semibold" style={{ color: 'var(--soc-text)' }}>{requireApproval ? 'Required' : 'Not required'}</p>
+                </div>
+              </div>
+            ),
+          },
+        ]}
+      />
+    </OverviewPageShell>
   )
 }

@@ -1,8 +1,21 @@
 'use client'
 
 import { formatDate } from '@/lib/utils'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { usePageTitle } from '@/app/page-title-context'
+import {
+  OverviewAlert,
+  OverviewFilterMenu,
+  OverviewKpiRow,
+  OverviewModal,
+  OverviewPageHeader,
+  OverviewPageShell,
+  OverviewPagination,
+  OverviewRowsPerPageMenu,
+  OverviewSection,
+  OverviewStepModal,
+  OverviewToggle,
+} from '@/components/overview/unified-ui'
 
 interface Report {
   id: string
@@ -19,8 +32,29 @@ interface Report {
 
 export default function ReportsPage() {
   const { setPageTitle } = usePageTitle()
-  const [selectedType, setSelectedType] = useState<string>('all')
+  const [query, setQuery] = useState('')
+  const [selectedFilters, setSelectedFilters] = useState<string[]>([
+    'type:security',
+    'type:compliance',
+    'type:incident',
+    'type:threat',
+    'type:vulnerability',
+    'status:final',
+    'status:review',
+    'status:draft',
+  ])
+  const [finalOnly, setFinalOnly] = useState(false)
+  const [page, setPage] = useState(1)
+  const [rowsPerPage, setRowsPerPage] = useState(5)
   const [selectedReport, setSelectedReport] = useState<Report | null>(null)
+  const [downloadReport, setDownloadReport] = useState<Report | null>(null)
+  const [shareEmails, setShareEmails] = useState('')
+  const [shareMessage, setShareMessage] = useState('')
+  const [reportWizardOpen, setReportWizardOpen] = useState(false)
+  const [reportWizardStep, setReportWizardStep] = useState(0)
+  const [newReportName, setNewReportName] = useState('')
+  const [newReportAudience, setNewReportAudience] = useState('')
+  const [toast, setToast] = useState<string | null>(null)
 
   useEffect(() => {
     setPageTitle('Reports')
@@ -53,7 +87,42 @@ export default function ReportsPage() {
     return map[status] || 'var(--soc-border)'
   }
 
-  const filteredReports = selectedType === 'all' ? reports : reports.filter(r => r.type === selectedType)
+  const filterOptions = [
+    { id: 'type:security', label: 'Security', section: 'Type' },
+    { id: 'type:compliance', label: 'Compliance', section: 'Type' },
+    { id: 'type:incident', label: 'Incident', section: 'Type' },
+    { id: 'type:threat', label: 'Threat', section: 'Type' },
+    { id: 'type:vulnerability', label: 'Vulnerability', section: 'Type' },
+    { id: 'status:final', label: 'Final', section: 'Status' },
+    { id: 'status:review', label: 'Review', section: 'Status' },
+    { id: 'status:draft', label: 'Draft', section: 'Status' },
+  ]
+
+  const visible = useMemo(() => {
+    const typeSet = new Set(selectedFilters.filter((id) => id.startsWith('type:')).map((id) => id.replace('type:', '')))
+    const statusSet = new Set(selectedFilters.filter((id) => id.startsWith('status:')).map((id) => id.replace('status:', '')))
+    const q = query.trim().toLowerCase()
+    return reports
+      .filter((report) => typeSet.has(report.type))
+      .filter((report) => statusSet.has(report.status))
+      .filter((report) => !finalOnly || report.status === 'final')
+      .filter((report) => {
+        if (!q) return true
+        return (
+          report.id.toLowerCase().includes(q) ||
+          report.title.toLowerCase().includes(q) ||
+          report.generatedBy.toLowerCase().includes(q) ||
+          report.period.toLowerCase().includes(q)
+        )
+      })
+  }, [finalOnly, query, reports, selectedFilters])
+
+  const totalPages = Math.max(1, Math.ceil(visible.length / rowsPerPage))
+  const pagedRows = visible.slice((page - 1) * rowsPerPage, page * rowsPerPage)
+
+  useEffect(() => {
+    if (page > totalPages) setPage(1)
+  }, [page, totalPages])
 
   const stats = {
     total: reports.length,
@@ -62,55 +131,88 @@ export default function ReportsPage() {
   }
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-6 py-6 soc-fade-in">
-      {/* Header */}
-      <div className="flex items-start justify-between mb-5">
-        <div>
-          <p className="soc-label mb-1">KNOWLEDGE BASE</p>
-          <h1 className="text-xl font-bold tracking-tight mb-1.5" style={{ color: 'var(--soc-text)' }}>Security Reports</h1>
-          <p className="text-sm" style={{ color: 'var(--soc-text-secondary)' }}>Access security reports, compliance documents, and incident analyses</p>
+    <OverviewPageShell>
+      {toast ? (
+        <div className="mb-4">
+          <OverviewAlert tone="success" title={toast} />
         </div>
-        <button className="soc-btn soc-btn-primary">Generate Report</button>
-      </div>
+      ) : null}
 
-      {/* KPI Row */}
-      <div className="grid grid-cols-3 gap-3 mb-5">
-        {[
-          { label: 'TOTAL REPORTS', value: String(stats.total), sub: 'In library' },
-          { label: 'FINAL', value: String(stats.final), sub: 'Ready to distribute', accent: true },
-          { label: 'THIS MONTH', value: String(stats.thisMonth), sub: 'Generated in March 2024', accent: true },
-        ].map((kpi, i) => (
-          <div key={i} className="soc-card">
-            <p className="soc-label mb-2">{kpi.label}</p>
-            <p className="soc-metric-lg" style={kpi.accent ? { color: 'var(--soc-accent)' } : {}}>{kpi.value}</p>
-            <p className="text-xs" style={{ color: 'var(--soc-text-muted)' }}>{kpi.sub}</p>
-          </div>
-        ))}
-      </div>
+      <OverviewPageHeader
+        section="KNOWLEDGE BASE"
+        title="Security Reports"
+        description="Access security reports, compliance documents, and incident analyses."
+        actions={[
+          {
+            id: 'generate',
+            label: 'Generate Report',
+            variant: 'primary',
+            onClick: () => {
+              setReportWizardOpen(true)
+              setReportWizardStep(0)
+            },
+          },
+        ]}
+      />
 
-      {/* Filters */}
-      <div style={{ marginBottom: '1.25rem', display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-        {['all', 'security', 'compliance', 'incident', 'threat', 'vulnerability'].map(type => (
-          <button
-            key={type}
-            onClick={() => setSelectedType(type)}
-            className={`soc-btn ${selectedType === type ? 'soc-btn-primary' : 'soc-btn-secondary'}`}
-          >
-            {type === 'all' ? 'All Types' : type.charAt(0).toUpperCase() + type.slice(1)}
-          </button>
-        ))}
-      </div>
+      <OverviewKpiRow
+        columns={3}
+        items={[
+          { label: 'TOTAL REPORTS', value: stats.total, sub: 'In library' },
+          { label: 'FINAL', value: stats.final, sub: 'Ready to distribute', tone: 'low' },
+          { label: 'THIS MONTH', value: stats.thisMonth, sub: 'Generated in March 2024', tone: 'accent' },
+        ]}
+      />
 
-      {/* Reports Table */}
-      <div className="soc-card" style={{ padding: 0 }}>
-        <div className="px-4 py-3 border-b flex items-center justify-between" style={{ borderColor: 'var(--soc-border)' }}>
-          <p className="soc-label">REPORTS</p>
-          <span className="text-xs" style={{ color: 'var(--soc-text-muted)' }}>{filteredReports.length} total</span>
+      <div className="mb-4 flex items-center gap-2 flex-nowrap">
+        <input
+          className="soc-input h-9 min-h-9 w-72 shrink-0 text-sm"
+          placeholder="Search id, title, period, owner..."
+          value={query}
+          onChange={(e) => {
+            setQuery(e.target.value)
+            setPage(1)
+          }}
+        />
+        <div className="ml-auto flex items-center gap-2">
+          <OverviewFilterMenu
+            options={filterOptions}
+            selected={selectedFilters}
+            onApply={(next) => {
+              setSelectedFilters(next)
+              setPage(1)
+            }}
+          />
+          <OverviewToggle
+            label="Final only"
+            checked={finalOnly}
+            onChange={(next) => {
+              setFinalOnly(next)
+              setPage(1)
+            }}
+          />
         </div>
-        <div style={{ overflowX: 'auto' }}>
+      </div>
+
+      <OverviewSection
+        title="REPORTS"
+        flush
+        right={(
+          <OverviewRowsPerPageMenu
+            value={rowsPerPage}
+            options={[5, 10]}
+            onChange={(next) => {
+              setRowsPerPage(next)
+              setPage(1)
+            }}
+          />
+        )}
+      >
+        <div className="overflow-x-auto">
           <table className="soc-table" style={{ width: '100%' }}>
             <thead>
               <tr>
+                <th>ID</th>
                 <th>Title</th>
                 <th>Type</th>
                 <th>Period</th>
@@ -119,46 +221,44 @@ export default function ReportsPage() {
                 <th>Generated By</th>
                 <th>Date</th>
                 <th>Status</th>
-                <th>Actions</th>
+                <th className="text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {filteredReports.map((report) => (
+              {pagedRows.map((report) => (
                 <tr key={report.id}>
+                  <td className="font-mono text-xs" style={{ color: 'var(--soc-text-muted)' }}>{report.id}</td>
                   <td>
-                    <div style={{ fontWeight: 600, color: 'var(--soc-text)', fontSize: '0.875rem' }}>{report.title}</div>
-                    <div style={{ color: 'var(--soc-text-muted)', fontSize: '0.75rem', fontFamily: 'monospace' }}>{report.id}</div>
+                    <p className="text-sm font-semibold" style={{ color: 'var(--soc-text)' }}>{report.title}</p>
                   </td>
                   <td>
                     <span className="soc-badge" style={{ backgroundColor: getTypeBg(report.type), color: getTypeColor(report.type) }}>
                       {report.type.toUpperCase()}
                     </span>
                   </td>
-                  <td style={{ color: 'var(--soc-text-secondary)', fontSize: '0.875rem' }}>{report.period}</td>
-                  <td style={{ color: 'var(--soc-text-secondary)', fontSize: '0.875rem' }}>{report.pages}</td>
-                  <td style={{ color: 'var(--soc-text-secondary)', fontSize: '0.875rem' }}>{report.format}</td>
-                  <td style={{ color: 'var(--soc-text-secondary)', fontSize: '0.875rem' }}>{report.generatedBy}</td>
-                  <td style={{ color: 'var(--soc-text-muted)', fontSize: '0.8125rem' }}>{formatDate(report.generatedAt)}</td>
+                  <td style={{ color: 'var(--soc-text-secondary)' }}>{report.period}</td>
+                  <td style={{ color: 'var(--soc-text-secondary)' }}>{report.pages}</td>
+                  <td style={{ color: 'var(--soc-text-secondary)' }}>{report.format}</td>
+                  <td style={{ color: 'var(--soc-text-secondary)' }}>{report.generatedBy}</td>
+                  <td style={{ color: 'var(--soc-text-muted)' }}>{formatDate(report.generatedAt)}</td>
                   <td>
                     <span className="soc-badge" style={{ backgroundColor: getStatusBg(report.status), color: getStatusColor(report.status) }}>
                       {report.status.toUpperCase()}
                     </span>
                   </td>
                   <td>
-                    <div style={{ display: 'flex', gap: '0.75rem' }}>
-                      <button className="soc-link" style={{ fontSize: '0.8125rem' }}
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          alert(`Downloading ${report.title}...`)
-                        }}>
-                        Download →
-                      </button>
-                      <button className="soc-link" style={{ fontSize: '0.8125rem' }}
-                        onClick={(e) => {
-                          e.stopPropagation()
+                    <div className="flex items-center justify-end gap-2">
+                      <button type="button" className="soc-link text-xs" onClick={() => setDownloadReport(report)}>Download</button>
+                      <button
+                        type="button"
+                        className="soc-link text-xs"
+                        onClick={() => {
                           setSelectedReport(report)
-                        }}>
-                        Share →
+                          setShareEmails(report.recipients.join(', '))
+                          setShareMessage('')
+                        }}
+                      >
+                        Share
                       </button>
                     </div>
                   </td>
@@ -167,47 +267,156 @@ export default function ReportsPage() {
             </tbody>
           </table>
         </div>
-      </div>
+        <OverviewPagination page={page} totalPages={totalPages} totalItems={visible.length} onPageChange={setPage} />
+      </OverviewSection>
 
-      {/* Share Modal */}
-      {selectedReport && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }} onClick={() => setSelectedReport(null)}>
-          <div className="w-full max-w-md rounded-xl overflow-hidden" style={{ backgroundColor: 'var(--soc-surface)', border: '1px solid var(--soc-border-mid)' }} onClick={(e) => e.stopPropagation()}>
-            <div className="px-5 py-4 border-b flex items-start justify-between" style={{ borderColor: 'var(--soc-border)' }}>
-              <div>
-                <p className="soc-label mb-1 font-mono">{selectedReport.id}</p>
-                <h2 className="text-base font-bold" style={{ color: 'var(--soc-text)' }}>Share Report</h2>
-              </div>
-              <button onClick={() => setSelectedReport(null)} className="text-sm w-7 h-7 flex items-center justify-center rounded" style={{ color: 'var(--soc-text-muted)', backgroundColor: 'var(--soc-raised)' }}>✕</button>
-            </div>
-            <div className="px-5 py-4 space-y-4">
-              <p className="text-sm font-medium" style={{ color: 'var(--soc-text)' }}>{selectedReport.title}</p>
-              <div>
-                <p className="soc-label mb-2">EMAIL ADDRESSES</p>
-                <textarea
-                  placeholder="email1@company.com, email2@company.com"
-                  rows={3}
-                  className="w-full text-sm px-3 py-2 rounded-md resize-none"
-                  style={{ backgroundColor: 'var(--soc-raised)', border: '1px solid var(--soc-border-mid)', color: 'var(--soc-text)', outline: 'none' }}
-                />
-              </div>
-              <div>
-                <p className="soc-label mb-2">MESSAGE (OPTIONAL)</p>
-                <textarea
-                  placeholder="Add a message..."
-                  rows={3}
-                  className="w-full text-sm px-3 py-2 rounded-md resize-none"
-                  style={{ backgroundColor: 'var(--soc-raised)', border: '1px solid var(--soc-border-mid)', color: 'var(--soc-text)', outline: 'none' }}
-                />
-              </div>
-            </div>
-            <div className="px-5 py-4 flex gap-3 border-t" style={{ borderColor: 'var(--soc-border)' }}>
-              <button className="soc-btn soc-btn-primary flex-1" onClick={() => { alert('Report shared successfully!'); setSelectedReport(null) }}>Send Report</button>
-              <button className="soc-btn soc-btn-secondary flex-1" onClick={() => setSelectedReport(null)}>Cancel</button>
-            </div>
+      <OverviewModal
+        open={!!downloadReport}
+        title={downloadReport ? `Download ${downloadReport.title}` : ''}
+        subtitle={downloadReport?.id}
+        onClose={() => setDownloadReport(null)}
+        maxWidth="max-w-xl"
+        footer={(
+          <div className="flex items-center justify-end gap-2">
+            <button type="button" className="soc-btn soc-btn-secondary" onClick={() => setDownloadReport(null)}>
+              Cancel
+            </button>
+            <button
+              type="button"
+              className="soc-btn soc-btn-primary"
+              onClick={() => {
+                if (!downloadReport) return
+                setToast(`${downloadReport.id} is being prepared for download.`)
+                setDownloadReport(null)
+              }}
+            >
+              Download
+            </button>
           </div>
+        )}
+      >
+        <p className="text-sm" style={{ color: 'var(--soc-text-secondary)' }}>
+          This action will prepare the latest approved version and include metadata for audit tracking.
+        </p>
+      </OverviewModal>
+
+      <OverviewModal
+        open={!!selectedReport}
+        title={selectedReport ? `Share ${selectedReport.title}` : ''}
+        subtitle={selectedReport?.id}
+        onClose={() => setSelectedReport(null)}
+        maxWidth="max-w-2xl"
+        footer={(
+          <div className="flex items-center justify-end gap-2">
+            <button type="button" className="soc-btn soc-btn-secondary" onClick={() => setSelectedReport(null)}>
+              Cancel
+            </button>
+            <button
+              type="button"
+              className="soc-btn soc-btn-primary"
+              disabled={shareEmails.trim().length === 0}
+              onClick={() => {
+                if (!selectedReport) return
+                setToast(`${selectedReport.id} shared with selected recipients.`)
+                setSelectedReport(null)
+                setShareEmails('')
+                setShareMessage('')
+              }}
+            >
+              Send Report
+            </button>
+          </div>
+        )}
+      >
+        <div className="space-y-4">
+          <label className="block text-xs font-medium" style={{ color: 'var(--soc-text-secondary)' }}>
+            Email addresses
+            <textarea
+              rows={3}
+              className="soc-input mt-1 w-full resize-none"
+              value={shareEmails}
+              onChange={(e) => setShareEmails(e.target.value)}
+              placeholder="email1@company.com, email2@company.com"
+            />
+          </label>
+          <label className="block text-xs font-medium" style={{ color: 'var(--soc-text-secondary)' }}>
+            Message (optional)
+            <textarea
+              rows={3}
+              className="soc-input mt-1 w-full resize-none"
+              value={shareMessage}
+              onChange={(e) => setShareMessage(e.target.value)}
+              placeholder="Add message"
+            />
+          </label>
         </div>
-      )}
-    </div>
+      </OverviewModal>
+
+      <OverviewStepModal
+        open={reportWizardOpen}
+        subtitle="REPORT GENERATOR"
+        currentStep={reportWizardStep}
+        onStepChange={setReportWizardStep}
+        onClose={() => {
+          setReportWizardOpen(false)
+          setReportWizardStep(0)
+        }}
+        onFinish={() => {
+          setReportWizardOpen(false)
+          setReportWizardStep(0)
+          setToast(`Report "${newReportName}" queued for generation.`)
+          setNewReportName('')
+          setNewReportAudience('')
+        }}
+        steps={[
+          {
+            id: 'metadata',
+            title: 'Step 1: Metadata',
+            canProceed: () => newReportName.trim().length >= 3,
+            validationHint: 'Report title must be at least 3 characters.',
+            content: (
+              <label className="block text-xs font-medium" style={{ color: 'var(--soc-text-secondary)' }}>
+                Report title
+                <input
+                  className="soc-input mt-1 w-full"
+                  value={newReportName}
+                  onChange={(e) => setNewReportName(e.target.value)}
+                  placeholder="Example: Weekly Security Summary"
+                />
+              </label>
+            ),
+          },
+          {
+            id: 'audience',
+            title: 'Step 2: Audience',
+            canProceed: () => newReportAudience.trim().length >= 3,
+            validationHint: 'Audience is required for routing.',
+            content: (
+              <label className="block text-xs font-medium" style={{ color: 'var(--soc-text-secondary)' }}>
+                Audience group
+                <input
+                  className="soc-input mt-1 w-full"
+                  value={newReportAudience}
+                  onChange={(e) => setNewReportAudience(e.target.value)}
+                  placeholder="Example: Executive Team"
+                />
+              </label>
+            ),
+          },
+          {
+            id: 'review',
+            title: 'Step 3: Review',
+            content: (
+              <div className="soc-card-raised p-3 space-y-1">
+                <p className="soc-label">TITLE</p>
+                <p className="text-sm font-semibold" style={{ color: 'var(--soc-text)' }}>{newReportName || 'Not set'}</p>
+                <p className="soc-label pt-2">AUDIENCE</p>
+                <p className="text-sm font-semibold" style={{ color: 'var(--soc-text)' }}>{newReportAudience || 'Not set'}</p>
+              </div>
+            ),
+          },
+        ]}
+      />
+    </OverviewPageShell>
   )
 }
