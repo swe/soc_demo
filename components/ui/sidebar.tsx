@@ -111,16 +111,6 @@ export default function Sidebar({
                   </div>
                 </SidebarLink>
               </li>
-              <li className={`pl-4 pr-3 py-2 rounded-lg mb-0.5 last:mb-0 bg-linear-to-r ${segments[0] === 'unified-preview' ? 'from-indigo-500/[0.12] dark:from-indigo-500/[0.24] to-indigo-500/[0.04]' : ''}`}>
-                <SidebarLink href="/overview/unified-preview">
-                  <div className="flex items-center">
-                    <Icon name="library-outline" className={`text-base flex-shrink-0 ${segments[0] === 'unified-preview' ? 'text-indigo-600' : 'text-gray-400 dark:text-gray-500'}`} />
-                    <span className="text-sm font-medium ml-4 lg:opacity-0 lg:sidebar-expanded:opacity-100 xl:opacity-100 duration-200">
-                      Unified pattern
-                    </span>
-                  </div>
-                </SidebarLink>
-              </li>
               {/* Alerts & Incidents */}
               <SidebarLinkGroup 
                 open={segments.includes('alerts') || segments.includes('incidents')}
