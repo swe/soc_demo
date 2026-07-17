@@ -58,6 +58,8 @@ export default function AlertsPage() {
 
   const [canTriage, setCanTriage] = useState(false)
   const [canInvestigate, setCanInvestigate] = useState(false)
+  const [canPromote, setCanPromote] = useState(false)
+  const [promoteNotice, setPromoteNotice] = useState('')
   const [members, setMembers] = useState<MemberDto[]>([])
   const [busy, setBusy] = useState(false)
   const [actionError, setActionError] = useState('')
@@ -77,6 +79,7 @@ export default function AlertsPage() {
         if (cancelled) return
         setCanTriage(roleHasPermission(org.role, 'alert:triage'))
         setCanInvestigate(roleHasPermission(org.role, 'investigation:write'))
+        setCanPromote(roleHasPermission(org.role, 'incident:write'))
         setMembers(memberPage.items.filter((m) => m.status === 'active'))
       })
       .catch(() => {
@@ -148,6 +151,7 @@ export default function AlertsPage() {
       setActionError('')
       setDismissOpen(false)
       setDismissReason('')
+      setPromoteNotice('')
       return
     }
     let cancelled = false
@@ -199,6 +203,20 @@ export default function AlertsPage() {
       await refreshDetail(selectedId)
     } catch (err) {
       setActionError(err instanceof Error ? err.message : 'Could not create investigation')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const promoteInvestigation = async () => {
+    if (!selectedId || !detail?.investigationId) return
+    setBusy(true)
+    setActionError('')
+    try {
+      const incident = await api.investigations.promote(detail.investigationId)
+      setPromoteNotice(`Declared INC-${incident.number} from this investigation.`)
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Could not promote investigation')
     } finally {
       setBusy(false)
     }
@@ -389,6 +407,18 @@ export default function AlertsPage() {
                 <p className="text-xs font-medium" style={{ color: 'var(--soc-accent-text)' }}>
                   This alert is part of an active investigation.
                 </p>
+                {promoteNotice ? (
+                  <p className="mt-2 text-xs font-semibold" style={{ color: 'var(--soc-accent-text)' }}>{promoteNotice}</p>
+                ) : canPromote ? (
+                  <button
+                    type="button"
+                    className="soc-btn soc-btn-secondary mt-2 text-xs"
+                    disabled={busy}
+                    onClick={() => void promoteInvestigation()}
+                  >
+                    Promote to incident
+                  </button>
+                ) : null}
               </div>
             ) : canInvestigate ? (
               <div>

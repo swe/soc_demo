@@ -41,11 +41,12 @@ Source of truth for M2 execution. Approved 2026-07-17. Baseline: `v0.1.0-m1-foun
 
 ## Step 5 — Incident promotion
 
-- [ ] `promoteFromInvestigation()` in `src/server/services/incidents.ts` — transaction: lock org row → increment `incident_counter` → insert incident (severity = max of linked alerts, entity refs copied, `investigation_id` set, `declared` timeline entry) → audit
-- [ ] `POST /api/v1/investigations/:id/promote` (`incident:write`)
-- [ ] Investigation not auto-closed
-- [ ] Incident PATCH: lifecycle transitions + timeline notes (`incident:write`)
-- [ ] Tests: promotion, duplicate-number race (concurrent promote), illegal lifecycle 409
+- [x] `promoteFromInvestigation()` — transaction: `FOR UPDATE` lock on org row → increment `incident_counter` → insert incident (severity = max of linked alerts, `investigation_id` set, `declared` timeline entry) → audit both sides. Entity refs are inherited through linked alerts per the Phase 1 domain design (no incident column)
+- [x] `POST /api/v1/investigations/:id/promote` (`incident:write`); double-promote → 409 with existing INC number
+- [x] Investigation not auto-closed
+- [x] Incident PATCH: lifecycle transitions, owner assignment, impact summary, timeline notes (`incident:write`); closed = immutable
+- [x] UI: promote button in alerts modal investigation banner; response panel (transitions/owner/notes) in incidents modal
+- [x] Tests: promotion, concurrent-promotion unique numbers, double-promote 409, illegal lifecycle 409, viewer 403, tenancy
 
 ## Step 6 — Assets + identities (read-only)
 

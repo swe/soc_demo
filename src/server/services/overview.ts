@@ -123,6 +123,7 @@ export async function getOverview(ctx: OrgContext): Promise<OverviewDto> {
       title: row.title,
       severity: row.severity,
       status: row.status,
+      ownerMembershipId: row.ownerMembershipId,
       investigationId: row.investigationId,
       impactSummary: row.impactSummary,
       declaredAt: row.declaredAt.toISOString(),

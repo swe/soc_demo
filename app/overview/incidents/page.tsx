@@ -9,8 +9,11 @@ import {
   OverviewPageShell,
   OverviewSection,
 } from '@/components/overview/unified-ui'
-import type { IncidentDetailDto, IncidentDto } from '@domain/entities/incident'
+import type { IncidentDetailDto, IncidentDto, IncidentPatch } from '@domain/entities/incident'
+import type { MemberDto } from '@domain/entities/member'
 import { INCIDENT_STATUSES, type IncidentStatus } from '@domain/enums'
+import { roleHasPermission } from '@domain/permissions'
+import { INCIDENT_TRANSITIONS, nextStatuses } from '@domain/transitions'
 import { api } from '@lib/api-client'
 import { EmptyState } from '@ui/empty-state'
 import { SeverityBadge, severityColor } from '@ui/severity-badge'
@@ -25,6 +28,13 @@ const TIMELINE_KIND_LABEL: Record<string, string> = {
   action: 'Action',
 }
 
+const STATUS_ACTION_LABEL: Record<IncidentStatus, string> = {
+  declared: 'Reopen',
+  contained: 'Mark contained',
+  resolved: 'Resolve',
+  closed: 'Close',
+}
+
 export default function IncidentsPage() {
   const { setPageTitle } = usePageTitle()
   const [items, setItems] = useState<IncidentDto[]>([])
@@ -37,9 +47,48 @@ export default function IncidentsPage() {
   const [detail, setDetail] = useState<IncidentDetailDto | null>(null)
   const [detailError, setDetailError] = useState('')
 
+  const [canRespond, setCanRespond] = useState(false)
+  const [members, setMembers] = useState<MemberDto[]>([])
+  const [busy, setBusy] = useState(false)
+  const [actionError, setActionError] = useState('')
+  const [noteDraft, setNoteDraft] = useState('')
+
   useEffect(() => {
     setPageTitle('Incidents')
   }, [setPageTitle])
+
+  // Role for permission-gated affordances (hiding is UX; services enforce).
+  useEffect(() => {
+    let cancelled = false
+    Promise.all([api.currentOrg(), api.members.list()])
+      .then(([org, memberPage]) => {
+        if (cancelled) return
+        setCanRespond(roleHasPermission(org.role, 'incident:write'))
+        setMembers(memberPage.items.filter((m) => m.status === 'active'))
+      })
+      .catch(() => {
+        /* affordances stay hidden; reads still work */
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const applyPatch = async (patch: IncidentPatch) => {
+    if (!selectedId) return
+    setBusy(true)
+    setActionError('')
+    try {
+      const refreshed = await api.incidents.patch(selectedId, patch)
+      setDetail(refreshed)
+      setNoteDraft('')
+      setItems((prev) => prev.map((i) => (i.id === refreshed.id ? { ...i, ...refreshed } : i)))
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Action failed')
+    } finally {
+      setBusy(false)
+    }
+  }
 
   useEffect(() => {
     let cancelled = false
@@ -99,7 +148,7 @@ export default function IncidentsPage() {
             id: 'new-incident',
             label: '+ New Incident',
             variant: 'primary',
-            onClick: () => setNotice('Manual incident creation arrives in the next milestone — incidents are currently declared from investigations.'),
+            onClick: () => setNotice('Incidents are declared by promoting an investigation — open an alert, start an investigation, then promote it.'),
           },
         ]}
       />
@@ -219,6 +268,70 @@ export default function IncidentsPage() {
                 {detail.impactSummary || 'No impact summary recorded.'}
               </p>
             </div>
+
+            {canRespond && (
+              <div className="space-y-4 rounded-lg p-4" style={{ border: '1px solid var(--soc-border)', backgroundColor: 'var(--soc-overlay)' }}>
+                <p className="soc-label">Response</p>
+
+                {actionError && (
+                  <p className="text-xs font-medium" style={{ color: 'var(--soc-critical)' }}>{actionError}</p>
+                )}
+
+                {nextStatuses(INCIDENT_TRANSITIONS, detail.status).length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {nextStatuses(INCIDENT_TRANSITIONS, detail.status).map((to) => (
+                      <button
+                        key={to}
+                        type="button"
+                        className="soc-btn soc-btn-primary text-xs"
+                        disabled={busy}
+                        onClick={() => void applyPatch({ status: to })}
+                      >
+                        {STATUS_ACTION_LABEL[to]}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                <label className="flex max-w-xs flex-col gap-1">
+                  <span className="soc-label">Owner</span>
+                  <select
+                    className="soc-input h-9 min-h-9 box-border text-sm"
+                    value={detail.ownerMembershipId ?? ''}
+                    disabled={busy || nextStatuses(INCIDENT_TRANSITIONS, detail.status).length === 0}
+                    onChange={(e) => void applyPatch({ ownerMembershipId: e.target.value || null })}
+                  >
+                    <option value="">Unassigned</option>
+                    {members.map((m) => (
+                      <option key={m.membershipId} value={m.membershipId}>
+                        {m.name ?? m.email} ({m.role})
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                {nextStatuses(INCIDENT_TRANSITIONS, detail.status).length > 0 && (
+                  <div className="flex items-start gap-2">
+                    <textarea
+                      className="soc-input box-border flex-1 text-sm"
+                      rows={2}
+                      placeholder="Add a timeline note…"
+                      value={noteDraft}
+                      disabled={busy}
+                      onChange={(e) => setNoteDraft(e.target.value)}
+                    />
+                    <button
+                      type="button"
+                      className="soc-btn soc-btn-secondary text-xs"
+                      disabled={busy || noteDraft.trim().length === 0}
+                      onClick={() => void applyPatch({ note: noteDraft.trim() })}
+                    >
+                      Add note
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
 
             <div>
               <p className="soc-label mb-3">Response timeline</p>
