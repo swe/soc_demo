@@ -1,5 +1,6 @@
 'use client'
 
+import { SessionProvider } from 'next-auth/react'
 import { createContext, Dispatch, SetStateAction, useContext, useState } from 'react'
 import { PageTitleProvider } from './page-title-context'
 
@@ -26,11 +27,13 @@ export default function AppProvider({
   const [sidebarExpanded, setSidebarExpanded] = useState<boolean>(true)
 
   return (
-    <PageTitleProvider>
-      <AppContext.Provider value={{ sidebarOpen, setSidebarOpen, sidebarExpanded, setSidebarExpanded }}>
-        {children}
-      </AppContext.Provider>
-    </PageTitleProvider>
+    <SessionProvider>
+      <PageTitleProvider>
+        <AppContext.Provider value={{ sidebarOpen, setSidebarOpen, sidebarExpanded, setSidebarExpanded }}>
+          {children}
+        </AppContext.Provider>
+      </PageTitleProvider>
+    </SessionProvider>
   )
 }
 
