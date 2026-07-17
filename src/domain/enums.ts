@@ -58,10 +58,4 @@ export type ActorType = (typeof ACTOR_TYPES)[number]
 export const EVENT_CATEGORIES = ['auth', 'process', 'network', 'api', 'finding'] as const
 export type EventCategory = (typeof EVENT_CATEGORIES)[number]
 
-/** Valid incident lifecycle transitions (service-enforced). */
-export const INCIDENT_TRANSITIONS: Record<IncidentStatus, IncidentStatus[]> = {
-  declared: ['contained', 'resolved'],
-  contained: ['resolved'],
-  resolved: ['closed'],
-  closed: [],
-}
+// Lifecycle transition maps live in ./transitions (single source of truth, ADR-0003).
