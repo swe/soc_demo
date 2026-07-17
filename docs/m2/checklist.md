@@ -50,10 +50,11 @@ Source of truth for M2 execution. Approved 2026-07-17. Baseline: `v0.1.0-m1-foun
 
 ## Step 6 — Assets + identities (read-only)
 
-- [ ] `src/domain/entities/asset.ts`, `identity.ts`; services; `GET /api/v1/assets(/;id)`, `GET /api/v1/identities(/:id)` (`data:read`)
-- [ ] Detail includes related alerts (entity_refs) + vulnerabilities / owned assets
-- [ ] New pages `/overview/assets`, `/overview/identities` — existing components only; legacy static pages untouched
-- [ ] Integration tests incl. isolation
+- [x] `src/domain/entities/asset.ts`, `identity.ts`; services; `GET /api/v1/assets(/:id)`, `GET /api/v1/identities(/:id)` (`data:read`)
+- [x] Detail includes related alerts (jsonb `@>` on entity_refs) + vulnerabilities / owned assets
+- [x] New pages `/overview/assets`, `/overview/identities` — existing components only; legacy static pages untouched; sidebar links added
+- [x] `StatusBadge` extended to entity/vulnerability/membership statuses (additive, no refactor)
+- [x] Integration tests incl. isolation
 
 ## Step 7 — Vulnerability module (read-only)
 
