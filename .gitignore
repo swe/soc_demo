@@ -410,3 +410,9 @@ comments.md
 
 # TypeScript incremental build info
 *.tsbuildinfo
+
+# Playwright / Vitest artifacts
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/

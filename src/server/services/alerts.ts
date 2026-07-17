@@ -2,7 +2,7 @@ import { and, desc, eq, gte, ilike, lt, lte, or, type SQL } from 'drizzle-orm'
 
 import type { AlertDto, AlertListQuery } from '../../domain/entities/alert'
 import { decodeCursor, encodeCursor, type Page } from '../../domain/entities/common'
-import type { OrgContext } from '../auth/context'
+import type { OrgContext } from '../auth/types'
 import { orgScoped } from '../db/scoped'
 import { alerts } from '../db/schema'
 

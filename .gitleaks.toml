@@ -1,0 +1,15 @@
+# Temporary allowlist while historical secret cleanup is deferred (post-M1).
+# The Telegram bot token was removed from the working tree in commit 1c0727e
+# but remains in git history until a coordinated history rewrite. This allowlist
+# MUST be deleted as part of that cleanup. Do not add new secrets here.
+
+title = "soc-platform"
+
+[[allowlists]]
+description = "Deferred: historical Telegram bot token in deleted send-message route (cleanup after M1 verification)"
+regexes = [
+  '''[REDACTED]''',
+]
+paths = [
+  '''(^|/)app/api/send-message/route\.ts$''',
+]

@@ -1,8 +1,8 @@
-import { and, count, desc, eq, gte, inArray, sql } from 'drizzle-orm'
+import { count, desc, eq, gte, inArray, sql } from 'drizzle-orm'
 
 import type { OverviewDto } from '../../domain/entities/overview'
 import { SEVERITIES } from '../../domain/enums'
-import type { OrgContext } from '../auth/context'
+import type { OrgContext } from '../auth/types'
 import { orgScoped } from '../db/scoped'
 import { alerts, assets, incidents, investigations, vulnerabilities } from '../db/schema'
 

@@ -1,7 +1,7 @@
 import { and, eq } from 'drizzle-orm'
 import { z } from 'zod'
 
-import { AuthError, setActiveOrganization } from '../auth/context'
+import { AuthError, setActiveOrganization } from '../auth/types'
 import { db } from '../db/client'
 import { auditLogs, memberships, organizations } from '../db/schema'
 import { writeAuditRaw } from './audit'

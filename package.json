@@ -7,7 +7,7 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint .",
+    "lint": "eslint src tests middleware.ts drizzle.config.ts eslint.config.mjs --max-warnings 0",
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf .next",
     "db:generate": "drizzle-kit generate",
@@ -15,7 +15,10 @@
     "db:seed": "tsx src/server/seed/cli.ts",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "playwright test"
+    "test:unit": "vitest run tests/unit",
+    "test:integration": "vitest run tests/integration",
+    "test:e2e": "playwright test",
+    "ci:local": "pnpm typecheck && pnpm lint && pnpm test:unit && pnpm db:migrate && pnpm test:integration"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "1.11.2",
@@ -38,6 +41,7 @@
     "zod": "4.4.3"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "^3.3.6",
     "@playwright/test": "1.61.1",
     "@tailwindcss/forms": "0.5.11",
     "@tailwindcss/postcss": "4.2.2",

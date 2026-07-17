@@ -1,4 +1,4 @@
-import { requirePermission, type OrgContext } from '../auth/context'
+import { requirePermission, type OrgContext } from '../auth/types'
 import { db } from '../db/client'
 import { seedMeridian, type SeedSummary } from '../seed/meridian'
 import { writeAudit } from './audit'

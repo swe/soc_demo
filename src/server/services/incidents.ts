@@ -2,7 +2,7 @@ import { desc, eq, type SQL } from 'drizzle-orm'
 
 import { decodeCursor, encodeCursor, type Page } from '../../domain/entities/common'
 import type { IncidentDetailDto, IncidentDto, IncidentListQuery } from '../../domain/entities/incident'
-import type { OrgContext } from '../auth/context'
+import type { OrgContext } from '../auth/types'
 import { orgScoped } from '../db/scoped'
 import { incidents } from '../db/schema'
 import { lt } from 'drizzle-orm'

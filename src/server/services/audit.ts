@@ -1,4 +1,4 @@
-import type { OrgContext } from '../auth/context'
+import type { OrgContext } from '../auth/types'
 import { db } from '../db/client'
 import { auditLogs } from '../db/schema'
 
