@@ -32,11 +32,12 @@ Source of truth for M2 execution. Approved 2026-07-17. Baseline: `v0.1.0-m1-foun
 
 ## Step 4 — Investigation workflow
 
-- [ ] `src/domain/entities/investigation.ts` DTOs + action schemas
-- [ ] `src/server/services/investigations.ts` — create (with related alert ids), list, detail (+linked alerts), patch (assign/status/hypothesis), close-with-disposition, notes append
-- [ ] `POST/GET /api/v1/investigations`, `GET/PATCH /api/v1/investigations/:id` (`investigation:write` for writes)
-- [ ] `POST /api/v1/alerts/:id/create-investigation` — links alert, copies entity refs, sets `created_from_alert_id`, marks alert triaged, audits
-- [ ] Integration tests incl. tenancy + permissions
+- [x] `src/domain/entities/investigation.ts` DTOs + action schemas (close requires disposition)
+- [x] `src/server/services/investigations.ts` — create (with related alert ids; linking triages still-new alerts), list, detail (+linked alerts + notes), patch (assign/status/hypothesis/note), close-with-disposition sets `closed_at`, closed = immutable
+- [x] `POST/GET /api/v1/investigations`, `GET/PATCH /api/v1/investigations/:id` (`investigation:write` for writes)
+- [x] `POST /api/v1/alerts/:id/create-investigation` — links alert, sets `created_from_alert_id`, triages if new, audits both sides
+- [x] Alerts modal: "Start investigation from this alert" (permission-gated)
+- [x] Integration tests incl. tenancy + permissions + double-link 409
 
 ## Step 5 — Incident promotion
 

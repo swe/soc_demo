@@ -57,6 +57,7 @@ export default function AlertsPage() {
   const [detailError, setDetailError] = useState('')
 
   const [canTriage, setCanTriage] = useState(false)
+  const [canInvestigate, setCanInvestigate] = useState(false)
   const [members, setMembers] = useState<MemberDto[]>([])
   const [busy, setBusy] = useState(false)
   const [actionError, setActionError] = useState('')
@@ -75,6 +76,7 @@ export default function AlertsPage() {
       .then(([org, memberPage]) => {
         if (cancelled) return
         setCanTriage(roleHasPermission(org.role, 'alert:triage'))
+        setCanInvestigate(roleHasPermission(org.role, 'investigation:write'))
         setMembers(memberPage.items.filter((m) => m.status === 'active'))
       })
       .catch(() => {
@@ -164,21 +166,39 @@ export default function AlertsPage() {
     }
   }, [selectedId])
 
-  // Apply a triage patch, then refresh the modal (history included) and the row.
+  // Refresh the modal (history included) and the list row after a mutation.
+  const refreshDetail = async (id: string) => {
+    const refreshed = await api.alerts.get(id)
+    setDetail(refreshed)
+    setNoteDraft(refreshed.analystNote ?? '')
+    setDismissOpen(false)
+    setDismissReason('')
+    setItems((prev) => prev.map((a) => (a.id === refreshed.id ? { ...a, ...refreshed } : a)))
+  }
+
   const applyPatch = async (patch: AlertPatch) => {
     if (!selectedId) return
     setBusy(true)
     setActionError('')
     try {
       await api.alerts.patch(selectedId, patch)
-      const refreshed = await api.alerts.get(selectedId)
-      setDetail(refreshed)
-      setNoteDraft(refreshed.analystNote ?? '')
-      setDismissOpen(false)
-      setDismissReason('')
-      setItems((prev) => prev.map((a) => (a.id === refreshed.id ? { ...a, ...refreshed } : a)))
+      await refreshDetail(selectedId)
     } catch (err) {
       setActionError(err instanceof Error ? err.message : 'Action failed')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const startInvestigation = async () => {
+    if (!selectedId) return
+    setBusy(true)
+    setActionError('')
+    try {
+      await api.alerts.createInvestigation(selectedId)
+      await refreshDetail(selectedId)
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Could not create investigation')
     } finally {
       setBusy(false)
     }
@@ -363,14 +383,25 @@ export default function AlertsPage() {
               </div>
             )}
 
-            {detail.investigationId && (
+            {detail.investigationId ? (
               <div className="rounded-md px-4 py-3" style={{ backgroundColor: 'var(--soc-accent-bg)', border: '1px solid var(--soc-accent)' }}>
                 <p className="soc-label mb-0.5">Investigation</p>
                 <p className="text-xs font-medium" style={{ color: 'var(--soc-accent-text)' }}>
                   This alert is part of an active investigation.
                 </p>
               </div>
-            )}
+            ) : canInvestigate ? (
+              <div>
+                <button
+                  type="button"
+                  className="soc-btn soc-btn-secondary text-xs"
+                  disabled={busy}
+                  onClick={() => void startInvestigation()}
+                >
+                  Start investigation from this alert
+                </button>
+              </div>
+            ) : null}
 
             {detail.dismissedReason && (
               <div className="rounded-md px-4 py-3" style={{ backgroundColor: 'var(--soc-overlay)', border: '1px solid var(--soc-border)' }}>
