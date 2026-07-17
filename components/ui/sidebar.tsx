@@ -271,6 +271,13 @@ export default function Sidebar({
                       <div className="lg:hidden lg:sidebar-expanded:block xl:block">
                         <ul className={`pl-8 mt-1 ${!open && 'hidden'}`}>
                           <li className="mb-1 last:mb-0">
+                            <SidebarLink href="/overview/vulnerabilities">
+                              <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 xl:opacity-100 duration-200">
+                                All Findings
+                              </span>
+                            </SidebarLink>
+                          </li>
+                          <li className="mb-1 last:mb-0">
                             <SidebarLink href="/overview/vulnerability/dashboard">
                               <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 xl:opacity-100 duration-200">
                                 Dashboard

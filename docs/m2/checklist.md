@@ -58,9 +58,9 @@ Source of truth for M2 execution. Approved 2026-07-17. Baseline: `v0.1.0-m1-foun
 
 ## Step 7 — Vulnerability module (read-only)
 
-- [ ] `src/domain/entities/vulnerability.ts`; service; `GET /api/v1/vulnerabilities(/:id)` (`data:read`)
-- [ ] Page `/overview/vulnerabilities` — CVE, asset, CVSS, EPSS, exploited, status
-- [ ] Integration tests
+- [x] `src/domain/entities/vulnerability.ts`; service; `GET /api/v1/vulnerabilities(/:id)` (`data:read`)
+- [x] Page `/overview/vulnerabilities` — CVE, asset, CVSS, EPSS, exploited, fix-available, status; sidebar link
+- [x] Integration tests incl. isolation
 
 ## Step 8 — Member management
 
