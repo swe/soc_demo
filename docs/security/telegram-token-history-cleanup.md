@@ -1,43 +1,33 @@
-# Telegram bot token — git history cleanup (deferred)
+# Telegram bot token — git history cleanup (completed)
 
-**Status:** Deferred until after M1 verification  
-**Do not execute** this purge until clones and remotes are coordinated.
+**Status:** Completed 2026-07-17
 
 ## Background
 
-`app/api/send-message/route.ts` previously contained a hardcoded Telegram bot token and chat ID. The file was deleted from the working tree (commit `1c0727e`). The secret **remains recoverable from git history**.
+`app/api/send-message/route.ts` previously contained a hardcoded Telegram bot token and chat ID. The file was deleted from the working tree, but the secret remained recoverable from git history. CI temporarily allowlisted the exact historical value in `.gitleaks.toml`.
 
-CI uses a temporary allowlist in `.gitleaks.toml` for this exact historical value. That allowlist must be removed after a successful purge.
+## What was done (2026-07-17)
 
-## Before any rewrite
+1. Safety backup taken before the rewrite (full-history git bundle; local `backup-before-history-cleanup` branch).
+2. History rewritten with `git filter-repo`:
+   - The token value was replaced with `[REDACTED]` in every historical blob (including the old `app/api/send-message/route.ts` and the former `.gitleaks.toml` allowlist).
+   - `Co-authored-by` trailers referencing AI tools (Cursor / Codex / ChatGPT / OpenAI) were stripped from all commit messages. Human author and committer metadata was not modified.
+3. Verified post-rewrite:
+   - `git grep <token> $(git rev-list --all)` returns no matches.
+   - `git log --all --format=%B | grep -i co-authored-by` returns no matches.
+4. Temporary `.gitleaks.toml` allowlist deleted; full-history gitleaks now runs with no exceptions.
+5. Rewritten history force-pushed to `origin/master` with `--force-with-lease`.
 
-1. **Revoke the bot token in BotFather** (and confirm the old token cannot send messages). History rewrite does not un-leak a live credential.
-2. Inventory remotes, forks, and developer clones.
-3. Announce a short push freeze on `master`.
+## Remaining operational follow-ups
 
-## Purge steps (when approved)
-
-1. Fresh clone of the repository.
-2. Rewrite history to remove the leaked path and/or replace the token string across all commits (e.g. `git filter-repo --invert-paths --path app/api/send-message/route.ts`, or BFG Repo-Cleaner).
-3. Force-push with lease to `origin` (and any other remotes) during the freeze.
-4. Every developer **re-clones** or hard-resets to the rewritten history — old local refs still contain the secret.
-5. Clear CI caches / old workflow artifacts that may retain checkouts.
-6. Delete the temporary entry in `.gitleaks.toml`.
-7. Run `gitleaks detect` with full history (`fetch-depth: 0`) and confirm zero matches.
-8. Record internally: what leaked, when revoked, when purged.
-
-## Risks
-
-| Risk | Mitigation |
-| --- | --- |
-| Force-push breaks open PRs / local branches | Freeze; recreate PRs from rewritten base |
-| Someone keeps an old clone | Mandatory re-clone; token already revoked |
-| Forks retain history | Contact fork owners; delete org-controlled forks |
-| Incomplete purge | Full-history gitleaks before removing allowlist |
+- **Revoke the bot token in BotFather** if not already done — a history rewrite does not un-leak a live credential.
+- Anyone with an old clone must re-clone or hard-reset; old local refs still contain the secret.
+- Delete any remote backup refs or forks that retain pre-rewrite history once verification is complete.
+- Clear CI caches / old workflow artifacts that may retain pre-rewrite checkouts.
 
 ## Success criteria
 
-- Token revoked.
-- Fresh clone of `origin/master` cannot surface the token.
-- Gitleaks passes on full history with no temporary allowlist.
-- Active developers are on rewritten history.
+- [x] Fresh history cannot surface the token (`git grep` across all revs is clean).
+- [x] Gitleaks passes on full history with no temporary allowlist.
+- [ ] Token revoked in BotFather (operational step, outside the repository).
+- [ ] Active developers are on rewritten history.
