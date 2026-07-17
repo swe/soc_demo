@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "es5",
+    "target": "es2022",
     "lib": [
       "dom",
       "dom.iterable",
@@ -13,7 +13,7 @@
     "noEmit": true,
     "esModuleInterop": true,
     "module": "esnext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "react-jsx",
@@ -30,6 +30,18 @@
       ],
       "@/lib/*": [
         "./app/lib/*"
+      ],
+      "@server/*": [
+        "./src/server/*"
+      ],
+      "@domain/*": [
+        "./src/domain/*"
+      ],
+      "@ui/*": [
+        "./src/components/ui/*"
+      ],
+      "@lib/*": [
+        "./src/lib/*"
       ]
     }
   },
@@ -37,10 +49,11 @@
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts"
+    ".next/types/**/*.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    ".next",
+    ".pnpm-store"
   ]
 }

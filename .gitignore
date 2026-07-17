@@ -407,3 +407,6 @@ comments.md
 .DS_Store
 # pnpm local store
 .pnpm-store/
+
+# TypeScript incremental build info
+*.tsbuildinfo
