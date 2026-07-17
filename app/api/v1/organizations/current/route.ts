@@ -13,7 +13,7 @@ export const GET = withOrgContext(async ({ ctx }) => {
     .from(organizations)
     .where(eq(organizations.id, ctx.organizationId))
     .limit(1)
-  return NextResponse.json({ organization: org, role: ctx.role })
+  return NextResponse.json({ organization: org, role: ctx.role, membershipId: ctx.membershipId })
 })
 
 const switchSchema = z.object({ organizationId: z.string().min(1) })

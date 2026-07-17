@@ -66,7 +66,7 @@ This map moves verbatim from `src/domain/enums.ts` into `transitions.ts` (it had
 - `canTransition(map, from, to)` — pure check; the UI uses it to render legal actions only.
 - `assertTransition(entity, map, from, to)` — throws `TransitionError` when illegal.
 - `TransitionError` carries HTTP status **409 Conflict**; `withOrgContext()`'s error handler maps it to a problem+json body, alongside the existing `AuthError` (401/403) and `ZodError` (400) mappings.
-- A request that "transitions" an entity to its current status is not a transition; services reject it as validation (400), not conflict.
+- Self-transitions (`from === to`) are never in a map, so a request that "transitions" an entity to its current status fails `assertTransition` and returns 409 like any other illegal move.
 - Field-level requirements attached to transitions (dismissal reason, closing disposition) are validated by the Zod action schemas in `src/domain/entities/*` and re-checked in services.
 
 ## Consequences

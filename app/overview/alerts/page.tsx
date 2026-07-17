@@ -10,8 +10,11 @@ import {
   OverviewSection,
   OverviewTableToolbar,
 } from '@/components/overview/unified-ui'
-import type { AlertDto } from '@domain/entities/alert'
+import type { AlertDetailDto, AlertDto, AlertPatch } from '@domain/entities/alert'
+import type { MemberDto } from '@domain/entities/member'
 import { ALERT_STATUSES, SEVERITIES, type AlertStatus, type Severity } from '@domain/enums'
+import { roleHasPermission } from '@domain/permissions'
+import { ALERT_TRANSITIONS, nextStatuses } from '@domain/transitions'
 import { api } from '@lib/api-client'
 import { EmptyState } from '@ui/empty-state'
 import { SeverityBadge, severityColor } from '@ui/severity-badge'
@@ -19,6 +22,23 @@ import { Skeleton, TableSkeleton } from '@ui/skeleton'
 import { StatusBadge } from '@ui/status-badge'
 
 const PAGE_SIZE = 25
+
+const STATUS_ACTION_LABEL: Record<AlertStatus, string> = {
+  new: 'Reopen',
+  triaged: 'Mark triaged',
+  resolved: 'Resolve',
+  dismissed: 'Dismiss',
+}
+
+const AUDIT_ACTION_LABEL: Record<string, string> = {
+  'alert.triage': 'Triaged',
+  'alert.resolve': 'Resolved',
+  'alert.dismiss': 'Dismissed',
+  'alert.assign': 'Assignment changed',
+  'alert.severity_change': 'Severity changed',
+  'alert.note': 'Note updated',
+  'alert.disposition': 'Disposition set',
+}
 
 export default function AlertsPage() {
   const { setPageTitle } = usePageTitle()
@@ -33,12 +53,37 @@ export default function AlertsPage() {
   const [status, setStatus] = useState<AlertStatus | ''>('')
 
   const [selectedId, setSelectedId] = useState<string | null>(null)
-  const [detail, setDetail] = useState<AlertDto | null>(null)
+  const [detail, setDetail] = useState<AlertDetailDto | null>(null)
   const [detailError, setDetailError] = useState('')
+
+  const [canTriage, setCanTriage] = useState(false)
+  const [members, setMembers] = useState<MemberDto[]>([])
+  const [busy, setBusy] = useState(false)
+  const [actionError, setActionError] = useState('')
+  const [noteDraft, setNoteDraft] = useState('')
+  const [dismissReason, setDismissReason] = useState('')
+  const [dismissOpen, setDismissOpen] = useState(false)
 
   useEffect(() => {
     setPageTitle('Security Alerts')
   }, [setPageTitle])
+
+  // Role for permission-gated affordances (hiding is UX; services enforce).
+  useEffect(() => {
+    let cancelled = false
+    Promise.all([api.currentOrg(), api.members.list()])
+      .then(([org, memberPage]) => {
+        if (cancelled) return
+        setCanTriage(roleHasPermission(org.role, 'alert:triage'))
+        setMembers(memberPage.items.filter((m) => m.status === 'active'))
+      })
+      .catch(() => {
+        /* affordances stay hidden; reads still work */
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const load = useCallback(
     async (cursor?: string) => {
@@ -93,18 +138,23 @@ export default function AlertsPage() {
     }
   }
 
-  // Detail modal loads the single-alert endpoint
+  // Detail modal loads the single-alert endpoint (alert + audit history)
   useEffect(() => {
     if (!selectedId) {
       setDetail(null)
       setDetailError('')
+      setActionError('')
+      setDismissOpen(false)
+      setDismissReason('')
       return
     }
     let cancelled = false
     api.alerts
       .get(selectedId)
       .then((alert) => {
-        if (!cancelled) setDetail(alert)
+        if (cancelled) return
+        setDetail(alert)
+        setNoteDraft(alert.analystNote ?? '')
       })
       .catch((err) => {
         if (!cancelled) setDetailError(err.message ?? 'Failed to load alert')
@@ -113,6 +163,26 @@ export default function AlertsPage() {
       cancelled = true
     }
   }, [selectedId])
+
+  // Apply a triage patch, then refresh the modal (history included) and the row.
+  const applyPatch = async (patch: AlertPatch) => {
+    if (!selectedId) return
+    setBusy(true)
+    setActionError('')
+    try {
+      await api.alerts.patch(selectedId, patch)
+      const refreshed = await api.alerts.get(selectedId)
+      setDetail(refreshed)
+      setNoteDraft(refreshed.analystNote ?? '')
+      setDismissOpen(false)
+      setDismissReason('')
+      setItems((prev) => prev.map((a) => (a.id === refreshed.id ? { ...a, ...refreshed } : a)))
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Action failed')
+    } finally {
+      setBusy(false)
+    }
+  }
 
   return (
     <OverviewPageShell>
@@ -302,9 +372,148 @@ export default function AlertsPage() {
               </div>
             )}
 
-            <p className="text-xs" style={{ color: 'var(--soc-text-muted)' }}>
-              Triage actions (assign, resolve, dismiss, promote to investigation) arrive in the next milestone.
-            </p>
+            {detail.dismissedReason && (
+              <div className="rounded-md px-4 py-3" style={{ backgroundColor: 'var(--soc-overlay)', border: '1px solid var(--soc-border)' }}>
+                <p className="soc-label mb-0.5">Dismissal reason</p>
+                <p className="text-xs" style={{ color: 'var(--soc-text-secondary)' }}>{detail.dismissedReason}</p>
+              </div>
+            )}
+
+            {canTriage && (
+              <div className="space-y-4 rounded-lg p-4" style={{ border: '1px solid var(--soc-border)', backgroundColor: 'var(--soc-overlay)' }}>
+                <p className="soc-label">Triage</p>
+
+                {actionError && (
+                  <p className="text-xs font-medium" style={{ color: 'var(--soc-critical)' }}>{actionError}</p>
+                )}
+
+                {nextStatuses(ALERT_TRANSITIONS, detail.status).length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {nextStatuses(ALERT_TRANSITIONS, detail.status).map((to) =>
+                      to === 'dismissed' ? (
+                        <button
+                          key={to}
+                          type="button"
+                          className="soc-btn soc-btn-secondary text-xs"
+                          disabled={busy}
+                          onClick={() => setDismissOpen((v) => !v)}
+                        >
+                          {STATUS_ACTION_LABEL[to]}…
+                        </button>
+                      ) : (
+                        <button
+                          key={to}
+                          type="button"
+                          className="soc-btn soc-btn-primary text-xs"
+                          disabled={busy}
+                          onClick={() => void applyPatch({ status: to })}
+                        >
+                          {STATUS_ACTION_LABEL[to]}
+                        </button>
+                      ),
+                    )}
+                  </div>
+                )}
+
+                {dismissOpen && (
+                  <div className="flex items-center gap-2">
+                    <input
+                      className="soc-input h-9 min-h-9 box-border flex-1 text-sm"
+                      placeholder="Dismissal reason (required)"
+                      value={dismissReason}
+                      onChange={(e) => setDismissReason(e.target.value)}
+                    />
+                    <button
+                      type="button"
+                      className="soc-btn soc-btn-primary text-xs"
+                      disabled={busy || dismissReason.trim().length < 3}
+                      onClick={() => void applyPatch({ status: 'dismissed', dismissedReason: dismissReason.trim() })}
+                    >
+                      Confirm dismiss
+                    </button>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-2 gap-3">
+                  <label className="flex flex-col gap-1">
+                    <span className="soc-label">Severity</span>
+                    <select
+                      className="soc-input h-9 min-h-9 box-border text-sm"
+                      value={detail.severity}
+                      disabled={busy || nextStatuses(ALERT_TRANSITIONS, detail.status).length === 0}
+                      onChange={(e) => void applyPatch({ severity: e.target.value as Severity })}
+                    >
+                      {SEVERITIES.map((s) => (
+                        <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="flex flex-col gap-1">
+                    <span className="soc-label">Assignee</span>
+                    <select
+                      className="soc-input h-9 min-h-9 box-border text-sm"
+                      value={detail.assignedMembershipId ?? ''}
+                      disabled={busy || nextStatuses(ALERT_TRANSITIONS, detail.status).length === 0}
+                      onChange={(e) => void applyPatch({ assignedMembershipId: e.target.value || null })}
+                    >
+                      <option value="">Unassigned</option>
+                      {members.map((m) => (
+                        <option key={m.membershipId} value={m.membershipId}>
+                          {m.name ?? m.email} ({m.role})
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <span className="soc-label">Analyst note</span>
+                  <textarea
+                    className="soc-input box-border w-full text-sm"
+                    rows={2}
+                    placeholder="Findings, context, next steps…"
+                    value={noteDraft}
+                    disabled={busy || nextStatuses(ALERT_TRANSITIONS, detail.status).length === 0}
+                    onChange={(e) => setNoteDraft(e.target.value)}
+                  />
+                  {noteDraft !== (detail.analystNote ?? '') && (
+                    <div>
+                      <button
+                        type="button"
+                        className="soc-btn soc-btn-secondary text-xs"
+                        disabled={busy}
+                        onClick={() => void applyPatch({ analystNote: noteDraft.trim() || null })}
+                      >
+                        Save note
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {detail.history.length > 0 && (
+              <div>
+                <p className="soc-label mb-2">History</p>
+                <ul className="space-y-1.5">
+                  {detail.history.map((entry) => (
+                    <li key={entry.id} className="flex items-baseline justify-between gap-3 text-xs">
+                      <span style={{ color: 'var(--soc-text-secondary)' }}>
+                        {AUDIT_ACTION_LABEL[entry.action] ?? entry.action}
+                        {entry.action !== 'alert.assign' &&
+                        typeof entry.metadata.to === 'string' &&
+                        typeof entry.metadata.from === 'string'
+                          ? ` · ${entry.metadata.from} → ${entry.metadata.to}`
+                          : ''}
+                      </span>
+                      <span className="whitespace-nowrap tabular-nums" style={{ color: 'var(--soc-text-muted)' }}>
+                        {new Date(entry.createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         )}
       </OverviewModal>

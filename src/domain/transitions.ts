@@ -38,6 +38,13 @@ export class TransitionError extends Error {
     super(`Illegal ${entity} transition: ${from} → ${to}`)
     this.name = 'TransitionError'
   }
+
+  /** Write attempted on a terminal entity (only a disposition note is allowed). */
+  static immutable(entity: string, status: string): TransitionError {
+    const error = new TransitionError(entity, status, status)
+    error.message = `${entity} is ${status} (terminal) and can no longer be modified`
+    return error
+  }
 }
 
 export function canTransition<S extends string>(map: TransitionMap<S>, from: S, to: S): boolean {

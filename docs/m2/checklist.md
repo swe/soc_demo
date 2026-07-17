@@ -22,12 +22,13 @@ Source of truth for M2 execution. Approved 2026-07-17. Baseline: `v0.1.0-m1-foun
 
 ## Step 3 — Alert workflow
 
-- [ ] Action schemas in `src/domain/entities/alert.ts` (assign / severity / status / note / dismiss / resolve)
-- [ ] `patchAlert()` in `src/server/services/alerts.ts` — transitions via `assertTransition`, side-effect timestamps, audit per action
-- [ ] `PATCH /api/v1/alerts/:id` (`alert:triage`)
-- [ ] `TransitionError → 409` mapping in `src/server/api/respond.ts`; `parseJsonBody()` helper
-- [ ] Alerts page detail modal: transition controls, assignee select, severity select, analyst note, dismiss-with-reason, audit preview; permission-gated buttons
-- [ ] Integration tests: happy paths, illegal transition 409, cross-tenant 404, viewer 403, audit rows written
+- [x] Action schemas in `src/domain/entities/alert.ts` (assign / severity / status / note / dismiss / resolve)
+- [x] `patchAlert()` in `src/server/services/alerts.ts` — transitions via `assertTransition`, side-effect timestamps, audit per action, terminal immutability (disposition only)
+- [x] `PATCH /api/v1/alerts/:id` (`alert:triage`)
+- [x] `TransitionError → 409` + `ServiceError` mapping in `src/server/api/respond.ts`; `parseJsonBody()` helper
+- [x] Alerts page detail modal: transition controls, assignee select, severity select, analyst note, dismiss-with-reason, audit preview; permission-gated buttons
+- [x] Integration tests: happy paths, illegal transition 409, cross-tenant null/404, viewer 403, audit rows written; e2e regression green
+- [x] Deviations recorded: member directory `GET /api/v1/members` shipped early with `data:read` (assignment UI needs it; Step 8 mutations stay `admin:members`); alert detail embeds its own audit history so analysts see triage history without `admin:audit`; `GET /organizations/current` now also returns `membershipId`
 
 ## Step 4 — Investigation workflow
 

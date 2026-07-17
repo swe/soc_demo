@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { ZodError } from 'zod'
+import { ZodError, type ZodType, type z } from 'zod'
 
 import type { Permission } from '../../domain/permissions'
+import { TransitionError } from '../../domain/transitions'
 import { AuthError, getSession, requireOrgContext, type OrgContext } from '../auth/context'
+import { ServiceError } from '../services/errors'
 
 /** RFC 9457 problem+json error body. */
 export function problem(status: number, title: string, detail?: unknown) {
@@ -18,9 +20,23 @@ function requestIp(request: NextRequest): string | undefined {
 
 function handleError(error: unknown) {
   if (error instanceof AuthError) return problem(error.status, error.message)
+  if (error instanceof TransitionError) return problem(error.status, error.message)
+  if (error instanceof ServiceError) return problem(error.status, error.message)
   if (error instanceof ZodError) return problem(400, 'Validation failed', error.issues)
   console.error('[api] unhandled error:', error)
   return problem(500, 'Internal server error')
+}
+
+/**
+ * Parse and validate a JSON request body. Malformed JSON and schema failures
+ * both surface as 400 problem+json via the ZodError mapping above.
+ */
+export async function parseJsonBody<S extends ZodType>(
+  request: NextRequest,
+  schema: S,
+): Promise<z.infer<S>> {
+  const body = await request.json().catch(() => null)
+  return schema.parse(body)
 }
 
 type OrgHandler<P> = (args: {
