@@ -8,6 +8,7 @@ import {
   text,
   timestamp,
   uniqueIndex,
+  type AnyPgColumn,
 } from 'drizzle-orm/pg-core'
 import { uuidv7 } from 'uuidv7'
 
@@ -38,6 +39,9 @@ const updatedAt = () =>
 
 /** Lightweight reference from a signal to a graph entity. */
 export type EntityRef = { type: 'asset' | 'identity'; id: string; label?: string }
+
+/** Append-only analyst note on an investigation, written by the service layer only. */
+export type InvestigationNote = { at: string; membershipId: string; text: string }
 
 export const identities = pgTable(
   'identity',
@@ -123,6 +127,15 @@ export const investigations = pgTable(
     }),
     disposition: dispositionEnum('disposition'),
     aiSummary: text('ai_summary'),
+    /**
+     * Provenance for alert-initiated investigations. Circular FK with
+     * alert.investigation_id is intentional; both sides are `set null`,
+     * so deletes cannot cascade in a loop (see docs/m2/migration-review.md).
+     */
+    createdFromAlertId: text('created_from_alert_id').references((): AnyPgColumn => alerts.id, {
+      onDelete: 'set null',
+    }),
+    notes: jsonb('notes').$type<InvestigationNote[]>().notNull().default([]),
     createdBy: text('created_by'),
     closedAt: timestamp('closed_at', { withTimezone: true }),
     createdAt: createdAt(),
@@ -151,6 +164,14 @@ export const alerts = pgTable(
     investigationId: text('investigation_id').references(() => investigations.id, {
       onDelete: 'set null',
     }),
+    assignedMembershipId: text('assigned_membership_id').references(() => memberships.id, {
+      onDelete: 'set null',
+    }),
+    analystNote: text('analyst_note'),
+    /** Lifecycle timestamps set by the service on the matching transition (ADR-0003). */
+    triagedAt: timestamp('triaged_at', { withTimezone: true }),
+    resolvedAt: timestamp('resolved_at', { withTimezone: true }),
+    dismissedReason: text('dismissed_reason'),
     raw: jsonb('raw').notNull().default({}),
     detectedAt: timestamp('detected_at', { withTimezone: true }).notNull(),
     createdAt: createdAt(),
@@ -160,6 +181,7 @@ export const alerts = pgTable(
     index('alert_org_status_time_idx').on(t.organizationId, t.status, t.detectedAt),
     index('alert_org_severity_idx').on(t.organizationId, t.severity),
     index('alert_investigation_idx').on(t.investigationId),
+    index('alert_assigned_membership_idx').on(t.assignedMembershipId),
   ],
 )
 

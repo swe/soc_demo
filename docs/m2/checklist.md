@@ -17,7 +17,7 @@ Source of truth for M2 execution. Approved 2026-07-17. Baseline: `v0.1.0-m1-foun
 - [x] `alert`: + `assigned_membership_id` (FK membership, set null), `analyst_note`, `triaged_at`, `resolved_at`, `dismissed_reason` (all nullable)
 - [x] `investigation`: + `created_from_alert_id` (FK alert, set null), `notes jsonb not null default '[]'`
 - [x] New table `organization_invite` (see migration review)
-- [x] `drizzle/0003_*.sql` generated and reviewed; `db:migrate` clean on dev + test databases
+- [x] `drizzle/0003_big_queen_noir.sql` generated and reviewed against the migration review (partial unique index emitted correctly with `lower(email)`); `db:migrate` clean on dev + test databases
 - [x] Seed determinism tests still green (columns nullable; seed untouched)
 
 ## Step 3 — Alert workflow
