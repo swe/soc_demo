@@ -558,6 +558,13 @@ export default function Sidebar({
                       <div className="lg:hidden lg:sidebar-expanded:block xl:block">
                         <ul className={`pl-8 mt-1 ${!open && 'hidden'}`}>
                           <li className="mb-1 last:mb-0">
+                            <SidebarLink href="/overview/administration/members">
+                              <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 xl:opacity-100 duration-200">
+                                Members
+                              </span>
+                            </SidebarLink>
+                          </li>
+                          <li className="mb-1 last:mb-0">
                             <SidebarLink href="/overview/administration/user-management">
                               <span className="text-sm font-medium lg:opacity-0 lg:sidebar-expanded:opacity-100 xl:opacity-100 duration-200">
                                 User Management

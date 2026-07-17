@@ -64,11 +64,12 @@ Source of truth for M2 execution. Approved 2026-07-17. Baseline: `v0.1.0-m1-foun
 
 ## Step 8 — Member management
 
-- [ ] `src/domain/entities/member.ts`; `src/server/services/members.ts`
-- [ ] `GET /api/v1/members`, `POST /api/v1/members/invite`, `PATCH /api/v1/members/:id` (all `admin:members`)
-- [ ] Secure accept-link only (token hash stored; no email); `app/(auth)/accept-invite/page.tsx`
-- [ ] Guard: cannot suspend/demote the last active admin
-- [ ] Tests: invite → accept → member visible; role change; suspend; non-admin 403; tenancy
+- [x] `src/domain/entities/member.ts` invite + patch schemas; `src/server/services/members.ts`
+- [x] `POST /api/v1/members/invite`, `GET /api/v1/members/invites`, `DELETE /api/v1/members/invites/:id`, `PATCH /api/v1/members/:id` (all `admin:members`); `POST /api/v1/members/accept-invite` (session-only, email-bound)
+- [x] Secure accept-link only: SHA-256 token hash stored, 7-day expiry, single-use, revocable; `app/(auth)/accept-invite/page.tsx` redirects unauthenticated users through sign-in
+- [x] Guard: cannot suspend/demote the last active admin (409)
+- [x] New admin page `/overview/administration/members` (invite form + copy-link, role select, suspend/reactivate, invite list); legacy user-management page untouched for M3
+- [x] Tests: invite → accept → member visible; single-use/email-bound/revoked/expired handling; duplicate 409; role change; suspend; last-admin guard; non-admin 403; tenancy
 
 ## Step 9 — Audit UI
 
