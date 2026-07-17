@@ -73,9 +73,9 @@ Source of truth for M2 execution. Approved 2026-07-17. Baseline: `v0.1.0-m1-foun
 
 ## Step 9 — Audit UI
 
-- [ ] `listAudit(ctx, query)` in `src/server/services/audit.ts`; `GET /api/v1/audit` (`admin:audit`) — filters actor/action/target, keyset pagination
-- [ ] Page `/overview/settings/audit` (admin-only; no new top-level route)
-- [ ] Integration tests
+- [x] `listAudit(ctx, query)` in `src/server/services/audit.ts` with actor name resolution; `GET /api/v1/audit` (`admin:audit`) — filters actor/action/target, keyset pagination
+- [x] Page `/overview/settings/audit` (admin-only with in-page notice for non-admins; no new top-level route)
+- [x] Integration tests: ordering, filters, pagination, analyst 403, tenant isolation
 
 ## Step 10 — E2E + close-out
 

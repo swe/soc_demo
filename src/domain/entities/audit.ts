@@ -11,3 +11,18 @@ export const auditEntrySchema = z.object({
   createdAt: z.string(),
 })
 export type AuditEntryDto = z.infer<typeof auditEntrySchema>
+
+/** Audit UI row: entry plus the resolved actor name (null for system events). */
+export const auditListItemSchema = auditEntrySchema.extend({
+  actorName: z.string().nullable(),
+})
+export type AuditListItemDto = z.infer<typeof auditListItemSchema>
+
+export const auditListQuerySchema = z.object({
+  limit: z.coerce.number().int().min(1).max(100).default(50),
+  cursor: z.string().optional(),
+  action: z.string().trim().min(1).max(100).optional(),
+  targetType: z.string().trim().min(1).max(100).optional(),
+  actorMembershipId: z.string().trim().min(1).optional(),
+})
+export type AuditListQuery = z.infer<typeof auditListQuerySchema>
