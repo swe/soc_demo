@@ -21,7 +21,12 @@ export async function getSession() {
 /**
  * Resolve session → active organization → membership → OrgContext.
  * Falls back to the user's only membership when the session has no active org
- * pinned yet (first login), persisting the choice.
+ * pinned yet (first login).
+ *
+ * This is the tenant authorization entry point. Middleware only redirects on
+ * missing cookies; services must call getOrgContext()/requireOrgContext()
+ * (or receive OrgContext from withOrgContext) before any tenant query.
+ * See docs/adr/0002-middleware-authorization-boundary.md.
  */
 export async function getOrgContext(): Promise<OrgContext | null> {
   const session = await getSession()

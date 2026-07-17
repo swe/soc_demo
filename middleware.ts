@@ -1,10 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 /**
- * Lightweight route guard. Checks session-cookie presence only — the edge
- * runtime has no database access, so real session validation happens in
- * `getOrgContext()` on the server. A forged cookie gets past this redirect
- * but hits a 401 on every data access.
+ * Routing-only guard (see docs/adr/0002-middleware-authorization-boundary.md).
+ *
+ * Middleware checks session-cookie *presence* and redirects unauthenticated
+ * browsers to /signin. It does NOT validate the session, resolve an
+ * organization, or enforce permissions — Edge has no database access.
+ *
+ * Tenant authorization happens exclusively through:
+ *   getOrgContext() / requireOrgContext() → services → orgScoped() queries
+ * (API routes wrap this via withOrgContext()).
+ *
+ * A forged cookie can pass this redirect but still receives 401 on every
+ * data access and cannot read another tenant's rows.
  */
 const SESSION_COOKIES = ['authjs.session-token', '__Secure-authjs.session-token']
 

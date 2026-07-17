@@ -7,8 +7,13 @@ import { db } from './client'
 /**
  * The only database surface services should touch. Every query condition is
  * combined with the tenant filter so an unfiltered cross-tenant query cannot
- * be expressed accidentally. When PostgreSQL RLS lands, it slots in beneath
- * this layer without changing service code.
+ * be expressed accidentally.
+ *
+ * Tenant authorization chain:
+ *   middleware (routing only) → getOrgContext()/withOrgContext → services → orgScoped()
+ *
+ * When PostgreSQL RLS lands, it slots in beneath this layer without changing
+ * service code. See docs/adr/0002-middleware-authorization-boundary.md.
  */
 export function orgScoped(ctx: OrgContext) {
   return {

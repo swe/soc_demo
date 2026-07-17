@@ -30,8 +30,12 @@ type OrgHandler<P> = (args: {
 }) => Promise<NextResponse>
 
 /**
- * Route wrapper for tenant-scoped endpoints: resolves OrgContext (401/403 on
- * failure), attaches the request IP for audit, and normalizes error bodies.
+ * Route wrapper for tenant-scoped endpoints.
+ *
+ * Resolves OrgContext via requireOrgContext() (401/403 on failure), attaches
+ * request IP for audit, and normalizes error bodies. Middleware is not a
+ * substitute for this — it only performs cookie-presence redirects.
+ * See docs/adr/0002-middleware-authorization-boundary.md.
  */
 export function withOrgContext<P = Record<string, never>>(
   handler: OrgHandler<P>,
