@@ -11,6 +11,7 @@ import {
 import { verifyPassword } from '@server/auth/passwords'
 import { db } from '@server/db/client'
 import { sessions, users } from '@server/db/schema'
+import { writeAuditRaw } from '@server/services/audit'
 
 const loginSchema = z.object({
   email: z.email().transform((e) => e.toLowerCase().trim()),
@@ -59,6 +60,14 @@ export async function POST(request: NextRequest) {
     .where(eq(sessions.sessionToken, session.sessionToken))
 
   await db.update(users).set({ lastActiveAt: new Date() }).where(eq(users.id, user.id))
+
+  await writeAuditRaw({
+    organizationId: null,
+    action: 'auth.login',
+    targetType: 'user',
+    targetId: user.id,
+    ip: request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? null,
+  })
 
   const response = NextResponse.json({ ok: true }, { status: 200 })
   response.cookies.set(SESSION_COOKIE_NAME, session.sessionToken, {

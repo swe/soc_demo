@@ -5,6 +5,7 @@ import { z } from 'zod'
 import { hashPassword } from '@server/auth/passwords'
 import { db } from '@server/db/client'
 import { users } from '@server/db/schema'
+import { writeAuditRaw } from '@server/services/audit'
 
 const registerSchema = z.object({
   name: z.string().trim().min(1).max(200),
@@ -41,6 +42,14 @@ export async function POST(request: NextRequest) {
     .insert(users)
     .values({ name, email, passwordHash })
     .returning({ id: users.id, email: users.email })
+
+  await writeAuditRaw({
+    organizationId: null,
+    action: 'auth.register',
+    targetType: 'user',
+    targetId: user.id,
+    ip: request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? null,
+  })
 
   return NextResponse.json({ user }, { status: 201 })
 }

@@ -15,6 +15,13 @@
       "when": 1784325591484,
       "tag": "0001_audit_log_append_only",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1784326286950,
+      "tag": "0002_blue_excalibur",
+      "breakpoints": true
     }
   ]
 }

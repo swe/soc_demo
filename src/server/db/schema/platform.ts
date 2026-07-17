@@ -36,7 +36,13 @@ export const auditLogs = pgTable(
   'audit_log',
   {
     id: id(),
-    organizationId: orgId(),
+    /**
+     * Nullable by design: platform-level events (registration, login before
+     * an org exists) have no tenant. All tenant actions must set it.
+     */
+    organizationId: text('organization_id').references(() => organizations.id, {
+      onDelete: 'cascade',
+    }),
     actorMembershipId: text('actor_membership_id').references(() => memberships.id, {
       onDelete: 'set null',
     }),

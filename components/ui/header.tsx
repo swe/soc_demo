@@ -7,6 +7,7 @@ import { useScroll } from '@/components/utils/use-scroll'
 import Icon from '@/components/ui/icon'
 import ThemeToggle from '@/components/theme-toggle'
 import DropdownProfile from '@/components/dropdown-profile'
+import DropdownOrg from '@/components/dropdown-org'
 
 export default function Header({
   variant = 'default',
@@ -63,6 +64,8 @@ export default function Header({
 
           {/* Header: Right side */}
           <div className="flex items-center space-x-3">
+            <DropdownOrg />
+            <hr className="w-px h-6 bg-gray-200 dark:bg-gray-700/60 border-none" />
             <ThemeToggle />
             {/*  Divider */}
             <hr className="w-px h-6 bg-gray-200 dark:bg-gray-700/60 border-none" />
