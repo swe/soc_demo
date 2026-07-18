@@ -3,6 +3,7 @@
 @import 'tailwindcss';
 @import './additional-styles/utility-patterns.css' layer(components);
 @import './landing-overview.css';
+@import './product-tokens.css';
 
 @plugin "@tailwindcss/forms" {
   strategy: base;

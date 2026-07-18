@@ -25,6 +25,7 @@ import {
   IoEyeOutline,
   IoFingerPrintOutline,
   IoGlobeOutline,
+  IoGridOutline,
   IoHardwareChipOutline,
   IoHelpCircleOutline,
   IoInformationCircleOutline,
@@ -38,6 +39,8 @@ import {
   IoMenuOutline,
   IoMoonOutline,
   IoNotificationsOutline,
+  IoPeopleOutline,
+  IoPersonOutline,
   IoPersonCircleOutline,
   IoPhonePortraitOutline,
   IoPieChartOutline,
@@ -77,6 +80,8 @@ const ICONS: Record<string, IconType> = {
   'document-text-outline': IoDocumentTextOutline,
   'eye-outline': IoEyeOutline,
   'finger-print-outline': IoFingerPrintOutline,
+  'globe-outline': IoGlobeOutline,
+  'grid-outline': IoGridOutline,
   'hardware-chip-outline': IoHardwareChipOutline,
   'information-circle-outline': IoInformationCircleOutline,
   'logo-github': IoLogoGithub,
@@ -89,6 +94,8 @@ const ICONS: Record<string, IconType> = {
   'menu-outline': IoMenuOutline,
   'moon-outline': IoMoonOutline,
   'notifications-outline': IoNotificationsOutline,
+  'people-outline': IoPeopleOutline,
+  'person-outline': IoPersonOutline,
   'person-circle-outline': IoPersonCircleOutline,
   'phone-portrait-outline': IoPhonePortraitOutline,
   'pie-chart-outline': IoPieChartOutline,
@@ -102,7 +109,6 @@ const ICONS: Record<string, IconType> = {
   'trending-down-outline': IoTrendingDownOutline,
   'trending-up-outline': IoTrendingUpOutline,
   'warning-outline': IoWarningOutline,
-  'globe-outline': IoGlobeOutline,
 }
 
 interface IconProps {

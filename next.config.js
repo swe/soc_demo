@@ -15,6 +15,30 @@ const nextConfig = {
       },
     ]
   },
+  async redirects() {
+    return [
+      {
+        source: '/overview/unified-preview',
+        destination: '/overview',
+        permanent: false,
+      },
+      {
+        source: '/overview/assets/identities',
+        destination: '/overview/identities',
+        permanent: false,
+      },
+      {
+        source: '/overview/administration/user-management',
+        destination: '/overview/administration/members',
+        permanent: false,
+      },
+      {
+        source: '/overview/assets/devices',
+        destination: '/overview/assets',
+        permanent: false,
+      },
+    ]
+  },
 }
 
 module.exports = nextConfig

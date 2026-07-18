@@ -9,6 +9,12 @@ import {
 } from '@headlessui/react'
 import { ReactNode, useEffect, useRef, useState } from 'react'
 
+import {
+  PageHeader as LayoutPageHeader,
+  type PageHeaderAction,
+} from '@/src/components/layout/page-header'
+import { PageShell } from '@/src/components/layout/page-shell'
+
 // ─── Shared Types ─────────────────────────────────────────────────────────────
 
 type HeaderAction = {
@@ -47,16 +53,14 @@ export const overviewControlHeight = 'h-9 min-h-9 box-border' as const
 
 // ─── OverviewPageShell ────────────────────────────────────────────────────────
 
+/** @deprecated Prefer PageShell from src/components/layout — re-export for CP1 compat. */
 export function OverviewPageShell({ children }: { children: ReactNode }) {
-  return (
-    <div className="w-full max-w-7xl mx-auto px-6 py-6 soc-fade-in">
-      {children}
-    </div>
-  )
+  return <PageShell>{children}</PageShell>
 }
 
 // ─── OverviewPageHeader ───────────────────────────────────────────────────────
 
+/** @deprecated Prefer PageHeader from src/components/layout — re-export for CP1 compat. */
 export function OverviewPageHeader({
   section,
   title,
@@ -68,31 +72,21 @@ export function OverviewPageHeader({
   description: string
   actions?: HeaderAction[]
 }) {
+  const mapped: PageHeaderAction[] = actions
+    .filter((a): a is HeaderAction & { onClick: () => void } => Boolean(a.onClick))
+    .map((a) => ({
+      id: a.id,
+      label: a.label,
+      variant: a.variant,
+      onClick: a.onClick,
+    }))
   return (
-    <div className="flex items-start justify-between mb-5">
-      <div>
-        <p className="soc-label mb-1">{section}</p>
-        <h1 className="text-xl font-bold tracking-tight mb-1.5 text-[color:var(--soc-text)]">
-          {title}
-        </h1>
-        <p className="text-sm text-[color:var(--soc-text-secondary)]">
-          {description}
-        </p>
-      </div>
-      {actions.length > 0 && (
-        <div className="flex items-center gap-2 mt-1">
-          {actions.map((action) => (
-            <button
-              key={action.id}
-              className={`soc-btn ${action.variant === 'secondary' ? 'soc-btn-secondary' : 'soc-btn-primary'}`}
-              onClick={action.onClick}
-            >
-              {action.label}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
+    <LayoutPageHeader
+      section={section}
+      title={title}
+      description={description}
+      actions={mapped}
+    />
   )
 }
 

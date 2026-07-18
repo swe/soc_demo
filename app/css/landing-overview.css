@@ -403,34 +403,39 @@ html {
 }
 
 /* Dark mode */
+/*
+ * Dark overrides for .overview-dashboard without .product-shell.
+ * When .product-shell is present (M3 AppShell), product-tokens.css wins
+ * because it is loaded after this file and sets the same variables.
+ */
 .dark .overview-dashboard {
-  --soc-bg:           #111523;
-  --soc-surface:      #161b26;
-  --soc-raised:       #1e2535;
-  --soc-overlay:      #252d40;
+  --soc-bg:           #0f1218;
+  --soc-surface:      #161b24;
+  --soc-raised:       #1c222d;
+  --soc-overlay:      #242b38;
 
   --soc-border:       rgba(255, 255, 255, 0.07);
   --soc-border-mid:   rgba(255, 255, 255, 0.12);
-  --soc-border-strong:rgba(255, 255, 255, 0.22);
+  --soc-border-strong:rgba(255, 255, 255, 0.2);
 
-  --soc-text:         #e2e8f0;
-  --soc-text-secondary: #94a3b8;
-  --soc-text-muted:   #64748b;
-  --soc-text-dim:     #334155;
+  --soc-text:         #e8edf5;
+  --soc-text-secondary: #9aa8bc;
+  --soc-text-muted:   #6b7a90;
+  --soc-text-dim:     #3d4759;
 
-  --soc-accent:         #818cf8;
-  --soc-accent-hover:   #a5b4fc;
-  --soc-accent-bg:      rgba(99, 102, 241, 0.14);
-  --soc-accent-text:    #c7d2fe;
+  --soc-accent:         #6b7cff;
+  --soc-accent-hover:   #8b98ff;
+  --soc-accent-bg:      rgba(107, 124, 255, 0.12);
+  --soc-accent-text:    #c5ccff;
 
-  --soc-critical:     #f87171;
-  --soc-critical-bg:  rgba(239, 68, 68, 0.10);
-  --soc-high:         #fb923c;
-  --soc-high-bg:      rgba(249, 115, 22, 0.10);
-  --soc-medium:       #fbbf24;
-  --soc-medium-bg:    rgba(234, 179, 8, 0.10);
-  --soc-low:          #4ade80;
-  --soc-low-bg:       rgba(34, 197, 94, 0.10);
+  --soc-critical:     #f07178;
+  --soc-critical-bg:  rgba(240, 113, 120, 0.12);
+  --soc-high:         #e09a5a;
+  --soc-high-bg:      rgba(224, 154, 90, 0.12);
+  --soc-medium:       #d4a84b;
+  --soc-medium-bg:    rgba(212, 168, 75, 0.12);
+  --soc-low:          #5b9fd4;
+  --soc-low-bg:       rgba(91, 159, 212, 0.12);
 
   --color-sot-base:    var(--soc-bg);
   --color-sot-card:    var(--soc-surface);
