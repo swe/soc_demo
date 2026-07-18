@@ -1,0 +1,25 @@
+---
+description: Milestone planning discipline — approved architecture review Canvas before any milestone code
+alwaysApply: true
+---
+
+# Milestone planning discipline (mandatory)
+
+Before writing ANY code for a new milestone (M3 and beyond), produce a
+planning review as a Canvas document containing:
+
+- Architecture review
+- Affected files list
+- Migration impact analysis
+- Route impact analysis
+- Testing plan
+- Implementation order
+- Acceptance criteria
+
+No coding starts until that review is explicitly approved by the user.
+
+Architecture boundaries that reviews must preserve (unless explicitly
+re-decided): Auth.js session boundary, `OrgContext` + `orgScoped` tenant
+isolation, service layer owning all DB access and audit writes, PostgreSQL +
+Drizzle, single Next.js app. No queues, RLS, microservices, or managed auth
+providers without an approved ADR.

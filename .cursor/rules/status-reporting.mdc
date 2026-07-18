@@ -1,0 +1,28 @@
+---
+description: Mandatory status reporting — docs/status document plus canonical project-state Canvas
+alwaysApply: true
+---
+
+# Status reporting (mandatory)
+
+After EVERY completed task, milestone, ADR, migration, feature, refactor, or
+architecture change, produce BOTH:
+
+1. **Status document** — create/update `docs/status/YYYY-MM-DD-task-name.md`
+   following `docs/status/TEMPLATE.md`.
+2. **Canvas artifact** — create/update the canonical project-state canvas
+   (`project-state.canvas.tsx` in the workspace canvases directory,
+   `~/.cursor/projects/<workspace>/canvases/`). The Canvas is the canonical
+   project state document.
+
+The Canvas must contain: Objective, Scope, What was implemented, Files added,
+Files modified, Architectural decisions, Deviations from plan, Risks, Test
+results, Acceptance status, Next recommended step.
+
+Assume a new engineer joins tomorrow and only reads the latest Canvas — they
+must understand the current state without reading git history or previous
+chats.
+
+The chat summary stays short; the detailed explanation belongs in the Canvas
+and the status document. Never deliver implementation results as chat text
+only.
