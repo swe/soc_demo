@@ -1,3 +1,4 @@
+import { sql } from 'drizzle-orm'
 import {
   boolean,
   doublePrecision,
@@ -144,6 +145,12 @@ export const investigations = pgTable(
   (t) => [
     index('investigation_org_status_idx').on(t.organizationId, t.status),
     index('investigation_assignee_idx').on(t.assigneeMembershipId),
+    // Serves the default list: ORDER BY created_at DESC, id DESC keyset.
+    index('investigation_org_created_id_idx').on(
+      t.organizationId,
+      t.createdAt.desc(),
+      t.id.desc(),
+    ),
   ],
 )
 
@@ -182,6 +189,10 @@ export const alerts = pgTable(
     index('alert_org_severity_idx').on(t.organizationId, t.severity),
     index('alert_investigation_idx').on(t.investigationId),
     index('alert_assigned_membership_idx').on(t.assignedMembershipId),
+    // Serves the default (unfiltered) list: ORDER BY detected_at DESC, id DESC keyset.
+    index('alert_org_detected_id_idx').on(t.organizationId, t.detectedAt.desc(), t.id.desc()),
+    // Serves entity_refs @> containment lookups (asset/identity related alerts).
+    index('alert_entity_refs_gin_idx').using('gin', t.entityRefs.op('jsonb_path_ops')),
   ],
 )
 
@@ -219,6 +230,11 @@ export const incidents = pgTable(
   (t) => [
     uniqueIndex('incident_org_number_uq').on(t.organizationId, t.number),
     index('incident_org_status_severity_idx').on(t.organizationId, t.status, t.severity),
+    // Promote-once invariant: at most one incident per investigation, enforced
+    // by the database so concurrent promotions cannot both succeed.
+    uniqueIndex('incident_org_investigation_uq')
+      .on(t.organizationId, t.investigationId)
+      .where(sql`investigation_id IS NOT NULL`),
   ],
 )
 
@@ -248,5 +264,11 @@ export const vulnerabilities = pgTable(
     index('vulnerability_org_status_severity_idx').on(t.organizationId, t.status, t.severity),
     index('vulnerability_asset_idx').on(t.assetId),
     index('vulnerability_org_cve_idx').on(t.organizationId, t.cveId),
+    // Serves the default list: ORDER BY detected_at DESC, id DESC keyset.
+    index('vulnerability_org_detected_id_idx').on(
+      t.organizationId,
+      t.detectedAt.desc(),
+      t.id.desc(),
+    ),
   ],
 )
