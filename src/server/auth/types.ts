@@ -39,6 +39,29 @@ export function requirePermission(ctx: OrgContext, permission: Permission): void
   }
 }
 
+/**
+ * Default organization for a fresh session: the org already pinned on another
+ * of the user's sessions, else their first active membership. Mirrors the
+ * fallback in getOrgContext() so a first login lands directly in a tenant
+ * with no organization-selection friction.
+ */
+export async function resolveDefaultOrganizationId(userId: string): Promise<string | null> {
+  const pinned = await db
+    .select({ organizationId: sessions.activeOrganizationId })
+    .from(sessions)
+    .where(eq(sessions.userId, userId))
+    .limit(50)
+  const pinnedOrgId = pinned.find((s) => s.organizationId)?.organizationId
+  if (pinnedOrgId) return pinnedOrgId
+
+  const [membership] = await db
+    .select({ organizationId: memberships.organizationId })
+    .from(memberships)
+    .where(and(eq(memberships.userId, userId), eq(memberships.status, 'active')))
+    .limit(1)
+  return membership?.organizationId ?? null
+}
+
 /** Pin the acting organization on all of the user's sessions (org switcher). */
 export async function setActiveOrganization(userId: string, organizationId: string): Promise<void> {
   const [membership] = await db

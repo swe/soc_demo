@@ -143,6 +143,30 @@ pnpm dev
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
+### Demo Setup (one command)
+
+Copy `.env.example` to `.env` (set `AUTH_SECRET`, keep `ENABLE_DEMO_DATA=true`),
+start PostgreSQL (`docker compose up -d`), then:
+
+```bash
+pnpm demo:setup
+```
+
+This runs migrations and provisions the built-in demo tenant:
+
+- Organization: **Meridian Financial Group** with the full deterministic SOC dataset
+- Account: **demo@svalbard.ca** / **Demo123** (admin)
+
+Sign in at `/signin` — the demo account lands directly in the seeded tenant.
+The command is safe to run repeatedly: it preserves modifications made during
+demo sessions; `pnpm demo:setup --reset` restores the pristine dataset.
+
+`ENABLE_DEMO_DATA` is required (no default). Customer deployments must set it
+to `false`, which disables both `demo:setup` and the in-app seed API.
+
+Project state documentation lives in `docs/status/` — one document per
+completed task or milestone (see `docs/status/TEMPLATE.md`).
+
 ### Production Build
 
 ```bash

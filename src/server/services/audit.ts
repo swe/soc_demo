@@ -36,12 +36,13 @@ export async function writeAudit(ctx: OrgContext, input: AuditInput): Promise<vo
 export async function writeAuditRaw(input: AuditInput & {
   organizationId: string | null
   membershipId?: string | null
+  actorType?: 'user' | 'system'
   ip?: string | null
 }): Promise<void> {
   await db.insert(auditLogs).values({
     organizationId: input.organizationId,
     actorMembershipId: input.membershipId ?? null,
-    actorType: 'user',
+    actorType: input.actorType ?? 'user',
     action: input.action,
     targetType: input.targetType,
     targetId: input.targetId ?? null,

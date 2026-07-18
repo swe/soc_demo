@@ -9,6 +9,7 @@ import {
   useSecureCookies,
 } from '@server/auth/config'
 import { verifyPassword } from '@server/auth/passwords'
+import { resolveDefaultOrganizationId } from '@server/auth/types'
 import { db } from '@server/db/client'
 import { sessions, users } from '@server/db/schema'
 import { writeAuditRaw } from '@server/services/audit'
@@ -50,12 +51,16 @@ export async function POST(request: NextRequest) {
     expires,
   })
 
-  // Enrich the session row with request metadata (adapter API has no fields for these).
+  // Enrich the session row with request metadata (adapter API has no fields
+  // for these) and pin the default organization so the first login lands
+  // directly in the user's tenant (e.g. the seeded demo org) with no
+  // organization-selection friction.
   await db
     .update(sessions)
     .set({
       ip: request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? null,
       userAgent: request.headers.get('user-agent'),
+      activeOrganizationId: await resolveDefaultOrganizationId(user.id),
     })
     .where(eq(sessions.sessionToken, session.sessionToken))
 
