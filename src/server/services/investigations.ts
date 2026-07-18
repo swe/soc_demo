@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, lt, or, type SQL } from 'drizzle-orm'
+import { and, desc, eq, inArray, isNull, lt, or, type SQL } from 'drizzle-orm'
 
 import { decodeCursor, encodeCursor, type Page } from '../../domain/entities/common'
 import type {
@@ -141,6 +141,12 @@ export async function getInvestigationById(
  * Create an investigation, optionally linking existing alerts. Alert-initiated
  * creation (create-from-alert endpoint) sets `createdFromAlertId` and triages
  * the source alert if it is still new.
+ *
+ * Runs as a single transaction: insert, link, triage, and audit commit or
+ * roll back together. The link UPDATE is conditional on the alert being
+ * unlinked (investigation_id IS NULL) and the affected-row count is checked,
+ * so concurrent creates for the same alert have exactly one winner — the
+ * loser rolls back (leaving no orphan investigation) and gets a 409.
  */
 export async function createInvestigation(
   ctx: OrgContext,
@@ -153,74 +159,98 @@ export async function createInvestigation(
     (v): v is string => Boolean(v),
   ))]
 
-  // Every referenced alert must exist inside this tenant.
-  let linkedAlerts: (typeof alerts.$inferSelect)[] = []
-  if (alertIds.length > 0) {
-    linkedAlerts = await scoped.db
-      .select()
-      .from(alerts)
-      .where(scoped.where(alerts.organizationId, inArray(alerts.id, alertIds)))
-    if (linkedAlerts.length !== alertIds.length) {
-      throw new ServiceError('One or more alerts were not found in this organization', 404)
+  const row = await scoped.db.transaction(async (tx) => {
+    // Every referenced alert must exist inside this tenant.
+    let linkedAlerts: (typeof alerts.$inferSelect)[] = []
+    if (alertIds.length > 0) {
+      linkedAlerts = await tx
+        .select()
+        .from(alerts)
+        .where(scoped.where(alerts.organizationId, inArray(alerts.id, alertIds)))
+      if (linkedAlerts.length !== alertIds.length) {
+        throw new ServiceError('One or more alerts were not found in this organization', 404)
+      }
+      const alreadyLinked = linkedAlerts.find((a) => a.investigationId)
+      if (alreadyLinked) {
+        throw new ServiceError(`Alert ${alreadyLinked.id} already belongs to an investigation`, 409)
+      }
     }
-    const alreadyLinked = linkedAlerts.find((a) => a.investigationId)
-    if (alreadyLinked) {
-      throw new ServiceError(`Alert ${alreadyLinked.id} already belongs to an investigation`, 409)
-    }
-  }
 
-  const [row] = await scoped.db
-    .insert(investigations)
-    .values({
-      organizationId: ctx.organizationId,
-      title: input.title,
-      hypothesis: input.hypothesis ?? null,
-      createdFromAlertId: input.createdFromAlertId ?? null,
-      createdBy: ctx.userId,
-    })
-    .returning()
+    const [created] = await tx
+      .insert(investigations)
+      .values({
+        organizationId: ctx.organizationId,
+        title: input.title,
+        hypothesis: input.hypothesis ?? null,
+        createdFromAlertId: input.createdFromAlertId ?? null,
+        createdBy: ctx.userId,
+      })
+      .returning()
 
-  if (alertIds.length > 0) {
-    await scoped.db
-      .update(alerts)
-      .set({ investigationId: row.id })
-      .where(scoped.where(alerts.organizationId, inArray(alerts.id, alertIds)))
-
-    // Linking to an investigation is triage: move still-new alerts along.
-    const stillNew = linkedAlerts.filter(
-      (a) => a.status === 'new' && canTransition(ALERT_TRANSITIONS, a.status, 'triaged'),
-    )
-    if (stillNew.length > 0) {
-      await scoped.db
+    if (alertIds.length > 0) {
+      // Single-winner link: only still-unlinked alerts are claimed. If a
+      // concurrent create claimed one first, the count comes up short and
+      // the whole transaction rolls back.
+      const claimed = await tx
         .update(alerts)
-        .set({ status: 'triaged', triagedAt: new Date() })
+        .set({ investigationId: created.id })
         .where(
           scoped.where(
             alerts.organizationId,
-            inArray(alerts.id, stillNew.map((a) => a.id)),
+            inArray(alerts.id, alertIds),
+            isNull(alerts.investigationId),
           ),
         )
-    }
-  }
+        .returning({ id: alerts.id })
+      if (claimed.length !== alertIds.length) {
+        throw new ServiceError('An alert was linked to another investigation concurrently', 409)
+      }
 
-  await writeAudit(ctx, {
-    action: 'investigation.create',
-    targetType: 'investigation',
-    targetId: row.id,
-    metadata: {
-      title: row.title,
-      alertIds,
-      ...(input.createdFromAlertId ? { createdFromAlertId: input.createdFromAlertId } : {}),
-    },
+      // Linking to an investigation is triage: move still-new alerts along.
+      const stillNew = linkedAlerts.filter(
+        (a) => a.status === 'new' && canTransition(ALERT_TRANSITIONS, a.status, 'triaged'),
+      )
+      if (stillNew.length > 0) {
+        await tx
+          .update(alerts)
+          .set({ status: 'triaged', triagedAt: new Date() })
+          .where(
+            scoped.where(
+              alerts.organizationId,
+              inArray(alerts.id, stillNew.map((a) => a.id)),
+            ),
+          )
+      }
+    }
+
+    await writeAudit(
+      ctx,
+      {
+        action: 'investigation.create',
+        targetType: 'investigation',
+        targetId: created.id,
+        metadata: {
+          title: created.title,
+          alertIds,
+          ...(input.createdFromAlertId ? { createdFromAlertId: input.createdFromAlertId } : {}),
+        },
+      },
+      tx,
+    )
+    for (const alertId of alertIds) {
+      await writeAudit(
+        ctx,
+        {
+          action: 'alert.link_investigation',
+          targetType: 'alert',
+          targetId: alertId,
+          metadata: { investigationId: created.id },
+        },
+        tx,
+      )
+    }
+    return created
   })
-  for (const alertId of alertIds) {
-    await writeAudit(ctx, {
-      action: 'alert.link_investigation',
-      targetType: 'alert',
-      targetId: alertId,
-      metadata: { investigationId: row.id },
-    })
-  }
 
   const detail = await getInvestigationById(ctx, row.id)
   return detail!

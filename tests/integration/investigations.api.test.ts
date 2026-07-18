@@ -82,6 +82,35 @@ describe('investigation workflow', () => {
     expect(error.status).toBe(409)
   })
 
+  it('concurrent creates for the same alert have one winner, one 409, no orphan', async () => {
+    const { ctx, alerts } = await orgWithAlerts()
+    const target = alerts[0]
+
+    const results = await Promise.allSettled([
+      createInvestigation(ctx, { title: 'Race winner?', alertIds: [target.id] }),
+      createInvestigation(ctx, { title: 'Race loser?', alertIds: [target.id] }),
+    ])
+
+    const fulfilled = results.filter((r) => r.status === 'fulfilled')
+    const rejected = results.filter((r) => r.status === 'rejected')
+    expect(fulfilled.length).toBe(1)
+    expect(rejected.length).toBe(1)
+    const error = (rejected[0] as PromiseRejectedResult).reason
+    expect(error).toBeInstanceOf(ServiceError)
+    expect(error.status).toBe(409)
+
+    // The alert belongs to exactly the winning investigation…
+    const winner = (fulfilled[0] as PromiseFulfilledResult<Awaited<ReturnType<typeof createInvestigation>>>).value
+    const alertDetail = await getAlertDetail(ctx, target.id)
+    expect(alertDetail!.investigationId).toBe(winner.id)
+
+    // …and the loser's investigation rolled back (no orphan row).
+    const all = await listInvestigations(ctx, { limit: 50 })
+    const raceCases = all.items.filter((i) => i.title.startsWith('Race '))
+    expect(raceCases.length).toBe(1)
+    expect(raceCases[0].id).toBe(winner.id)
+  })
+
   it('assigns, moves through the lifecycle, and closes with a disposition', async () => {
     const { organization, ctx, alerts } = await orgWithAlerts()
     const created = await createInvestigation(ctx, { title: 'Spray review', alertIds: [alerts[0].id] })
