@@ -1,4 +1,5 @@
-import { eq, sql } from 'drizzle-orm'
+import { and, eq, like, sql } from 'drizzle-orm'
+import type { AnyPgColumn } from 'drizzle-orm/pg-core'
 
 import type { Db } from '../db/client'
 import {
@@ -65,15 +66,35 @@ export async function seedMeridian(
     ...assetKeys.map((k) => ({ type: 'asset' as const, id: assetId(k) })),
   ]
 
+  // Seed-owned rows only: every seeded PK starts with the sid() prefix, while
+  // app-created rows use uuidv7 ids. The wipe must never touch operational
+  // data a tenant created through the product ("seed\_" escapes the LIKE
+  // wildcard so only the literal prefix matches).
+  const seedOwned = (idColumn: AnyPgColumn) => like(idColumn, 'seed\\_%')
+
   await db.transaction(async (tx) => {
     // Wipe previous seed data for this org (dependents first)
-    await tx.delete(events).where(eq(events.organizationId, organizationId))
-    await tx.delete(vulnerabilities).where(eq(vulnerabilities.organizationId, organizationId))
-    await tx.delete(alerts).where(eq(alerts.organizationId, organizationId))
-    await tx.delete(incidents).where(eq(incidents.organizationId, organizationId))
-    await tx.delete(investigations).where(eq(investigations.organizationId, organizationId))
-    await tx.delete(assets).where(eq(assets.organizationId, organizationId))
-    await tx.delete(identities).where(eq(identities.organizationId, organizationId))
+    await tx
+      .delete(events)
+      .where(and(eq(events.organizationId, organizationId), seedOwned(events.id)))
+    await tx
+      .delete(vulnerabilities)
+      .where(and(eq(vulnerabilities.organizationId, organizationId), seedOwned(vulnerabilities.id)))
+    await tx
+      .delete(alerts)
+      .where(and(eq(alerts.organizationId, organizationId), seedOwned(alerts.id)))
+    await tx
+      .delete(incidents)
+      .where(and(eq(incidents.organizationId, organizationId), seedOwned(incidents.id)))
+    await tx
+      .delete(investigations)
+      .where(and(eq(investigations.organizationId, organizationId), seedOwned(investigations.id)))
+    await tx
+      .delete(assets)
+      .where(and(eq(assets.organizationId, organizationId), seedOwned(assets.id)))
+    await tx
+      .delete(identities)
+      .where(and(eq(identities.organizationId, organizationId), seedOwned(identities.id)))
 
     await tx.insert(identities).values(
       seedIdentities.map((i) => ({
