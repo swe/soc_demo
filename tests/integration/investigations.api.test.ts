@@ -150,6 +150,23 @@ describe('investigation workflow', () => {
     expect(error.status).toBe(409)
   })
 
+  it('concurrent note additions both persist (atomic jsonb append)', async () => {
+    const { ctx, alerts } = await orgWithAlerts()
+    const created = await createInvestigation(ctx, {
+      title: 'Concurrent notes case',
+      alertIds: [alerts[0].id],
+    })
+
+    await Promise.all([
+      patchInvestigation(ctx, created.id, { note: 'note from analyst A' }),
+      patchInvestigation(ctx, created.id, { note: 'note from analyst B' }),
+    ])
+
+    const detail = await getInvestigationById(ctx, created.id)
+    const texts = detail!.notes.map((n) => n.text).sort()
+    expect(texts).toEqual(['note from analyst A', 'note from analyst B'])
+  })
+
   it('rejects illegal lifecycle moves', async () => {
     const { ctx, alerts } = await orgWithAlerts()
     const created = await createInvestigation(ctx, { title: 'Lifecycle check', alertIds: [alerts[0].id] })

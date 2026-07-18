@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, isNull, lt, or, type SQL } from 'drizzle-orm'
+import { and, desc, eq, inArray, isNull, lt, or, sql, type SQL } from 'drizzle-orm'
 
 import { decodeCursor, encodeCursor, type Page } from '../../domain/entities/common'
 import type {
@@ -18,7 +18,7 @@ import {
 } from '../../domain/transitions'
 import { requirePermission, type OrgContext } from '../auth/types'
 import { orgScoped } from '../db/scoped'
-import { alerts, investigations, memberships } from '../db/schema'
+import { alerts, investigations, memberships, type InvestigationNote } from '../db/schema'
 import { writeAudit } from './audit'
 import { ServiceError } from './errors'
 
@@ -318,29 +318,40 @@ export async function patchInvestigation(
   }
 
   if (patch.note !== undefined) {
-    update.notes = [
-      ...row.notes,
-      { at: new Date().toISOString(), membershipId: ctx.membershipId, text: patch.note },
-    ]
+    // Atomic append (mirrors the incident timeline pattern): concurrent notes
+    // both land instead of the last write overwriting the array.
+    const entry: InvestigationNote = {
+      at: new Date().toISOString(),
+      membershipId: ctx.membershipId,
+      text: patch.note,
+    }
+    update.notes = sql`${investigations.notes} || ${JSON.stringify([entry])}::jsonb` as unknown as InvestigationNote[]
     auditEntries.push({ action: 'investigation.note', metadata: { length: patch.note.length } })
   }
 
   if (Object.keys(update).length === 0) return toDto(row)
 
-  const [updated] = await scoped.db
-    .update(investigations)
-    .set(update)
-    .where(scoped.where(investigations.organizationId, eq(investigations.id, id)))
-    .returning()
+  const updated = await scoped.db.transaction(async (tx) => {
+    const [next] = await tx
+      .update(investigations)
+      .set(update)
+      .where(scoped.where(investigations.organizationId, eq(investigations.id, id)))
+      .returning()
 
-  for (const entry of auditEntries) {
-    await writeAudit(ctx, {
-      action: entry.action,
-      targetType: 'investigation',
-      targetId: id,
-      metadata: entry.metadata,
-    })
-  }
+    for (const entry of auditEntries) {
+      await writeAudit(
+        ctx,
+        {
+          action: entry.action,
+          targetType: 'investigation',
+          targetId: id,
+          metadata: entry.metadata,
+        },
+        tx,
+      )
+    }
+    return next
+  })
 
   return toDto(updated)
 }
