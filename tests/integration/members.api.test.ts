@@ -1,6 +1,9 @@
+import { eq } from 'drizzle-orm'
 import { describe, expect, it } from 'vitest'
 
 import { AuthError } from '@server/auth/types'
+import { db } from '@server/db/client'
+import { sessions } from '@server/db/schema'
 import { ServiceError } from '@server/services/errors'
 import {
   acceptInvite,
@@ -102,6 +105,51 @@ describe('member management', () => {
 
     const reactivated = await patchMember(ctx, membership.id, { status: 'active' })
     expect(reactivated!.status).toBe('active')
+  })
+
+  it('suspension revokes the member sessions for this org, sparing other-org sessions', async () => {
+    const { organization, ctx } = await createOrgWithAdmin(`Session Revoke Org ${Date.now()}`)
+
+    const { user: analyst } = await createUser({ name: 'Session Holder' })
+    const membership = await addMembership({
+      organizationId: organization.id,
+      userId: analyst.id,
+      role: 'analyst',
+    })
+
+    // The same user is also an active member of a second org.
+    const otherOrg = await createOrgWithAdmin(`Session Other Org ${Date.now()}`)
+    await addMembership({
+      organizationId: otherOrg.organization.id,
+      userId: analyst.id,
+      role: 'viewer',
+    })
+
+    const expires = new Date(Date.now() + 86_400_000)
+    await db.insert(sessions).values([
+      { sessionToken: `pinned-here-${Date.now()}`, userId: analyst.id, expires, activeOrganizationId: organization.id },
+      { sessionToken: `unpinned-${Date.now()}`, userId: analyst.id, expires, activeOrganizationId: null },
+      { sessionToken: `pinned-other-${Date.now()}`, userId: analyst.id, expires, activeOrganizationId: otherOrg.organization.id },
+    ])
+
+    await patchMember(ctx, membership.id, { status: 'suspended' })
+
+    const remaining = await db
+      .select({ activeOrganizationId: sessions.activeOrganizationId })
+      .from(sessions)
+      .where(eq(sessions.userId, analyst.id))
+    // Sessions pinned to this org and unpinned sessions are gone; the
+    // other-org session survives.
+    expect(remaining.length).toBe(1)
+    expect(remaining[0].activeOrganizationId).toBe(otherOrg.organization.id)
+
+    // Reactivation does not resurrect sessions — the user signs in again.
+    await patchMember(ctx, membership.id, { status: 'active' })
+    const afterReactivate = await db
+      .select({ token: sessions.sessionToken })
+      .from(sessions)
+      .where(eq(sessions.userId, analyst.id))
+    expect(afterReactivate.length).toBe(1)
   })
 
   it('refuses to demote or suspend the last active admin', async () => {

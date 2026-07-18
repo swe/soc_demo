@@ -1,6 +1,6 @@
 import { createHash, randomBytes } from 'node:crypto'
 
-import { and, asc, count, desc, eq, isNull, ne, sql } from 'drizzle-orm'
+import { and, asc, count, desc, eq, isNull, ne, or, sql } from 'drizzle-orm'
 
 import type {
   InviteCreate,
@@ -12,7 +12,7 @@ import { requirePermission, type OrgContext } from '../auth/types'
 import { env } from '../../env'
 import { db } from '../db/client'
 import { orgScoped } from '../db/scoped'
-import { memberships, organizationInvites, users } from '../db/schema'
+import { memberships, organizationInvites, sessions, users } from '../db/schema'
 import { writeAudit, writeAuditRaw } from './audit'
 import { ServiceError } from './errors'
 
@@ -121,12 +121,31 @@ export async function patchMember(
   }
 
   if (Object.keys(update).length > 0) {
-    // Mutation and audit rows commit atomically.
+    // Mutation, session revocation, and audit rows commit atomically.
     await scoped.db.transaction(async (tx) => {
       await tx
         .update(memberships)
         .set(update)
         .where(scoped.where(memberships.organizationId, eq(memberships.id, membershipId)))
+
+      // Suspension kills the user's live sessions for this org immediately.
+      // Sessions pinned to another org (where the user may still be an active
+      // member) survive; unpinned sessions could fall through to this org's
+      // membership on next resolution, so they are revoked too.
+      if (update.status === 'suspended') {
+        await tx
+          .delete(sessions)
+          .where(
+            and(
+              eq(sessions.userId, row.userId),
+              or(
+                eq(sessions.activeOrganizationId, ctx.organizationId),
+                isNull(sessions.activeOrganizationId),
+              ),
+            ),
+          )
+      }
+
       for (const entry of auditEntries) {
         await writeAudit(
           ctx,
