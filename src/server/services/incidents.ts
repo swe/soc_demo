@@ -26,7 +26,7 @@ import {
   type IncidentTimelineEntry,
 } from '../db/schema'
 import { writeAudit } from './audit'
-import { ServiceError } from './errors'
+import { ServiceError, isUniqueViolation } from './errors'
 
 function toDto(row: typeof incidents.$inferSelect): IncidentDto {
   return {
@@ -108,9 +108,11 @@ const SEVERITY_RANK: Record<Severity, number> = { critical: 0, high: 1, medium: 
 
 /**
  * Promote an investigation to an incident (ADR-0003: the investigation keeps
- * its status; promotion never auto-closes). The per-org incident number is
- * allocated inside a transaction holding a row lock on the organization, so
- * concurrent promotions cannot collide.
+ * its status; promotion never auto-closes). Runs as a single transaction: the
+ * per-org incident number is allocated under a row lock on the organization,
+ * the promote-once invariant is enforced by the partial unique index
+ * incident_org_investigation_uq (a concurrent duplicate surfaces as a 23505
+ * translated to 409), and the audit rows commit with the incident.
  */
 export async function promoteFromInvestigation(
   ctx: OrgContext,
@@ -126,82 +128,108 @@ export async function promoteFromInvestigation(
     .limit(1)
   if (!investigation) return null
 
-  const [existing] = await scoped.db
-    .select({ id: incidents.id, number: incidents.number })
-    .from(incidents)
-    .where(scoped.where(incidents.organizationId, eq(incidents.investigationId, investigationId)))
-    .limit(1)
-  if (existing) {
-    throw new ServiceError(
-      `Investigation was already promoted to incident INC-${existing.number}`,
-      409,
-    )
-  }
-
-  const linkedAlerts = await scoped.db
-    .select({ severity: alerts.severity })
-    .from(alerts)
-    .where(scoped.where(alerts.organizationId, eq(alerts.investigationId, investigationId)))
-
-  // Incident severity = highest severity across linked alerts.
-  const severity =
-    linkedAlerts.map((a) => a.severity).sort((a, b) => SEVERITY_RANK[a] - SEVERITY_RANK[b])[0] ??
-    'medium'
-
   const actor = await actorName(ctx)
   const now = new Date()
 
-  const created = await scoped.db.transaction(async (tx) => {
-    // Row lock serializes number allocation per organization.
-    const [org] = await tx
-      .select({ id: organizations.id, counter: organizations.incidentCounter })
-      .from(organizations)
-      .where(eq(organizations.id, ctx.organizationId))
-      .for('update')
-    if (!org) throw new ServiceError('Organization not found', 404)
+  let created: typeof incidents.$inferSelect
+  try {
+    created = await scoped.db.transaction(async (tx) => {
+      // Friendly-path check inside the transaction; the partial unique index
+      // is the actual guarantee under concurrency.
+      const [existing] = await tx
+        .select({ id: incidents.id, number: incidents.number })
+        .from(incidents)
+        .where(
+          scoped.where(incidents.organizationId, eq(incidents.investigationId, investigationId)),
+        )
+        .limit(1)
+      if (existing) {
+        throw new ServiceError(
+          `Investigation was already promoted to incident INC-${existing.number}`,
+          409,
+        )
+      }
 
-    const number = org.counter + 1
-    await tx
-      .update(organizations)
-      .set({ incidentCounter: number })
-      .where(eq(organizations.id, ctx.organizationId))
+      const linkedAlerts = await tx
+        .select({ severity: alerts.severity })
+        .from(alerts)
+        .where(scoped.where(alerts.organizationId, eq(alerts.investigationId, investigationId)))
 
-    const timeline: IncidentTimelineEntry[] = [
-      {
-        at: now.toISOString(),
-        kind: 'declared',
-        summary: `Incident declared from investigation "${investigation.title}".`,
-        actor,
-      },
-    ]
+      // Incident severity = highest severity across linked alerts.
+      const severity =
+        linkedAlerts
+          .map((a) => a.severity)
+          .sort((a, b) => SEVERITY_RANK[a] - SEVERITY_RANK[b])[0] ?? 'medium'
 
-    const [incident] = await tx
-      .insert(incidents)
-      .values({
-        organizationId: ctx.organizationId,
-        number,
-        title: investigation.title,
-        severity,
-        investigationId,
-        timeline,
-        declaredAt: now,
-      })
-      .returning()
-    return incident
-  })
+      // Row lock serializes number allocation per organization.
+      const [org] = await tx
+        .select({ id: organizations.id, counter: organizations.incidentCounter })
+        .from(organizations)
+        .where(eq(organizations.id, ctx.organizationId))
+        .for('update')
+      if (!org) throw new ServiceError('Organization not found', 404)
 
-  await writeAudit(ctx, {
-    action: 'incident.declare',
-    targetType: 'incident',
-    targetId: created.id,
-    metadata: { number: created.number, investigationId, severity, linkedAlerts: linkedAlerts.length },
-  })
-  await writeAudit(ctx, {
-    action: 'investigation.promote',
-    targetType: 'investigation',
-    targetId: investigationId,
-    metadata: { incidentId: created.id, incidentNumber: created.number },
-  })
+      const number = org.counter + 1
+      await tx
+        .update(organizations)
+        .set({ incidentCounter: number })
+        .where(eq(organizations.id, ctx.organizationId))
+
+      const timeline: IncidentTimelineEntry[] = [
+        {
+          at: now.toISOString(),
+          kind: 'declared',
+          summary: `Incident declared from investigation "${investigation.title}".`,
+          actor,
+        },
+      ]
+
+      const [incident] = await tx
+        .insert(incidents)
+        .values({
+          organizationId: ctx.organizationId,
+          number,
+          title: investigation.title,
+          severity,
+          investigationId,
+          timeline,
+          declaredAt: now,
+        })
+        .returning()
+
+      await writeAudit(
+        ctx,
+        {
+          action: 'incident.declare',
+          targetType: 'incident',
+          targetId: incident.id,
+          metadata: {
+            number: incident.number,
+            investigationId,
+            severity,
+            linkedAlerts: linkedAlerts.length,
+          },
+        },
+        tx,
+      )
+      await writeAudit(
+        ctx,
+        {
+          action: 'investigation.promote',
+          targetType: 'investigation',
+          targetId: investigationId,
+          metadata: { incidentId: incident.id, incidentNumber: incident.number },
+        },
+        tx,
+      )
+      return incident
+    })
+  } catch (err) {
+    if (isUniqueViolation(err, 'incident_org_investigation_uq')) {
+      throw new ServiceError('Investigation was already promoted to an incident', 409)
+    }
+    throw err
+  }
 
   return getIncidentById(ctx, created.id)
 }

@@ -1,12 +1,28 @@
+import { and, eq } from 'drizzle-orm'
 import { describe, expect, it } from 'vitest'
 
 import { TransitionError } from '@domain/transitions'
-import { AuthError } from '@server/auth/types'
+import { AuthError, type OrgContext } from '@server/auth/types'
+import { db } from '@server/db/client'
+import { incidents as incidentsTable } from '@server/db/schema'
 import { listAlerts } from '@server/services/alerts'
 import { ServiceError } from '@server/services/errors'
 import { getIncidentById, patchIncident, promoteFromInvestigation } from '@server/services/incidents'
 import { createInvestigation, getInvestigationById } from '@server/services/investigations'
 import { addMembership, asCtx, createOrgWithAdmin, createUser, seedOrg } from '../helpers/fixtures'
+
+/** All incident rows for an investigation, straight from the database. */
+async function listIncidentsFor(ctx: OrgContext, investigationId: string) {
+  return db
+    .select({ id: incidentsTable.id })
+    .from(incidentsTable)
+    .where(
+      and(
+        eq(incidentsTable.organizationId, ctx.organizationId),
+        eq(incidentsTable.investigationId, investigationId),
+      ),
+    )
+}
 
 const ANCHOR = new Date('2026-07-01T12:00:00.000Z')
 
@@ -55,6 +71,29 @@ describe('investigation → incident promotion', () => {
     expect(error).toBeInstanceOf(ServiceError)
     expect(error.status).toBe(409)
     expect(error.message).toContain('INC-')
+  })
+
+  it('concurrent promotions of the SAME investigation yield one incident and one 409', async () => {
+    const { ctx, investigation } = await orgWithInvestigation()
+
+    const results = await Promise.allSettled([
+      promoteFromInvestigation(ctx, investigation.id),
+      promoteFromInvestigation(ctx, investigation.id),
+    ])
+
+    const fulfilled = results.filter((r) => r.status === 'fulfilled')
+    const rejected = results.filter((r) => r.status === 'rejected')
+    expect(fulfilled.length).toBe(1)
+    expect(rejected.length).toBe(1)
+    const error = (rejected[0] as PromiseRejectedResult).reason
+    expect(error).toBeInstanceOf(ServiceError)
+    expect(error.status).toBe(409)
+
+    // Exactly one incident row exists for the investigation (DB invariant).
+    const detail = await getInvestigationById(ctx, investigation.id)
+    expect(detail).not.toBeNull()
+    const incidents = await listIncidentsFor(ctx, investigation.id)
+    expect(incidents.length).toBe(1)
   })
 
   it('concurrent promotions of different investigations get unique numbers', async () => {
