@@ -1,4 +1,4 @@
-import { index, jsonb, pgTable, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core'
+import { index, integer, jsonb, pgTable, text, timestamp, uniqueIndex } from 'drizzle-orm/pg-core'
 import { uuidv7 } from 'uuidv7'
 
 import { actorTypeEnum, integrationStatusEnum } from './enums'
@@ -30,6 +30,32 @@ export const integrations = pgTable(
       .$onUpdate(() => new Date()),
   },
   (t) => [uniqueIndex('integration_org_connector_uq').on(t.organizationId, t.connectorKey)],
+)
+
+/**
+ * Fixed-window failure counters with exponential lockout for the auth
+ * endpoints (login per email/IP, register per IP). One row per (scope, key);
+ * platform-level, no tenant. Thresholds live in src/server/auth/rate-limit.ts.
+ */
+export const loginAttempts = pgTable(
+  'login_attempt',
+  {
+    id: id(),
+    /** Limiter dimension: login_email | login_ip | register_ip. */
+    scope: text('scope').notNull(),
+    /** Normalized email or client IP, depending on scope. */
+    key: text('key').notNull(),
+    windowStart: timestamp('window_start', { withTimezone: true }).notNull().defaultNow(),
+    count: integer('count').notNull().default(0),
+    /** Consecutive lockouts; drives the exponential backoff (5→10→20→40→60m). */
+    strikes: integer('strikes').notNull().default(0),
+    lockedUntil: timestamp('locked_until', { withTimezone: true }),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (t) => [uniqueIndex('login_attempt_scope_key_uq').on(t.scope, t.key)],
 )
 
 export const auditLogs = pgTable(

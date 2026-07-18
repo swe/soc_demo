@@ -41,20 +41,22 @@ the test database (`soc_test` @ 5433).
 
 ## 0005 — login_attempt table (rate limiting)
 
-`drizzle/0005_curious_vanisher.sql`
+`drizzle/0005_bright_susan_delgado.sql`
 
 | Change | Purpose |
 | --- | --- |
-| `CREATE TABLE login_attempt` — `(id, scope, key, window_start, count, locked_until, updated_at)` | Fixed-window failure counters for `/api/login` and `/api/register`, keyed by `(scope, key)` where scope ∈ `ip` / `email` / `register_ip`. DB-backed so limits survive restarts and apply across all server processes; no Redis dependency (consistent with the single-Node + PostgreSQL architecture). |
-| `login_attempt_scope_key_window_uq` — UNIQUE `(scope, key, window_start)` | Enables the atomic `INSERT … ON CONFLICT … DO UPDATE SET count = count + 1` upsert that makes counting race-free. |
+| `CREATE TABLE login_attempt` — `(id, scope, key, window_start, count, strikes, locked_until, updated_at)` | Fixed-window failure counters with exponential lockout for `/api/login` and `/api/register`. One row per `(scope, key)` where scope ∈ `login_email` / `login_ip` / `register_ip`; the window resets in place when `window_start` ages out. `strikes` counts consecutive lockouts and drives the 5→10→20→40→60-minute backoff. DB-backed so limits survive restarts and apply across all server processes; no Redis dependency (consistent with the single-Node + PostgreSQL architecture). |
+| `login_attempt_scope_key_uq` — UNIQUE `(scope, key)` | Enables the atomic `INSERT … ON CONFLICT … DO UPDATE` upsert that makes counting race-free. |
 
 ### Operational notes
 
-- Rows are opportunistically deleted on write when older than 24 h; the
+- Rows idle for more than 24 h are opportunistically deleted on write; the
   table stays small (bounded by distinct attackers per day).
 - No FK to `user` — attempts are recorded for unknown emails too, and the
   table is platform-level (no `organization_id`).
 - Contains no secrets: emails are stored lowercased for keying; consider
   hashing keys if retention requirements change.
+- Thresholds are centralized in `src/server/auth/rate-limit.ts`
+  (`RATE_LIMITS`, `LOCKOUT_BASE_MS`, `LOCKOUT_CAP_MS`).
 - Rollback: `DROP TABLE login_attempt;` (feature-gated by the route guards,
   which would also be reverted).

@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 
 import { hashPassword } from '@server/auth/passwords'
+import { checkRateLimit, clientIp, recordAttempt } from '@server/auth/rate-limit'
 import { db } from '@server/db/client'
 import { users } from '@server/db/schema'
 import { writeAuditRaw } from '@server/services/audit'
@@ -14,6 +15,17 @@ const registerSchema = z.object({
 })
 
 export async function POST(request: NextRequest) {
+  // Coarse abuse protection: every attempt counts against the caller's IP.
+  const ip = clientIp(request.headers)
+  const decision = await checkRateLimit('register_ip', ip)
+  if (!decision.allowed) {
+    return NextResponse.json(
+      { error: 'Too many attempts. Please try again later.' },
+      { status: 429, headers: { 'Retry-After': String(decision.retryAfterS) } },
+    )
+  }
+  await recordAttempt('register_ip', ip, ip)
+
   let body: unknown
   try {
     body = await request.json()

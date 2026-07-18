@@ -9,10 +9,23 @@ import {
   useSecureCookies,
 } from '@server/auth/config'
 import { verifyPassword } from '@server/auth/passwords'
+import {
+  checkRateLimit,
+  clearLoginFailures,
+  clientIp,
+  recordAttempt,
+} from '@server/auth/rate-limit'
 import { resolveDefaultOrganizationId } from '@server/auth/types'
 import { db } from '@server/db/client'
 import { sessions, users } from '@server/db/schema'
 import { writeAuditRaw } from '@server/services/audit'
+
+function tooManyAttempts(retryAfterS: number) {
+  return NextResponse.json(
+    { error: 'Too many attempts. Please try again later.' },
+    { status: 429, headers: { 'Retry-After': String(retryAfterS) } },
+  )
+}
 
 const loginSchema = z.object({
   email: z.email().transform((e) => e.toLowerCase().trim()),
@@ -31,6 +44,16 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Email and password are required' }, { status: 400 })
   }
 
+  // Brute-force protection: refuse before touching argon2 when locked out.
+  const ip = clientIp(request.headers)
+  const [byEmail, byIp] = await Promise.all([
+    checkRateLimit('login_email', parsed.data.email),
+    checkRateLimit('login_ip', ip),
+  ])
+  for (const decision of [byEmail, byIp]) {
+    if (!decision.allowed) return tooManyAttempts(decision.retryAfterS)
+  }
+
   const [user] = await db
     .select()
     .from(users)
@@ -41,8 +64,14 @@ export async function POST(request: NextRequest) {
     ? await verifyPassword(user.passwordHash, parsed.data.password)
     : false
   if (!user || !valid) {
+    await Promise.all([
+      recordAttempt('login_email', parsed.data.email, ip),
+      recordAttempt('login_ip', ip, ip),
+    ])
     return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 })
   }
+
+  await clearLoginFailures(parsed.data.email)
 
   const expires = new Date(Date.now() + SESSION_MAX_AGE_S * 1000)
   const session = await authAdapter.createSession!({
