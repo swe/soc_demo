@@ -3,9 +3,16 @@ import { and, desc, eq, lt, or, type SQL } from 'drizzle-orm'
 import type { AuditListItemDto, AuditListQuery } from '../../domain/entities/audit'
 import { decodeCursor, encodeCursor, type Page } from '../../domain/entities/common'
 import { requirePermission, type OrgContext } from '../auth/types'
-import { db } from '../db/client'
+import { db, type Db } from '../db/client'
 import { orgScoped } from '../db/scoped'
 import { auditLogs, memberships, users } from '../db/schema'
+
+/**
+ * Anything the audit insert can run on: the global client or a transaction
+ * handle. Passing the caller's `tx` makes the audit row commit atomically
+ * with the mutation it describes; omitting it preserves the standalone write.
+ */
+export type AuditExecutor = Pick<Db, 'insert'>
 
 type AuditInput = {
   action: string
@@ -15,8 +22,12 @@ type AuditInput = {
 }
 
 /** Append an audit record for an action performed inside an org context. */
-export async function writeAudit(ctx: OrgContext, input: AuditInput): Promise<void> {
-  await db.insert(auditLogs).values({
+export async function writeAudit(
+  ctx: OrgContext,
+  input: AuditInput,
+  executor: AuditExecutor = db,
+): Promise<void> {
+  await executor.insert(auditLogs).values({
     organizationId: ctx.organizationId,
     actorMembershipId: ctx.membershipId,
     actorType: 'user',
@@ -33,13 +44,16 @@ export async function writeAudit(ctx: OrgContext, input: AuditInput): Promise<vo
  * the org-creation transaction, and platform-level auth events
  * (registration, login) which have no tenant.
  */
-export async function writeAuditRaw(input: AuditInput & {
-  organizationId: string | null
-  membershipId?: string | null
-  actorType?: 'user' | 'system'
-  ip?: string | null
-}): Promise<void> {
-  await db.insert(auditLogs).values({
+export async function writeAuditRaw(
+  input: AuditInput & {
+    organizationId: string | null
+    membershipId?: string | null
+    actorType?: 'user' | 'system'
+    ip?: string | null
+  },
+  executor: AuditExecutor = db,
+): Promise<void> {
+  await executor.insert(auditLogs).values({
     organizationId: input.organizationId,
     actorMembershipId: input.membershipId ?? null,
     actorType: input.actorType ?? 'user',
