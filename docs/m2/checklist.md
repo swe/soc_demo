@@ -79,10 +79,10 @@ Source of truth for M2 execution. Approved 2026-07-17. Baseline: `v0.1.0-m1-foun
 
 ## Step 10 — E2E + close-out
 
-- [ ] `tests/e2e/m2-workflow.spec.ts`: login as analyst → open alert → triage → create investigation → promote → verify incident → verify audit trail
-- [ ] Full regression: `ci:local` + e2e green
-- [ ] Remove M1 "arrives in the next milestone" placeholders on alerts/incidents pages
-- [ ] Tag `v0.2.0-m2-workflows`
+- [x] `tests/e2e/m2-workflow.spec.ts`: register → seed → open alert → triage → note → create investigation → promote → verify incident response panel → verify audit trail; plus invite-link generation flow
+- [x] Full regression: `ci:local` (typecheck, lint, 23 unit, migrate, 49 integration) + 4 e2e green
+- [x] M1 "arrives in the next milestone" placeholders removed (alerts modal in Step 3, incidents notice in Step 5)
+- [x] Tag `v0.2.0-m2-workflows` (local; push requires credentials)
 
 ## Completion criteria (from approved plan)
 
