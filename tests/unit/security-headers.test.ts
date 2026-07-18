@@ -1,16 +1,20 @@
 import { describe, expect, it } from 'vitest'
 
-// next.config.js is CommonJS; require keeps the test aligned with runtime.
+// CommonJS source of truth — same module next.config.js requires.
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const nextConfig = require('../../next.config.js') as {
-  headers: () => Promise<Array<{ source: string; headers: Array<{ key: string; value: string }> }>>
+const { SECURITY_HEADERS, CONTENT_SECURITY_POLICY } = require('../../security-headers.js') as {
   SECURITY_HEADERS: Array<{ key: string; value: string }>
   CONTENT_SECURITY_POLICY: string
 }
 
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const nextConfig = require('../../next.config.js') as {
+  headers: () => Promise<Array<{ source: string; headers: Array<{ key: string; value: string }> }>>
+}
+
 describe('security response headers (next.config.js)', () => {
   it('exports the six defensive headers required by M2.6', () => {
-    const keys = nextConfig.SECURITY_HEADERS.map((h) => h.key)
+    const keys = SECURITY_HEADERS.map((h) => h.key)
     expect(keys).toEqual(
       expect.arrayContaining([
         'Content-Security-Policy',
@@ -28,22 +32,21 @@ describe('security response headers (next.config.js)', () => {
     const rules = await nextConfig.headers()
     expect(rules).toHaveLength(1)
     expect(rules[0].source).toBe('/(.*)')
-    expect(rules[0].headers).toBe(nextConfig.SECURITY_HEADERS)
+    expect(rules[0].headers).toEqual(SECURITY_HEADERS)
   })
 
   it('uses the pragmatic CSP with Leaflet tile host and without unsafe-eval', () => {
-    const csp = nextConfig.CONTENT_SECURITY_POLICY
-    expect(csp).toContain("default-src 'self'")
-    expect(csp).toContain("script-src 'self' 'unsafe-inline'")
-    expect(csp).toContain("style-src 'self' 'unsafe-inline'")
-    expect(csp).toContain('https://*.tile.openstreetmap.org')
-    expect(csp).toContain("frame-ancestors 'none'")
-    expect(csp).toContain("object-src 'none'")
-    expect(csp).not.toContain('unsafe-eval')
+    expect(CONTENT_SECURITY_POLICY).toContain("default-src 'self'")
+    expect(CONTENT_SECURITY_POLICY).toContain("script-src 'self' 'unsafe-inline'")
+    expect(CONTENT_SECURITY_POLICY).toContain("style-src 'self' 'unsafe-inline'")
+    expect(CONTENT_SECURITY_POLICY).toContain('https://*.tile.openstreetmap.org')
+    expect(CONTENT_SECURITY_POLICY).toContain("frame-ancestors 'none'")
+    expect(CONTENT_SECURITY_POLICY).toContain("object-src 'none'")
+    expect(CONTENT_SECURITY_POLICY).not.toContain('unsafe-eval')
   })
 
   it('sets HSTS, clickjacking, MIME, and referrer defenses', () => {
-    const byKey = Object.fromEntries(nextConfig.SECURITY_HEADERS.map((h) => [h.key, h.value]))
+    const byKey = Object.fromEntries(SECURITY_HEADERS.map((h) => [h.key, h.value]))
     expect(byKey['Strict-Transport-Security']).toBe('max-age=63072000; includeSubDomains')
     expect(byKey['X-Frame-Options']).toBe('DENY')
     expect(byKey['X-Content-Type-Options']).toBe('nosniff')
