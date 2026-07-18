@@ -5,9 +5,18 @@ import postgres from 'postgres'
 /**
  * Apply all pending Drizzle migrations. Uses its own single connection so it
  * can run from CLIs (db:migrate, demo:setup) without the app's pooled client.
+ *
+ * DATABASE_URL is required — there is no hardcoded local fallback. A missing
+ * URL must fail loudly so a misconfigured environment cannot silently migrate
+ * the wrong database.
  */
 export async function runMigrations(databaseUrl?: string): Promise<void> {
-  const url = databaseUrl ?? process.env.DATABASE_URL ?? 'postgres://soc:soc@localhost:5432/soc'
+  const url = databaseUrl ?? process.env.DATABASE_URL
+  if (!url) {
+    throw new Error(
+      'DATABASE_URL is required to run migrations (no implicit local fallback)',
+    )
+  }
   const sql = postgres(url, { max: 1, onnotice: () => {} })
   try {
     await migrate(drizzle(sql), { migrationsFolder: './drizzle' })

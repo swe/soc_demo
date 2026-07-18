@@ -3,6 +3,11 @@
 Scope: the additive migrations introduced by the M2.6 hardening sprint.
 All are non-destructive; each reverses with a `DROP INDEX` / `DROP TABLE`.
 
+> Note: the planning Canvas listed separate migrations `0004` (unique index)
+> and `0006` (list/GIN indexes). They were landed together as a single
+> additive migration `0004` to keep the journal compact; rate limiting is
+> `0005`. There is no `0006` in this sprint.
+
 ## 0004 — promotion uniqueness + list/lookup indexes
 
 `drizzle/0004_superb_madrox.sql`
