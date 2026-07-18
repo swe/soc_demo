@@ -1,5 +1,50 @@
 # M3 Checkpoint 1 — Foundations & AppShell — 2026-07-17
 
+## Revision 2 — visual direction rework (same day)
+
+CP1 was reviewed and rejected as "too dark and visually heavy." This revision
+changes presentation only — no routes, APIs, or behavior.
+
+**Before → after:** near-black blue-tinted surfaces with a saturated indigo
+accent became a neutral graphite ladder with visible zoning: outer shell
+`#17181c` → sidebar `#1c1e23` → page canvas `#212328` (visibly lighter) →
+panels `#26282e` → raised `#2c2f35` → overlays `#34373e`. Structure now comes
+from borders and surface shifts, not darkness or glow.
+
+Token changes (`app/css/product-tokens.css`, mirrored in
+`landing-overview.css` dark block):
+
+| Token | Before | After |
+|---|---|---|
+| `--soc-shell` (new) | — | `#17181c` |
+| `--soc-sidebar` (new) | — | `#1c1e23` |
+| `--soc-bg` | `#0f1218` | `#212328` |
+| `--soc-surface` | `#161b24` | `#26282e` |
+| `--soc-raised` | `#1c222d` | `#2c2f35` |
+| `--soc-overlay` | `#242b38` | `#34373e` |
+| `--soc-accent` | `#6b7cff` | `#7d8ee8` (muted) |
+| text ramp | blue-tinted | neutral gray (`#e7e9ec` …) |
+| borders | 0.07 alpha | 0.08 / 0.13 / 0.24 alpha |
+| severity/status bg | 0.12 alpha, saturated | 0.10 alpha, desaturated |
+
+Component revisions (CP1 scope only):
+
+- **Sidebar** — own `--soc-sidebar` surface; active item is a neutral fill
+  with a 2px accent bar (no accent-filled glow); 15px muted icons; 13px labels.
+- **Header** — 48px (was 56px), sits on the page canvas with a hairline
+  border instead of a separate dark band.
+- **PageHeader** — 18px semibold title (was 20px), quieter section label,
+  13px secondary description. Mono reserved for technical values only.
+- **Unavailable + Investigations placeholder** — flat bordered `soc-panel`
+  sections instead of card stacks.
+- **e2e spec** — waits for live data and disables animations before capturing
+  the four evidence screenshots (previous captures raced skeletons/fade-in).
+
+Verified after revision: `pnpm typecheck` ✓ · `pnpm lint` ✓ · unit 37/37 ✓ ·
+`pnpm build` ✓ · `m3-cp1-shell` e2e ✓. No functional routes or APIs changed.
+
+**Stopped again for visual approval before Checkpoint 2.**
+
 ## What was implemented
 
 Checkpoint 1 delivers the M3 product chrome and information-architecture

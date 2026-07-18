@@ -409,33 +409,33 @@ html {
  * because it is loaded after this file and sets the same variables.
  */
 .dark .overview-dashboard {
-  --soc-bg:           #0f1218;
-  --soc-surface:      #161b24;
-  --soc-raised:       #1c222d;
-  --soc-overlay:      #242b38;
+  --soc-bg:           #212328;
+  --soc-surface:      #26282e;
+  --soc-raised:       #2c2f35;
+  --soc-overlay:      #34373e;
 
-  --soc-border:       rgba(255, 255, 255, 0.07);
-  --soc-border-mid:   rgba(255, 255, 255, 0.12);
-  --soc-border-strong:rgba(255, 255, 255, 0.2);
+  --soc-border:       rgba(255, 255, 255, 0.08);
+  --soc-border-mid:   rgba(255, 255, 255, 0.13);
+  --soc-border-strong:rgba(255, 255, 255, 0.24);
 
-  --soc-text:         #e8edf5;
-  --soc-text-secondary: #9aa8bc;
-  --soc-text-muted:   #6b7a90;
-  --soc-text-dim:     #3d4759;
+  --soc-text:         #e7e9ec;
+  --soc-text-secondary: #a8adb5;
+  --soc-text-muted:   #7d838c;
+  --soc-text-dim:     #4d525a;
 
-  --soc-accent:         #6b7cff;
-  --soc-accent-hover:   #8b98ff;
-  --soc-accent-bg:      rgba(107, 124, 255, 0.12);
-  --soc-accent-text:    #c5ccff;
+  --soc-accent:         #7d8ee8;
+  --soc-accent-hover:   #96a5ef;
+  --soc-accent-bg:      rgba(125, 142, 232, 0.10);
+  --soc-accent-text:    #b6c1f5;
 
-  --soc-critical:     #f07178;
-  --soc-critical-bg:  rgba(240, 113, 120, 0.12);
-  --soc-high:         #e09a5a;
-  --soc-high-bg:      rgba(224, 154, 90, 0.12);
-  --soc-medium:       #d4a84b;
-  --soc-medium-bg:    rgba(212, 168, 75, 0.12);
-  --soc-low:          #5b9fd4;
-  --soc-low-bg:       rgba(91, 159, 212, 0.12);
+  --soc-critical:     #e57373;
+  --soc-critical-bg:  rgba(229, 115, 115, 0.10);
+  --soc-high:         #d99155;
+  --soc-high-bg:      rgba(217, 145, 85, 0.10);
+  --soc-medium:       #c9a648;
+  --soc-medium-bg:    rgba(201, 166, 72, 0.10);
+  --soc-low:          #6b9fce;
+  --soc-low-bg:       rgba(107, 159, 206, 0.10);
 
   --color-sot-base:    var(--soc-bg);
   --color-sot-card:    var(--soc-surface);

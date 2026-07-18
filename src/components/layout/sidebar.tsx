@@ -16,70 +16,95 @@ type NavItem = {
   match?: (pathname: string) => boolean
 }
 
+type NavSection = {
+  label: string | null
+  items: NavItem[]
+}
+
 /**
- * M3 primary navigation — functional surfaces only.
- * Investigations is included; its full UI lands in Checkpoint 4 (placeholder until then).
+ * M3 primary navigation — functional surfaces only, grouped by workflow.
+ * Investigations is included; its full UI lands in Checkpoint 4.
  */
-const PRIMARY_NAV: NavItem[] = [
+const NAV_SECTIONS: NavSection[] = [
   {
-    href: '/overview',
-    label: 'Overview',
-    icon: 'grid-outline',
-    match: (p) => p === '/overview',
+    label: null,
+    items: [
+      {
+        href: '/overview',
+        label: 'Overview',
+        icon: 'grid-outline',
+        match: (p) => p === '/overview',
+      },
+    ],
   },
   {
-    href: '/overview/alerts',
-    label: 'Alerts',
-    icon: 'notifications-outline',
-    match: (p) => p.startsWith('/overview/alerts'),
+    label: 'Operations',
+    items: [
+      {
+        href: '/overview/alerts',
+        label: 'Alerts',
+        icon: 'notifications-outline',
+        match: (p) => p.startsWith('/overview/alerts'),
+      },
+      {
+        href: '/overview/investigations',
+        label: 'Investigations',
+        icon: 'search-outline',
+        match: (p) => p.startsWith('/overview/investigations'),
+      },
+      {
+        href: '/overview/incidents',
+        label: 'Incidents',
+        icon: 'warning-outline',
+        match: (p) => p.startsWith('/overview/incidents'),
+      },
+    ],
   },
   {
-    href: '/overview/investigations',
-    label: 'Investigations',
-    icon: 'search-outline',
-    match: (p) => p.startsWith('/overview/investigations'),
+    label: 'Exposure',
+    items: [
+      {
+        href: '/overview/assets',
+        label: 'Assets',
+        icon: 'hardware-chip-outline',
+        match: (p) => p === '/overview/assets' || p.startsWith('/overview/assets/'),
+      },
+      {
+        href: '/overview/identities',
+        label: 'Identities',
+        icon: 'people-outline',
+        match: (p) => p.startsWith('/overview/identities'),
+      },
+      {
+        href: '/overview/vulnerabilities',
+        label: 'Vulnerabilities',
+        icon: 'shield-checkmark-outline',
+        match: (p) => p.startsWith('/overview/vulnerabilities'),
+      },
+    ],
   },
   {
-    href: '/overview/incidents',
-    label: 'Incidents',
-    icon: 'warning-outline',
-    match: (p) => p.startsWith('/overview/incidents'),
-  },
-  {
-    href: '/overview/assets',
-    label: 'Assets',
-    icon: 'hardware-chip-outline',
-    match: (p) => p === '/overview/assets' || p.startsWith('/overview/assets/'),
-  },
-  {
-    href: '/overview/identities',
-    label: 'Identities',
-    icon: 'people-outline',
-    match: (p) => p.startsWith('/overview/identities'),
-  },
-  {
-    href: '/overview/vulnerabilities',
-    label: 'Vulnerabilities',
-    icon: 'shield-checkmark-outline',
-    match: (p) => p.startsWith('/overview/vulnerabilities'),
-  },
-  {
-    href: '/overview/administration/members',
-    label: 'Members',
-    icon: 'person-outline',
-    match: (p) => p.startsWith('/overview/administration/members'),
-  },
-  {
-    href: '/overview/settings/audit',
-    label: 'Audit log',
-    icon: 'document-text-outline',
-    match: (p) => p.startsWith('/overview/settings/audit'),
-  },
-  {
-    href: '/overview/settings',
-    label: 'Settings',
-    icon: 'settings-outline',
-    match: (p) => p === '/overview/settings',
+    label: 'Organization',
+    items: [
+      {
+        href: '/overview/administration/members',
+        label: 'Members',
+        icon: 'person-outline',
+        match: (p) => p.startsWith('/overview/administration/members'),
+      },
+      {
+        href: '/overview/settings/audit',
+        label: 'Audit log',
+        icon: 'document-text-outline',
+        match: (p) => p.startsWith('/overview/settings/audit'),
+      },
+      {
+        href: '/overview/settings',
+        label: 'Settings',
+        icon: 'settings-outline',
+        match: (p) => p === '/overview/settings',
+      },
+    ],
   },
 ]
 
@@ -99,7 +124,7 @@ export function ProductSidebar() {
     <div className={sidebarExpanded ? 'sidebar-expanded' : ''}>
       {/* Mobile backdrop */}
       <div
-        className={`fixed inset-0 z-[var(--z-sidebar)] bg-black/50 lg:hidden transition-opacity ${
+        className={`fixed inset-0 z-[var(--z-sidebar)] bg-black/40 lg:hidden transition-opacity ${
           sidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
         aria-hidden={!sidebarOpen}
@@ -108,12 +133,12 @@ export function ProductSidebar() {
 
       <aside
         id="sidebar"
-        className={`flex flex-col absolute z-[var(--z-sidebar)] left-0 top-0 lg:static h-[100dvh] w-60 shrink-0 border-r border-[color:var(--soc-border)] bg-[color:var(--soc-surface)] transition-transform duration-[var(--duration-normal)] ${
+        className={`flex flex-col absolute z-[var(--z-sidebar)] left-0 top-0 lg:static h-[100dvh] w-56 shrink-0 border-r border-[color:var(--soc-border)] bg-[color:var(--soc-sidebar)] transition-transform duration-[var(--duration-normal)] ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         }`}
         aria-label="Primary"
       >
-        <div className="flex h-14 items-center gap-3 px-4 border-b border-[color:var(--soc-border)] shrink-0">
+        <div className="flex h-12 items-center gap-2.5 px-4 shrink-0">
           <button
             type="button"
             className="lg:hidden text-[color:var(--soc-text-muted)] hover:text-[color:var(--soc-text)]"
@@ -128,46 +153,63 @@ export function ProductSidebar() {
             onClick={() => setSidebarOpen(false)}
           >
             <Logo withLink={false} />
-            <span className="text-sm font-semibold tracking-tight text-[color:var(--soc-text)] truncate">
+            <span className="text-[13px] font-semibold tracking-tight text-[color:var(--soc-text)] truncate">
               Svalbard
             </span>
           </Link>
         </div>
 
-        <nav className="flex-1 overflow-y-auto px-2 py-3" aria-label="Product">
-          <ul className="space-y-0.5">
-            {PRIMARY_NAV.map((item) => {
-              const active = item.match ? item.match(pathname) : pathname === item.href
-              return (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    onClick={() => setSidebarOpen(false)}
-                    className={`flex items-center gap-3 rounded-[var(--radius-md)] px-3 py-2 text-sm transition-colors ${
-                      active
-                        ? 'bg-[color:var(--soc-accent-bg)] text-[color:var(--soc-accent-text)] font-medium'
-                        : 'text-[color:var(--soc-text-secondary)] hover:bg-[color:var(--soc-overlay)] hover:text-[color:var(--soc-text)]'
-                    }`}
-                    aria-current={active ? 'page' : undefined}
-                  >
-                    <Icon
-                      name={item.icon}
-                      className={`text-base shrink-0 ${
-                        active ? 'text-[color:var(--soc-accent)]' : 'text-[color:var(--soc-text-muted)]'
-                      }`}
-                    />
-                    <span className="truncate">{item.label}</span>
-                  </Link>
-                </li>
-              )
-            })}
-          </ul>
+        <nav className="flex-1 overflow-y-auto px-3 pt-2 pb-4" aria-label="Product">
+          {NAV_SECTIONS.map((section, idx) => (
+            <div key={section.label ?? 'root'} className={idx > 0 ? 'mt-5' : ''}>
+              {section.label ? (
+                <p className="px-2 mb-1 text-[10.5px] font-medium uppercase tracking-[0.07em] text-[color:var(--soc-text-dim)]">
+                  {section.label}
+                </p>
+              ) : null}
+              <ul className="space-y-px">
+                {section.items.map((item) => {
+                  const active = item.match ? item.match(pathname) : pathname === item.href
+                  return (
+                    <li key={item.href}>
+                      <Link
+                        href={item.href}
+                        onClick={() => setSidebarOpen(false)}
+                        className={`relative flex items-center gap-2.5 rounded-[var(--radius-md)] px-2 py-[7px] text-[13px] leading-none transition-colors duration-[var(--duration-fast)] ${
+                          active
+                            ? 'bg-white/[0.06] text-[color:var(--soc-text)] font-medium'
+                            : 'text-[color:var(--soc-text-secondary)] hover:bg-white/[0.04] hover:text-[color:var(--soc-text)]'
+                        }`}
+                        aria-current={active ? 'page' : undefined}
+                      >
+                        {active ? (
+                          <span
+                            aria-hidden
+                            className="absolute left-[-3px] top-1/2 -translate-y-1/2 h-3.5 w-[2px] rounded-full bg-[color:var(--soc-accent)]"
+                          />
+                        ) : null}
+                        <Icon
+                          name={item.icon}
+                          className={`text-[15px] shrink-0 ${
+                            active
+                              ? 'text-[color:var(--soc-text-secondary)]'
+                              : 'text-[color:var(--soc-text-muted)]'
+                          }`}
+                        />
+                        <span className="truncate">{item.label}</span>
+                      </Link>
+                    </li>
+                  )
+                })}
+              </ul>
+            </div>
+          ))}
         </nav>
 
-        <div className="hidden lg:flex items-center justify-end px-3 py-2 border-t border-[color:var(--soc-border)]">
+        <div className="hidden lg:flex items-center px-4 py-2.5 border-t border-[color:var(--soc-border)]">
           <button
             type="button"
-            className="text-xs text-[color:var(--soc-text-muted)] hover:text-[color:var(--soc-text)] px-2 py-1 rounded-[var(--radius-sm)]"
+            className="text-[11px] text-[color:var(--soc-text-muted)] hover:text-[color:var(--soc-text-secondary)] rounded-[var(--radius-sm)]"
             onClick={() => setSidebarExpanded(!sidebarExpanded)}
             aria-pressed={sidebarExpanded}
             aria-label={sidebarExpanded ? 'Collapse sidebar labels' : 'Expand sidebar labels'}

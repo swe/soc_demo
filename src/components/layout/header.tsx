@@ -8,7 +8,9 @@ import Icon from '@/components/ui/icon'
 import { useScroll } from '@/components/utils/use-scroll'
 
 /**
- * Product header — org switcher + profile. Dark theme only in M3 (no theme toggle).
+ * Product header — quiet chrome that supports the page rather than competing
+ * with it. Sits on the page canvas with a hairline border; org switcher and
+ * profile only. Dark theme only in M3 (no theme toggle).
  */
 export function ProductHeader() {
   const { sidebarOpen, setSidebarOpen } = useAppProvider()
@@ -16,10 +18,8 @@ export function ProductHeader() {
   const isScrolled = useScroll(80)
 
   return (
-    <header
-      className="sticky top-0 z-[var(--z-sticky)] border-b border-[color:var(--soc-border)] bg-[color:var(--soc-bg)]/92 backdrop-blur-md"
-    >
-      <div className="flex h-14 items-center justify-between px-4 sm:px-6">
+    <header className="sticky top-0 z-[var(--z-sticky)] border-b border-[color:var(--soc-border)] bg-[color:var(--soc-bg)]">
+      <div className="flex h-12 items-center justify-between px-4 sm:px-6">
         <div className="flex items-center gap-3 min-w-0">
           <button
             type="button"
@@ -29,18 +29,18 @@ export function ProductHeader() {
             onClick={() => setSidebarOpen(!sidebarOpen)}
           >
             <span className="sr-only">Open sidebar</span>
-            <Icon name="menu-outline" className="w-6 h-6" />
+            <Icon name="menu-outline" className="w-5 h-5" />
           </button>
           {isScrolled && pageTitle ? (
-            <p className="text-sm font-medium text-[color:var(--soc-text)] truncate hidden sm:block">
+            <p className="text-[13px] font-medium text-[color:var(--soc-text-secondary)] truncate hidden sm:block">
               {pageTitle}
             </p>
           ) : null}
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           <DropdownOrg />
-          <div className="w-px h-5 bg-[color:var(--soc-border-mid)]" aria-hidden />
+          <div className="w-px h-4 bg-[color:var(--soc-border-mid)]" aria-hidden />
           <DropdownProfile align="right" />
         </div>
       </div>

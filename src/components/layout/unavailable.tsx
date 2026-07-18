@@ -5,7 +5,8 @@ import { PageShell } from './page-shell'
 
 /**
  * Shared restrained unavailable state for M4 capabilities that remain
- * reachable by URL but are removed from primary navigation.
+ * reachable by URL but are removed from primary navigation. Flat bordered
+ * panel on the page canvas — no fake data, no drama.
  */
 export function UnavailableCapability({
   title = 'Capability unavailable',
@@ -21,11 +22,8 @@ export function UnavailableCapability({
         title={title}
         description="This capability is not available in the current product version."
       />
-      <div
-        className="rounded-[var(--radius-lg)] border border-[color:var(--soc-border)] bg-[color:var(--soc-surface)] px-6 py-10"
-        role="status"
-      >
-        <p className="text-sm text-[color:var(--soc-text-secondary)] max-w-xl leading-relaxed">
+      <div className="soc-panel px-6 py-8 max-w-2xl" role="status">
+        <p className="text-[13px] text-[color:var(--soc-text-secondary)] leading-relaxed">
           The page you opened is reserved for a future release. Primary navigation only
           lists surfaces that are functional today. Return to Overview, Alerts,
           Investigations, or Incidents to continue operational work.

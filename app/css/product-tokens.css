@@ -1,60 +1,67 @@
 /**
- * M3 product design tokens — Checkpoint 1.
+ * M3 product design tokens — Checkpoint 1 (revision 2).
  *
- * Dark is the only shipped theme. Light token values are defined so a future
- * light theme can flip without renaming surfaces. Density is a single
- * operational scale; compact/comfortable modes are reserved (--space-* only).
+ * Direction: lighter graphite/slate hierarchy with visible surface levels —
+ * enterprise engineering platform, not a dark cyber dashboard. Dark is the
+ * only shipped theme; light values are reserved. One operational density.
  *
- * Applied under `.product-shell` (overview app). Marketing landing styles
- * stay in landing-overview.css and are untouched.
+ * Surface ladder (darkest → lightest):
+ *   inset < shell < sidebar < bg (page canvas) < surface < raised < overlay
+ * The page canvas is visibly lighter than the outer shell so navigation,
+ * canvas, sections, and overlays read as distinct zones at a glance.
+ *
+ * Applied under `.product-shell`. Marketing landing styles are untouched.
  */
 
+.overview-dashboard.product-shell,
 .product-shell {
-  /* ── Surfaces (graphite / charcoal — not pure black) ── */
-  --soc-bg: #0f1218;
-  --soc-surface: #161b24;
-  --soc-raised: #1c222d;
-  --soc-overlay: #242b38;
-  --soc-inset: #0c0e13;
+  /* ── Surface hierarchy (neutral graphite, no near-black canvas) ── */
+  --soc-inset: #131418;
+  --soc-shell: #17181c;
+  --soc-sidebar: #1c1e23;
+  --soc-bg: #212328;
+  --soc-surface: #26282e;
+  --soc-raised: #2c2f35;
+  --soc-overlay: #34373e;
 
-  /* ── Borders ── */
-  --soc-border: rgba(255, 255, 255, 0.07);
-  --soc-border-mid: rgba(255, 255, 255, 0.12);
-  --soc-border-strong: rgba(255, 255, 255, 0.2);
-  --soc-focus-ring: #6b7cff;
+  /* ── Borders (structural, restrained) ── */
+  --soc-border: rgba(255, 255, 255, 0.08);
+  --soc-border-mid: rgba(255, 255, 255, 0.13);
+  --soc-border-strong: rgba(255, 255, 255, 0.24);
+  --soc-focus-ring: #8b9af0;
 
-  /* ── Text ── */
-  --soc-text: #e8edf5;
-  --soc-text-secondary: #9aa8bc;
-  --soc-text-muted: #6b7a90;
-  --soc-text-dim: #3d4759;
-  --soc-text-inverse: #0f1218;
+  /* ── Text (neutral, editorial contrast steps) ── */
+  --soc-text: #e7e9ec;
+  --soc-text-secondary: #a8adb5;
+  --soc-text-muted: #7d838c;
+  --soc-text-dim: #4d525a;
+  --soc-text-inverse: #17181c;
 
-  /* ── Accent (restrained cool indigo) ── */
-  --soc-accent: #6b7cff;
-  --soc-accent-hover: #8b98ff;
-  --soc-accent-bg: rgba(107, 124, 255, 0.12);
-  --soc-accent-text: #c5ccff;
+  /* ── Accent (muted indigo — selective use only) ── */
+  --soc-accent: #7d8ee8;
+  --soc-accent-hover: #96a5ef;
+  --soc-accent-bg: rgba(125, 142, 232, 0.1);
+  --soc-accent-text: #b6c1f5;
 
-  /* ── Severity (indicators only) ── */
-  --soc-critical: #f07178;
-  --soc-critical-bg: rgba(240, 113, 120, 0.12);
-  --soc-high: #e09a5a;
-  --soc-high-bg: rgba(224, 154, 90, 0.12);
-  --soc-medium: #d4a84b;
-  --soc-medium-bg: rgba(212, 168, 75, 0.12);
-  --soc-low: #5b9fd4;
-  --soc-low-bg: rgba(91, 159, 212, 0.12);
+  /* ── Severity (indicators only, never large fills) ── */
+  --soc-critical: #e57373;
+  --soc-critical-bg: rgba(229, 115, 115, 0.1);
+  --soc-high: #d99155;
+  --soc-high-bg: rgba(217, 145, 85, 0.1);
+  --soc-medium: #c9a648;
+  --soc-medium-bg: rgba(201, 166, 72, 0.1);
+  --soc-low: #6b9fce;
+  --soc-low-bg: rgba(107, 159, 206, 0.1);
 
   /* ── Status (separate from severity) ── */
-  --soc-success: #5dba87;
-  --soc-success-bg: rgba(93, 186, 135, 0.12);
-  --soc-warning: #d4a84b;
-  --soc-warning-bg: rgba(212, 168, 75, 0.12);
-  --soc-info: #6b9fd4;
-  --soc-info-bg: rgba(107, 159, 212, 0.12);
-  --soc-danger: #f07178;
-  --soc-danger-bg: rgba(240, 113, 120, 0.12);
+  --soc-success: #66b28a;
+  --soc-success-bg: rgba(102, 178, 138, 0.1);
+  --soc-warning: #c9a648;
+  --soc-warning-bg: rgba(201, 166, 72, 0.1);
+  --soc-info: #6b9fce;
+  --soc-info-bg: rgba(107, 159, 206, 0.1);
+  --soc-danger: #e57373;
+  --soc-danger-bg: rgba(229, 115, 115, 0.1);
 
   /* ── Spacing (4px base, one operational density) ── */
   --space-1: 0.25rem;
@@ -70,8 +77,8 @@
   --radius-md: 0.375rem;
   --radius-lg: 0.5rem;
 
-  /* ── Elevation (prefer border; shadow minimal) ── */
-  --shadow-sm: 0 1px 0 rgba(0, 0, 0, 0.35);
+  /* ── Elevation (borders and surface shifts, not shadows) ── */
+  --shadow-sm: 0 1px 0 rgba(0, 0, 0, 0.25);
 
   /* ── Z-index ── */
   --z-sticky: 30;
@@ -111,30 +118,33 @@
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: var(--soc-bg);
+  background-color: var(--soc-shell);
   color: var(--soc-text);
   font-size: 0.8125rem;
   line-height: 1.5;
+  letter-spacing: -0.006em;
 }
 
 /* Future light theme hook — not shipped in M3; values reserved. */
 html.light .product-shell-light-ready {
-  --soc-bg: #f2f3f5;
-  --soc-surface: #ffffff;
-  --soc-raised: #f7f8fa;
-  --soc-overlay: #eef0f3;
   --soc-inset: #e8eaee;
+  --soc-shell: #eceef1;
+  --soc-sidebar: #f4f5f7;
+  --soc-bg: #f8f9fa;
+  --soc-surface: #ffffff;
+  --soc-raised: #f4f5f7;
+  --soc-overlay: #eceef1;
   --soc-border: #e2e5ea;
   --soc-border-mid: #c9ced6;
   --soc-border-strong: #9aa3b2;
-  --soc-text: #12151c;
-  --soc-text-secondary: #4a5568;
-  --soc-text-muted: #7a8699;
+  --soc-text: #16181d;
+  --soc-text-secondary: #4a5158;
+  --soc-text-muted: #7d838c;
   --soc-text-dim: #c5cad3;
-  --soc-accent: #3d4fd4;
-  --soc-accent-hover: #2f3fb8;
-  --soc-accent-bg: #eef0ff;
-  --soc-accent-text: #2f3fb8;
+  --soc-accent: #4655c4;
+  --soc-accent-hover: #3947ab;
+  --soc-accent-bg: #eef0fc;
+  --soc-accent-text: #3947ab;
 }
 
 /* Focus — visible, never removed */
@@ -161,12 +171,19 @@ html.light .product-shell-light-ready {
   }
 }
 
-/* Technical identifiers */
+/* Technical identifiers — mono is for values, never general UI labels */
 .product-shell .soc-mono {
   font-family: var(--font-mono);
   font-size: 0.75rem;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.01em;
+}
+
+/* Flat section panel — preferred over floating cards */
+.product-shell .soc-panel {
+  background-color: var(--soc-surface);
+  border: 1px solid var(--soc-border);
+  border-radius: var(--radius-md);
 }
 
 /* Skip link for keyboard users */

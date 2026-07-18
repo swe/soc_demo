@@ -37,18 +37,20 @@ test.describe('M3 Checkpoint 1 — product shell', () => {
     await expect(nav.getByText('Heimdall')).toHaveCount(0)
     await expect(page.getByText('Svalbard').first()).toBeVisible()
 
-    await page.screenshot({ path: 'docs/status/evidence/m3-cp1-overview-shell.png', fullPage: true })
+    // Wait for live dashboard data (not skeletons) before capturing evidence.
+    await expect(page.locator('table tbody tr').first()).toBeVisible({ timeout: 30_000 })
+    await page.screenshot({ path: 'docs/status/evidence/m3-cp1-overview-shell.png', fullPage: true, animations: 'disabled' })
 
     await page.goto('/overview/threat-intelligence/overview')
     await expect(page.getByText('not available in the current product version')).toBeVisible()
-    await page.screenshot({ path: 'docs/status/evidence/m3-cp1-unavailable.png', fullPage: true })
+    await page.screenshot({ path: 'docs/status/evidence/m3-cp1-unavailable.png', fullPage: true, animations: 'disabled' })
 
     await page.goto('/overview/investigations')
     await expect(page.getByText('Investigations workspace arrives in Checkpoint 4')).toBeVisible()
-    await page.screenshot({ path: 'docs/status/evidence/m3-cp1-investigations-placeholder.png', fullPage: true })
+    await page.screenshot({ path: 'docs/status/evidence/m3-cp1-investigations-placeholder.png', fullPage: true, animations: 'disabled' })
 
     await page.goto('/overview/alerts')
     await expect(page.locator('table.soc-table tbody tr').first()).toBeVisible({ timeout: 30_000 })
-    await page.screenshot({ path: 'docs/status/evidence/m3-cp1-alerts.png', fullPage: true })
+    await page.screenshot({ path: 'docs/status/evidence/m3-cp1-alerts.png', fullPage: true, animations: 'disabled' })
   })
 })

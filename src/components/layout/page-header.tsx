@@ -6,8 +6,9 @@ export type PageHeaderAction = {
 }
 
 /**
- * Standard operational page header — section label, title, description, actions.
- * Replaces OverviewPageHeader for new code; unified-ui re-exports this in CP1.
+ * Standard operational page header — section label, title, description,
+ * actions. Editorial rather than bold: the title anchors the page without
+ * shouting; supporting text carries clear contrast steps.
  */
 export function PageHeader({
   section,
@@ -21,13 +22,15 @@ export function PageHeader({
   actions?: PageHeaderAction[]
 }) {
   return (
-    <div className="flex items-start justify-between mb-5 gap-4">
+    <div className="flex items-start justify-between mb-6 gap-4">
       <div className="min-w-0">
-        <p className="soc-label mb-1">{section}</p>
-        <h1 className="text-xl font-semibold tracking-tight mb-1.5 text-[color:var(--soc-text)]">
+        <p className="text-[10.5px] font-medium uppercase tracking-[0.08em] text-[color:var(--soc-text-muted)] mb-1.5">
+          {section}
+        </p>
+        <h1 className="text-lg font-semibold tracking-[-0.01em] leading-tight mb-1 text-[color:var(--soc-text)]">
           {title}
         </h1>
-        <p className="text-sm text-[color:var(--soc-text-secondary)] leading-relaxed">
+        <p className="text-[13px] text-[color:var(--soc-text-secondary)] leading-relaxed">
           {description}
         </p>
       </div>
