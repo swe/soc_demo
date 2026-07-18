@@ -121,18 +121,25 @@ export async function patchMember(
   }
 
   if (Object.keys(update).length > 0) {
-    await scoped.db
-      .update(memberships)
-      .set(update)
-      .where(scoped.where(memberships.organizationId, eq(memberships.id, membershipId)))
-    for (const entry of auditEntries) {
-      await writeAudit(ctx, {
-        action: entry.action,
-        targetType: 'membership',
-        targetId: membershipId,
-        metadata: entry.metadata,
-      })
-    }
+    // Mutation and audit rows commit atomically.
+    await scoped.db.transaction(async (tx) => {
+      await tx
+        .update(memberships)
+        .set(update)
+        .where(scoped.where(memberships.organizationId, eq(memberships.id, membershipId)))
+      for (const entry of auditEntries) {
+        await writeAudit(
+          ctx,
+          {
+            action: entry.action,
+            targetType: 'membership',
+            targetId: membershipId,
+            metadata: entry.metadata,
+          },
+          tx,
+        )
+      }
+    })
   }
 
   const members = await listMembers(ctx)
@@ -197,23 +204,30 @@ export async function createInvite(
   }
 
   const token = randomBytes(32).toString('base64url')
-  const [row] = await scoped.db
-    .insert(organizationInvites)
-    .values({
-      organizationId: ctx.organizationId,
-      email,
-      role: input.role,
-      tokenHash: hashToken(token),
-      invitedByMembershipId: ctx.membershipId,
-      expiresAt: new Date(Date.now() + INVITE_TTL_DAYS * 86_400_000),
-    })
-    .returning()
+  const row = await scoped.db.transaction(async (tx) => {
+    const [created] = await tx
+      .insert(organizationInvites)
+      .values({
+        organizationId: ctx.organizationId,
+        email,
+        role: input.role,
+        tokenHash: hashToken(token),
+        invitedByMembershipId: ctx.membershipId,
+        expiresAt: new Date(Date.now() + INVITE_TTL_DAYS * 86_400_000),
+      })
+      .returning()
 
-  await writeAudit(ctx, {
-    action: 'member.invite',
-    targetType: 'organization_invite',
-    targetId: row.id,
-    metadata: { email, role: input.role },
+    await writeAudit(
+      ctx,
+      {
+        action: 'member.invite',
+        targetType: 'organization_invite',
+        targetId: created.id,
+        metadata: { email, role: input.role },
+      },
+      tx,
+    )
+    return created
   })
 
   return {
@@ -235,17 +249,24 @@ export async function revokeInvite(ctx: OrgContext, id: string): Promise<InviteD
   if (row.acceptedAt) throw new ServiceError('Invite was already accepted', 409)
   if (row.revokedAt) return inviteToDto(row)
 
-  const [updated] = await scoped.db
-    .update(organizationInvites)
-    .set({ revokedAt: new Date() })
-    .where(scoped.where(organizationInvites.organizationId, eq(organizationInvites.id, id)))
-    .returning()
+  const updated = await scoped.db.transaction(async (tx) => {
+    const [next] = await tx
+      .update(organizationInvites)
+      .set({ revokedAt: new Date() })
+      .where(scoped.where(organizationInvites.organizationId, eq(organizationInvites.id, id)))
+      .returning()
 
-  await writeAudit(ctx, {
-    action: 'member.invite_revoke',
-    targetType: 'organization_invite',
-    targetId: id,
-    metadata: { email: row.email },
+    await writeAudit(
+      ctx,
+      {
+        action: 'member.invite_revoke',
+        targetType: 'organization_invite',
+        targetId: id,
+        metadata: { email: row.email },
+      },
+      tx,
+    )
+    return next
   })
 
   return inviteToDto(updated)
@@ -310,16 +331,19 @@ export async function acceptInvite(
       .update(organizationInvites)
       .set({ acceptedAt: new Date() })
       .where(eq(organizationInvites.id, invite.id))
-    return created
-  })
 
-  await writeAuditRaw({
-    organizationId: invite.organizationId,
-    membershipId: membership.id,
-    action: 'member.invite_accept',
-    targetType: 'membership',
-    targetId: membership.id,
-    metadata: { inviteId: invite.id, role: invite.role },
+    await writeAuditRaw(
+      {
+        organizationId: invite.organizationId,
+        membershipId: created.id,
+        action: 'member.invite_accept',
+        targetType: 'membership',
+        targetId: created.id,
+        metadata: { inviteId: invite.id, role: invite.role },
+      },
+      tx,
+    )
+    return created
   })
 
   return { organizationId: invite.organizationId, membershipId: membership.id }

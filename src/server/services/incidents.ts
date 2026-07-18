@@ -322,19 +322,26 @@ export async function patchIncident(
     update.timeline = sql`${incidents.timeline} || ${JSON.stringify(timelineAdditions)}::jsonb` as unknown as IncidentTimelineEntry[]
   }
 
-  await scoped.db
-    .update(incidents)
-    .set(update)
-    .where(scoped.where(incidents.organizationId, eq(incidents.id, id)))
+  // Mutation and audit rows commit atomically.
+  await scoped.db.transaction(async (tx) => {
+    await tx
+      .update(incidents)
+      .set(update)
+      .where(scoped.where(incidents.organizationId, eq(incidents.id, id)))
 
-  for (const entry of auditEntries) {
-    await writeAudit(ctx, {
-      action: entry.action,
-      targetType: 'incident',
-      targetId: id,
-      metadata: entry.metadata,
-    })
-  }
+    for (const entry of auditEntries) {
+      await writeAudit(
+        ctx,
+        {
+          action: entry.action,
+          targetType: 'incident',
+          targetId: id,
+          metadata: entry.metadata,
+        },
+        tx,
+      )
+    }
+  })
 
   return getIncidentById(ctx, id)
 }

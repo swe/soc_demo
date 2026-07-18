@@ -234,20 +234,28 @@ export async function patchAlert(
 
   if (Object.keys(update).length === 0) return toDto(row)
 
-  const [updated] = await scoped.db
-    .update(alerts)
-    .set(update)
-    .where(scoped.where(alerts.organizationId, eq(alerts.id, id)))
-    .returning()
+  // Mutation and audit rows commit atomically.
+  const updated = await scoped.db.transaction(async (tx) => {
+    const [next] = await tx
+      .update(alerts)
+      .set(update)
+      .where(scoped.where(alerts.organizationId, eq(alerts.id, id)))
+      .returning()
 
-  for (const entry of auditEntries) {
-    await writeAudit(ctx, {
-      action: entry.action,
-      targetType: 'alert',
-      targetId: id,
-      metadata: entry.metadata,
-    })
-  }
+    for (const entry of auditEntries) {
+      await writeAudit(
+        ctx,
+        {
+          action: entry.action,
+          targetType: 'alert',
+          targetId: id,
+          metadata: entry.metadata,
+        },
+        tx,
+      )
+    }
+    return next
+  })
 
   return toDto(updated)
 }

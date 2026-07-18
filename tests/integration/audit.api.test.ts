@@ -1,9 +1,12 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { AuthError } from '@server/auth/types'
-import { patchAlert, listAlerts } from '@server/services/alerts'
+import { patchAlert, listAlerts, getAlertById } from '@server/services/alerts'
+import * as auditService from '@server/services/audit'
 import { listAudit } from '@server/services/audit'
 import { addMembership, asCtx, createOrgWithAdmin, createUser, seedOrg } from '../helpers/fixtures'
+
+vi.mock('@server/services/audit', { spy: true })
 
 const ANCHOR = new Date('2026-07-01T12:00:00.000Z')
 
@@ -34,6 +37,35 @@ describe('audit listing', () => {
     expect(paged.nextCursor).toBeTruthy()
     const next = await listAudit(ctx, { limit: 1, cursor: paged.nextCursor! })
     expect(next.items[0]?.id).not.toBe(paged.items[0].id)
+  })
+
+  it('mutation and audit commit atomically: audit failure rolls back the mutation', async () => {
+    const { organization, ctx } = await createOrgWithAdmin(`Audit Atomicity Org ${Date.now()}`)
+    await seedOrg(organization.id, ANCHOR)
+    const page = await listAlerts(ctx, { limit: 1, status: 'new' })
+    const target = page.items[0]
+
+    // Fail the audit insert inside the mutation's transaction.
+    vi.mocked(auditService.writeAudit).mockRejectedValueOnce(new Error('audit unavailable'))
+
+    const error = await patchAlert(ctx, target.id, { status: 'triaged' }).catch((e) => e)
+    expect(error).toBeInstanceOf(Error)
+    expect(error.message).toContain('audit unavailable')
+
+    // The status change rolled back with the failed audit write…
+    const after = await getAlertById(ctx, target.id)
+    expect(after!.status).toBe('new')
+    expect(after!.triagedAt).toBeNull()
+
+    // …and no audit row was committed for it.
+    const triage = await listAudit(ctx, { limit: 50, action: 'alert.triage' })
+    expect(triage.items.filter((e) => e.targetId === target.id).length).toBe(0)
+
+    // Subsequent patch (audit healthy again) succeeds and audits exactly once.
+    const retried = await patchAlert(ctx, target.id, { status: 'triaged' })
+    expect(retried!.status).toBe('triaged')
+    const triageAfter = await listAudit(ctx, { limit: 50, action: 'alert.triage' })
+    expect(triageAfter.items.filter((e) => e.targetId === target.id).length).toBe(1)
   })
 
   it('is admin-only and tenant-isolated', async () => {
