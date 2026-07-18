@@ -1,15 +1,34 @@
 import './css/style.css' // Global base styles
 import type { Metadata, Viewport } from 'next'
-import { Inter } from 'next/font/google'
+import { IBM_Plex_Mono, IBM_Plex_Sans, Inter } from 'next/font/google'
 import localFont from 'next/font/local'
 
 import AppProvider from './app-provider'
+import { THEME_INIT_SCRIPT } from './lib/theme-script'
 import Theme from './theme-provider'
 
 const inter = Inter({
   subsets: ['latin'],
   display: 'swap',
   variable: '--font-inter',
+})
+
+/*
+ * Product fonts live on <html> (not the overview layout) so portaled overlays
+ * (Headless UI menus/dialogs render into <body>) inherit product typography.
+ */
+const productSans = IBM_Plex_Sans({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  display: 'swap',
+  variable: '--font-product-sans',
+})
+
+const productMono = IBM_Plex_Mono({
+  subsets: ['latin'],
+  weight: ['400', '500'],
+  display: 'swap',
+  variable: '--font-product-mono',
 })
 
 const uncutsans = localFont({
@@ -61,7 +80,11 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={`${inter.variable} ${uncutsans.variable}`} suppressHydrationWarning>{/* suppressHydrationWarning: https://github.com/vercel/next.js/issues/44343 */}
+    <html lang="en" className={`${inter.variable} ${uncutsans.variable} ${productSans.variable} ${productMono.variable}`} suppressHydrationWarning>{/* suppressHydrationWarning: https://github.com/vercel/next.js/issues/44343 */}
+      <head>
+        {/* Blocking theme init — first paint must match the stored/system theme */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+      </head>
       <body className="font-inter antialiased" suppressHydrationWarning>
         <Theme>
           <AppProvider>

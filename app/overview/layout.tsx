@@ -1,23 +1,10 @@
-import { IBM_Plex_Mono, IBM_Plex_Sans } from 'next/font/google'
 import { redirect } from 'next/navigation'
 
 import { AppShell } from '@/src/components/layout'
 import { getOrgContext, getSession } from '@server/auth/context'
 
-const productSans = IBM_Plex_Sans({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
-  display: 'swap',
-  variable: '--font-product-sans',
-})
-
-const productMono = IBM_Plex_Mono({
-  subsets: ['latin'],
-  weight: ['400', '500'],
-  display: 'swap',
-  variable: '--font-product-mono',
-})
-
+/* Product font variables are declared on <html> in the root layout so that
+ * portaled overlays (menus, dialogs) inherit product typography. */
 export default async function OverviewLayout({
   children,
 }: {
@@ -29,9 +16,5 @@ export default async function OverviewLayout({
   const ctx = await getOrgContext()
   if (!ctx) redirect('/onboarding')
 
-  return (
-    <div className={`${productSans.variable} ${productMono.variable}`}>
-      <AppShell>{children}</AppShell>
-    </div>
-  )
+  return <AppShell>{children}</AppShell>
 }

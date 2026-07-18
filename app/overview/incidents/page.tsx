@@ -7,7 +7,6 @@ import {
   OverviewModal,
   OverviewPageHeader,
   OverviewPageShell,
-  OverviewSection,
 } from '@/components/overview/unified-ui'
 import type { IncidentDetailDto, IncidentDto, IncidentPatch } from '@domain/entities/incident'
 import type { MemberDto } from '@domain/entities/member'
@@ -162,9 +161,12 @@ export default function IncidentsPage() {
         </div>
       )}
 
-      <div className="mb-4 flex justify-end">
+      <div className="mb-4 flex items-center justify-end gap-2">
+        <span className="text-xs tabular-nums text-[color:var(--soc-text-muted)]" aria-live="polite">
+          {loading ? 'Loading…' : `${items.length} incidents`}
+        </span>
         <select
-          className="soc-input h-9 min-h-9 box-border text-sm"
+          className="soc-select"
           value={status}
           onChange={(e) => setStatus(e.target.value as IncidentStatus | '')}
           aria-label="Filter by status"
@@ -176,11 +178,7 @@ export default function IncidentsPage() {
         </select>
       </div>
 
-      <OverviewSection title="INCIDENTS" flush right={(
-        <span className="text-xs tabular-nums" style={{ color: 'var(--soc-text-muted)' }}>
-          {loading ? 'Loading…' : `${items.length} total`}
-        </span>
-      )}>
+      <div className="soc-panel overflow-hidden">
         {loading ? (
           <TableSkeleton rows={6} />
         ) : error ? (
@@ -233,7 +231,7 @@ export default function IncidentsPage() {
             </tbody>
           </table>
         )}
-      </OverviewSection>
+      </div>
 
       {/* ── Incident detail modal ── */}
       <OverviewModal
@@ -296,7 +294,7 @@ export default function IncidentsPage() {
                 <label className="flex max-w-xs flex-col gap-1">
                   <span className="soc-label">Owner</span>
                   <select
-                    className="soc-input h-9 min-h-9 box-border text-sm"
+                    className="soc-select w-full"
                     value={detail.ownerMembershipId ?? ''}
                     disabled={busy || nextStatuses(INCIDENT_TRANSITIONS, detail.status).length === 0}
                     onChange={(e) => void applyPatch({ ownerMembershipId: e.target.value || null })}

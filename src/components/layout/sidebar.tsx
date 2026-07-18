@@ -124,7 +124,7 @@ export function ProductSidebar() {
     <div className={sidebarExpanded ? 'sidebar-expanded' : ''}>
       {/* Mobile backdrop */}
       <div
-        className={`fixed inset-0 z-[var(--z-sidebar)] bg-black/40 lg:hidden transition-opacity ${
+        className={`fixed inset-0 z-[var(--z-sidebar)] bg-[color:var(--soc-scrim)] lg:hidden transition-opacity ${
           sidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
         aria-hidden={!sidebarOpen}
@@ -163,7 +163,7 @@ export function ProductSidebar() {
           {NAV_SECTIONS.map((section, idx) => (
             <div key={section.label ?? 'root'} className={idx > 0 ? 'mt-5' : ''}>
               {section.label ? (
-                <p className="px-2 mb-1 text-[10.5px] font-medium uppercase tracking-[0.07em] text-[color:var(--soc-text-dim)]">
+                <p className="px-2 mb-1 text-[11px] font-medium uppercase tracking-[0.06em] text-[color:var(--soc-text-muted)]">
                   {section.label}
                 </p>
               ) : null}
@@ -177,22 +177,22 @@ export function ProductSidebar() {
                         onClick={() => setSidebarOpen(false)}
                         className={`relative flex items-center gap-2.5 rounded-[var(--radius-md)] px-2 py-[7px] text-[13px] leading-none transition-colors duration-[var(--duration-fast)] ${
                           active
-                            ? 'bg-white/[0.06] text-[color:var(--soc-text)] font-medium'
-                            : 'text-[color:var(--soc-text-secondary)] hover:bg-white/[0.04] hover:text-[color:var(--soc-text)]'
+                            ? 'bg-[color:var(--soc-selected)] text-[color:var(--soc-text)] font-medium'
+                            : 'text-[color:var(--soc-text-secondary)] hover:bg-[color:var(--soc-hover)] hover:text-[color:var(--soc-text)]'
                         }`}
                         aria-current={active ? 'page' : undefined}
                       >
                         {active ? (
                           <span
                             aria-hidden
-                            className="absolute left-[-3px] top-1/2 -translate-y-1/2 h-3.5 w-[2px] rounded-full bg-[color:var(--soc-accent)]"
+                            className="absolute left-0 top-1/2 -translate-y-1/2 h-3.5 w-[2px] rounded-full bg-[color:var(--soc-accent)]"
                           />
                         ) : null}
                         <Icon
                           name={item.icon}
                           className={`text-[15px] shrink-0 ${
                             active
-                              ? 'text-[color:var(--soc-text-secondary)]'
+                              ? 'text-[color:var(--soc-text)]'
                               : 'text-[color:var(--soc-text-muted)]'
                           }`}
                         />

@@ -1,67 +1,97 @@
 /**
- * M3 product design tokens — Checkpoint 1 (revision 2).
+ * M3 product design tokens — Checkpoint 1 (correction).
  *
- * Direction: lighter graphite/slate hierarchy with visible surface levels —
- * enterprise engineering platform, not a dark cyber dashboard. Dark is the
- * only shipped theme; light values are reserved. One operational density.
+ * Single source of truth for the product shell. BOTH themes are first-class:
+ * light values are the default under `.product-shell`; dark values are applied
+ * when the resolved html theme class is `dark`. Components must never hardcode
+ * theme colors, `dark:` overrides, or z-index values — they consume the
+ * semantic tokens and the z-scale defined here.
  *
- * Surface ladder (darkest → lightest):
- *   inset < shell < sidebar < bg (page canvas) < surface < raised < overlay
- * The page canvas is visibly lighter than the outer shell so navigation,
- * canvas, sections, and overlays read as distinct zones at a glance.
+ * Surface ladder:
+ *   dark : inset < shell < sidebar < bg (canvas) < surface < raised < overlay
+ *   light: inset < shell < sidebar < bg (canvas) < surface (white); raised and
+ *          overlay are subtle fills below surface.
  *
  * Applied under `.product-shell`. Marketing landing styles are untouched.
+ * Portaled overlays (menus, dialogs) must carry `overview-dashboard
+ * product-shell` on their root so they inherit the active theme.
  */
 
+/* ═══ LIGHT THEME (default) ═══ */
 .overview-dashboard.product-shell,
 .product-shell {
-  /* ── Surface hierarchy (neutral graphite, no near-black canvas) ── */
-  --soc-inset: #131418;
-  --soc-shell: #17181c;
-  --soc-sidebar: #1c1e23;
-  --soc-bg: #212328;
-  --soc-surface: #26282e;
-  --soc-raised: #2c2f35;
-  --soc-overlay: #34373e;
+  /* ── Surface hierarchy ── */
+  --soc-inset: #e8eaee;
+  --soc-shell: #eceef1;
+  --soc-sidebar: #f4f5f7;
+  --soc-bg: #f8f9fa;
+  --soc-surface: #ffffff;
+  --soc-raised: #f4f5f7;
+  --soc-overlay: #eef0f3;
+  --soc-menu: #ffffff;
+  --soc-input-bg: #ffffff;
 
-  /* ── Borders (structural, restrained) ── */
-  --soc-border: rgba(255, 255, 255, 0.08);
-  --soc-border-mid: rgba(255, 255, 255, 0.13);
-  --soc-border-strong: rgba(255, 255, 255, 0.24);
-  --soc-focus-ring: #8b9af0;
+  /* ── Borders ── */
+  --soc-border: #e3e6ea;
+  --soc-border-mid: #cdd2d9;
+  --soc-border-strong: #9aa3b2;
+  --soc-focus-ring: #4655c4;
 
-  /* ── Text (neutral, editorial contrast steps) ── */
-  --soc-text: #e7e9ec;
-  --soc-text-secondary: #a8adb5;
-  --soc-text-muted: #7d838c;
-  --soc-text-dim: #4d525a;
-  --soc-text-inverse: #17181c;
+  /* ── Text ── */
+  --soc-text: #16181d;
+  --soc-text-secondary: #4a5158;
+  --soc-text-muted: #6e7681;
+  --soc-text-dim: #9aa3b2;
+  --soc-text-disabled: #adb4bf;
+  --soc-text-inverse: #f8f9fa;
 
-  /* ── Accent (muted indigo — selective use only) ── */
-  --soc-accent: #7d8ee8;
-  --soc-accent-hover: #96a5ef;
-  --soc-accent-bg: rgba(125, 142, 232, 0.1);
-  --soc-accent-text: #b6c1f5;
+  /* ── Interaction fills ── */
+  --soc-hover: rgba(22, 24, 29, 0.045);
+  --soc-selected: rgba(22, 24, 29, 0.06);
+  --soc-scrim: rgba(15, 17, 21, 0.35);
+
+  /* ── Accent ── */
+  --soc-accent: #4655c4;
+  --soc-accent-hover: #3947ab;
+  --soc-accent-bg: #eef0fc;
+  --soc-accent-text: #3947ab;
+  --soc-accent-contrast: #ffffff;
+  --soc-knob: #ffffff;
 
   /* ── Severity (indicators only, never large fills) ── */
-  --soc-critical: #e57373;
-  --soc-critical-bg: rgba(229, 115, 115, 0.1);
-  --soc-high: #d99155;
-  --soc-high-bg: rgba(217, 145, 85, 0.1);
-  --soc-medium: #c9a648;
-  --soc-medium-bg: rgba(201, 166, 72, 0.1);
-  --soc-low: #6b9fce;
-  --soc-low-bg: rgba(107, 159, 206, 0.1);
+  --soc-critical: #c93a3a;
+  --soc-critical-bg: #fbeeee;
+  --soc-high: #c05e1a;
+  --soc-high-bg: #fbf1e8;
+  --soc-medium: #9a7b12;
+  --soc-medium-bg: #f9f4e4;
+  --soc-low: #33689c;
+  --soc-low-bg: #ecf2f9;
 
   /* ── Status (separate from severity) ── */
-  --soc-success: #66b28a;
-  --soc-success-bg: rgba(102, 178, 138, 0.1);
-  --soc-warning: #c9a648;
-  --soc-warning-bg: rgba(201, 166, 72, 0.1);
-  --soc-info: #6b9fce;
-  --soc-info-bg: rgba(107, 159, 206, 0.1);
-  --soc-danger: #e57373;
-  --soc-danger-bg: rgba(229, 115, 115, 0.1);
+  --soc-success: #257a4c;
+  --soc-success-bg: #ebf5ef;
+  --soc-warning: #9a7b12;
+  --soc-warning-bg: #f9f4e4;
+  --soc-info: #33689c;
+  --soc-info-bg: #ecf2f9;
+  --soc-danger: #c93a3a;
+  --soc-danger-bg: #fbeeee;
+  --soc-destructive: var(--soc-danger);
+  --soc-destructive-bg: var(--soc-danger-bg);
+
+  /* ── Elevation ── */
+  --soc-shadow-menu:
+    0 1px 2px rgba(15, 17, 21, 0.06),
+    0 8px 24px rgba(15, 17, 21, 0.1);
+  --soc-shadow-modal:
+    0 0 0 1px rgba(15, 17, 21, 0.04),
+    0 4px 16px rgba(15, 17, 21, 0.08),
+    0 20px 56px rgba(15, 17, 21, 0.16);
+  --shadow-sm: 0 1px 0 rgba(15, 17, 21, 0.05);
+
+  /* ── Controls ── */
+  --soc-select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' fill='none'%3E%3Cpath d='M3 4.5L6 7.5L9 4.5' stroke='%234a5158' stroke-width='1.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
 
   /* ── Spacing (4px base, one operational density) ── */
   --space-1: 0.25rem;
@@ -72,21 +102,26 @@
   --space-6: 1.5rem;
   --space-8: 2rem;
 
-  /* ── Radii (restrained) ── */
+  /* ── Radii ── */
   --radius-sm: 0.25rem;
   --radius-md: 0.375rem;
   --radius-lg: 0.5rem;
 
-  /* ── Elevation (borders and surface shifts, not shadows) ── */
-  --shadow-sm: 0 1px 0 rgba(0, 0, 0, 0.25);
-
-  /* ── Z-index ── */
-  --z-sticky: 30;
+  /*
+   * ── Z-scale (semantic stacking model — the ONLY allowed z-index source) ──
+   * content(0) < sticky table header(10) < app header(20) < sidebar overlay(30)
+   * < dropdown/popover(40) < drawer(50) < modal(60) < toast(70) < skip link(100)
+   */
+  --z-content: 0;
+  --z-sticky: 10;
+  --z-header: 20;
+  --z-sidebar: 30;
   --z-dropdown: 40;
-  --z-sidebar: 50;
-  --z-drawer: 55;
+  --z-popover: 40;
+  --z-drawer: 50;
   --z-modal: 60;
   --z-toast: 70;
+  --z-skip-link: 100;
 
   /* ── Motion ── */
   --duration-fast: 120ms;
@@ -125,26 +160,79 @@
   letter-spacing: -0.006em;
 }
 
-/* Future light theme hook — not shipped in M3; values reserved. */
-html.light .product-shell-light-ready {
-  --soc-inset: #e8eaee;
-  --soc-shell: #eceef1;
-  --soc-sidebar: #f4f5f7;
-  --soc-bg: #f8f9fa;
-  --soc-surface: #ffffff;
-  --soc-raised: #f4f5f7;
-  --soc-overlay: #eceef1;
-  --soc-border: #e2e5ea;
-  --soc-border-mid: #c9ced6;
-  --soc-border-strong: #9aa3b2;
-  --soc-text: #16181d;
-  --soc-text-secondary: #4a5158;
+/* ═══ DARK THEME (resolved html theme class) ═══ */
+.dark .product-shell,
+html.dark .product-shell {
+  /* ── Surface hierarchy (neutral graphite, no near-black canvas) ── */
+  --soc-inset: #131418;
+  --soc-shell: #17181c;
+  --soc-sidebar: #1c1e23;
+  --soc-bg: #212328;
+  --soc-surface: #26282e;
+  --soc-raised: #2c2f35;
+  --soc-overlay: #34373e;
+  --soc-menu: #2c2f35;
+  --soc-input-bg: #26282e;
+
+  /* ── Borders ── */
+  --soc-border: rgba(255, 255, 255, 0.08);
+  --soc-border-mid: rgba(255, 255, 255, 0.13);
+  --soc-border-strong: rgba(255, 255, 255, 0.24);
+  --soc-focus-ring: #8b9af0;
+
+  /* ── Text ── */
+  --soc-text: #e7e9ec;
+  --soc-text-secondary: #a8adb5;
   --soc-text-muted: #7d838c;
-  --soc-text-dim: #c5cad3;
-  --soc-accent: #4655c4;
-  --soc-accent-hover: #3947ab;
-  --soc-accent-bg: #eef0fc;
-  --soc-accent-text: #3947ab;
+  --soc-text-dim: #5d636c;
+  --soc-text-disabled: #4d525a;
+  --soc-text-inverse: #17181c;
+
+  /* ── Interaction fills ── */
+  --soc-hover: rgba(231, 233, 236, 0.05);
+  --soc-selected: rgba(231, 233, 236, 0.07);
+  --soc-scrim: rgba(0, 0, 0, 0.55);
+
+  /* ── Accent (muted indigo — selective use only) ── */
+  --soc-accent: #7d8ee8;
+  --soc-accent-hover: #96a5ef;
+  --soc-accent-bg: rgba(125, 142, 232, 0.1);
+  --soc-accent-text: #b6c1f5;
+  --soc-accent-contrast: #16181d;
+  --soc-knob: #e7e9ec;
+
+  /* ── Severity ── */
+  --soc-critical: #e57373;
+  --soc-critical-bg: rgba(229, 115, 115, 0.1);
+  --soc-high: #d99155;
+  --soc-high-bg: rgba(217, 145, 85, 0.1);
+  --soc-medium: #c9a648;
+  --soc-medium-bg: rgba(201, 166, 72, 0.1);
+  --soc-low: #6b9fce;
+  --soc-low-bg: rgba(107, 159, 206, 0.1);
+
+  /* ── Status ── */
+  --soc-success: #66b28a;
+  --soc-success-bg: rgba(102, 178, 138, 0.1);
+  --soc-warning: #c9a648;
+  --soc-warning-bg: rgba(201, 166, 72, 0.1);
+  --soc-info: #6b9fce;
+  --soc-info-bg: rgba(107, 159, 206, 0.1);
+  --soc-danger: #e57373;
+  --soc-danger-bg: rgba(229, 115, 115, 0.1);
+
+  /* ── Elevation ── */
+  --soc-shadow-menu:
+    0 1px 2px rgba(0, 0, 0, 0.4),
+    0 8px 24px rgba(0, 0, 0, 0.35);
+  --soc-shadow-modal:
+    0 0 0 1px rgba(0, 0, 0, 0.2),
+    0 4px 16px rgba(0, 0, 0, 0.35),
+    0 20px 56px rgba(0, 0, 0, 0.45);
+  --shadow-sm: 0 1px 0 rgba(0, 0, 0, 0.25);
+
+  /* ── Controls ── */
+  --soc-select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' fill='none'%3E%3Cpath d='M3 4.5L6 7.5L9 4.5' stroke='%23a8adb5' stroke-width='1.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
 }
 
 /* Focus — visible, never removed */
@@ -155,10 +243,6 @@ html.light .product-shell-light-ready {
 .product-shell :focus-visible {
   outline: 2px solid var(--soc-focus-ring);
   outline-offset: 2px;
-}
-
-.product-shell :focus-visible:not(:focus) {
-  outline: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -186,20 +270,81 @@ html.light .product-shell-light-ready {
   border-radius: var(--radius-md);
 }
 
-/* Skip link for keyboard users */
-.product-shell .soc-skip-link {
-  position: absolute;
-  left: var(--space-4);
-  top: -100px;
-  z-index: var(--z-toast);
+/*
+ * Shared select / filter control — one treatment for every native select in
+ * the product shell. Height, radius, typography, and chevron placement match
+ * the search input so toolbar controls read as one family.
+ */
+.product-shell .soc-select {
+  appearance: none;
+  -webkit-appearance: none;
+  height: 2rem;
+  padding: 0 1.75rem 0 0.625rem;
+  border: 1px solid var(--soc-border-mid);
+  border-radius: var(--radius-md);
+  background-color: var(--soc-input-bg);
+  background-image: var(--soc-select-chevron);
+  background-repeat: no-repeat;
+  background-position: right 0.5rem center;
+  color: var(--soc-text-secondary);
+  font-size: 0.8125rem;
+  font-weight: 400;
+  line-height: 1.9rem;
+  transition: border-color var(--duration-fast), background-color var(--duration-fast), color var(--duration-fast);
+}
+
+.product-shell .soc-select:hover:not(:disabled) {
+  background-color: var(--soc-hover);
+  color: var(--soc-text);
+}
+
+.product-shell .soc-select:focus {
+  border-color: var(--soc-accent);
+}
+
+.product-shell .soc-select:disabled {
+  color: var(--soc-text-disabled);
+  background-color: var(--soc-raised);
+}
+
+.product-shell select.soc-select option {
+  background-color: var(--soc-menu);
+  color: var(--soc-text);
+}
+
+/*
+ * Skip link — visually hidden (sr-only) until keyboard focus, then fixed above
+ * all application chrome. Never affects document layout.
+ */
+.soc-skip-link {
+  position: fixed;
+  top: var(--space-3, 0.75rem);
+  left: var(--space-3, 0.75rem);
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+  z-index: var(--z-skip-link, 100);
+}
+
+.soc-skip-link:focus-visible {
+  width: auto;
+  height: auto;
+  margin: 0;
+  overflow: visible;
+  clip: auto;
+  clip-path: none;
   padding: var(--space-2) var(--space-3);
   background: var(--soc-accent);
-  color: #fff;
+  color: var(--soc-accent-contrast);
   border-radius: var(--radius-md);
   font-size: 0.75rem;
   font-weight: 600;
-}
-
-.product-shell .soc-skip-link:focus {
-  top: var(--space-4);
+  outline: 2px solid var(--soc-focus-ring);
+  outline-offset: 2px;
 }

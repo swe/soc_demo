@@ -49,7 +49,8 @@ const toneClass: Record<NonNullable<KpiItem['tone']>, string> = {
 }
 
 /** Shared control height applied via className. */
-export const overviewControlHeight = 'h-9 min-h-9 box-border' as const
+/** One control height for toolbar-level inputs, selects, and toggles. */
+export const overviewControlHeight = 'h-8 min-h-8 box-border' as const
 
 // ─── OverviewPageShell ────────────────────────────────────────────────────────
 
@@ -191,7 +192,7 @@ export function OverviewTableToolbar({
       </div>
       <div className="order-2 w-full min-w-0 lg:order-1 lg:max-w-md lg:flex-1">
         <input
-          className={`soc-input w-full text-sm leading-none ${overviewControlHeight}`}
+          className={`soc-input w-full text-[13px] leading-none ${overviewControlHeight}`}
           placeholder={searchPlaceholder}
           value={searchValue}
           onChange={(e) => onSearchChange(e.target.value)}
@@ -238,7 +239,7 @@ export function OverviewToggle({
         }`}
         aria-hidden
       >
-        <span className="pointer-events-none block h-[18px] w-[18px] shrink-0 rounded-full bg-white shadow-sm transition-transform duration-200 ease-out" />
+        <span className="pointer-events-none block h-[18px] w-[18px] shrink-0 rounded-full bg-[color:var(--soc-knob,#fff)] shadow-sm transition-transform duration-200 ease-out" />
       </span>
     </button>
   )
@@ -740,7 +741,7 @@ export function OverviewRowsPerPageMenu({
       {open && (
         <div
           className="absolute right-0 mt-1 min-w-full rounded-md border border-[color:var(--soc-border-mid)]
-            bg-[color:var(--soc-surface)] py-1 z-40 overflow-hidden shadow-[0_12px_40px_rgba(0,0,0,0.14)]"
+            bg-[color:var(--soc-menu,var(--soc-surface))] py-1 z-[var(--z-dropdown,40)] overflow-hidden shadow-[var(--soc-shadow-menu,0_12px_40px_rgba(0,0,0,0.14))]"
           role="listbox"
         >
           {options.map((n) => (
@@ -850,9 +851,9 @@ export function OverviewFilterMenu({
 
       {open && (
         <div
-          className="absolute left-0 right-0 z-40 mt-1 max-h-[min(70vh,28rem)] overflow-y-auto
-            rounded-lg border border-[color:var(--soc-border-mid)] bg-[color:var(--soc-surface)]
-            shadow-[0_12px_40px_rgba(0,0,0,0.14)] sm:left-auto sm:right-0 sm:w-64"
+          className="absolute left-0 right-0 z-[var(--z-dropdown,40)] mt-1 max-h-[min(70vh,28rem)] overflow-y-auto
+            rounded-lg border border-[color:var(--soc-border-mid)] bg-[color:var(--soc-menu,var(--soc-surface))]
+            shadow-[var(--soc-shadow-menu,0_12px_40px_rgba(0,0,0,0.14))] sm:left-auto sm:right-0 sm:w-64"
           role="listbox"
         >
           <p className="soc-label px-3 pt-3 pb-1">Filters</p>
@@ -1019,7 +1020,7 @@ export function OverviewDateRangeMenu({
       {open && (
         <div
           className="absolute right-0 mt-1 w-72 rounded-lg border border-[color:var(--soc-border-mid)]
-            bg-[color:var(--soc-surface)] p-3 z-40 shadow-[0_12px_40px_rgba(0,0,0,0.14)]"
+            bg-[color:var(--soc-menu,var(--soc-surface))] p-3 z-[var(--z-dropdown,40)] shadow-[var(--soc-shadow-menu,0_12px_40px_rgba(0,0,0,0.14))]"
         >
           <p className="soc-label mb-2">Date range</p>
           <div className="flex flex-col gap-2">
@@ -1113,13 +1114,13 @@ export function OverviewModal({
   if (!open) return null
 
   return (
-    <Dialog open onClose={onClose} className="relative z-50 overview-dashboard">
+    <Dialog open onClose={onClose} className="relative z-[var(--z-modal,60)] overview-dashboard product-shell">
       <DialogBackdrop
         transition
         className="fixed inset-0 transition-opacity duration-150 ease-out data-[closed]:opacity-0"
-        style={{ backgroundColor: 'rgba(0,0,0,0.52)', backdropFilter: 'blur(3px)' }}
+        style={{ backgroundColor: 'var(--soc-scrim, rgba(0,0,0,0.52))', backdropFilter: 'blur(3px)' }}
       />
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+      <div className="fixed inset-0 z-[var(--z-modal,60)] flex items-center justify-center p-4 sm:p-6">
         <DialogPanel
           transition
           className={`relative flex w-full ${maxWidth} max-h-[90vh] flex-col overflow-hidden transition-all duration-150 ease-out data-[closed]:opacity-0 data-[closed]:scale-[0.97]`}
@@ -1128,7 +1129,7 @@ export function OverviewModal({
             border: '1px solid var(--soc-border-mid)',
             background: 'var(--soc-surface)',
             color: 'var(--soc-text)',
-            boxShadow: '0 0 0 1px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.1), 0 20px 56px rgba(0,0,0,0.18)',
+            boxShadow: 'var(--soc-shadow-modal, 0 0 0 1px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.1), 0 20px 56px rgba(0,0,0,0.18))',
           }}
         >
           {/* ── Header ── */}
@@ -1246,13 +1247,13 @@ export function OverviewStepModal({
   if (!open) return null
 
   return (
-    <Dialog open onClose={onClose} className="relative z-50 overview-dashboard">
+    <Dialog open onClose={onClose} className="relative z-[var(--z-modal,60)] overview-dashboard product-shell">
       <DialogBackdrop
         transition
         className="fixed inset-0 transition-opacity duration-150 ease-out data-[closed]:opacity-0"
-        style={{ backgroundColor: 'rgba(0,0,0,0.52)', backdropFilter: 'blur(3px)' }}
+        style={{ backgroundColor: 'var(--soc-scrim, rgba(0,0,0,0.52))', backdropFilter: 'blur(3px)' }}
       />
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+      <div className="fixed inset-0 z-[var(--z-modal,60)] flex items-center justify-center p-4 sm:p-6">
         <DialogPanel
           transition
           className={`relative flex w-full ${maxWidth} max-h-[90vh] flex-col overflow-hidden transition-all duration-150 ease-out data-[closed]:opacity-0 data-[closed]:scale-[0.97]`}
@@ -1261,7 +1262,7 @@ export function OverviewStepModal({
             border: '1px solid var(--soc-border-mid)',
             background: 'var(--soc-surface)',
             color: 'var(--soc-text)',
-            boxShadow: '0 0 0 1px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.1), 0 20px 56px rgba(0,0,0,0.18)',
+            boxShadow: 'var(--soc-shadow-modal, 0 0 0 1px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.1), 0 20px 56px rgba(0,0,0,0.18))',
           }}
         >
           {/* ── Header ── */}

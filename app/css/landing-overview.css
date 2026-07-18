@@ -598,7 +598,7 @@ html {
 
 .soc-btn-primary {
   background-color: var(--soc-accent);
-  color: #fff;
+  color: var(--soc-accent-contrast, #fff);
   border-color: var(--soc-accent);
 }
 
@@ -650,7 +650,7 @@ html {
    ═══════════════════════════════════════════════ */
 
 .soc-input {
-  background-color: var(--soc-surface);
+  background-color: var(--soc-input-bg, var(--soc-surface));
   border: 1px solid var(--soc-border-mid);
   border-radius: 0.375rem;
   padding: 0.375rem 0.625rem;

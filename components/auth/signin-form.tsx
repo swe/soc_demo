@@ -8,7 +8,11 @@ import { useState } from 'react'
 export default function SignInForm({ googleEnabled }: { googleEnabled: boolean }) {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const callbackUrl = searchParams.get('callbackUrl') ?? '/overview'
+  const rawCallbackUrl = searchParams.get('callbackUrl') ?? '/overview'
+  // Same-origin paths only — never redirect off-site after login.
+  const callbackUrl = rawCallbackUrl.startsWith('/') && !rawCallbackUrl.startsWith('//')
+    ? rawCallbackUrl
+    : '/overview'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -28,8 +32,10 @@ export default function SignInForm({ googleEnabled }: { googleEnabled: boolean }
       setLoading(false)
       return
     }
-    router.push(callbackUrl)
-    router.refresh()
+    // Full navigation (not router.push): SessionProvider mounts once in the
+    // root layout and caches the pre-login null session on soft navigation,
+    // which left the header identity showing its placeholder.
+    window.location.assign(callbackUrl)
   }
 
   return (

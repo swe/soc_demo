@@ -7,8 +7,6 @@ import {
   OverviewModal,
   OverviewPageHeader,
   OverviewPageShell,
-  OverviewSection,
-  OverviewTableToolbar,
 } from '@/components/overview/unified-ui'
 import type { AlertDetailDto, AlertDto, AlertPatch } from '@domain/entities/alert'
 import type { MemberDto } from '@domain/entities/member'
@@ -230,43 +228,46 @@ export default function AlertsPage() {
         description="Alerts from connected detection sources, newest first."
       />
 
-      <OverviewTableToolbar
-        searchValue={search}
-        onSearchChange={setSearch}
-        searchPlaceholder="Search alerts by title or description…"
-        end={(
-          <div className="flex items-center gap-2">
-            <select
-              className="soc-input h-9 min-h-9 box-border text-sm"
-              value={severity}
-              onChange={(e) => setSeverity(e.target.value as Severity | '')}
-              aria-label="Filter by severity"
-            >
-              <option value="">All severities</option>
-              {SEVERITIES.map((s) => (
-                <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
-              ))}
-            </select>
-            <select
-              className="soc-input h-9 min-h-9 box-border text-sm"
-              value={status}
-              onChange={(e) => setStatus(e.target.value as AlertStatus | '')}
-              aria-label="Filter by status"
-            >
-              <option value="">All statuses</option>
-              {ALERT_STATUSES.map((s) => (
-                <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
-              ))}
-            </select>
-          </div>
-        )}
-      />
+      {/* One toolbar row: search, result count, filters — one control family. */}
+      <div className="mb-4 flex flex-col gap-2 lg:flex-row lg:items-center">
+        <input
+          className="soc-input h-8 min-h-8 box-border w-full text-[13px] lg:max-w-sm"
+          placeholder="Search alerts by title or description…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          aria-label="Search alerts"
+        />
+        <div className="flex items-center gap-2 lg:ml-auto">
+          <span className="text-xs tabular-nums text-[color:var(--soc-text-muted)]" aria-live="polite">
+            {loading ? 'Loading…' : nextCursor ? `First ${items.length} alerts` : `${items.length} alerts`}
+          </span>
+          <select
+            className="soc-select"
+            value={severity}
+            onChange={(e) => setSeverity(e.target.value as Severity | '')}
+            aria-label="Filter by severity"
+          >
+            <option value="">All severities</option>
+            {SEVERITIES.map((s) => (
+              <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
+            ))}
+          </select>
+          <select
+            className="soc-select"
+            value={status}
+            onChange={(e) => setStatus(e.target.value as AlertStatus | '')}
+            aria-label="Filter by status"
+          >
+            <option value="">All statuses</option>
+            {ALERT_STATUSES.map((s) => (
+              <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
+            ))}
+          </select>
+        </div>
+      </div>
 
-      <OverviewSection title="ALERTS" flush right={(
-        <span className="text-xs tabular-nums" style={{ color: 'var(--soc-text-muted)' }}>
-          {loading ? 'Loading…' : `${items.length}${nextCursor ? '+' : ''} shown`}
-        </span>
-      )}>
+      {/* Single table surface — no repeated ALERTS heading, one clear boundary. */}
+      <div className="soc-panel overflow-hidden">
         {loading ? (
           <TableSkeleton rows={10} />
         ) : error ? (
@@ -336,7 +337,7 @@ export default function AlertsPage() {
             )}
           </>
         )}
-      </OverviewSection>
+      </div>
 
       {/* ── Alert detail modal ── */}
       <OverviewModal
@@ -479,7 +480,7 @@ export default function AlertsPage() {
                 {dismissOpen && (
                   <div className="flex items-center gap-2">
                     <input
-                      className="soc-input h-9 min-h-9 box-border flex-1 text-sm"
+                      className="soc-input h-8 min-h-8 box-border flex-1 text-[13px]"
                       placeholder="Dismissal reason (required)"
                       value={dismissReason}
                       onChange={(e) => setDismissReason(e.target.value)}
@@ -499,7 +500,7 @@ export default function AlertsPage() {
                   <label className="flex flex-col gap-1">
                     <span className="soc-label">Severity</span>
                     <select
-                      className="soc-input h-9 min-h-9 box-border text-sm"
+                      className="soc-select w-full"
                       value={detail.severity}
                       disabled={busy || nextStatuses(ALERT_TRANSITIONS, detail.status).length === 0}
                       onChange={(e) => void applyPatch({ severity: e.target.value as Severity })}
@@ -512,7 +513,7 @@ export default function AlertsPage() {
                   <label className="flex flex-col gap-1">
                     <span className="soc-label">Assignee</span>
                     <select
-                      className="soc-input h-9 min-h-9 box-border text-sm"
+                      className="soc-select w-full"
                       value={detail.assignedMembershipId ?? ''}
                       disabled={busy || nextStatuses(ALERT_TRANSITIONS, detail.status).length === 0}
                       onChange={(e) => void applyPatch({ assignedMembershipId: e.target.value || null })}

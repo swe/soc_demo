@@ -2,15 +2,18 @@
 
 import { useAppProvider } from '@/app/app-provider'
 import { usePageTitle } from '@/app/page-title-context'
-import DropdownOrg from '@/components/dropdown-org'
-import DropdownProfile from '@/components/dropdown-profile'
 import Icon from '@/components/ui/icon'
 import { useScroll } from '@/components/utils/use-scroll'
 
+import { OrgMenu } from './org-menu'
+import { ProfileMenu } from './profile-menu'
+import { ThemeToggle } from './theme-toggle'
+
 /**
  * Product header — quiet chrome that supports the page rather than competing
- * with it. Sits on the page canvas with a hairline border; org switcher and
- * profile only. Dark theme only in M3 (no theme toggle).
+ * with it. Sits on the page canvas with a hairline border. All colors come
+ * from semantic tokens so the header is readable in both themes; stacking is
+ * governed by the shared z-scale (--z-header).
  */
 export function ProductHeader() {
   const { sidebarOpen, setSidebarOpen } = useAppProvider()
@@ -18,12 +21,14 @@ export function ProductHeader() {
   const isScrolled = useScroll(80)
 
   return (
-    <header className="sticky top-0 z-[var(--z-sticky)] border-b border-[color:var(--soc-border)] bg-[color:var(--soc-bg)]">
+    <header className="sticky top-0 z-[var(--z-header)] border-b border-[color:var(--soc-border)] bg-[color:var(--soc-bg)]">
       <div className="flex h-12 items-center justify-between px-4 sm:px-6">
         <div className="flex items-center gap-3 min-w-0">
           <button
             type="button"
-            className="lg:hidden text-[color:var(--soc-text-muted)] hover:text-[color:var(--soc-text)]"
+            className="lg:hidden inline-flex h-7 w-7 items-center justify-center rounded-[var(--radius-md)]
+              text-[color:var(--soc-text-muted)] transition-colors duration-[var(--duration-fast)]
+              hover:bg-[color:var(--soc-hover)] hover:text-[color:var(--soc-text)]"
             aria-controls="sidebar"
             aria-expanded={sidebarOpen}
             onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -38,10 +43,11 @@ export function ProductHeader() {
           ) : null}
         </div>
 
-        <div className="flex items-center gap-2.5">
-          <DropdownOrg />
-          <div className="w-px h-4 bg-[color:var(--soc-border-mid)]" aria-hidden />
-          <DropdownProfile align="right" />
+        <div className="flex items-center gap-1.5">
+          <ThemeToggle />
+          <div className="w-px h-4 mx-1 bg-[color:var(--soc-border-mid)]" aria-hidden />
+          <OrgMenu />
+          <ProfileMenu />
         </div>
       </div>
     </header>

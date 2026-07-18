@@ -7,7 +7,6 @@ import {
   OverviewModal,
   OverviewPageHeader,
   OverviewPageShell,
-  OverviewSection,
   OverviewTableToolbar,
 } from '@/components/overview/unified-ui'
 import type { IdentityDetailDto, IdentityDto } from '@domain/entities/identity'
@@ -143,8 +142,11 @@ export default function IdentitiesPage() {
         searchPlaceholder="Search identities by name or principal…"
         end={(
           <div className="flex items-center gap-2">
+            <span className="text-xs tabular-nums text-[color:var(--soc-text-muted)]" aria-live="polite">
+              {loading ? 'Loading…' : nextCursor ? `First ${items.length} identities` : `${items.length} identities`}
+            </span>
             <select
-              className="soc-input h-9 min-h-9 box-border text-sm"
+              className="soc-select"
               value={type}
               onChange={(e) => setType(e.target.value as IdentityType | '')}
               aria-label="Filter by type"
@@ -155,7 +157,7 @@ export default function IdentitiesPage() {
               ))}
             </select>
             <select
-              className="soc-input h-9 min-h-9 box-border text-sm"
+              className="soc-select"
               value={tier}
               onChange={(e) => setTier(e.target.value as PrivilegeTier | '')}
               aria-label="Filter by privilege tier"
@@ -169,11 +171,7 @@ export default function IdentitiesPage() {
         )}
       />
 
-      <OverviewSection title="IDENTITIES" flush right={(
-        <span className="text-xs tabular-nums" style={{ color: 'var(--soc-text-muted)' }}>
-          {loading ? 'Loading…' : `${items.length}${nextCursor ? '+' : ''} shown`}
-        </span>
-      )}>
+      <div className="soc-panel overflow-hidden">
         {loading ? (
           <TableSkeleton rows={10} />
         ) : error ? (
@@ -248,7 +246,7 @@ export default function IdentitiesPage() {
             )}
           </>
         )}
-      </OverviewSection>
+      </div>
 
       {/* ── Identity detail modal ── */}
       <OverviewModal

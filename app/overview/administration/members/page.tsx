@@ -113,7 +113,7 @@ export default function MembersPage() {
           <div className="space-y-3">
             <div className="flex flex-wrap items-center gap-2">
               <input
-                className="soc-input h-9 min-h-9 box-border flex-1 text-sm"
+                className="soc-input h-8 min-h-8 box-border flex-1 text-[13px]"
                 style={{ minWidth: '220px' }}
                 type="email"
                 placeholder="name@company.com"
@@ -121,7 +121,7 @@ export default function MembersPage() {
                 onChange={(e) => setInviteEmail(e.target.value)}
               />
               <select
-                className="soc-input h-9 min-h-9 box-border text-sm"
+                className="soc-select"
                 value={inviteRole}
                 onChange={(e) => setInviteRole(e.target.value as Role)}
                 aria-label="Invite role"
@@ -163,7 +163,7 @@ export default function MembersPage() {
 
       <OverviewSection title="MEMBERS" flush right={(
         <span className="text-xs tabular-nums" style={{ color: 'var(--soc-text-muted)' }}>
-          {loading ? 'Loading…' : `${members.length} total`}
+          {loading ? 'Loading…' : `${members.length} members`}
         </span>
       )}>
         {loading ? (
@@ -196,7 +196,7 @@ export default function MembersPage() {
                     <td>
                       {isAdmin ? (
                         <select
-                          className="soc-input h-8 min-h-8 box-border text-xs"
+                          className="soc-select text-xs"
                           value={member.role}
                           disabled={busy}
                           onChange={(e) =>
@@ -253,7 +253,7 @@ export default function MembersPage() {
       {isAdmin && (
         <OverviewSection title="INVITES" flush right={(
           <span className="text-xs tabular-nums" style={{ color: 'var(--soc-text-muted)' }}>
-            {invites.length} total
+            {invites.length} invites
           </span>
         )}>
           {invites.length === 0 ? (

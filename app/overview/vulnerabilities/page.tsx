@@ -7,7 +7,6 @@ import {
   OverviewModal,
   OverviewPageHeader,
   OverviewPageShell,
-  OverviewSection,
   OverviewTableToolbar,
 } from '@/components/overview/unified-ui'
 import type { VulnerabilityDto } from '@domain/entities/vulnerability'
@@ -131,8 +130,11 @@ export default function VulnerabilitiesPage() {
         searchPlaceholder="Search by title or CVE…"
         end={(
           <div className="flex items-center gap-2">
+            <span className="text-xs tabular-nums text-[color:var(--soc-text-muted)]" aria-live="polite">
+              {loading ? 'Loading…' : nextCursor ? `First ${items.length} findings` : `${items.length} findings`}
+            </span>
             <select
-              className="soc-input h-9 min-h-9 box-border text-sm"
+              className="soc-select"
               value={severity}
               onChange={(e) => setSeverity(e.target.value as Severity | '')}
               aria-label="Filter by severity"
@@ -143,7 +145,7 @@ export default function VulnerabilitiesPage() {
               ))}
             </select>
             <select
-              className="soc-input h-9 min-h-9 box-border text-sm"
+              className="soc-select"
               value={status}
               onChange={(e) => setStatus(e.target.value as VulnerabilityStatus | '')}
               aria-label="Filter by status"
@@ -157,11 +159,7 @@ export default function VulnerabilitiesPage() {
         )}
       />
 
-      <OverviewSection title="VULNERABILITIES" flush right={(
-        <span className="text-xs tabular-nums" style={{ color: 'var(--soc-text-muted)' }}>
-          {loading ? 'Loading…' : `${items.length}${nextCursor ? '+' : ''} shown`}
-        </span>
-      )}>
+      <div className="soc-panel overflow-hidden">
         {loading ? (
           <TableSkeleton rows={10} />
         ) : error ? (
@@ -233,7 +231,7 @@ export default function VulnerabilitiesPage() {
             )}
           </>
         )}
-      </OverviewSection>
+      </div>
 
       {/* ── Vulnerability detail modal ── */}
       <OverviewModal

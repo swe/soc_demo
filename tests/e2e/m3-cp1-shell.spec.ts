@@ -46,7 +46,7 @@ test.describe('M3 Checkpoint 1 — product shell', () => {
     await page.screenshot({ path: 'docs/status/evidence/m3-cp1-unavailable.png', fullPage: true, animations: 'disabled' })
 
     await page.goto('/overview/investigations')
-    await expect(page.getByText('Investigations workspace arrives in Checkpoint 4')).toBeVisible()
+    await expect(page.getByText('A dedicated investigations workspace is coming soon')).toBeVisible()
     await page.screenshot({ path: 'docs/status/evidence/m3-cp1-investigations-placeholder.png', fullPage: true, animations: 'disabled' })
 
     await page.goto('/overview/alerts')

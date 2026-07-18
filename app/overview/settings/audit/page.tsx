@@ -6,7 +6,6 @@ import { usePageTitle } from '@/app/page-title-context'
 import {
   OverviewPageHeader,
   OverviewPageShell,
-  OverviewSection,
   OverviewTableToolbar,
 } from '@/components/overview/unified-ui'
 import type { AuditListItemDto } from '@domain/entities/audit'
@@ -120,12 +119,12 @@ export default function AuditPage() {
     return (
       <OverviewPageShell>
         <OverviewPageHeader section="SETTINGS" title="Audit Log" description="Immutable record of all actions in this organization." />
-        <OverviewSection title="AUDIT LOG" flush>
+        <div className="soc-panel overflow-hidden">
           <EmptyState
             title="Admin access required"
             description="The audit log is visible to organization admins only."
           />
-        </OverviewSection>
+        </div>
       </OverviewPageShell>
     )
   }
@@ -144,8 +143,11 @@ export default function AuditPage() {
         searchPlaceholder="Filter by exact action (e.g. alert.triage)…"
         end={(
           <div className="flex items-center gap-2">
+            <span className="text-xs tabular-nums text-[color:var(--soc-text-muted)]" aria-live="polite">
+              {loading ? 'Loading…' : nextCursor ? `First ${items.length} entries` : `${items.length} entries`}
+            </span>
             <select
-              className="soc-input h-9 min-h-9 box-border text-sm"
+              className="soc-select"
               value={targetType}
               onChange={(e) => setTargetType(e.target.value)}
               aria-label="Filter by target type"
@@ -156,7 +158,7 @@ export default function AuditPage() {
               ))}
             </select>
             <select
-              className="soc-input h-9 min-h-9 box-border text-sm"
+              className="soc-select"
               value={actor}
               onChange={(e) => setActor(e.target.value)}
               aria-label="Filter by actor"
@@ -170,11 +172,7 @@ export default function AuditPage() {
         )}
       />
 
-      <OverviewSection title="AUDIT LOG" flush right={(
-        <span className="text-xs tabular-nums" style={{ color: 'var(--soc-text-muted)' }}>
-          {loading ? 'Loading…' : `${items.length}${nextCursor ? '+' : ''} shown`}
-        </span>
-      )}>
+      <div className="soc-panel overflow-hidden">
         {loading || allowed === null ? (
           <TableSkeleton rows={10} />
         ) : error ? (
@@ -233,7 +231,7 @@ export default function AuditPage() {
             )}
           </>
         )}
-      </OverviewSection>
+      </div>
     </OverviewPageShell>
   )
 }

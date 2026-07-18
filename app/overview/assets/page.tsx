@@ -7,7 +7,6 @@ import {
   OverviewModal,
   OverviewPageHeader,
   OverviewPageShell,
-  OverviewSection,
   OverviewTableToolbar,
 } from '@/components/overview/unified-ui'
 import type { AssetDetailDto, AssetDto } from '@domain/entities/asset'
@@ -137,8 +136,11 @@ export default function AssetsPage() {
         searchPlaceholder="Search assets by name…"
         end={(
           <div className="flex items-center gap-2">
+            <span className="text-xs tabular-nums text-[color:var(--soc-text-muted)]" aria-live="polite">
+              {loading ? 'Loading…' : nextCursor ? `First ${items.length} assets` : `${items.length} assets`}
+            </span>
             <select
-              className="soc-input h-9 min-h-9 box-border text-sm"
+              className="soc-select"
               value={type}
               onChange={(e) => setType(e.target.value as AssetType | '')}
               aria-label="Filter by type"
@@ -149,7 +151,7 @@ export default function AssetsPage() {
               ))}
             </select>
             <select
-              className="soc-input h-9 min-h-9 box-border text-sm"
+              className="soc-select"
               value={criticality}
               onChange={(e) => setCriticality(e.target.value as Criticality | '')}
               aria-label="Filter by criticality"
@@ -163,11 +165,7 @@ export default function AssetsPage() {
         )}
       />
 
-      <OverviewSection title="ASSETS" flush right={(
-        <span className="text-xs tabular-nums" style={{ color: 'var(--soc-text-muted)' }}>
-          {loading ? 'Loading…' : `${items.length}${nextCursor ? '+' : ''} shown`}
-        </span>
-      )}>
+      <div className="soc-panel overflow-hidden">
         {loading ? (
           <TableSkeleton rows={10} />
         ) : error ? (
@@ -234,7 +232,7 @@ export default function AssetsPage() {
             )}
           </>
         )}
-      </OverviewSection>
+      </div>
 
       {/* ── Asset detail modal ── */}
       <OverviewModal
