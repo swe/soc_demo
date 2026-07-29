@@ -261,7 +261,9 @@ export function ThreatRelationshipMap({
   );
   const [isMounted, setIsMounted] = React.useState(false);
   const [isFullscreen, setIsFullscreen] = React.useState(false);
-  const flowRef = React.useRef<ReactFlowInstance | null>(null);
+  const flowRef = React.useRef<ReactFlowInstance<ThreatFlowNode, Edge> | null>(
+    null,
+  );
   const { resolvedTheme } = useTheme();
   const flowColorMode = resolvedTheme === "dark" ? "dark" : "light";
   const backgroundDotColor =
