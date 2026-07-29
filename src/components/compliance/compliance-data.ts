@@ -2411,7 +2411,7 @@ export const complianceTimeline: ComplianceEvent[] = [
   },
   {
     id: "evt-02",
-    actor: "Mary Darling",
+    actor: "Sofia Ahmed",
     action: "uploaded evidence for AC-01",
     detail: "MFA enforcement policy export attached to the SOC 2 request list.",
     timeLabel: "1 hour ago",
@@ -2427,7 +2427,7 @@ export const complianceTimeline: ComplianceEvent[] = [
   },
   {
     id: "evt-04",
-    actor: "Tootles",
+    actor: "Owen Lee",
     action: "marked NS-02 evidence as expiring",
     detail: "Firewall review minutes lapse on Aug 22 without a new session.",
     timeLabel: "5 hours ago",
@@ -2435,7 +2435,7 @@ export const complianceTimeline: ComplianceEvent[] = [
   },
   {
     id: "evt-05",
-    actor: "Nibs",
+    actor: "Tia West",
     action: "linked finding FND-03 to VM-02",
     detail: "Patch SLA breach traced to the unmanaged field device cohort.",
     timeLabel: "Yesterday",
@@ -2443,7 +2443,7 @@ export const complianceTimeline: ComplianceEvent[] = [
   },
   {
     id: "evt-06",
-    actor: "Nana",
+    actor: "Dina Moss",
     action: "closed the Northwind vendor review",
     detail: "SOC 2 report reviewed and security terms countersigned.",
     timeLabel: "Yesterday",
@@ -2459,7 +2459,7 @@ export const complianceTimeline: ComplianceEvent[] = [
   },
   {
     id: "evt-08",
-    actor: "Wendy Darling",
+    actor: "Riya Sharma",
     action: "approved the Q2 access recertification",
     detail: "All 14 resource owners returned sign-off within the window.",
     timeLabel: "3 days ago",
@@ -2476,7 +2476,7 @@ export const complianceTimeline: ComplianceEvent[] = [
   },
   {
     id: "evt-10",
-    actor: "Peter Pan",
+    actor: "Ava Reed",
     action: "refreshed ATT&CK coverage mapping",
     detail:
       "Lateral movement coverage rose to 61% after two new detections shipped.",
@@ -2485,7 +2485,7 @@ export const complianceTimeline: ComplianceEvent[] = [
   },
   {
     id: "evt-11",
-    actor: "Nana",
+    actor: "Dina Moss",
     action: "requested a bridge letter from Northwind Pay",
     detail:
       "Subservice SOC 2 report lapsed in June; bridge letter due before ROC close.",
@@ -2494,7 +2494,7 @@ export const complianceTimeline: ComplianceEvent[] = [
   },
   {
     id: "evt-12",
-    actor: "Nibs",
+    actor: "Tia West",
     action: "detected CIS benchmark drift on the database tier",
     detail:
       "Three hosts drifted after an unmanaged package update; remediation opened.",
@@ -2512,7 +2512,7 @@ export const complianceTimeline: ComplianceEvent[] = [
   },
   {
     id: "evt-14",
-    actor: "John Darling",
+    actor: "Ben Lewis",
     action: "closed the change-management sampling request",
     detail:
       "July change sample returned complete approvals for every production change.",

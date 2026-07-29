@@ -15,8 +15,8 @@ import { type SidebarData } from "@/components/layout/types";
 
 export const sidebarData: SidebarData = {
   user: {
-    name: "Peter Pan",
-    email: "peter.pan@svalbard.ca",
+    name: "Ava Reed",
+    email: "ava.reed@svalbard.ca",
     avatar: "/avatars/avatar-3.png",
   },
   navGroups: [

@@ -32,7 +32,11 @@ let indicatorStore: IndicatorStore = new Map(
 
 const listeners = new Set<() => void>();
 
+/** Cached for useSyncExternalStore — getSnapshot must return a stable reference. */
+let cachedSnapshot = { huntStore, feedStore, indicatorStore };
+
 function emit() {
+  cachedSnapshot = { huntStore, feedStore, indicatorStore };
   for (const listener of listeners) listener();
 }
 
@@ -44,7 +48,7 @@ export function subscribeThreatSession(listener: () => void) {
 }
 
 export function getThreatSessionSnapshot() {
-  return { huntStore, feedStore, indicatorStore };
+  return cachedSnapshot;
 }
 
 export function getSessionHunts(): Hunt[] {

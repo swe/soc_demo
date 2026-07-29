@@ -16,7 +16,7 @@ Start the server
 pnpm run dev
 ```
 
-Demo login: `peter.pan@svalbard.ca` / `demodemo123`
+Demo login: `ava.reed@svalbard.ca` / `demodemo123`
 
 ## Tech Stack
 

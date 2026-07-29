@@ -32,7 +32,7 @@ let entries: AuditLogEntry[] = [
     // Fixed ISO — do not use Date.now() at module load (SSR/client mismatch).
     at: "2026-07-28T12:15:00.000Z",
     actorId: "ava-reed",
-    actorName: "Peter Pan",
+    actorName: "Ava Reed",
     action: "session.started",
     targetType: "user",
     targetId: "ava-reed",

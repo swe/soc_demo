@@ -23,8 +23,8 @@ import { Input } from "@/components/ui/input";
 import { getHomePath } from "@/lib/soc-roles";
 import { cn } from "@/lib/utils";
 
-/** Demo login — Peter Pan, Tier 2 Analyst on the admin roster. */
-const DEMO_EMAIL = "peter.pan@svalbard.ca";
+/** Demo login — Ava Reed, Tier 2 Analyst on the admin roster. */
+const DEMO_EMAIL = "ava.reed@svalbard.ca";
 const DEMO_PASSWORD = "demodemo123";
 
 const formSchema = z.object({
@@ -62,7 +62,7 @@ export function UserAuthForm({
     if (!rosterUser || !isDemoCredential) {
       form.setError("password", {
         message: rosterUser
-          ? "Use peter.pan@svalbard.ca / demodemo123"
+          ? "Use ava.reed@svalbard.ca / demodemo123"
           : "No user with that email on the roster",
       });
       return;
@@ -94,7 +94,7 @@ export function UserAuthForm({
                 <FormItem className="space-y-1">
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input placeholder="peter.pan@svalbard.ca" {...field} />
+                    <Input placeholder="ava.reed@svalbard.ca" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

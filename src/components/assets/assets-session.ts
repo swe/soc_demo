@@ -35,12 +35,15 @@ let identityStore: IdentityStore = new Map(
 
 const listeners = new Set<() => void>();
 
-function emit() {
-  for (const listener of listeners) listener();
-}
+/** Cached for useSyncExternalStore — getSnapshot must return a stable reference. */
+let cachedSnapshot: AssetsSnapshot = {
+  devices: deviceStore,
+  identities: identityStore,
+};
 
-function snapshot(): AssetsSnapshot {
-  return { devices: deviceStore, identities: identityStore };
+function emit() {
+  cachedSnapshot = { devices: deviceStore, identities: identityStore };
+  for (const listener of listeners) listener();
 }
 
 export function subscribeAssetsSession(listener: () => void) {
@@ -51,7 +54,7 @@ export function subscribeAssetsSession(listener: () => void) {
 }
 
 export function getAssetsSessionSnapshot(): AssetsSnapshot {
-  return snapshot();
+  return cachedSnapshot;
 }
 
 export function getSessionDevices(): AssetDevice[] {

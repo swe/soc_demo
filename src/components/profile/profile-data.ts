@@ -85,13 +85,13 @@ export const profileBackupCodes = [
   "R2CM-1P9K",
 ];
 
-/** Logged-in demo persona — matches `ava-reed` / Peter Pan on the admin roster. */
+/** Logged-in demo persona — matches `ava-reed` / Ava Reed on the admin roster. */
 export const currentProfile: CurrentProfile = {
   id: "ava-reed",
-  name: "Peter Pan",
-  email: "peter.pan@svalbard.ca",
+  name: "Ava Reed",
+  email: "ava.reed@svalbard.ca",
   avatar: "/avatars/avatar-3.png",
-  username: "peter.pan",
+  username: "ava.reed",
   phone: "+1 (415) 555-0142",
   title: "Tier 2 Analyst",
   jobRole: "analyst_t2",

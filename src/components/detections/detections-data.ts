@@ -104,7 +104,7 @@ function buildCatalog(): DetectionRule[] {
         lastTriggeredAt: row.lastTriggeredAt,
         alertCount: row.alertIds.length,
         ownerId: owner?.id ?? "ava-reed",
-        ownerName: owner?.name ?? "Peter Pan",
+        ownerName: owner?.name ?? "Ava Reed",
         playbookId: playbook?.id ?? null,
         playbookCode: playbook?.code ?? null,
         summary: `Detection for ${row.mitreTechnique} (${row.mitreTactic}) — ${row.alertIds.length} linked alerts in catalog.`,

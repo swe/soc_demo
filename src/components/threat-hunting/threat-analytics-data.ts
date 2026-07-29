@@ -399,8 +399,8 @@ export const threatGraphNodes: ThreatGraphNode[] = [
   {
     id: "id-riya",
     kind: "identity",
-    label: "Wendy Darling",
-    subtitle: "wendy.darling@svalbard.ca",
+    label: "Riya Sharma",
+    subtitle: "riya.sharma@svalbard.ca",
     severity: "high",
     summary:
       "Privileged SOC director account observed in valid-account and token-theft chains. High blast radius if compromised.",
@@ -424,8 +424,8 @@ export const threatGraphNodes: ThreatGraphNode[] = [
   {
     id: "id-ben",
     kind: "identity",
-    label: "John Darling",
-    subtitle: "john.darling@svalbard.ca",
+    label: "Ben Lewis",
+    subtitle: "ben.lewis@svalbard.ca",
     severity: "medium",
     summary:
       "Security engineering lead with Cloud Admin rights. Linked to PowerShell and lateral-movement detections on eng hosts.",
@@ -449,8 +449,8 @@ export const threatGraphNodes: ThreatGraphNode[] = [
   {
     id: "id-ava",
     kind: "identity",
-    label: "Peter Pan",
-    subtitle: "peter.pan@svalbard.ca",
+    label: "Ava Reed",
+    subtitle: "ava.reed@svalbard.ca",
     severity: "medium",
     summary:
       "Tier 2 analyst identity appearing in spray / MFA fatigue related activity.",
@@ -505,7 +505,7 @@ export const threatGraphNodes: ThreatGraphNode[] = [
       "Okta session authenticated from Austin then Singapore within 34 minutes; both passed MFA push.",
     meta: {
       status: "triaging",
-      entity: "peter.pan@svalbard.ca",
+      entity: "ava.reed@svalbard.ca",
       source: "Okta Workforce",
     },
     linkedAlertIds: ["ALT-2147"],
