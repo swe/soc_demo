@@ -416,3 +416,6 @@ comments.md
 /playwright-report/
 /blob-report/
 /playwright/.cache/
+
+# Next.js app libs (override Python lib/ ignore)
+!src/lib/
