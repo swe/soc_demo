@@ -12,7 +12,6 @@ import {
   Clock3,
   Ellipsis,
   Filter,
-  Link2,
   ListFilter,
   Pause,
   Play,
@@ -20,9 +19,7 @@ import {
   RefreshCw,
   Search,
   Settings2,
-  ShieldAlert,
   Unplug,
-  Waves,
   XCircle,
 } from "lucide-react";
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
@@ -83,20 +80,25 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { integrationsApi, receiptToneLabel } from "@/lib/mock-api";
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 
 import {
-  getIntegrationActivity,
-  getIntegrationStats,
+  type ConnectorActivity,
+  type DegradedReason,
+  degradedReasonLabels,
   type Integration,
   type IntegrationCategory,
+  type IntegrationLicense,
   integrationCategoryLabels,
   integrations as initialIntegrations,
   type IntegrationStatus,
   isIntegrationIssue,
+  licenseLabels,
   vendorMeta,
 } from "./integrations-data";
+import { useIntegrationsSession } from "./integrations-session";
 
 type IntegrationTab =
   | "overview"
@@ -134,6 +136,14 @@ const statusFilterOptions: {
   { value: "error", label: "Error" },
   { value: "paused", label: "Paused" },
   { value: "available", label: "Available" },
+];
+
+const licenseFilterOptions: {
+  value: IntegrationLicense;
+  label: string;
+}[] = [
+  { value: "open-source", label: licenseLabels["open-source"] },
+  { value: "commercial", label: licenseLabels.commercial },
 ];
 
 const sortLabels: Record<IntegrationSort, string> = {
@@ -240,159 +250,29 @@ function CategoryBadge({ category }: { category: IntegrationCategory }) {
   );
 }
 
-function StatsStrip({ integrations }: { integrations: Integration[] }) {
-  const stats = getIntegrationStats(integrations);
-  const items = [
-    {
-      label: "Catalog",
-      value: stats.total.toString(),
-      detail: "supported sources",
-      icon: Link2,
-    },
-    {
-      label: "Active connections",
-      value: stats.connected.toString(),
-      detail: `${integrations.filter((item) => item.status === "pending").length} validating`,
-      icon: Waves,
-    },
-    {
-      label: "Needs attention",
-      value: stats.needsAttention.toString(),
-      detail: stats.needsAttention ? "action required" : "all healthy",
-      icon: ShieldAlert,
-    },
-    {
-      label: "Daily telemetry",
-      value: compactNumber.format(stats.eventsPerDay),
-      detail: "events / 24h",
-      icon: Activity,
-    },
-  ];
-
-  return (
-    <div className="grid overflow-hidden rounded-lg border border-dashed sm:grid-cols-2 xl:grid-cols-4">
-      {items.map((item, index) => {
-        const Icon = item.icon;
-        return (
-          <div
-            key={item.label}
-            className={cn(
-              "flex min-w-0 items-center gap-3 px-4 py-3",
-              index > 0 && "border-t sm:border-t-0 sm:border-l",
-              index === 2 && "sm:border-l-0 xl:border-l",
-              index >= 2 && "sm:border-t xl:border-t-0",
-            )}
-          >
-            <div className="bg-muted flex size-8 shrink-0 items-center justify-center rounded-md border">
-              <Icon className="text-muted-foreground size-3.5" />
-            </div>
-            <div className="min-w-0">
-              <div className="flex items-baseline gap-2">
-                <span className="text-lg font-semibold tabular-nums">
-                  {item.value}
-                </span>
-                <span className="text-muted-foreground truncate text-xs">
-                  {item.detail}
-                </span>
-              </div>
-              <p className="text-muted-foreground text-xs">{item.label}</p>
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-function AttentionStrip({
-  integrations,
-  active,
-  onSelect,
-}: {
-  integrations: Integration[];
-  active: "failed" | "degraded" | "credentials" | null;
-  onSelect: (key: "failed" | "degraded" | "credentials") => void;
-}) {
-  const counts = {
-    failed: integrations.filter(
-      (item) => item.status === "error" || item.health === "failed",
-    ).length,
-    degraded: integrations.filter((item) => item.health === "degraded").length,
-    credentials: integrations.filter((item) =>
-      item.credentialExpiry?.startsWith("Jul"),
-    ).length,
-  };
-  const chips = [
-    {
-      key: "failed" as const,
-      label: "Failed syncs",
-      count: counts.failed,
-      icon: XCircle,
-    },
-    {
-      key: "degraded" as const,
-      label: "SLA drift",
-      count: counts.degraded,
-      icon: AlertTriangle,
-    },
-    {
-      key: "credentials" as const,
-      label: "Credentials expiring",
-      count: counts.credentials,
-      icon: Clock3,
-    },
-  ].filter((chip) => chip.count > 0);
-
-  if (chips.length === 0) return null;
-
-  return (
-    <div className="flex flex-wrap items-center gap-2 rounded-lg border border-dashed px-3 py-2.5">
-      <span className="text-muted-foreground mr-1 flex items-center gap-1.5 text-xs font-medium">
-        <ShieldAlert className="size-3.5 text-amber-600 dark:text-amber-400" />
-        Attention
-      </span>
-      {chips.map((chip) => {
-        const Icon = chip.icon;
-        return (
-          <button
-            key={chip.key}
-            type="button"
-            onClick={() => onSelect(chip.key)}
-            className={cn(
-              "hover:bg-accent inline-flex h-7 items-center gap-1.5 rounded-md border px-2 text-xs transition-colors",
-              active === chip.key && "bg-accent border-foreground/20",
-            )}
-          >
-            <Icon className="size-3" />
-            {chip.label}
-            <span className="text-muted-foreground tabular-nums">
-              {chip.count}
-            </span>
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
 function IntegrationFilterControl({
   categoryFilters,
   statusFilters,
+  licenseFilters,
   sort,
   onToggleCategory,
   onToggleStatus,
+  onToggleLicense,
   onSetSort,
   onClear,
 }: {
   categoryFilters: IntegrationCategory[];
   statusFilters: IntegrationStatus[];
+  licenseFilters: IntegrationLicense[];
   sort: IntegrationSort;
   onToggleCategory: (category: IntegrationCategory) => void;
   onToggleStatus: (status: IntegrationStatus) => void;
+  onToggleLicense: (license: IntegrationLicense) => void;
   onSetSort: (sort: IntegrationSort) => void;
   onClear: () => void;
 }) {
-  const count = categoryFilters.length + statusFilters.length;
+  const count =
+    categoryFilters.length + statusFilters.length + licenseFilters.length;
 
   return (
     <Popover>
@@ -458,6 +338,28 @@ function IntegrationFilterControl({
               ))}
             </CommandGroup>
             <CommandSeparator />
+            <CommandGroup heading="License">
+              {licenseFilterOptions.map((option) => (
+                <CommandItem
+                  key={option.value}
+                  onSelect={() => onToggleLicense(option.value)}
+                >
+                  <span
+                    className={cn(
+                      "flex size-4 items-center justify-center rounded border",
+                      licenseFilters.includes(option.value) &&
+                        "bg-foreground text-background",
+                    )}
+                  >
+                    {licenseFilters.includes(option.value) ? (
+                      <Check className="size-3" />
+                    ) : null}
+                  </span>
+                  {option.label}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+            <CommandSeparator />
             <CommandGroup heading="Sort">
               {(Object.keys(sortLabels) as IntegrationSort[]).map((value) => (
                 <CommandItem key={value} onSelect={() => onSetSort(value)}>
@@ -500,8 +402,8 @@ function EmptyState({ onReset }: { onReset: () => void }) {
       </div>
       <h3 className="mt-4 text-sm font-medium">No integrations match</h3>
       <p className="text-muted-foreground mt-1 max-w-sm text-xs leading-5">
-        Adjust the search, status, or category filters to return integrations to
-        this operational view.
+        Adjust the search, status, category, or license filters to return
+        integrations to this operational view.
       </p>
       <Button
         variant="outline"
@@ -769,20 +671,48 @@ function DetailRow({
   );
 }
 
+function activityDotClass(kind: ConnectorActivity["kind"]) {
+  switch (kind) {
+    case "error":
+      return "border-destructive bg-destructive";
+    case "health":
+      return "border-amber-500 bg-amber-500";
+    case "pause":
+      return "border-muted-foreground bg-muted-foreground";
+    case "connect":
+    case "credential":
+      return "border-blue-500 bg-blue-500";
+    default:
+      return "border-green-600 bg-green-600";
+  }
+}
+
 function IntegrationDetailSheet({
   integration,
+  activity,
+  connectorConfig,
   onOpenChange,
   onSync,
   onPause,
   onConfigure,
   onDisconnect,
+  onDegradeHealth,
 }: {
   integration: Integration | null;
+  activity: ConnectorActivity[];
+  connectorConfig: {
+    endpoint: string;
+    healthUrl: string;
+    scopes: string[];
+    credentialsRef: string;
+    fieldMap: Record<string, string>;
+  } | null;
   onOpenChange: (open: boolean) => void;
   onSync: (integration: Integration) => void;
   onPause: (integration: Integration) => void;
   onConfigure: (integration: Integration) => void;
   onDisconnect: (integration: Integration) => void;
+  onDegradeHealth?: (integration: Integration) => void;
 }) {
   if (!integration) return null;
 
@@ -791,7 +721,13 @@ function IntegrationDetailSheet({
       hour: index,
       volume,
     })) ?? [];
-  const activity = getIntegrationActivity(integration.id);
+  const reason = integration.degradedReason;
+  const showIssueBanner =
+    Boolean(reason) ||
+    Boolean(integration.errorMessage) ||
+    integration.health === "degraded" ||
+    integration.health === "failed" ||
+    integration.status === "error";
 
   return (
     <Sheet open onOpenChange={onOpenChange}>
@@ -814,11 +750,12 @@ function IntegrationDetailSheet({
         </SheetHeader>
 
         <div className="flex-1 overflow-y-auto px-5 py-4">
-          {integration.errorMessage ? (
+          {showIssueBanner ? (
             <div
               className={cn(
                 "mb-5 rounded-lg border p-3",
-                integration.status === "error"
+                integration.status === "error" ||
+                  integration.health === "failed"
                   ? "border-destructive/30 bg-destructive/5"
                   : "border-amber-500/30 bg-amber-500/5",
               )}
@@ -827,20 +764,46 @@ function IntegrationDetailSheet({
                 <AlertTriangle
                   className={cn(
                     "mt-0.5 size-4 shrink-0",
-                    integration.status === "error"
+                    integration.status === "error" ||
+                      integration.health === "failed"
                       ? "text-destructive"
                       : "text-amber-600 dark:text-amber-400",
                   )}
                 />
-                <div>
-                  <p className="text-sm font-medium">
-                    {integration.status === "error"
-                      ? "Data flow interrupted"
-                      : "Collection SLA drift"}
-                  </p>
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="text-sm font-medium">
+                      {reason?.summary ??
+                        (integration.status === "error" ||
+                        integration.health === "failed"
+                          ? "Data flow interrupted"
+                          : "Collection SLA drift")}
+                    </p>
+                    {reason ? (
+                      <Badge
+                        variant="outline"
+                        className="rounded-full text-[10px] font-normal"
+                      >
+                        {degradedReasonLabels[reason.code]}
+                      </Badge>
+                    ) : null}
+                  </div>
                   <p className="text-muted-foreground mt-1 text-xs leading-5">
-                    {integration.errorMessage}
+                    {reason?.detail ?? integration.errorMessage}
                   </p>
+                  {reason?.since ? (
+                    <p className="text-muted-foreground mt-1.5 text-[11px]">
+                      Since {reason.since}
+                    </p>
+                  ) : null}
+                  {reason?.remediation ? (
+                    <p className="mt-2 text-xs leading-5">
+                      <span className="font-medium">Next step: </span>
+                      <span className="text-muted-foreground">
+                        {reason.remediation}
+                      </span>
+                    </p>
+                  ) : null}
                 </div>
               </div>
             </div>
@@ -855,8 +818,29 @@ function IntegrationDetailSheet({
             </div>
             <dl className="divide-y">
               <DetailRow label="Endpoint / scope">
-                {integration.region ?? "Not configured"}
+                {connectorConfig?.endpoint ??
+                  integration.region ??
+                  "Not configured"}
               </DetailRow>
+              {connectorConfig?.healthUrl ? (
+                <DetailRow label="Health URL">
+                  <span className="font-mono text-xs">
+                    {connectorConfig.healthUrl}
+                  </span>
+                </DetailRow>
+              ) : null}
+              {connectorConfig?.scopes?.length ? (
+                <DetailRow label="Scopes">
+                  {connectorConfig.scopes.join(", ")}
+                </DetailRow>
+              ) : null}
+              {connectorConfig?.credentialsRef ? (
+                <DetailRow label="Credentials ref">
+                  <span className="font-mono text-xs">
+                    {connectorConfig.credentialsRef}
+                  </span>
+                </DetailRow>
+              ) : null}
               <DetailRow label="Connector">
                 {integration.version ?? "Managed connector"}
               </DetailRow>
@@ -870,6 +854,29 @@ function IntegrationDetailSheet({
                 {integration.credentialExpiry ?? "Managed by OAuth"}
               </DetailRow>
             </dl>
+            {connectorConfig &&
+            Object.keys(connectorConfig.fieldMap).length > 0 ? (
+              <div className="mt-3 rounded-lg border p-3">
+                <p className="text-muted-foreground text-[11px] uppercase">
+                  Field map
+                </p>
+                <div className="mt-2 space-y-1.5">
+                  {Object.entries(connectorConfig.fieldMap)
+                    .slice(0, 5)
+                    .map(([sourceField, heimdallField]) => (
+                      <div
+                        key={sourceField}
+                        className="flex items-center justify-between gap-2 font-mono text-[11px]"
+                      >
+                        <span className="text-muted-foreground truncate">
+                          {sourceField}
+                        </span>
+                        <span className="shrink-0">→ {heimdallField}</span>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            ) : null}
           </section>
 
           <section className="mt-6">
@@ -1013,26 +1020,44 @@ function IntegrationDetailSheet({
 
           <section className="mt-6">
             <h3 className="mb-2 text-xs font-semibold tracking-wide uppercase">
-              Recent activity
+              Sync / health history
             </h3>
             <div className="space-y-3 border-l pl-4">
               {(activity.length > 0
-                ? activity.map((event) => [event.title, event.time] as const)
+                ? activity
                 : ([
-                    [
-                      "Connector heartbeat received",
-                      integration.lastSync ?? "—",
-                    ],
-                    ["Schema validation completed", "18 min ago"],
-                    ["Daily volume baseline evaluated", "4 hr ago"],
-                  ] as const)
-              ).map(([event, time]) => (
-                <div key={event} className="relative">
-                  <span className="bg-background border-border absolute top-1 -left-[21px] size-2 rounded-full border" />
-                  <p className="text-xs font-medium">{event}</p>
-                  <p className="text-muted-foreground mt-0.5 text-[11px]">
-                    {time}
+                    {
+                      id: "fallback-1",
+                      integrationId: integration.id,
+                      kind: "health" as const,
+                      title: "Connector heartbeat received",
+                      detail: "No recent health probes stored for this source",
+                      time: integration.lastSync ?? "—",
+                    },
+                  ] satisfies ConnectorActivity[])
+              ).map((event) => (
+                <div key={event.id} className="relative">
+                  <span
+                    className={cn(
+                      "absolute top-1.5 -left-[21px] size-2 rounded-full border",
+                      activityDotClass(event.kind),
+                    )}
+                  />
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="text-xs font-medium">{event.title}</p>
+                    <span className="text-muted-foreground shrink-0 text-[11px]">
+                      {event.time}
+                    </span>
+                  </div>
+                  <p className="text-muted-foreground mt-0.5 text-[11px] leading-4">
+                    {event.detail}
                   </p>
+                  <Badge
+                    variant="outline"
+                    className="mt-1.5 rounded-full text-[10px] font-normal capitalize"
+                  >
+                    {event.kind}
+                  </Badge>
                 </div>
               ))}
             </div>
@@ -1077,6 +1102,19 @@ function IntegrationDetailSheet({
             <Unplug className="size-3.5" />
             Disconnect
           </Button>
+          {onDegradeHealth &&
+          integration.status !== "available" &&
+          integration.health !== "degraded" ? (
+            <Button
+              variant="outline"
+              size="sm"
+              className="col-span-2"
+              onClick={() => onDegradeHealth(integration)}
+            >
+              <AlertTriangle className="size-3.5" />
+              Degrade health
+            </Button>
+          ) : null}
         </SheetFooter>
       </SheetContent>
     </Sheet>
@@ -1084,6 +1122,7 @@ function IntegrationDetailSheet({
 }
 
 export function IntegrationsManagement() {
+  const { getConfig, getActivity } = useIntegrationsSession();
   const [integrations, setIntegrations] =
     useState<Integration[]>(initialIntegrations);
   const [searchQuery, setSearchQuery] = useState("");
@@ -1094,6 +1133,9 @@ export function IntegrationsManagement() {
     [],
   );
   const [statusFilters, setStatusFilters] = useState<IntegrationStatus[]>([]);
+  const [licenseFilters, setLicenseFilters] = useState<IntegrationLicense[]>(
+    [],
+  );
   const [sort, setSort] = useState<IntegrationSort>("name-asc");
   const [attention, setAttention] = useState<
     "failed" | "degraded" | "credentials" | null
@@ -1106,7 +1148,7 @@ export function IntegrationsManagement() {
     null,
   );
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(25);
 
   const detailIntegration =
     integrations.find((item) => item.id === detailId) ?? null;
@@ -1150,6 +1192,9 @@ export function IntegrationsManagement() {
       const matchesStatus =
         statusFilters.length === 0 ||
         statusFilters.includes(integration.status);
+      const matchesLicense =
+        licenseFilters.length === 0 ||
+        licenseFilters.includes(integration.license);
       const matchesAttention =
         attention === null ||
         (attention === "failed" &&
@@ -1165,6 +1210,7 @@ export function IntegrationsManagement() {
         matchesIssues &&
         matchesCategory &&
         matchesStatus &&
+        matchesLicense &&
         matchesAttention
       );
     });
@@ -1187,6 +1233,7 @@ export function IntegrationsManagement() {
     deferredSearch,
     integrations,
     issuesOnly,
+    licenseFilters,
     sort,
     statusFilters,
   ]);
@@ -1199,6 +1246,7 @@ export function IntegrationsManagement() {
     categoryFilters,
     deferredSearch,
     issuesOnly,
+    licenseFilters,
     pageSize,
     sort,
     statusFilters,
@@ -1211,6 +1259,7 @@ export function IntegrationsManagement() {
     setIssuesOnly(false);
     setCategoryFilters([]);
     setStatusFilters([]);
+    setLicenseFilters([]);
     setAttention(null);
     setActiveTab("all");
     setSort("name-asc");
@@ -1222,9 +1271,18 @@ export function IntegrationsManagement() {
   };
 
   const syncIntegration = (integration: Integration) => {
-    toast({
-      title: "Sync queued",
-      description: `${integration.name} will refresh in the background.`,
+    void integrationsApi.sync(integration.id).then((receipt) => {
+      toast({
+        title: "Sync queued",
+        description: (
+          <span className="inline-flex flex-col gap-1">
+            <span>{receipt.message}</span>
+            <Badge variant="secondary" className="w-fit rounded-full text-[10px]">
+              {receiptToneLabel(receipt.outcome)}
+            </Badge>
+          </span>
+        ),
+      });
     });
     setIntegrations((current) =>
       current.map((item) =>
@@ -1233,6 +1291,37 @@ export function IntegrationsManagement() {
           : item,
       ),
     );
+  };
+
+  const degradeHealth = (integration: Integration) => {
+    const reason: DegradedReason = {
+      code: "collector_backoff",
+      summary: "Health degradation",
+      detail: `${integration.name} marked degraded. Ingest continues with elevated lag; check the sync/health timeline for probe history.`,
+      since: "Just now",
+      remediation: "Re-sync the connector or clear the health overlay.",
+    };
+    void integrationsApi
+      .setHealth(integration.id, "degraded", reason)
+      .then((receipt) => {
+        setIntegrations((current) =>
+          current.map((item) =>
+            item.id === integration.id
+              ? {
+                  ...item,
+                  health: "degraded",
+                  status: "connected",
+                  errorMessage: reason.summary,
+                  degradedReason: reason,
+                }
+              : item,
+          ),
+        );
+        toast({
+          title: "Health degraded",
+          description: receipt.message,
+        });
+      });
   };
 
   const togglePause = (integration: Integration) => {
@@ -1259,9 +1348,27 @@ export function IntegrationsManagement() {
 
   const confirmDisconnect = () => {
     if (!disconnectIntegration) return;
+    const target = disconnectIntegration;
+    void integrationsApi.disconnect(target.id).then((receipt) => {
+      toast({
+        title: "Integration disconnected",
+        description: (
+          <span className="inline-flex flex-col gap-1">
+            <span>{receipt.message}</span>
+            <Badge
+              variant="secondary"
+              className="w-fit rounded-full text-[10px]"
+            >
+              {receiptToneLabel(receipt.outcome)}
+            </Badge>
+          </span>
+        ),
+        variant: "destructive",
+      });
+    });
     setIntegrations((current) =>
       current.map((item) =>
-        item.id === disconnectIntegration.id
+        item.id === target.id
           ? {
               ...item,
               status: "available",
@@ -1272,20 +1379,14 @@ export function IntegrationsManagement() {
               connectedAt: undefined,
               credentialExpiry: undefined,
               errorMessage: undefined,
+              degradedReason: undefined,
             }
           : item,
       ),
     );
-    setSelectedIds((current) =>
-      current.filter((id) => id !== disconnectIntegration.id),
-    );
+    setSelectedIds((current) => current.filter((id) => id !== target.id));
     setDetailId(null);
     setDisconnectId(null);
-    toast({
-      title: "Integration disconnected",
-      description: `${disconnectIntegration.name} stopped sending data. Historical events remain available.`,
-      variant: "destructive",
-    });
   };
 
   const toggleSelection = (id: string) => {
@@ -1311,7 +1412,7 @@ export function IntegrationsManagement() {
       id="main-content"
       className="bg-background flex min-h-0 flex-1 flex-col overflow-hidden"
     >
-      <div className="border-b">
+      <div className="bg-background shrink-0 border-b">
         <div className="flex flex-col gap-2 px-4 py-3 sm:px-6 lg:min-h-14 lg:flex-row lg:items-center lg:justify-between lg:gap-4 lg:py-2">
           <div className="min-w-0 flex-1">
             <InputGroup className="h-9 w-full lg:max-w-sm">
@@ -1342,6 +1443,7 @@ export function IntegrationsManagement() {
             <IntegrationFilterControl
               categoryFilters={categoryFilters}
               statusFilters={statusFilters}
+              licenseFilters={licenseFilters}
               sort={sort}
               onToggleCategory={(category) =>
                 setCategoryFilters((current) =>
@@ -1357,10 +1459,18 @@ export function IntegrationsManagement() {
                     : [...current, status],
                 )
               }
+              onToggleLicense={(license) =>
+                setLicenseFilters((current) =>
+                  current.includes(license)
+                    ? current.filter((item) => item !== license)
+                    : [...current, license],
+                )
+              }
               onSetSort={setSort}
               onClear={() => {
                 setCategoryFilters([]);
                 setStatusFilters([]);
+                setLicenseFilters([]);
               }}
             />
 
@@ -1379,20 +1489,6 @@ export function IntegrationsManagement() {
 
       <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6">
         <div className="mx-auto flex w-full flex-col gap-4">
-          {activeTab !== "overview" ? (
-            <>
-              <StatsStrip integrations={integrations} />
-              <AttentionStrip
-                integrations={integrations}
-                active={attention}
-                onSelect={(key) => {
-                  setAttention((current) => (current === key ? null : key));
-                  setActiveTab("attention");
-                }}
-              />
-            </>
-          ) : null}
-
           <Tabs
             value={activeTab}
             onValueChange={(value) => {
@@ -1478,6 +1574,8 @@ export function IntegrationsManagement() {
 
       <IntegrationDetailSheet
         integration={detailIntegration}
+        activity={detailId ? getActivity(detailId) : []}
+        connectorConfig={detailId ? getConfig(detailId) : null}
         onOpenChange={(open) => {
           if (!open) setDetailId(null);
         }}
@@ -1490,6 +1588,7 @@ export function IntegrationsManagement() {
           })
         }
         onDisconnect={(integration) => setDisconnectId(integration.id)}
+        onDegradeHealth={degradeHealth}
       />
 
       <ConnectIntegrationDialog
@@ -1497,7 +1596,19 @@ export function IntegrationsManagement() {
         onOpenChange={setWizardOpen}
         integrations={integrations}
         initialIntegrationId={wizardIntegrationId}
-        onConnected={(id, dataTypes) => {
+        onConnected={(config, dataTypes) => {
+          const id = config.integrationId;
+          void integrationsApi
+            .connect({
+              ...config,
+              displayName: integrations.find((item) => item.id === id)?.name,
+            })
+            .then((receipt) => {
+              toast({
+                title: "Connection started",
+                description: receipt.message,
+              });
+            });
           setIntegrations((current) =>
             current.map((item) =>
               item.id === id
@@ -1509,8 +1620,11 @@ export function IntegrationsManagement() {
                     lastSync: "Validating access",
                     eventsPerDay: 0,
                     connectedBy: "You",
-                    connectedAt: "Jul 24, 2026",
+                    connectedAt: "Jul 28, 2026",
+                    region: config.endpoint,
                     credentialExpiry: "Managed automatically",
+                    errorMessage: undefined,
+                    degradedReason: undefined,
                   }
                 : item,
             ),

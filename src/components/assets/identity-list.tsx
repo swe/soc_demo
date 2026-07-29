@@ -27,6 +27,7 @@ import { useSearchParams } from "next/navigation";
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
 
 import { ListPagination, paginateItems } from "@/components/list-pagination";
+import { type SocStat,StatsStrip } from "@/components/soc/stats-strip";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -100,6 +101,7 @@ import {
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 
+import { useAssetsSession } from "./assets-session";
 import {
   type AssetIdentity,
   getIdentitiesByTab,
@@ -115,7 +117,7 @@ import {
   identityStatusLabels,
   isRiskIdentity,
 } from "./identities-data";
-import { useAssetsSession } from "./assets-session";
+import { IdentityBehaviorPanel } from "./identity-behavior-panel";
 
 type IdentityTab = "all" | "service" | "privileged" | "guest";
 type IdentitySort =
@@ -163,10 +165,6 @@ const kindIcons: Record<IdentityKind, LucideIcon> = {
   service: Bot,
   guest: UserRound,
 };
-
-const percentFormatter = new Intl.NumberFormat("en-US", {
-  maximumFractionDigits: 1,
-});
 
 const statusDetails: Record<
   IdentityStatus,
@@ -352,7 +350,13 @@ function AttentionFlags({ identity }: { identity: AssetIdentity }) {
   );
 }
 
-function IdentityAttentionStrip({
+const attentionFilterShortLabels: Record<IdentityAttentionKey, string> = {
+  "privileged-mfa-gap": "Priv. MFA gap",
+  "dormant-privileged": "Dormant priv.",
+  "guest-mfa-off": "Guest MFA off",
+};
+
+function IdentityAttentionFilters({
   active,
   onSelect,
   identities,
@@ -367,14 +371,7 @@ function IdentityAttentionStrip({
   ][];
 
   return (
-    <section
-      aria-label="Needs attention"
-      className="flex flex-wrap items-center gap-2"
-    >
-      <span className="text-muted-foreground mr-1 inline-flex items-center gap-1.5 text-xs font-medium tracking-wide uppercase">
-        <ShieldAlert className="size-3.5" />
-        Needs attention
-      </span>
+    <>
       {entries.map(([key, detail]) => {
         const count = identities.filter(detail.matches).length;
         const isActive = active === key;
@@ -387,17 +384,20 @@ function IdentityAttentionStrip({
                   type="button"
                   onClick={() => onSelect(key)}
                   aria-pressed={isActive}
+                  aria-label={`${detail.label} (${count})`}
                   className={cn(
-                    "flex h-8 items-center gap-1.5 rounded-full border px-3 text-xs font-medium transition-colors",
+                    "flex h-9 shrink-0 items-center gap-1.5 rounded-md border px-2.5 text-sm transition-colors",
                     isActive
                       ? "border-foreground/40 bg-foreground text-background"
                       : "border-border bg-background hover:bg-accent hover:text-accent-foreground",
                   )}
                 >
-                  {detail.label}
+                  <span className="whitespace-nowrap">
+                    {attentionFilterShortLabels[key]}
+                  </span>
                   <span
                     className={cn(
-                      "rounded-full px-1.5 py-0.5 text-[10px] font-semibold tabular-nums",
+                      "rounded-md px-1.5 py-0.5 text-[10px] font-semibold tabular-nums",
                       isActive
                         ? "bg-background/20 text-background"
                         : count > 0
@@ -409,12 +409,15 @@ function IdentityAttentionStrip({
                   </span>
                 </button>
               </TooltipTrigger>
-              <TooltipContent>{detail.description}</TooltipContent>
+              <TooltipContent>
+                <p className="font-medium">{detail.label}</p>
+                <p className="text-muted-foreground">{detail.description}</p>
+              </TooltipContent>
             </Tooltip>
           </TooltipProvider>
         );
       })}
-    </section>
+    </>
   );
 }
 
@@ -479,90 +482,99 @@ function IdentityDetailSheet({
               </div>
             ) : null}
 
-            <div className="flex flex-1 flex-col gap-4">
-              <section className="space-y-2.5">
-                <h3 className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
-                  Access
-                </h3>
-                <SheetDetailRow label="Source">
-                  {identity.source}
-                </SheetDetailRow>
-                <SheetDetailRow label="MFA">
-                  <MfaStatus enabled={identity.mfaEnabled} />
-                </SheetDetailRow>
-                <SheetDetailRow label="Privileged">
-                  {identity.privileged ? "Yes" : "No"}
-                </SheetDetailRow>
-                <SheetDetailRow label="Credential change">
-                  {identity.lastPasswordChangeLabel}
-                </SheetDetailRow>
-                <div className="flex flex-col gap-1.5 text-sm">
-                  <span className="text-muted-foreground">Groups</span>
-                  <div className="flex flex-wrap gap-1.5">
-                    {identity.groups.map((group) => (
-                      <Badge
-                        key={group}
-                        variant="secondary"
-                        className="rounded-full font-normal"
-                      >
-                        {group}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              </section>
-
-              <Separator />
-
-              <section className="space-y-2.5">
-                <h3 className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
-                  Ownership
-                </h3>
-                <SheetDetailRow label="Owner">{identity.owner}</SheetDetailRow>
-                <SheetDetailRow label="Department">
-                  {identity.department}
-                </SheetDetailRow>
-                <SheetDetailRow label="Title">{identity.title}</SheetDetailRow>
-              </section>
-
-              <Separator />
-
-              <section className="space-y-2.5">
-                <h3 className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
-                  Activity
-                </h3>
-                <SheetDetailRow label="Last seen">
-                  {identity.lastSeenLabel}
-                </SheetDetailRow>
-                <SheetDetailRow label="Sign-in location">
-                  <span className="inline-flex items-center gap-1.5">
-                    <MapPin className="text-muted-foreground size-3.5" />
-                    {identity.signInLocation}
-                  </span>
-                </SheetDetailRow>
-                <div className="flex flex-col gap-1.5 text-sm">
-                  <span className="text-muted-foreground">Linked devices</span>
-                  {identity.linkedDevices.length > 0 ? (
+            <Tabs defaultValue="profile" className="flex flex-1 flex-col gap-3">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="profile">Profile</TabsTrigger>
+                <TabsTrigger value="behavior">Behavior</TabsTrigger>
+              </TabsList>
+              <TabsContent value="profile" className="mt-0 space-y-4">
+                <section className="space-y-2.5">
+                  <h3 className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+                    Access
+                  </h3>
+                  <SheetDetailRow label="Source">
+                    {identity.source}
+                  </SheetDetailRow>
+                  <SheetDetailRow label="MFA">
+                    <MfaStatus enabled={identity.mfaEnabled} />
+                  </SheetDetailRow>
+                  <SheetDetailRow label="Privileged">
+                    {identity.privileged ? "Yes" : "No"}
+                  </SheetDetailRow>
+                  <SheetDetailRow label="Credential change">
+                    {identity.lastPasswordChangeLabel}
+                  </SheetDetailRow>
+                  <div className="flex flex-col gap-1.5 text-sm">
+                    <span className="text-muted-foreground">Groups</span>
                     <div className="flex flex-wrap gap-1.5">
-                      {identity.linkedDevices.map((device) => (
+                      {identity.groups.map((group) => (
                         <Badge
-                          key={device}
-                          variant="outline"
-                          className="gap-1 rounded-md font-mono text-xs font-normal"
+                          key={group}
+                          variant="secondary"
+                          className="rounded-full font-normal"
                         >
-                          <Laptop className="size-3" />
-                          {device}
+                          {group}
                         </Badge>
                       ))}
                     </div>
-                  ) : (
-                    <span className="text-muted-foreground text-xs">
-                      No linked devices
+                  </div>
+                </section>
+
+                <Separator />
+
+                <section className="space-y-2.5">
+                  <h3 className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+                    Ownership
+                  </h3>
+                  <SheetDetailRow label="Owner">{identity.owner}</SheetDetailRow>
+                  <SheetDetailRow label="Department">
+                    {identity.department}
+                  </SheetDetailRow>
+                  <SheetDetailRow label="Title">{identity.title}</SheetDetailRow>
+                </section>
+
+                <Separator />
+
+                <section className="space-y-2.5">
+                  <h3 className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+                    Activity
+                  </h3>
+                  <SheetDetailRow label="Last seen">
+                    {identity.lastSeenLabel}
+                  </SheetDetailRow>
+                  <SheetDetailRow label="Sign-in location">
+                    <span className="inline-flex items-center gap-1.5">
+                      <MapPin className="text-muted-foreground size-3.5" />
+                      {identity.signInLocation}
                     </span>
-                  )}
-                </div>
-              </section>
-            </div>
+                  </SheetDetailRow>
+                  <div className="flex flex-col gap-1.5 text-sm">
+                    <span className="text-muted-foreground">Linked devices</span>
+                    {identity.linkedDevices.length > 0 ? (
+                      <div className="flex flex-wrap gap-1.5">
+                        {identity.linkedDevices.map((device) => (
+                          <Badge
+                            key={device}
+                            variant="outline"
+                            className="gap-1 rounded-md font-mono text-xs font-normal"
+                          >
+                            <Laptop className="size-3" />
+                            {device}
+                          </Badge>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-muted-foreground text-xs">
+                        No linked devices
+                      </span>
+                    )}
+                  </div>
+                </section>
+              </TabsContent>
+              <TabsContent value="behavior" className="mt-0">
+                <IdentityBehaviorPanel identity={identity} />
+              </TabsContent>
+            </Tabs>
 
             <SheetFooter className="mt-6 flex-col gap-2 border-t pt-4 sm:flex-col">
               <div className="grid grid-cols-2 gap-2">
@@ -887,56 +899,16 @@ function EmptyState({
 }
 
 function IdentityStatsStrip({ identities }: { identities: AssetIdentity[] }) {
-  const stats = getIdentityListStats(identities);
+  const stats: SocStat[] = getIdentityListStats(identities).map((stat) => ({
+    key: stat.title,
+    title: stat.title,
+    value: stat.value,
+    context: stat.context,
+    delta: stat.delta,
+    preferLower: stat.preferLower,
+  }));
 
-  return (
-    <section className="border-border/70 border-b border-dashed pb-4">
-      <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-4 xl:gap-0">
-        {stats.map((stat, index) => {
-          const isIncrease = stat.delta >= 0;
-          const isHealthy = stat.preferLower ? !isIncrease : isIncrease;
-          const deltaLabel = `${isIncrease ? "+" : ""}${percentFormatter.format(
-            stat.delta,
-          )}%`;
-
-          return (
-            <section
-              key={stat.title}
-              className={cn(
-                "space-y-2 py-2 sm:py-1",
-                index > 0 && "xl:border-border/70 xl:border-l",
-                index === 0 && "xl:pr-8",
-                index > 0 && index < stats.length - 1 && "xl:px-8",
-                index === stats.length - 1 && "xl:pl-8",
-              )}
-            >
-              <div className="flex items-center justify-between gap-2">
-                <p className="text-muted-foreground text-sm">{stat.title}</p>
-              </div>
-              <div className="space-y-1.5">
-                <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-                  <p className="text-3xl leading-none font-semibold tracking-tight tabular-nums">
-                    {stat.value}
-                  </p>
-                  <span
-                    className={cn(
-                      "text-sm",
-                      isHealthy ? "text-emerald-600" : "text-rose-600",
-                    )}
-                  >
-                    {deltaLabel}
-                  </span>
-                </div>
-                <span className="text-muted-foreground block text-sm">
-                  {stat.context}
-                </span>
-              </div>
-            </section>
-          );
-        })}
-      </div>
-    </section>
-  );
+  return <StatsStrip stats={stats} />;
 }
 
 function IdentitiesTable({
@@ -1580,7 +1552,7 @@ export function AssetsIdentityList() {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [detailIdentityId, setDetailIdentityId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(25);
   const [onboardOpen, setOnboardOpen] = useState(false);
   const [onboardState, setOnboardState] = useState<OnboardState>(
     emptyOnboardState(),
@@ -1799,10 +1771,10 @@ export function AssetsIdentityList() {
       id="main-content"
       className="bg-background flex min-h-0 flex-1 flex-col overflow-hidden"
     >
-      <div className="border-b">
-        <div className="flex flex-col gap-2 px-4 py-3 sm:px-6 lg:min-h-14 lg:flex-row lg:items-center lg:justify-between lg:gap-4 lg:py-2">
-          <div className="min-w-0 flex-1">
-            <InputGroup className="h-9 w-full lg:max-w-sm">
+      <div className="bg-background shrink-0 border-b">
+        <div className="flex flex-col gap-2 px-4 py-3 sm:px-6 xl:min-h-14 xl:flex-row xl:items-center xl:gap-4 xl:py-2">
+          <div className="flex min-w-0 flex-1 items-center gap-2">
+            <InputGroup className="h-9 min-w-0 flex-1 xl:max-w-sm">
               <InputGroupAddon>
                 <Search />
               </InputGroupAddon>
@@ -1812,10 +1784,37 @@ export function AssetsIdentityList() {
                 onChange={(event) => setSearchQuery(event.target.value)}
               />
             </InputGroup>
+
+            <div className="flex shrink-0 items-center gap-2">
+              <IdentityFilterControl
+                statusFilters={statusFilters}
+                sourceFilters={sourceFilters}
+                sort={sort}
+                activeFilterCount={activeFilterCount}
+                onToggleStatus={toggleStatusFilter}
+                onToggleSource={toggleSourceFilter}
+                onSetSort={setSort}
+                onClearFilters={resetFilters}
+              />
+
+              <Button
+                size="sm"
+                className="h-9 gap-1.5"
+                onClick={() => setOnboardOpen(true)}
+              >
+                <Plus className="size-3.5" />
+                <span className="hidden sm:inline">Onboard identity</span>
+                <span className="sm:hidden">Onboard</span>
+              </Button>
+            </div>
           </div>
 
-          <div className="flex min-w-0 flex-wrap items-center gap-2 lg:justify-end">
-            <label className="border-border bg-background hover:bg-accent flex h-9 cursor-pointer items-center gap-2 rounded-md border px-2.5 text-sm">
+          <div
+            role="group"
+            aria-label="Quick filters"
+            className="no-scrollbar -mx-4 flex min-w-0 items-center gap-2 overflow-x-auto px-4 pb-0.5 sm:-mx-6 sm:px-6 xl:mx-0 xl:overflow-visible xl:px-0 xl:pb-0"
+          >
+            <label className="border-border bg-background hover:bg-accent flex h-9 shrink-0 cursor-pointer items-center gap-2 rounded-md border px-2.5 text-sm">
               <Switch
                 checked={atRiskOnly}
                 onCheckedChange={setAtRiskOnly}
@@ -1824,26 +1823,11 @@ export function AssetsIdentityList() {
               <span className="whitespace-nowrap">At risk only</span>
             </label>
 
-            <IdentityFilterControl
-              statusFilters={statusFilters}
-              sourceFilters={sourceFilters}
-              sort={sort}
-              activeFilterCount={activeFilterCount}
-              onToggleStatus={toggleStatusFilter}
-              onToggleSource={toggleSourceFilter}
-              onSetSort={setSort}
-              onClearFilters={resetFilters}
+            <IdentityAttentionFilters
+              active={attention}
+              identities={assetIdentities}
+              onSelect={toggleAttention}
             />
-
-            <Button
-              size="sm"
-              className="h-9 gap-1.5"
-              onClick={() => setOnboardOpen(true)}
-            >
-              <Plus className="size-3.5" />
-              <span className="hidden sm:inline">Onboard identity</span>
-              <span className="sm:hidden">Onboard</span>
-            </Button>
           </div>
         </div>
       </div>
@@ -1851,12 +1835,6 @@ export function AssetsIdentityList() {
       <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6 lg:px-6">
         <div className="mx-auto flex w-full flex-col gap-4">
           <IdentityStatsStrip identities={assetIdentities} />
-
-          <IdentityAttentionStrip
-            active={attention}
-            identities={assetIdentities}
-            onSelect={toggleAttention}
-          />
 
           <Tabs
             value={activeTab}

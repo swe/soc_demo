@@ -97,13 +97,6 @@ export function HardTokenOnboardingDialog({
     setStep("register");
   };
 
-  const handleSimulateFailure = () => {
-    setIsRegistering(false);
-    setRegisterError(
-      "No security key detected. Plug in your key or hold it near the device, then try again.",
-    );
-  };
-
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md" showCloseButton={!isRegistering}>
@@ -212,14 +205,7 @@ export function HardTokenOnboardingDialog({
             )}
             {!registerError ? (
               <p className="text-muted-foreground text-center text-xs">
-                Demo: registration succeeds automatically.{" "}
-                <button
-                  type="button"
-                  className="underline underline-offset-2"
-                  onClick={handleSimulateFailure}
-                >
-                  Simulate failure
-                </button>
+                Insert the key and touch the sensor when prompted.
               </p>
             ) : null}
           </div>

@@ -10,8 +10,8 @@ import {
 
 import {
   type Remediation,
-  type RemediationStatus,
   remediations as seedRemediations,
+  type RemediationStatus,
 } from "./vulnerabilities-data";
 import {
   createRemediationStore,

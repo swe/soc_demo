@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname, useRouter } from "next/navigation";
 import {
   createContext,
   useCallback,
@@ -8,7 +9,6 @@ import {
   useMemo,
   useState,
 } from "react";
-import { usePathname, useRouter } from "next/navigation";
 
 import { useSocRole } from "@/components/auth/soc-role-provider";
 import { socJobRoleToVulnPersona } from "@/lib/soc-roles";

@@ -1,16 +1,16 @@
 "use client";
 
-import Link from "next/link";
-
+import { Panel, PanelHeading } from "@/components/soc/panel";
+import { StatsStrip } from "@/components/soc/stats-strip";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 import {
   formatCompact,
-  type RemediationStatus,
-  remediationStatusLabels,
   type RecommendationStatus,
   recommendationStatusLabels,
+  type RemediationStatus,
+  remediationStatusLabels,
   type VulnSeverity,
   vulnSeverityLabels,
   type VulnStat,
@@ -18,6 +18,8 @@ import {
   type VulnUpdateStatus,
   vulnUpdateStatusLabels,
 } from "./vulnerabilities-data";
+
+export { Panel, PanelHeading };
 
 export const mutedControlClassName =
   "border-border bg-background text-foreground hover:bg-accent hover:text-accent-foreground";
@@ -191,80 +193,12 @@ export function UpdateStatusBreakdown({
 
 export function VulnStatsStrip({
   stats,
-  columns = 5,
 }: {
   stats: VulnStat[];
+  /** @deprecated Columns are derived from `stats.length`. */
   columns?: 4 | 5 | 6;
 }) {
-  const colClass =
-    columns === 6
-      ? "xl:grid-cols-6"
-      : columns === 4
-        ? "xl:grid-cols-4"
-        : "xl:grid-cols-5";
-
-  return (
-    <section className="border-border/70 border-b border-dashed pb-4">
-      <div
-        className={cn(
-          "grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 xl:gap-0",
-          colClass,
-        )}
-      >
-        {stats.map((stat, index) => {
-          const isIncrease = stat.delta >= 0;
-          const isHealthy = stat.preferLower ? !isIncrease : isIncrease;
-          const deltaLabel = `${isIncrease ? "+" : ""}${percentFormatter.format(stat.delta)}%`;
-
-          const body = (
-            <>
-              <p className="text-muted-foreground text-sm">{stat.title}</p>
-              <div className="space-y-1.5">
-                <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-                  <p className="text-3xl leading-none font-semibold tracking-tight tabular-nums">
-                    {stat.value}
-                  </p>
-                  <span
-                    className={cn(
-                      "text-sm",
-                      isHealthy ? "text-emerald-600" : "text-rose-600",
-                    )}
-                  >
-                    {deltaLabel}
-                  </span>
-                </div>
-                <span className="text-muted-foreground block text-sm">
-                  {stat.context}
-                </span>
-              </div>
-            </>
-          );
-
-          return (
-            <section
-              key={stat.key}
-              className={cn(
-                "space-y-2 py-2 sm:py-1",
-                index > 0 && "xl:border-border/70 xl:border-l",
-                index === 0 && "xl:pr-6",
-                index > 0 && index < stats.length - 1 && "xl:px-6",
-                index === stats.length - 1 && "xl:pl-6",
-                stat.href && "hover:bg-muted/40 rounded-md transition-colors",
-              )}
-            >
-              {stat.href ? (
-                <Link href={stat.href} className="block space-y-2 focus:outline-none">
-                  {body}
-                </Link>
-              ) : (
-                body
-              )}
-            </section>
-          );
-        })}
-      </div>
-    </section>
-  );
+  return <StatsStrip stats={stats} />;
 }
 
 export function RecommendationStatusBadge({
@@ -336,42 +270,6 @@ export function SheetDetailRow({
     <div className="flex items-start justify-between gap-3 text-sm">
       <span className="text-muted-foreground shrink-0">{label}</span>
       <div className="min-w-0 text-right font-medium">{children}</div>
-    </div>
-  );
-}
-
-export function Panel({
-  className,
-  children,
-}: {
-  className?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className={cn("bg-card rounded-lg border p-4", className)}>
-      {children}
-    </section>
-  );
-}
-
-export function PanelHeading({
-  title,
-  description,
-  action,
-}: {
-  title: string;
-  description?: string;
-  action?: React.ReactNode;
-}) {
-  return (
-    <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
-      <div className="min-w-0">
-        <h2 className="text-sm font-semibold">{title}</h2>
-        {description ? (
-          <p className="text-muted-foreground mt-1 text-xs">{description}</p>
-        ) : null}
-      </div>
-      {action}
     </div>
   );
 }

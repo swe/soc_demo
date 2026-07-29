@@ -12,7 +12,9 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 
+import { appendAuditLog } from "@/components/audit/audit-log-data";
 import { ListPagination } from "@/components/list-pagination";
+import { currentProfile } from "@/components/profile/profile-data";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -41,47 +43,43 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { appendAuditLog } from "@/components/audit/audit-log-data";
-import { currentProfile } from "@/components/profile/profile-data";
 import { downloadCsv } from "@/lib/download-csv";
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 
 import {
-  findingSortLabels,
   type FindingSort,
+  findingSortLabels,
   formatCompact,
-  getFindingOverviewStats,
-  type Vulnerability,
-  vulnerabilities,
   VULN_CATALOG_SIZE,
-  type VulnSeverity,
+  vulnerabilities,
+  type Vulnerability,
   vulnSeverities,
+  type VulnSeverity,
   vulnSeverityLabels,
 } from "./vulnerabilities-data";
+import { VulnerabilitiesOverview } from "./vulnerabilities-overview";
 import {
   getFindingsPresetForPersona,
   personaPresetChipActive,
   useVulnPersona,
+  type VulnPersona,
   vulnPersonaLabels,
   vulnPersonas,
-  type VulnPersona,
 } from "./vulnerabilities-persona";
-import { VulnerabilitiesOverview } from "./vulnerabilities-overview";
 import {
   mutedControlClassName,
   PriorityBadge,
   SeverityBadge,
   tabTriggerClassName,
   ThreatBadge,
-  VulnStatsStrip,
 } from "./vulnerabilities-primitives";
 import { queryWeaknesses } from "./vulnerabilities-query";
 import {
   buildFindingsHref,
   defaultFindingsFilters,
-  parseFindingsSearchParams,
   type FindingsListFilters,
+  parseFindingsSearchParams,
 } from "./vulnerabilities-url";
 import { VulnerabilityDetailSheet } from "./vulnerability-detail-sheet";
 
@@ -418,7 +416,7 @@ export function VulnerabilitiesCenter({ view }: { view: VulnerabilitiesView }) {
   );
   const [selectedId, setSelectedId] = useState<string | null>(selectedFromUrl);
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
+  const [pageSize, setPageSize] = useState(25);
   const skipNextUrlSync = useRef(false);
 
   const deferredSearchQuery = useDeferredValue(searchQuery);
@@ -583,15 +581,13 @@ export function VulnerabilitiesCenter({ view }: { view: VulnerabilitiesView }) {
     vulnerabilities.find((v) => v.id === selectedId) ??
     null;
 
-  const stats = useMemo(() => getFindingOverviewStats(), []);
-
   return (
     <main
       id="main-content"
       className="bg-background flex min-h-0 flex-1 flex-col overflow-hidden"
     >
       {view === "findings" ? (
-        <div className="border-b">
+        <div className="bg-background shrink-0 border-b">
           <div className="flex flex-col gap-2 px-4 py-3 sm:px-6 lg:min-h-14 lg:flex-row lg:items-center lg:justify-between lg:gap-4 lg:py-2">
             <div className="min-w-0 flex-1">
               <InputGroup className="h-9 w-full lg:max-w-sm">
@@ -745,10 +741,6 @@ export function VulnerabilitiesCenter({ view }: { view: VulnerabilitiesView }) {
 
       <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6">
         <div className="mx-auto flex w-full flex-col gap-4">
-          {view === "findings" ? (
-            <VulnStatsStrip stats={stats} columns={4} />
-          ) : null}
-
           <Tabs
             value={view}
             onValueChange={(value) =>

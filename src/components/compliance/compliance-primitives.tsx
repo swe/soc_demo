@@ -442,41 +442,7 @@ export function EmptyState({
 /*                             Section scaffolding                            */
 /* -------------------------------------------------------------------------- */
 
-export function Panel({
-  className,
-  children,
-}: {
-  className?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className={cn("bg-card rounded-lg border p-4", className)}>
-      {children}
-    </section>
-  );
-}
-
-export function PanelHeading({
-  title,
-  description,
-  action,
-}: {
-  title: string;
-  description?: string;
-  action?: React.ReactNode;
-}) {
-  return (
-    <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
-      <div className="min-w-0">
-        <h2 className="text-sm font-semibold">{title}</h2>
-        {description ? (
-          <p className="text-muted-foreground mt-1 text-xs">{description}</p>
-        ) : null}
-      </div>
-      {action}
-    </div>
-  );
-}
+export { Panel, PanelHeading } from "@/components/soc/panel";
 
 export function controlSearchIndex(control: ComplianceControl) {
   const owner = getUser(control.ownerId);

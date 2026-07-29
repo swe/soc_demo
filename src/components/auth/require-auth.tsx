@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 import { useAuthSession } from "@/components/auth/auth-session";
 
-/** Gate admin surfaces behind an explicit demo sign-in. */
+/** Gate admin surfaces behind an explicit sign-in. */
 export function RequireAuth({ children }: { children: React.ReactNode }) {
   const { session, hydrated } = useAuthSession();
   const router = useRouter();
@@ -22,7 +22,7 @@ export function RequireAuth({ children }: { children: React.ReactNode }) {
   if (!hydrated) {
     return (
       <div className="text-muted-foreground flex flex-1 items-center justify-center p-8 text-sm">
-        Loading demo session…
+        Loading session…
       </div>
     );
   }
@@ -30,7 +30,7 @@ export function RequireAuth({ children }: { children: React.ReactNode }) {
   if (!session) {
     return (
       <div className="text-muted-foreground flex flex-1 items-center justify-center p-8 text-sm">
-        Redirecting to demo login…
+        Redirecting to login…
       </div>
     );
   }

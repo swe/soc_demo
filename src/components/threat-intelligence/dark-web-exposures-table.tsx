@@ -36,9 +36,9 @@ import {
 } from "./dark-web-data";
 import {
   ExposureTypeBadge,
+  mutedControlClassName,
   RiskScoreBadge,
   SeverityBadge,
-  mutedControlClassName,
 } from "./dark-web-primitives";
 
 const COLUMN_COUNT = 8;
@@ -329,7 +329,7 @@ export function DarkWebExposuresTable({
         total={total}
         onPageChange={onPageChange}
         onPageSizeChange={onPageSizeChange}
-        pageSizeOptions={[10, 25, 50]}
+        pageSizeOptions={[25, 50, 100]}
       />
     </div>
   );

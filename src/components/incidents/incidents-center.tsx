@@ -13,6 +13,9 @@ import {
 import { useRouter, useSearchParams } from "next/navigation";
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 
+import { appendAuditLog } from "@/components/audit/audit-log-data";
+import { currentProfile } from "@/components/profile/profile-data";
+import { StatsStrip } from "@/components/soc/stats-strip";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -33,15 +36,15 @@ import {
 } from "@/components/ui/popover";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { toast } from "@/lib/toast";
 import { downloadCsv } from "@/lib/download-csv";
+import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
-import { appendAuditLog } from "@/components/audit/audit-log-data";
-import { currentProfile } from "@/components/profile/profile-data";
 
 import {
-  type IncidentPriority,
+  currentAnalystId,
+  getIncidentAssignees,
   incidentPriorities,
+  type IncidentPriority,
   incidentPriorityLabels,
   type IncidentSort,
   incidentSortLabels,
@@ -49,24 +52,34 @@ import {
   type IncidentStatus,
   incidentStatuses,
   incidentStatusLabels,
-  currentAnalystId,
-  getIncidentStats,
+  openIncidentStatuses,
   type SocIncident,
 } from "./incidents-data";
 import { IncidentsOverview } from "./incidents-overview";
 import {
   mutedControlClassName,
-  percentFormatter,
   tabTriggerClassName,
 } from "./incidents-primitives";
 import { queryIncidents } from "./incidents-query";
 import { useIncidentsSession } from "./incidents-session";
 import { IncidentsTable } from "./incidents-table";
 import {
+  type AssignedScope,
+  assignedScopeToAssigneeIds,
+  buildIncidentsAssignedHref,
   buildIncidentsListHref,
+  getIncidentStatsWithHrefs,
   overviewFilterToHref,
+  parseAssignedScope,
   parseIncidentsListSearchParams,
 } from "./incidents-url";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type FilterPanel = "priority" | "phase" | "source" | "sort";
 
@@ -75,53 +88,75 @@ function IncidentsStatsStrip({
 }: {
   incidents: Iterable<SocIncident>;
 }) {
-  const stats = getIncidentStats(incidents);
+  return <StatsStrip stats={getIncidentStatsWithHrefs(incidents)} />;
+}
+
+function AssignedScopeControl({
+  scope,
+  onScopeChange,
+}: {
+  scope: AssignedScope;
+  onScopeChange: (scope: AssignedScope) => void;
+}) {
+  const assignees = useMemo(() => getIncidentAssignees(), []);
+  const isAnalystScope = scope !== "mine" && scope !== "unassigned";
 
   return (
-    <section className="border-border/70 border-b border-dashed pb-4">
-      <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 xl:grid-cols-5 xl:gap-0">
-        {stats.map((stat, index) => {
-          const isIncrease = stat.delta >= 0;
-          const isHealthy = stat.preferLower ? !isIncrease : isIncrease;
-          const deltaLabel = `${isIncrease ? "+" : ""}${percentFormatter.format(
-            stat.delta,
-          )}%`;
-
+    <div className="flex flex-wrap items-center gap-2">
+      <div className="bg-muted/60 inline-flex rounded-md border p-0.5">
+        {(
+          [
+            { value: "mine" as const, label: "Mine" },
+            { value: "unassigned" as const, label: "Unassigned" },
+          ] as const
+        ).map((option) => {
+          const active = scope === option.value;
           return (
-            <section
-              key={stat.key}
-              className={cn(
-                "space-y-2 py-2 sm:py-1",
-                index > 0 && "xl:border-border/70 xl:border-l",
-                index === 0 && "xl:pr-6",
-                index > 0 && index < stats.length - 1 && "xl:px-6",
-                index === stats.length - 1 && "xl:pl-6",
-              )}
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => onScopeChange(option.value)}
+              className={
+                active
+                  ? "bg-background text-foreground rounded-sm px-2.5 py-1 text-xs font-medium shadow-sm"
+                  : "text-muted-foreground hover:text-foreground rounded-sm px-2.5 py-1 text-xs font-medium"
+              }
             >
-              <p className="text-muted-foreground text-sm">{stat.title}</p>
-              <div className="space-y-1.5">
-                <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-                  <p className="text-3xl leading-none font-semibold tracking-tight tabular-nums">
-                    {stat.value}
-                  </p>
-                  <span
-                    className={cn(
-                      "text-sm",
-                      isHealthy ? "text-emerald-600" : "text-rose-600",
-                    )}
-                  >
-                    {deltaLabel}
-                  </span>
-                </div>
-                <span className="text-muted-foreground block text-sm">
-                  {stat.context}
-                </span>
-              </div>
-            </section>
+              {option.label}
+            </button>
           );
         })}
+        <button
+          type="button"
+          onClick={() => {
+            if (!isAnalystScope) {
+              onScopeChange(assignees[0]?.id ?? currentAnalystId);
+            }
+          }}
+          className={
+            isAnalystScope
+              ? "bg-background text-foreground rounded-sm px-2.5 py-1 text-xs font-medium shadow-sm"
+              : "text-muted-foreground hover:text-foreground rounded-sm px-2.5 py-1 text-xs font-medium"
+          }
+        >
+          By analyst
+        </button>
       </div>
-    </section>
+      {isAnalystScope ? (
+        <Select value={scope} onValueChange={(value) => onScopeChange(value)}>
+          <SelectTrigger className={cn("h-8 w-[180px]", mutedControlClassName)}>
+            <SelectValue placeholder="Select analyst" />
+          </SelectTrigger>
+          <SelectContent>
+            {assignees.map((user) => (
+              <SelectItem key={user.id} value={user.id}>
+                {user.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      ) : null}
+    </div>
   );
 }
 
@@ -392,7 +427,7 @@ function IncidentFilterControl({
   );
 }
 
-export type IncidentsView = "overview" | "list";
+export type IncidentsView = "overview" | "list" | "assigned";
 
 export function IncidentsCenter({ view }: { view: IncidentsView }) {
   const router = useRouter();
@@ -402,6 +437,10 @@ export function IncidentsCenter({ view }: { view: IncidentsView }) {
 
   const urlFilters = useMemo(
     () => parseIncidentsListSearchParams(searchParams),
+    [searchParams],
+  );
+  const urlScope = useMemo(
+    () => parseAssignedScope(searchParams),
     [searchParams],
   );
 
@@ -417,15 +456,25 @@ export function IncidentsCenter({ view }: { view: IncidentsView }) {
   );
   const [sort, setSort] = useState<IncidentSort>(urlFilters.sort);
   const [p1P2Only, setP1P2Only] = useState(urlFilters.p1P2Only);
+  const [assignedScope, setAssignedScope] =
+    useState<AssignedScope>(urlScope);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(25);
   const skipNextUrlSync = useRef(false);
 
   const deferredSearchQuery = useDeferredValue(searchQuery);
+  const showFilterBar = view === "list" || view === "assigned";
+  const assigneeIds = useMemo(
+    () =>
+      view === "assigned"
+        ? assignedScopeToAssigneeIds(assignedScope)
+        : undefined,
+    [view, assignedScope],
+  );
 
   useEffect(() => {
-    if (view !== "list") return;
+    if (!showFilterBar) return;
     skipNextUrlSync.current = true;
     setSearchQuery(urlFilters.search);
     setPriorityFilters(urlFilters.priorities);
@@ -433,7 +482,8 @@ export function IncidentsCenter({ view }: { view: IncidentsView }) {
     setSourceIdFilters(urlFilters.sourceIds);
     setSort(urlFilters.sort);
     setP1P2Only(urlFilters.p1P2Only);
-  }, [urlFilters, view]);
+    if (view === "assigned") setAssignedScope(urlScope);
+  }, [urlFilters, urlScope, view, showFilterBar]);
 
   const queryResult = useMemo(
     () =>
@@ -444,6 +494,7 @@ export function IncidentsCenter({ view }: { view: IncidentsView }) {
         priorities: priorityFilters,
         statuses: statusFilters,
         sourceIds: sourceIdFilters,
+        assigneeIds,
         p1P2Only,
         sort,
       }),
@@ -455,15 +506,38 @@ export function IncidentsCenter({ view }: { view: IncidentsView }) {
       priorityFilters,
       statusFilters,
       sourceIdFilters,
+      assigneeIds,
       p1P2Only,
       sort,
     ],
   );
 
+  const mineOpenCount = useMemo(() => {
+    let count = 0;
+    for (const incident of incidentList) {
+      if (
+        incident.assigneeId === currentAnalystId &&
+        openIncidentStatuses.includes(incident.status)
+      ) {
+        count += 1;
+      }
+    }
+    return count;
+  }, [incidentList]);
+
+  const allOpenCount = useMemo(() => {
+    let count = 0;
+    for (const incident of incidentList) {
+      if (openIncidentStatuses.includes(incident.status)) count += 1;
+    }
+    return count;
+  }, [incidentList]);
+
   useEffect(() => {
     setPage(1);
     setSelectedIds(new Set());
   }, [
+    assignedScope,
     p1P2Only,
     deferredSearchQuery,
     pageSize,
@@ -471,6 +545,7 @@ export function IncidentsCenter({ view }: { view: IncidentsView }) {
     sort,
     sourceIdFilters,
     statusFilters,
+    view,
   ]);
 
   useEffect(() => {
@@ -480,34 +555,47 @@ export function IncidentsCenter({ view }: { view: IncidentsView }) {
   }, [page, queryResult.page]);
 
   useEffect(() => {
-    if (view !== "list") return;
+    if (!showFilterBar) return;
     if (skipNextUrlSync.current) {
       skipNextUrlSync.current = false;
       return;
     }
 
-    const nextHref = buildIncidentsListHref({
+    const filterPayload = {
       search: deferredSearchQuery,
       priorities: priorityFilters,
       statuses: statusFilters,
       sourceIds: sourceIdFilters,
       p1P2Only,
       sort,
-    });
-    const currentHref = buildIncidentsListHref(
-      parseIncidentsListSearchParams(searchParams),
-    );
+    };
+    const nextHref =
+      view === "assigned"
+        ? buildIncidentsAssignedHref({
+            scope: assignedScope,
+            filters: filterPayload,
+          })
+        : buildIncidentsListHref(filterPayload);
+    const currentHref =
+      view === "assigned"
+        ? buildIncidentsAssignedHref({
+            scope: parseAssignedScope(searchParams),
+            filters: parseIncidentsListSearchParams(searchParams),
+          })
+        : buildIncidentsListHref(parseIncidentsListSearchParams(searchParams));
     if (nextHref !== currentHref) {
       router.replace(nextHref, { scroll: false });
     }
   }, [
     view,
+    showFilterBar,
     deferredSearchQuery,
     priorityFilters,
     statusFilters,
     sourceIdFilters,
     p1P2Only,
     sort,
+    assignedScope,
     router,
     searchParams,
   ]);
@@ -532,6 +620,10 @@ export function IncidentsCenter({ view }: { view: IncidentsView }) {
     target: Parameters<typeof overviewFilterToHref>[0],
   ) => {
     router.push(overviewFilterToHref(target));
+  };
+
+  const changeAssignedScope = (scope: AssignedScope) => {
+    setAssignedScope(scope);
   };
 
   const togglePriorityFilter = (priority: IncidentPriority) => {
@@ -607,8 +699,8 @@ export function IncidentsCenter({ view }: { view: IncidentsView }) {
       id="main-content"
       className="bg-background flex min-h-0 flex-1 flex-col overflow-hidden"
     >
-      {view === "list" ? (
-        <div className="border-b">
+      {showFilterBar ? (
+        <div className="bg-background shrink-0 border-b">
           <div className="flex flex-col gap-2 px-4 py-3 sm:px-6 lg:min-h-14 lg:flex-row lg:items-center lg:justify-between lg:gap-4 lg:py-2">
             <div className="min-w-0 flex-1">
               <InputGroup className="h-9 w-full lg:max-w-sm">
@@ -657,6 +749,7 @@ export function IncidentsCenter({ view }: { view: IncidentsView }) {
                     priorities: priorityFilters,
                     statuses: statusFilters,
                     sourceIds: sourceIdFilters,
+                    assigneeIds,
                     p1P2Only,
                     sort,
                   });
@@ -715,28 +808,35 @@ export function IncidentsCenter({ view }: { view: IncidentsView }) {
 
       <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6">
         <div className="mx-auto flex w-full flex-col gap-4">
-          <IncidentsStatsStrip incidents={incidentList} />
+          {view === "overview" ? (
+            <IncidentsStatsStrip incidents={incidentList} />
+          ) : null}
 
           <Tabs
             value={view}
-            onValueChange={(value) =>
-              router.push(
-                value === "overview"
-                  ? "/incidents/overview"
-                  : "/incidents/list",
-              )
-            }
+            onValueChange={(value) => {
+              if (value === "overview") router.push("/incidents/overview");
+              else if (value === "assigned") {
+                router.push(buildIncidentsAssignedHref({ scope: "mine" }));
+              } else router.push("/incidents/list");
+            }}
             className="flex flex-col gap-4"
           >
             <div className="overflow-x-auto border-b">
               <TabsList className="inline-flex h-auto min-w-max justify-start gap-7 rounded-none bg-transparent p-0 sm:gap-8">
                 <TabsTrigger value="overview" className={tabTriggerClassName}>
-                  Response overview
+                  Overview
+                </TabsTrigger>
+                <TabsTrigger value="assigned" className={tabTriggerClassName}>
+                  Assigned
+                  <span className="bg-muted text-muted-foreground rounded-md px-1.5 py-0.5 text-xs">
+                    {mineOpenCount.toLocaleString("en-US")}
+                  </span>
                 </TabsTrigger>
                 <TabsTrigger value="list" className={tabTriggerClassName}>
                   Active cases
                   <span className="bg-muted text-muted-foreground rounded-md px-1.5 py-0.5 text-xs">
-                    {queryResult.openCount.toLocaleString("en-US")}
+                    {allOpenCount.toLocaleString("en-US")}
                   </span>
                 </TabsTrigger>
               </TabsList>
@@ -748,50 +848,58 @@ export function IncidentsCenter({ view }: { view: IncidentsView }) {
                 onFilter={openOverviewFilter}
               />
             ) : (
-              <IncidentsTable
-                items={queryResult.items}
-                total={queryResult.total}
-                page={queryResult.page}
-                pageSize={pageSize}
-                sort={sort}
-                selectedIds={selectedIds}
-                activeFilterCount={activeFilterCount}
-                onPageChange={setPage}
-                onPageSizeChange={setPageSize}
-                onSortChange={setSort}
-                onToggleSelectAllPage={toggleSelectAllPage}
-                onToggleSelect={toggleSelect}
-                onClearSelection={() => setSelectedIds(new Set())}
-                onBulkAssignToMe={() => bulkAssign(currentAnalystId)}
-                onBulkContain={() => bulkSetStatus("contained")}
-                onBulkResolve={() => bulkSetStatus("resolved")}
-                onBulkClose={() => bulkSetStatus("closed")}
-                onAssignToMe={(id) => {
-                  const incident = getIncident(id);
-                  if (!incident) return;
-                  patchIncidents([id], {
-                    assigneeId: currentAnalystId,
-                    status:
-                      incident.status === "new"
-                        ? "investigating"
-                        : incident.status,
-                  });
-                  toast({ title: "Assigned to you", description: id });
-                }}
-                onContain={(id) => {
-                  patchIncidents([id], { status: "contained" });
-                  toast({ title: "Marked contained", description: id });
-                }}
-                onResolve={(id) => {
-                  patchIncidents([id], { status: "resolved" });
-                  toast({ title: "Incident resolved", description: id });
-                }}
-                onClose={(id) => {
-                  patchIncidents([id], { status: "closed" });
-                  toast({ title: "Incident closed", description: id });
-                }}
-                onClearFilters={resetFilters}
-              />
+              <div className="flex flex-col gap-3">
+                {view === "assigned" ? (
+                  <AssignedScopeControl
+                    scope={assignedScope}
+                    onScopeChange={changeAssignedScope}
+                  />
+                ) : null}
+                <IncidentsTable
+                  items={queryResult.items}
+                  total={queryResult.total}
+                  page={queryResult.page}
+                  pageSize={pageSize}
+                  sort={sort}
+                  selectedIds={selectedIds}
+                  activeFilterCount={activeFilterCount}
+                  onPageChange={setPage}
+                  onPageSizeChange={setPageSize}
+                  onSortChange={setSort}
+                  onToggleSelectAllPage={toggleSelectAllPage}
+                  onToggleSelect={toggleSelect}
+                  onClearSelection={() => setSelectedIds(new Set())}
+                  onBulkAssignToMe={() => bulkAssign(currentAnalystId)}
+                  onBulkContain={() => bulkSetStatus("contained")}
+                  onBulkResolve={() => bulkSetStatus("resolved")}
+                  onBulkClose={() => bulkSetStatus("closed")}
+                  onAssignToMe={(id) => {
+                    const incident = getIncident(id);
+                    if (!incident) return;
+                    patchIncidents([id], {
+                      assigneeId: currentAnalystId,
+                      status:
+                        incident.status === "new"
+                          ? "investigating"
+                          : incident.status,
+                    });
+                    toast({ title: "Assigned to you", description: id });
+                  }}
+                  onContain={(id) => {
+                    patchIncidents([id], { status: "contained" });
+                    toast({ title: "Marked contained", description: id });
+                  }}
+                  onResolve={(id) => {
+                    patchIncidents([id], { status: "resolved" });
+                    toast({ title: "Incident resolved", description: id });
+                  }}
+                  onClose={(id) => {
+                    patchIncidents([id], { status: "closed" });
+                    toast({ title: "Incident closed", description: id });
+                  }}
+                  onClearFilters={resetFilters}
+                />
+              </div>
             )}
           </Tabs>
         </div>

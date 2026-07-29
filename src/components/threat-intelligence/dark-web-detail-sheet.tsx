@@ -1,19 +1,23 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
 import {
   Check,
   CircleCheck,
   CircleX,
   Ellipsis,
+  ExternalLink,
   Eye,
   EyeOff,
-  ExternalLink,
   KeyRound,
   ShieldAlert,
 } from "lucide-react";
+import Link from "next/link";
+import { useState } from "react";
 
+import {
+  getHuntById,
+  getIndicatorsForExposure,
+} from "@/components/threats/threat-shared-data";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -27,11 +31,6 @@ import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 
 import {
-  getHuntById,
-  getIndicatorsForExposure,
-} from "@/components/threats/threat-shared-data";
-
-import {
   type DarkWebExposure,
   type ExposureStatus,
   exposureStatusLabels,
@@ -41,10 +40,10 @@ import {
 import {
   ExposureStatusBadge,
   ExposureTypeBadge,
+  mutedControlClassName,
   RiskScoreBadge,
   SeverityBadge,
   SheetDetailRow,
-  mutedControlClassName,
 } from "./dark-web-primitives";
 
 export function DarkWebDetailSheet({
@@ -184,7 +183,7 @@ export function DarkWebDetailSheet({
                               toast({
                                 title: "Secret revealed",
                                 description:
-                                  "Demo only — reveal is audited in production.",
+                                  "Reveal is audited.",
                               });
                             }
                             setRevealed((current) => !current);

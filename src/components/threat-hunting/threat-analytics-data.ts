@@ -3,8 +3,8 @@ import {
   getAlertById,
   getLinkedIdentity,
   severityWeight,
-  socAlerts,
   type SocAlert,
+  socAlerts,
 } from "@/components/alerts/alerts-data";
 import {
   assetIdentities,
@@ -184,7 +184,7 @@ function trendForCount(count: number, index: number): ThreatTrend {
 }
 
 /** Curated multi-hop graph: Actor → Technique → Identity/Vuln → Alert */
-export const threatGraphNodes: ThreatGraphNode[] = [
+const curatedThreatGraphNodes: ThreatGraphNode[] = [
   {
     id: "actor-canvas-cyclone",
     kind: "actor",
@@ -617,7 +617,7 @@ export const threatGraphNodes: ThreatGraphNode[] = [
   },
 ];
 
-export const threatGraphEdges: ThreatGraphEdge[] = [
+const curatedThreatGraphEdges: ThreatGraphEdge[] = [
   {
     id: "e-cc-t1059",
     from: "actor-canvas-cyclone",
@@ -760,8 +760,154 @@ export const threatGraphEdges: ThreatGraphEdge[] = [
   },
 ];
 
-const graphNodeById = new Map(
-  threatGraphNodes.map((node) => [node.id, node] as const),
+/**
+ * Expand curated graph with alert-derived nodes so the map feels dense for demos.
+ */
+function densifyThreatGraph(
+  curatedNodes: ThreatGraphNode[],
+  curatedEdges: ThreatGraphEdge[],
+): { nodes: ThreatGraphNode[]; edges: ThreatGraphEdge[] } {
+  const nodes = [...curatedNodes];
+  const edges = [...curatedEdges];
+  const existingIds = new Set(nodes.map((n) => n.id));
+  const actorIds = curatedNodes
+    .filter((n) => n.kind === "actor")
+    .map((n) => n.id);
+  const techIds = curatedNodes
+    .filter((n) => n.kind === "technique")
+    .map((n) => n.id);
+
+  const criticalHigh = socAlerts
+    .filter(
+      (alert) =>
+        alert.severity === "critical" ||
+        alert.severity === "high" ||
+        Boolean(alert.mitreTechnique),
+    )
+    .slice(0, 36);
+
+  criticalHigh.forEach((alert, index) => {
+    const nodeId = `alert-dense-${alert.id.toLowerCase()}`;
+    if (existingIds.has(nodeId) || existingIds.has(`alert-${alert.id.slice(4)}`)) {
+      return;
+    }
+    const col = index % 6;
+    const row = Math.floor(index / 6);
+    nodes.push({
+      id: nodeId,
+      kind: "alert",
+      label: alert.id,
+      subtitle: alert.title.slice(0, 48),
+      severity: alert.severity,
+      summary: alert.summary,
+      meta: {
+        status: alert.status,
+        entity: alert.entityName,
+        source: alert.sourceName,
+        technique: alert.mitreTechnique ?? "—",
+      },
+      linkedAlertIds: [alert.id],
+      linkedIdentityId: alert.identityId ?? null,
+      linkedIncidentIds: [],
+      huntActions: [
+        `Investigate entity ${alert.entityName}`,
+        alert.mitreTechnique
+          ? `Hunt technique ${alert.mitreTechnique}`
+          : "Correlate related detections",
+      ],
+      x: 1040 + col * 220,
+      y: 40 + row * 120,
+      w: 200,
+    });
+    existingIds.add(nodeId);
+
+    const mappedTech =
+      (alert.mitreTechnique &&
+        techniqueGraphIdByTechniqueSeed[alert.mitreTechnique]) ||
+      null;
+    const techNode =
+      mappedTech &&
+      (existingIds.has(mappedTech) || techIds.includes(mappedTech))
+        ? mappedTech
+        : techIds[index % Math.max(techIds.length, 1)] ?? null;
+    if (techNode) {
+      edges.push({
+        id: `e-dense-tech-${alert.id}`,
+        from: techNode,
+        to: nodeId,
+        relation: "triggers",
+        tone: alert.severity === "critical" ? "critical" : "default",
+      });
+    } else if (actorIds[index % actorIds.length]) {
+      edges.push({
+        id: `e-dense-actor-${alert.id}`,
+        from: actorIds[index % actorIds.length]!,
+        to: nodeId,
+        relation: "observed_on",
+        tone: alert.severity === "critical" ? "critical" : "default",
+      });
+    }
+
+    // Synthetic identity nodes for a subset of dense alerts
+    if (index % 3 === 0 && alert.entityName.includes("@")) {
+      const idNode = `id-dense-${index}`;
+      if (!existingIds.has(idNode)) {
+        nodes.push({
+          id: idNode,
+          kind: "identity",
+          label: alert.entityName.split("@")[0] ?? alert.entityName,
+          subtitle: alert.entityName,
+          severity: alert.severity,
+          summary: `Identity observed on ${alert.id}: ${alert.title}`,
+          meta: {
+            kind: "user",
+            privileged: index % 5 === 0 ? "Yes" : "No",
+            riskScore: 10 + (index % 40),
+            source: "Okta",
+          },
+          linkedAlertIds: [alert.id],
+          linkedIdentityId: alert.identityId ?? null,
+          linkedIncidentIds: [],
+          huntActions: [`Hunt sessions for ${alert.entityName}`],
+          x: 560 + (index % 4) * 40,
+          y: 820 + row * 30,
+          w: 200,
+        });
+        existingIds.add(idNode);
+        edges.push({
+          id: `e-dense-id-${alert.id}`,
+          from: idNode,
+          to: nodeId,
+          relation: "observed_on",
+          tone: "default",
+        });
+      }
+    }
+  });
+
+  return { nodes, edges };
+}
+
+const techniqueGraphIdByTechniqueSeed: Record<string, string> = {
+  "T1059.001": "tech-t1059",
+  T1059: "tech-t1059",
+  T1078: "tech-t1078",
+  "T1071.001": "tech-t1071",
+  T1071: "tech-t1071",
+  T1110: "tech-t1110",
+  "T1021.002": "tech-t1021",
+  T1021: "tech-t1021",
+};
+
+const densifiedThreatGraph = densifyThreatGraph(
+  curatedThreatGraphNodes,
+  curatedThreatGraphEdges,
+);
+
+export const threatGraphNodes: ThreatGraphNode[] = densifiedThreatGraph.nodes;
+export const threatGraphEdges: ThreatGraphEdge[] = densifiedThreatGraph.edges;
+
+const graphNodeById = new Map(  threatGraphNodes.map((node) => [node.id, node] as const),
 );
 
 const techniqueGraphIdByTechnique: Record<string, string> = {
@@ -889,7 +1035,7 @@ export function getThreatAnalyticsKpis(): ThreatAnalyticsKpi[] {
       key: "critical-chains",
       title: "Critical chains",
       value: String(criticalChains),
-      context: "High-severity graph edges",
+      context: `${threatGraphNodes.length} nodes · ${threatGraphEdges.length} edges`,
     },
     {
       key: "exposed-identities",
@@ -1096,4 +1242,50 @@ export function filterGraphNodes(
     }
     return true;
   });
+}
+
+/** Prefill Investigate with a node-scoped Heimdall QL query. */
+export function buildInvestigateQueryForNode(node: ThreatGraphNode): string {
+  switch (node.kind) {
+    case "technique": {
+      const technique = String(node.meta.technique ?? node.label);
+      return `events | where mitre.technique == "${technique}" | take 50`;
+    }
+    case "actor":
+      return `events | where threat.actor == "${node.label}" or threat.actor_id == "${node.id}" | take 50`;
+    case "identity": {
+      const principal = String(node.subtitle ?? node.label);
+      return `events | where identity.principal == "${principal}" or user.name == "${node.label}" | take 50`;
+    }
+    case "alert":
+      return `events | where alert.id == "${node.label}" or alert.id == "${node.linkedAlertIds[0] ?? node.label}" | take 50`;
+    case "vulnerability":
+      return `events | where vuln.id == "${node.id}" or vuln.name contains "${node.label}" | take 50`;
+    default:
+      return `events | where entity.name == "${node.label}" | take 50`;
+  }
+}
+
+export type HuntEntityKind = "host" | "ip" | "user" | "domain" | "ioc" | "geo";
+
+export function buildInvestigateQueryForEntity(
+  kind: HuntEntityKind,
+  value: string,
+): string {
+  switch (kind) {
+    case "host":
+      return `events | where host.name == "${value}" or device.hostname == "${value}" | take 50`;
+    case "ip":
+      return `events | where src.ip == "${value}" or dst.ip == "${value}" | take 50`;
+    case "user":
+      return `events | where identity.principal == "${value}" or user.name == "${value}" | take 50`;
+    case "domain":
+      return `events | where dns.query == "${value}" or url.domain == "${value}" | take 50`;
+    case "ioc":
+      return `events | where ioc.id == "${value}" or ioc.value == "${value}" | take 50`;
+    case "geo":
+      return `events | where geo.label == "${value}" | take 50`;
+    default:
+      return `events | where entity.name == "${value}" | take 50`;
+  }
 }

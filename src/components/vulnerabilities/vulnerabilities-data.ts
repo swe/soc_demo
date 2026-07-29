@@ -108,6 +108,10 @@ export type Vulnerability = {
   linkedIncidentIds: string[];
   /** Composite SOC priority 0–100 (exploitability + detections + asset risk). */
   socPriority: number;
+  /** GRC control codes this finding maps to (VM / DP / etc.). */
+  complianceControlIds?: string[];
+  /** Prebuilt Investigate query for this CVE. */
+  investigateQuery?: string;
 };
 
 export type Recommendation = {
@@ -498,6 +502,8 @@ const vulnSeeds: Array<
       "Azure Linux OpenSSL",
     ],
     exposedSeed: 1,
+    complianceControlIds: ["VM-02", "VM-03"],
+    investigateQuery: "vuln.cve=CVE-2026-45447 process.image=*openssl*",
   },
   {
     id: "vuln-word-rce",
@@ -536,6 +542,8 @@ const vulnSeeds: Array<
     },
     softwareNames: ["Microsoft Office", "Microsoft Word"],
     exposedSeed: 3,
+    complianceControlIds: ["VM-02", "EP-01"],
+    investigateQuery: "vuln.cve=CVE-2023-21716 process.name=WINWORD.EXE",
   },
   {
     id: "vuln-outlook-eop",
@@ -574,6 +582,8 @@ const vulnSeeds: Array<
     },
     softwareNames: ["Microsoft Outlook", "Microsoft Office"],
     exposedSeed: 5,
+    complianceControlIds: ["VM-02", "AC-01"],
+    investigateQuery: "vuln.cve=CVE-2023-23397 process.name=OUTLOOK.EXE",
   },
   {
     id: "vuln-teams-rce",
@@ -612,6 +622,8 @@ const vulnSeeds: Array<
     },
     softwareNames: ["Microsoft Teams"],
     exposedSeed: 2,
+    complianceControlIds: ["VM-02", "EP-02"],
+    investigateQuery: "vuln.cve=CVE-2026-31288 process.name=ms-teams*",
   },
   {
     id: "vuln-chrome-sbx",
@@ -650,6 +662,8 @@ const vulnSeeds: Array<
     },
     softwareNames: ["Google Chrome", "Microsoft Edge"],
     exposedSeed: 4,
+    complianceControlIds: ["VM-02", "EP-01"],
+    investigateQuery: "vuln.cve=CVE-2026-40112 browser.sandbox_escape=true",
   },
   {
     id: "vuln-ntlm-relay",
@@ -1515,13 +1529,38 @@ function computeSocPriority(input: {
   );
 }
 
-export const vulnerabilities: Vulnerability[] = vulnSeeds.map((seed) => {
-  const {
-    softwareNames,
-    exposedSeed,
-    threats,
-    ...rest
-  } = seed;
+type VulnSeed = (typeof vulnSeeds)[number];
+
+const controlCodePool = [
+  "VM-01",
+  "VM-02",
+  "VM-03",
+  "EP-01",
+  "EP-02",
+  "DP-01",
+  "AC-01",
+  "NS-01",
+];
+
+const severityWeights: Array<[VulnSeverity, number]> = [
+  ["critical", 12],
+  ["high", 28],
+  ["medium", 40],
+  ["low", 20],
+];
+
+function pickWeightedVuln<T>(weights: Array<[T, number]>, salt: number): T {
+  const total = weights.reduce((sum, [, w]) => sum + w, 0);
+  let cursor = ((salt * 2654435761) >>> 0) % total;
+  for (const [value, weight] of weights) {
+    if (cursor < weight) return value;
+    cursor -= weight;
+  }
+  return weights[0]![0];
+}
+
+function normalizeVulnerability(seed: VulnSeed): Vulnerability {
+  const { softwareNames, exposedSeed, threats, ...rest } = seed;
   const baseDevices = pickDevices(12, exposedSeed);
   const exposedDevices = expandExposed(
     baseDevices,
@@ -1535,6 +1574,13 @@ export const vulnerabilities: Vulnerability[] = vulnSeeds.map((seed) => {
   const links = socFindingLinks[rest.id] ?? { alerts: [], incidents: [] };
   const linkedAlertIds = links.alerts;
   const linkedIncidentIds = links.incidents;
+  const complianceControlIds =
+    rest.complianceControlIds ??
+    (rest.remediationRequired
+      ? [controlCodePool[exposedSeed % controlCodePool.length]!]
+      : undefined);
+  const investigateQuery =
+    rest.investigateQuery ?? `vuln.cve=${rest.cve} severity=${rest.severity}`;
 
   return {
     ...rest,
@@ -1549,6 +1595,8 @@ export const vulnerabilities: Vulnerability[] = vulnSeeds.map((seed) => {
     },
     linkedAlertIds,
     linkedIncidentIds,
+    complianceControlIds,
+    investigateQuery,
     socPriority: computeSocPriority({
       severity: rest.severity,
       epss: rest.epss,
@@ -1560,9 +1608,119 @@ export const vulnerabilities: Vulnerability[] = vulnSeeds.map((seed) => {
       exposedDevices,
     }),
   };
-});
+}
 
-export const VULN_CATALOG_SIZE = vulnerabilities.length;
+/** Target mock CVE catalog size — enough for findings pagination demos. */
+export const VULN_CATALOG_SIZE = 150;
+
+function buildGeneratedVulnerabilities(
+  templates: Vulnerability[],
+  count: number,
+): Vulnerability[] {
+  const generated: Vulnerability[] = [];
+  let nextNum = 50001;
+
+  for (let index = 0; index < count; index += 1) {
+    const template = templates[index % templates.length]!;
+    const severity = pickWeightedVuln(severityWeights, index * 3 + 7);
+    const epss =
+      severity === "critical"
+        ? 0.55 + ((index * 7) % 40) / 100
+        : severity === "high"
+          ? 0.2 + ((index * 5) % 45) / 100
+          : 0.02 + ((index * 3) % 25) / 100;
+    const cvss =
+      severity === "critical"
+        ? 9 + ((index % 10) / 10)
+        : severity === "high"
+          ? 7 + ((index % 20) / 10)
+          : severity === "medium"
+            ? 4 + ((index % 30) / 10)
+            : 1 + ((index % 25) / 10);
+    const ageDays = 3 + ((index * 11) % 900);
+    const exposedDeviceCount =
+      severity === "critical"
+        ? 40 + ((index * 17) % 800)
+        : severity === "high"
+          ? 20 + ((index * 13) % 400)
+          : 5 + ((index * 7) % 120);
+    const cveYear = 2020 + (index % 7);
+    const cve = `CVE-${cveYear}-${nextNum}`;
+    const id = `vuln-synth-${String(index + 1).padStart(3, "0")}`;
+    const softwareNames = template.affectedSoftware.map((s) => s.name);
+    const controlA = controlCodePool[index % controlCodePool.length]!;
+    const controlB =
+      controlCodePool[(index + 3) % controlCodePool.length]!;
+
+    const seed: VulnSeed = {
+      id,
+      cve,
+      title: `${template.title} · sample ${index + 1}`,
+      summary: `${template.summary} (Synthetic catalog row ${index + 1} for scale testing.)`,
+      severity,
+      cvss: Math.min(10, Math.round(cvss * 10) / 10),
+      cvssVersion: template.cvssVersion,
+      cvssVector: template.cvssVector,
+      epss: Math.min(0.99, Math.round(epss * 100) / 100),
+      ageLabel:
+        ageDays < 30
+          ? `${ageDays} days`
+          : ageDays < 365
+            ? `${Math.round(ageDays / 30)} months`
+            : `${Math.round(ageDays / 365)} years`,
+      ageDays,
+      publishedAt: new Date(
+        Date.UTC(2026, 6, 28) - ageDays * 86_400_000,
+      ).toISOString(),
+      firstDetectedAt: new Date(
+        Date.UTC(2026, 6, 28) - (ageDays - 2) * 86_400_000,
+      ).toISOString(),
+      updatedAt: "2026-07-27T12:00:00.000Z",
+      publishedLabel: `Sample ${index + 1}`,
+      firstDetectedLabel: `Detected · sample ${index + 1}`,
+      updatedLabel: "Jul 27, 2026",
+      exploitable: severity === "critical" || severity === "high",
+      zeroDay: severity === "critical" && index % 11 === 0,
+      updateStatus: template.updateStatus,
+      exposedDeviceCount,
+      tags: [...template.tags.filter((t) => t !== "synthetic"), "synthetic"],
+      threats: template.threats,
+      cweIds: template.cweIds,
+      recommendationId: template.recommendationId,
+      scope: index % 5 === 0 ? "cloud" : template.scope,
+      remediationRequired: severity !== "low",
+      threatInsights: {
+        ...template.threatInsights,
+        publicExploit: severity === "critical" || severity === "high",
+        verified: severity === "critical" && index % 2 === 0,
+      },
+      softwareNames:
+        softwareNames.length > 0 ? softwareNames : ["Unknown package"],
+      exposedSeed: index + 31,
+      complianceControlIds: [controlA, controlB],
+      investigateQuery: `vuln.cve=${cve} synth=${index + 1}`,
+    };
+
+    generated.push(normalizeVulnerability(seed));
+    nextNum += 1;
+  }
+
+  return generated;
+}
+
+export function buildVulnCatalog(
+  seeds: VulnSeed[] = vulnSeeds,
+  size = VULN_CATALOG_SIZE,
+): Vulnerability[] {
+  const normalized = seeds.map((seed) => normalizeVulnerability(seed));
+  if (normalized.length >= size) return normalized.slice(0, size);
+  return [
+    ...normalized,
+    ...buildGeneratedVulnerabilities(normalized, size - normalized.length),
+  ];
+}
+
+export const vulnerabilities: Vulnerability[] = buildVulnCatalog();
 
 export type FindingSort =
   | "priority-desc"
@@ -1928,7 +2086,7 @@ export function getVulnerabilityByCve(cve: string) {
 /* Recommendations                                                            */
 /* -------------------------------------------------------------------------- */
 
-export const recommendations: Recommendation[] = [
+const recommendationSeeds: Recommendation[] = [
   {
     id: "rec-block-exe-asr",
     title: "Block executable files from running unless they meet prevalence, age, or trusted list criteria",
@@ -2444,6 +2602,78 @@ export const recommendations: Recommendation[] = [
   },
 ];
 
+const REC_CATALOG_SIZE = 50;
+const recommendationStatusesCycle: RecommendationStatus[] = [
+  "active",
+  "in-progress",
+  "active",
+  "deferred",
+  "active",
+  "completed",
+  "exception",
+];
+const recommendationTitleVariants = [
+  "Patch remaining hosts for",
+  "Enforce control baseline on",
+  "Roll out emergency update for",
+  "Harden configuration of",
+  "Retire vulnerable builds of",
+  "Apply vendor hotfix for",
+  "Quarantine internet-facing",
+  "Complete ring deployment for",
+];
+
+function buildGeneratedRecommendations(
+  templates: Recommendation[],
+  count: number,
+): Recommendation[] {
+  const generated: Recommendation[] = [];
+  for (let index = 0; index < count; index += 1) {
+    const template = templates[index % templates.length]!;
+    const n = index + 1;
+    const prefix =
+      recommendationTitleVariants[index % recommendationTitleVariants.length]!;
+    const exposedDevices = Math.max(
+      1,
+      Math.round(template.exposedDevices * (0.35 + (index % 7) * 0.09)),
+    );
+    const totalDevices = Math.max(
+      exposedDevices,
+      Math.round(template.totalDevices * (0.6 + (index % 5) * 0.08)),
+    );
+    generated.push({
+      ...template,
+      id: `rec-${String(n).padStart(3, "0")}`,
+      title: `${prefix} ${template.relatedComponent}`,
+      description: `${template.description} (Expanded seed ${n} for list pagination.)`,
+      weaknessCount: Math.max(1, (template.weaknessCount || 1) + (index % 5)),
+      exposedDevices,
+      totalDevices,
+      exposedCriticalDevices: Math.min(
+        exposedDevices,
+        Math.max(0, template.exposedCriticalDevices + (index % 4) - 1),
+      ),
+      status: recommendationStatusesCycle[index % recommendationStatusesCycle.length]!,
+      impactScore: Math.min(
+        9.9,
+        Math.round((template.impactScore + ((index % 9) - 4) * 0.15) * 10) / 10,
+      ),
+      scope: index % 4 === 0 ? "cloud" : template.scope,
+      tags: [...template.tags.filter((t) => t !== "synthetic"), "synthetic"],
+      remediationIds: [],
+    });
+  }
+  return generated;
+}
+
+export const recommendations: Recommendation[] = [
+  ...recommendationSeeds,
+  ...buildGeneratedRecommendations(
+    recommendationSeeds,
+    Math.max(0, REC_CATALOG_SIZE - recommendationSeeds.length),
+  ),
+];
+
 export function getRecommendation(id: string) {
   return recommendations.find((r) => r.id === id) ?? null;
 }
@@ -2452,7 +2682,7 @@ export function getRecommendation(id: string) {
 /* Remediations                                                               */
 /* -------------------------------------------------------------------------- */
 
-export const remediations: Remediation[] = [
+const remediationSeeds: Remediation[] = [
   {
     id: "rem-asr-block",
     title: "Roll out ASR executable block rule",
@@ -2850,6 +3080,124 @@ export const remediations: Remediation[] = [
   },
 ];
 
+const REM_CATALOG_SIZE = 40;
+const remediationStatusesCycle: RemediationStatus[] = [
+  "pending",
+  "in_progress",
+  "pending",
+  "in_progress",
+  "completed",
+  "failed",
+  "exception",
+];
+const remediationTitleVariants = [
+  "Deploy patch ring for",
+  "Force-update rollout:",
+  "Emergency remediation:",
+  "Canary validation for",
+  "Policy enforcement:",
+  "Hotfix deployment:",
+  "Backfill remaining devices for",
+  "Rollback-safe update of",
+];
+const monthLabels = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
+
+function buildGeneratedRemediations(
+  templates: Remediation[],
+  count: number,
+): Remediation[] {
+  const generated: Remediation[] = [];
+  for (let index = 0; index < count; index += 1) {
+    const template = templates[index % templates.length]!;
+    const n = index + 1;
+    const prefix =
+      remediationTitleVariants[index % remediationTitleVariants.length]!;
+    const status =
+      remediationStatusesCycle[index % remediationStatusesCycle.length]!;
+    const devicesTotal = Math.max(
+      4,
+      Math.round(template.devicesTotal * (0.2 + (index % 8) * 0.1)),
+    );
+    const devicesRemaining =
+      status === "completed"
+        ? 0
+        : status === "pending"
+          ? devicesTotal
+          : Math.max(1, Math.round(devicesTotal * (0.15 + (index % 5) * 0.1)));
+    const createdDay = 1 + (index % 27);
+    const dueDay = Math.min(28, createdDay + 7 + (index % 10));
+    const createdMonth = monthLabels[(5 + (index % 3)) % 12]!;
+    const dueMonth = monthLabels[(6 + (index % 3)) % 12]!;
+    const ticketNum = 2000 + n;
+    generated.push({
+      ...template,
+      id: `rem-${String(n).padStart(3, "0")}`,
+      title: `${prefix} ${template.title.replace(/^(Roll out|Force update|Emergency |Deploy |Disable |Enforce |Retire |Block |Close )/, "")}`,
+      recommendationId:
+        recommendationSeeds[index % recommendationSeeds.length]?.id ??
+        template.recommendationId,
+      ownerId: owners[index % Math.max(owners.length, 1)] ?? null,
+      status,
+      ticketRef: `VRM-${ticketNum}`,
+      devicesTotal,
+      devicesRemaining,
+      createdAt: `2026-0${6 + (index % 2)}-${String(createdDay).padStart(2, "0")}T10:00:00.000Z`,
+      dueAt: `2026-0${7 + (index % 2)}-${String(dueDay).padStart(2, "0")}T17:00:00.000Z`,
+      completedAt:
+        status === "completed"
+          ? `2026-07-${String(Math.min(28, dueDay - 1)).padStart(2, "0")}T16:00:00.000Z`
+          : null,
+      createdLabel: `${createdMonth} ${createdDay}, 2026`,
+      dueLabel: `${dueMonth} ${dueDay}, 2026`,
+      timeline: [
+        {
+          at: `2026-0${6 + (index % 2)}-${String(createdDay).padStart(2, "0")}T10:00:00.000Z`,
+          label: "Remediation created",
+          status: "pending",
+        },
+        ...(status === "pending"
+          ? []
+          : [
+              {
+                at: `2026-0${6 + (index % 2)}-${String(Math.min(28, createdDay + 2)).padStart(2, "0")}T12:00:00.000Z`,
+                label:
+                  status === "failed"
+                    ? "Deployment failed"
+                    : status === "exception"
+                      ? "Exception recorded"
+                      : status === "completed"
+                        ? "Remediation completed"
+                        : "Deployment in progress",
+                status,
+              },
+            ]),
+      ],
+    });
+  }
+  return generated;
+}
+
+export const remediations: Remediation[] = [
+  ...remediationSeeds,
+  ...buildGeneratedRemediations(
+    remediationSeeds,
+    Math.max(0, REM_CATALOG_SIZE - remediationSeeds.length),
+  ),
+];
+
 export function getRemediation(id: string) {
   return remediations.find((r) => r.id === id) ?? null;
 }
@@ -2858,7 +3206,7 @@ export function getRemediation(id: string) {
 /* Software inventory                                                         */
 /* -------------------------------------------------------------------------- */
 
-export const softwareInventory: SoftwareInventoryItem[] = [
+const softwareInventorySeeds: SoftwareInventoryItem[] = [
   {
     id: "sw-teams",
     name: "Microsoft Teams",
@@ -3307,6 +3655,96 @@ export const softwareInventory: SoftwareInventoryItem[] = [
   },
 ];
 
+const SW_CATALOG_SIZE = 50;
+const softwareNameVariants = [
+  { name: "Slack", vendor: "Salesforce", category: "software" as const },
+  { name: "Adobe Acrobat", vendor: "Adobe", category: "software" as const },
+  { name: "Git for Windows", vendor: "Git", category: "software" as const },
+  { name: "Docker Desktop", vendor: "Docker", category: "software" as const },
+  { name: "Wireshark", vendor: "Wireshark", category: "software" as const },
+  { name: "Brave Browser", vendor: "Brave", category: "browser" as const },
+  { name: "Opera", vendor: "Opera", category: "browser" as const },
+  { name: "Bitwarden", vendor: "Bitwarden", category: "extension" as const },
+  { name: "Grammarly", vendor: "Grammarly", category: "extension" as const },
+  { name: "Ubuntu 22.04 LTS", vendor: "Canonical", category: "os" as const },
+  { name: "RHEL 9", vendor: "Red Hat", category: "os" as const },
+  { name: "1Password", vendor: "1Password", category: "extension" as const },
+  { name: "Notion", vendor: "Notion", category: "software" as const },
+  { name: "Postman", vendor: "Postman", category: "software" as const },
+  { name: "VLC media player", vendor: "VideoLAN", category: "software" as const },
+];
+const lastSeenLabels = [
+  "Just now",
+  "1 min ago",
+  "3 min ago",
+  "8 min ago",
+  "15 min ago",
+  "22 min ago",
+  "45 min ago",
+];
+
+function buildGeneratedSoftwareInventory(
+  templates: SoftwareInventoryItem[],
+  count: number,
+): SoftwareInventoryItem[] {
+  const generated: SoftwareInventoryItem[] = [];
+  for (let index = 0; index < count; index += 1) {
+    const template = templates[index % templates.length]!;
+    const n = index + 1;
+    const variant = softwareNameVariants[index % softwareNameVariants.length]!;
+    const totalDevices = Math.max(
+      8,
+      Math.round(template.totalDevices * (0.15 + (index % 9) * 0.08)),
+    );
+    const exposedDevices = Math.min(
+      totalDevices,
+      Math.max(0, Math.round(totalDevices * (0.2 + (index % 6) * 0.1))),
+    );
+    const vulnVer = `${2 + (index % 8)}.${index % 12}.${10 + (index % 40)}`;
+    const patchedVer = `${2 + (index % 8)}.${(index % 12) + 1}.0`;
+    generated.push({
+      ...template,
+      id: `sw-${String(n).padStart(3, "0")}`,
+      name: `${variant.name}${index >= softwareNameVariants.length ? ` ${Math.floor(index / softwareNameVariants.length) + 1}` : ""}`,
+      vendor: variant.vendor,
+      category: variant.category,
+      osPlatform:
+        variant.category === "os"
+          ? variant.name.includes("Ubuntu") || variant.name.includes("RHEL")
+            ? "Linux"
+            : template.osPlatform
+          : template.osPlatform,
+      vulnerableVersions: `< ${patchedVer}`,
+      weaknessCount: Math.max(0, (template.weaknessCount % 12) + (index % 7)),
+      exposedDevices,
+      totalDevices,
+      threats: template.threats.slice(0, 1 + (index % 3)),
+      lastSeenLabel: lastSeenLabels[index % lastSeenLabels.length]!,
+      eol: index % 11 === 0,
+      outdated: index % 3 !== 0,
+      internetFacing: index % 5 === 0,
+      vulnerabilityIds: template.vulnerabilityIds.slice(0, 1),
+      versionBreakdown: [
+        { version: vulnVer, devices: exposedDevices, vulnerable: true },
+        {
+          version: patchedVer,
+          devices: Math.max(0, totalDevices - exposedDevices),
+          vulnerable: false,
+        },
+      ],
+    });
+  }
+  return generated;
+}
+
+export const softwareInventory: SoftwareInventoryItem[] = [
+  ...softwareInventorySeeds,
+  ...buildGeneratedSoftwareInventory(
+    softwareInventorySeeds,
+    Math.max(0, SW_CATALOG_SIZE - softwareInventorySeeds.length),
+  ),
+];
+
 export function getSoftwareItem(id: string) {
   return softwareInventory.find((s) => s.id === id) ?? null;
 }
@@ -3315,7 +3753,7 @@ export function getSoftwareItem(id: string) {
 /* Events                                                                     */
 /* -------------------------------------------------------------------------- */
 
-export const vulnEvents: VulnEvent[] = [
+const vulnEventSeeds: VulnEvent[] = [
   {
     id: "evt-firefox-cluster",
     at: "2026-07-26T08:00:00.000Z",
@@ -3532,6 +3970,94 @@ export const vulnEvents: VulnEvent[] = [
     relatedSoftwareIds: ["sw-zoom"],
     scope: "endpoint",
   },
+];
+
+const VE_CATALOG_SIZE = 50;
+const vulnEventTypesCycle: VulnEventType[] = [
+  "new-cves",
+  "score-change",
+  "remediation-completed",
+  "exception-granted",
+  "zero-day",
+  "exploit-detected",
+];
+const vulnEventSummaries: Record<VulnEventType, string[]> = {
+  "new-cves": [
+    "New CVE cluster published for enterprise collaboration stack",
+    "Vendor advisory adds mid-severity findings across browser fleet",
+    "Security update catalog expanded with library advisories",
+  ],
+  "score-change": [
+    "Endpoint exposure score shifted after weekend patch wave",
+    "Cloud exposure score adjusted following IAM review",
+    "Exposure score recalculated after asset inventory refresh",
+  ],
+  "remediation-completed": [
+    "Remediation ring completed for pilot business unit",
+    "Force-update job finished on remaining canary devices",
+    "Hotfix rollout marked complete for edge appliances",
+  ],
+  "exception-granted": [
+    "Time-boxed exception granted for legacy ERP dependency",
+    "Risk acceptance filed for vendor-locked print servers",
+    "Compensating control exception approved by security board",
+  ],
+  "zero-day": [
+    "Suspected zero-day activity flagged on perimeter appliances",
+    "In-the-wild exploit report escalated as zero-day response",
+    "Urgent zero-day advisory mapped to internet-facing assets",
+  ],
+  "exploit-detected": [
+    "Public exploit PoC activity observed for tracked CVE",
+    "Threat intel feed reports active exploitation attempts",
+    "Exploit kit signature matched against vulnerable package set",
+  ],
+};
+
+function buildGeneratedVulnEvents(
+  templates: VulnEvent[],
+  count: number,
+): VulnEvent[] {
+  const generated: VulnEvent[] = [];
+  for (let index = 0; index < count; index += 1) {
+    const template = templates[index % templates.length]!;
+    const n = index + 1;
+    const type = vulnEventTypesCycle[index % vulnEventTypesCycle.length]!;
+    const summaries = vulnEventSummaries[type];
+    const day = 1 + (index % 28);
+    const hour = 7 + (index % 12);
+    const minute = (index * 7) % 60;
+    const ampm = hour >= 12 ? "PM" : "AM";
+    const hour12 = hour > 12 ? hour - 12 : hour;
+    const impactedDevices =
+      type === "score-change"
+        ? 0
+        : Math.max(1, Math.round(40 + (index * 37) % 1800));
+    const impactedPercent =
+      type === "score-change" ? 0 : Math.min(100, 8 + (index * 11) % 90);
+    generated.push({
+      ...template,
+      id: `ve-${String(n).padStart(3, "0")}`,
+      at: `2026-07-${String(day).padStart(2, "0")}T${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}:00.000Z`,
+      dateLabel: `Jul ${day}, 2026 ${hour12}:${String(minute).padStart(2, "0")} ${ampm}`,
+      type,
+      summary: summaries[index % summaries.length]!,
+      impactedDevices,
+      impactedPercent,
+      relatedCveIds: template.relatedCveIds.slice(0, 1 + (index % 2)),
+      relatedSoftwareIds: template.relatedSoftwareIds.slice(0, 1),
+      scope: index % 5 === 0 ? "cloud" : "endpoint",
+    });
+  }
+  return generated;
+}
+
+export const vulnEvents: VulnEvent[] = [
+  ...vulnEventSeeds,
+  ...buildGeneratedVulnEvents(
+    vulnEventSeeds,
+    Math.max(0, VE_CATALOG_SIZE - vulnEventSeeds.length),
+  ),
 ];
 
 /* -------------------------------------------------------------------------- */

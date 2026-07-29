@@ -1,9 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
 import { ArrowRightLeft, AtSign, Send } from "lucide-react";
+import { useMemo, useState } from "react";
 
-import { administrationUsers } from "@/components/administration/users-data";
+import {
+  administrationUsers,
+  type AdministrationUser,
+} from "@/components/administration/users-data";
 import { appendAuditLog } from "@/components/audit/audit-log-data";
 import { currentProfile } from "@/components/profile/profile-data";
 import { Badge } from "@/components/ui/badge";
@@ -26,36 +29,90 @@ import {
 } from "./incidents-data";
 import { useIncidentsSession } from "./incidents-session";
 
-function parseMentions(body: string) {
-  const mentionIds: string[] = [];
+function userHandle(user: AdministrationUser) {
+  return user.name.replace(/\s+/g, ".");
+}
+
+function resolveMentionHandle(handle: string): AdministrationUser | null {
+  const normalized = handle.toLowerCase();
+  const spaced = normalized.replace(/\./g, " ");
+  return (
+    administrationUsers.find((candidate) => {
+      const name = candidate.name.toLowerCase();
+      return (
+        userHandle(candidate).toLowerCase() === normalized ||
+        name === spaced ||
+        name.includes(spaced) ||
+        candidate.id.toLowerCase() === normalized ||
+        candidate.email?.toLowerCase().startsWith(normalized)
+      );
+    }) ?? null
+  );
+}
+
+function parseMentionUsers(body: string): AdministrationUser[] {
+  const found: AdministrationUser[] = [];
   const mentionPattern = /@([A-Za-z][A-Za-z0-9._-]*)/g;
   let match: RegExpExecArray | null;
   while ((match = mentionPattern.exec(body)) !== null) {
-    const handle = match[1]!.toLowerCase();
-    const user = administrationUsers.find(
-      (candidate) =>
-        candidate.name.toLowerCase().replace(/\s+/g, ".") === handle ||
-        candidate.name.toLowerCase().includes(handle.replace(/\./g, " ")),
-    );
-    if (user && !mentionIds.includes(user.id)) {
-      mentionIds.push(user.id);
+    const user = resolveMentionHandle(match[1]!);
+    if (user && !found.some((u) => u.id === user.id)) {
+      found.push(user);
     }
   }
-  return mentionIds;
+  return found;
 }
 
 function renderBody(body: string) {
   const parts = body.split(/(@[A-Za-z][A-Za-z0-9._-]*)/g);
   return parts.map((part, index) => {
     if (part.startsWith("@")) {
+      const resolved = resolveMentionHandle(part.slice(1));
       return (
-        <span key={`${part}-${index}`} className="text-primary font-medium">
+        <span
+          key={`${part}-${index}`}
+          className={cn(
+            "font-medium",
+            resolved ? "text-primary" : "text-muted-foreground",
+          )}
+          title={resolved ? `${resolved.name} · ${resolved.title}` : "Unknown user"}
+        >
           {part}
         </span>
       );
     }
     return <span key={`${part}-${index}`}>{part}</span>;
   });
+}
+
+function auditMentions(
+  incidentId: string,
+  mentioned: AdministrationUser[],
+  context: "message" | "handoff",
+) {
+  if (mentioned.length === 0) return;
+
+  appendAuditLog({
+    actorId: currentProfile.id,
+    actorName: currentProfile.name,
+    action: "incident.war_room_mention",
+    targetType: "incident",
+    targetId: incidentId,
+    detail: `${context}: @-mentioned ${mentioned
+      .map((u) => `${u.name} (${u.id})`)
+      .join(", ")}`,
+  });
+
+  for (const user of mentioned) {
+    appendAuditLog({
+      actorId: currentProfile.id,
+      actorName: currentProfile.name,
+      action: "incident.war_room_mention_notify",
+      targetType: "user",
+      targetId: user.id,
+      detail: `Notified ${user.name} via war room @mention on ${incidentId} (${context})`,
+    });
+  }
 }
 
 export function IncidentWarRoom({ incident }: { incident: SocIncident }) {
@@ -69,20 +126,26 @@ export function IncidentWarRoom({ incident }: { incident: SocIncident }) {
     if (!mentionQuery) return [];
     const q = mentionQuery.toLowerCase();
     return administrationUsers
-      .filter((user) => user.name.toLowerCase().includes(q))
+      .filter(
+        (user) =>
+          user.name.toLowerCase().includes(q) ||
+          userHandle(user).toLowerCase().includes(q) ||
+          user.title.toLowerCase().includes(q),
+      )
       .slice(0, 6);
   }, [mentionQuery]);
 
   const postMessage = () => {
     const body = draft.trim();
     if (!body) return;
+    const mentioned = parseMentionUsers(body);
     const message: WarRoomMessage = {
       id: `wrm-${Date.now().toString(36)}`,
       at: new Date().toISOString(),
       authorId: currentProfile.id,
       authorName: currentProfile.name,
       body,
-      mentionIds: parseMentions(body),
+      mentionIds: mentioned.map((u) => u.id),
       kind: "message",
     };
     patchIncidents([incident.id], {
@@ -91,7 +154,11 @@ export function IncidentWarRoom({ incident }: { incident: SocIncident }) {
         ...incident.timeline,
         {
           at: message.at,
-          label: `War room note by ${currentProfile.name}`,
+          label: `War room note by ${currentProfile.name}${
+            mentioned.length > 0
+              ? ` (mentioned ${mentioned.map((u) => u.name).join(", ")})`
+              : ""
+          }`,
         },
       ],
     });
@@ -103,9 +170,16 @@ export function IncidentWarRoom({ incident }: { incident: SocIncident }) {
       targetId: incident.id,
       detail: body.slice(0, 120),
     });
+    auditMentions(incident.id, mentioned, "message");
     setDraft("");
     setMentionQuery(null);
-    toast({ title: "Posted to war room", description: incident.id });
+    toast({
+      title: "Posted to war room",
+      description:
+        mentioned.length > 0
+          ? `${incident.id} · notified ${mentioned.map((u) => u.name).join(", ")}`
+          : incident.id,
+    });
   };
 
   const handoff = () => {
@@ -119,12 +193,13 @@ export function IncidentWarRoom({ incident }: { incident: SocIncident }) {
     const summary =
       handoffSummary.trim() ||
       `Shift handoff for ${incident.id}: ${incident.title}`;
+    const body = `Handoff from ${currentProfile.name} to @${userHandle(recipient)}: ${summary}`;
     const message: WarRoomMessage = {
       id: `wrm-handoff-${Date.now().toString(36)}`,
       at,
       authorId: currentProfile.id,
       authorName: currentProfile.name,
-      body: `Handoff from ${currentProfile.name} to @${recipient.name.replace(/\s+/g, ".")}: ${summary}`,
+      body,
       mentionIds: [recipient.id],
       kind: "handoff",
     };
@@ -146,8 +221,9 @@ export function IncidentWarRoom({ incident }: { incident: SocIncident }) {
       action: "incident.handoff",
       targetType: "incident",
       targetId: incident.id,
-      detail: `Handoff to ${recipient.name}`,
+      detail: `Handoff to ${recipient.name} (${recipient.id})`,
     });
+    auditMentions(incident.id, [recipient], "handoff");
     setHandoffSummary("");
     toast({
       title: "Shift handoff complete",
@@ -168,8 +244,8 @@ export function IncidentWarRoom({ incident }: { incident: SocIncident }) {
     setMentionQuery(null);
   };
 
-  const insertMention = (name: string) => {
-    const handle = name.replace(/\s+/g, ".");
+  const insertMention = (user: AdministrationUser) => {
+    const handle = userHandle(user);
     const atIndex = draft.lastIndexOf("@");
     const next =
       atIndex >= 0
@@ -187,14 +263,14 @@ export function IncidentWarRoom({ incident }: { incident: SocIncident }) {
         </h2>
         <Badge variant="outline" className="gap-1 text-[10px]">
           <AtSign className="size-3" />
-          Mentions + handoff
+          Mentions audited
         </Badge>
       </div>
 
       <div className="mb-4 max-h-64 space-y-3 overflow-y-auto pr-1">
         {(incident.warRoomMessages ?? []).length === 0 ? (
           <p className="text-muted-foreground text-sm">
-            No war room activity yet.
+            No war room activity yet. Use @Name to notify teammates (writes audit).
           </p>
         ) : (
           (incident.warRoomMessages ?? []).map((message) => (
@@ -217,6 +293,12 @@ export function IncidentWarRoom({ incident }: { incident: SocIncident }) {
                     {message.kind}
                   </Badge>
                 ) : null}
+                {message.mentionIds.length > 0 ? (
+                  <Badge variant="outline" className="gap-0.5 text-[10px]">
+                    <AtSign className="size-2.5" />
+                    {message.mentionIds.length}
+                  </Badge>
+                ) : null}
               </div>
               <p className="text-sm leading-relaxed">
                 {renderBody(message.body)}
@@ -230,7 +312,7 @@ export function IncidentWarRoom({ incident }: { incident: SocIncident }) {
         <Textarea
           value={draft}
           onChange={(event) => onDraftChange(event.target.value)}
-          placeholder="Update the room… use @Name to mention"
+          placeholder="Update the room… use @Name to mention (audited)"
           className="min-h-20 resize-none"
         />
         {mentionSuggestions.length > 0 ? (
@@ -240,9 +322,14 @@ export function IncidentWarRoom({ incident }: { incident: SocIncident }) {
                 key={user.id}
                 type="button"
                 className="hover:bg-accent flex w-full items-center justify-between rounded px-2 py-1.5 text-left text-sm"
-                onClick={() => insertMention(user.name)}
+                onClick={() => insertMention(user)}
               >
-                <span>{user.name}</span>
+                <span>
+                  @{userHandle(user)}
+                  <span className="text-muted-foreground ml-2 text-xs">
+                    {user.name}
+                  </span>
+                </span>
                 <span className="text-muted-foreground text-xs">
                   {user.title}
                 </span>

@@ -119,7 +119,9 @@ function defineIdentity(seed: IdentitySeed): AssetIdentity {
   };
 }
 
-export const assetIdentities: AssetIdentity[] = [
+export const IDENTITY_CATALOG_SIZE = 160;
+
+const seedAssetIdentities: AssetIdentity[] = [
   // Human users (30) — 10 privileged
   defineIdentity({
     id: "id-user-01",
@@ -1165,6 +1167,129 @@ export const assetIdentities: AssetIdentity[] = [
   }),
 ];
 
+const identityDepartments = [
+  "Security",
+  "Engineering",
+  "Finance",
+  "Product",
+  "Operations",
+  "IT",
+  "Sales",
+  "People",
+] as const;
+
+const identityTitles = [
+  "Analyst",
+  "Engineer",
+  "Manager",
+  "Director",
+  "Contractor",
+  "Specialist",
+] as const;
+
+const identitySources: IdentitySource[] = [
+  "Entra ID",
+  "Okta",
+  "Active Directory",
+  "AWS IAM",
+  "Local",
+];
+
+function hashIdentitySeed(input: string): number {
+  let h = 0;
+  for (let i = 0; i < input.length; i++) {
+    h = (h * 31 + input.charCodeAt(i)) >>> 0;
+  }
+  return h;
+}
+
+function buildGeneratedIdentities(
+  templates: AssetIdentity[],
+  count: number,
+): AssetIdentity[] {
+  if (templates.length === 0 || count <= 0) return [];
+  const out: AssetIdentity[] = [];
+  for (let i = 0; i < count; i++) {
+    const template = templates[i % templates.length]!;
+    const hash = hashIdentitySeed(`${template.id}-igen-${i}`);
+    const kindCycle: IdentityKind[] = [
+      "user",
+      "user",
+      "user",
+      "service",
+      "guest",
+    ];
+    const kind = kindCycle[hash % kindCycle.length]!;
+    const statusCycle: IdentityStatus[] = [
+      "active",
+      "active",
+      "active",
+      "stale",
+      "locked",
+      "disabled",
+    ];
+    const status = statusCycle[hash % statusCycle.length]!;
+    const idx = String(i + 1).padStart(3, "0");
+    const dept = identityDepartments[hash % identityDepartments.length]!;
+    const title = identityTitles[hash % identityTitles.length]!;
+    const source = identitySources[hash % identitySources.length]!;
+    const privileged = kind !== "guest" && hash % 4 === 0;
+    const mfaEnabled =
+      kind === "service" ? null : hash % 6 === 0 ? false : true;
+    const linkedDevice =
+      kind === "user" ? [`LAP-GEN-${String((hash % 180) + 1).padStart(3, "0")}`] : [];
+    out.push(
+      defineIdentity({
+        id: `id-gen-${idx}`,
+        displayName:
+          kind === "service"
+            ? `svc-gen-${idx}`
+            : kind === "guest"
+              ? `Guest ${idx}`
+              : `User ${idx}`,
+        principal:
+          kind === "service"
+            ? `svc-gen-${idx}@svalbard.ca`
+            : kind === "guest"
+              ? `guest.${idx}@partner.example`
+              : `user.${idx}@svalbard.ca`,
+        kind,
+        source,
+        status,
+        department: dept,
+        owner: dept,
+        title,
+        privileged,
+        mfaEnabled,
+        lastSeenLabel:
+          status === "stale"
+            ? `${10 + (hash % 40)} days ago`
+            : status === "disabled"
+              ? "Disabled"
+              : `${1 + (hash % 20)} min ago`,
+        lastSeenValue: 202607241000 + (hash % 400),
+        riskScore: 10 + (hash % 88),
+        linkedDevices: linkedDevice,
+        notes:
+          privileged && mfaEnabled === false
+            ? "Privileged without MFA — attention required."
+            : "",
+      }),
+    );
+  }
+  return out;
+}
+
+export function buildIdentityCatalog(
+  seeds: AssetIdentity[] = seedAssetIdentities,
+  size = IDENTITY_CATALOG_SIZE,
+): AssetIdentity[] {
+  if (seeds.length >= size) return seeds.slice(0, size);
+  return [...seeds, ...buildGeneratedIdentities(seeds, size - seeds.length)];
+}
+
+export const assetIdentities: AssetIdentity[] = buildIdentityCatalog();
+
 export function getIdentityInitials(name: string) {
   return name
     .split(/\s+/)
@@ -1240,20 +1365,24 @@ export function getIdentityListStats(
     (identity) => identity.mfaEnabled === false,
   ).length;
   const atRisk = identities.filter(isRiskIdentity).length;
+  const highRisk = identities.filter((i) => i.riskScore >= 70).length;
+  const midRisk = identities.filter(
+    (i) => i.riskScore >= 40 && i.riskScore < 70,
+  ).length;
 
   return [
     {
       title: "Total identities",
       value: String(total),
       delta: 4.1,
-      context: "vs last week",
+      context: `${privileged} privileged`,
       preferLower: false,
     },
     {
-      title: "Privileged",
-      value: String(privileged),
-      delta: 1.8,
-      context: "vs last week",
+      title: "High risk",
+      value: String(highRisk),
+      delta: -2.1,
+      context: `risk ≥ 70 · ${midRisk} mid`,
       preferLower: true,
     },
     {
@@ -1267,7 +1396,7 @@ export function getIdentityListStats(
       title: "At risk",
       value: String(atRisk),
       delta: -2.7,
-      context: "vs last week",
+      context: "attention filters",
       preferLower: true,
     },
   ];

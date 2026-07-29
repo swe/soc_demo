@@ -115,6 +115,11 @@ export type KbTraining = {
   tags: string[];
   related: KbRelatedLink[];
   updatedAt: string;
+  /** LMS connector id when synced from an external learning platform. */
+  lmsProviderId?: string;
+  /** External course id in the LMS. */
+  lmsExternalId?: string;
+  lastLmsSyncAt?: string | null;
 };
 
 export type KbStat = {
@@ -967,7 +972,7 @@ export const kbTrainings: KbTraining[] = [
     code: "TRN-IR-08",
     title: "Ransomware response walkthrough",
     summary:
-      "Step-through of PB-IR-01 with live tooling demos for isolation and token revoke.",
+      "Step-through of PB-IR-01 with tooling for isolation and token revoke.",
     level: "intermediate",
     status: "in-progress",
     ownerId: "maya-rao",
@@ -1113,17 +1118,17 @@ export function getReportStats(): KbStat[] {
   ];
 }
 
-export function getTrainingStats(): KbStat[] {
-  const enrolled = kbTrainings.reduce((sum, t) => sum + t.enrolled, 0);
-  const completed = kbTrainings.reduce((sum, t) => sum + t.completed, 0);
-  const overdue = kbTrainings.filter((t) => t.status === "overdue").length;
+export function getTrainingStats(trainings: KbTraining[] = kbTrainings): KbStat[] {
+  const enrolled = trainings.reduce((sum, t) => sum + t.enrolled, 0);
+  const completed = trainings.reduce((sum, t) => sum + t.completed, 0);
+  const overdue = trainings.filter((t) => t.status === "overdue").length;
   const coverage =
     enrolled === 0 ? 0 : Math.round((completed / enrolled) * 100);
 
   return [
     {
       title: "Courses",
-      value: String(kbTrainings.length),
+      value: String(trainings.length),
       context: "Active training catalog",
       delta: 7.1,
     },

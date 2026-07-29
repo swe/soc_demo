@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
+import { StatsStrip } from "@/components/soc/stats-strip";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -54,57 +55,16 @@ export const percentFormatter = new Intl.NumberFormat("en-US", {
 
 export function KbStatsStrip({ stats }: { stats: KbStat[] }) {
   return (
-    <section className="border-border/70 border-b border-dashed pb-4">
-      <div
-        className={cn(
-          "grid gap-3 sm:grid-cols-2 sm:gap-4",
-          stats.length >= 4
-            ? "lg:grid-cols-4 xl:gap-0"
-            : "lg:grid-cols-3 xl:gap-0",
-        )}
-      >
-        {stats.map((stat, index) => {
-          const isIncrease = stat.delta >= 0;
-          const isHealthy = stat.preferLower ? !isIncrease : isIncrease;
-          const deltaLabel = `${isIncrease ? "+" : ""}${percentFormatter.format(
-            stat.delta,
-          )}%`;
-
-          return (
-            <section
-              key={stat.title}
-              className={cn(
-                "space-y-2 py-2 sm:py-1",
-                index > 0 && "xl:border-border/70 xl:border-l",
-                index === 0 && "xl:pr-6",
-                index > 0 && index < stats.length - 1 && "xl:px-6",
-                index === stats.length - 1 && "xl:pl-6",
-              )}
-            >
-              <p className="text-muted-foreground text-sm">{stat.title}</p>
-              <div className="space-y-1.5">
-                <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-                  <p className="text-3xl leading-none font-semibold tracking-tight tabular-nums">
-                    {stat.value}
-                  </p>
-                  <span
-                    className={cn(
-                      "text-sm",
-                      isHealthy ? "text-emerald-600" : "text-rose-600",
-                    )}
-                  >
-                    {deltaLabel}
-                  </span>
-                </div>
-                <span className="text-muted-foreground block text-sm">
-                  {stat.context}
-                </span>
-              </div>
-            </section>
-          );
-        })}
-      </div>
-    </section>
+    <StatsStrip
+      stats={stats.map((stat) => ({
+        key: stat.title,
+        title: stat.title,
+        value: stat.value,
+        context: stat.context,
+        delta: stat.delta,
+        preferLower: stat.preferLower,
+      }))}
+    />
   );
 }
 

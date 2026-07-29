@@ -61,7 +61,9 @@ export type DeviceListStat = {
   preferLower: boolean;
 };
 
-export const assetDevices: AssetDevice[] = [
+export const DEVICE_CATALOG_SIZE = 220;
+
+const seedAssetDevices: AssetDevice[] = [
   // Endpoints (8)
   {
     id: "dev-ep-01",
@@ -788,6 +790,133 @@ export const assetDevices: AssetDevice[] = [
   },
 ];
 
+const deviceDepartments = [
+  "Finance",
+  "Security",
+  "Product",
+  "Engineering",
+  "Operations",
+  "IT",
+  "Sales",
+  "HR",
+] as const;
+
+const deviceOwners = [
+  "Liza Harlan",
+  "Kabir Sethi",
+  "Robyn Carr",
+  "Ava Reed",
+  "IT Ops",
+  "Security",
+  "Platform Eng",
+  "Facilities",
+] as const;
+
+const deviceLocations = [
+  "HQ · Floor 3",
+  "HQ · SOC",
+  "Remote · SF",
+  "DC · East",
+  "Warehouse · Dock 2",
+  "Branch · Toronto",
+  "Cloud · us-east-1",
+] as const;
+
+function hashDeviceSeed(input: string): number {
+  let h = 0;
+  for (let i = 0; i < input.length; i++) {
+    h = (h * 31 + input.charCodeAt(i)) >>> 0;
+  }
+  return h;
+}
+
+function buildGeneratedDevices(
+  templates: AssetDevice[],
+  count: number,
+): AssetDevice[] {
+  if (templates.length === 0 || count <= 0) return [];
+  const out: AssetDevice[] = [];
+  for (let i = 0; i < count; i++) {
+    const template = templates[i % templates.length]!;
+    const hash = hashDeviceSeed(`${template.id}-gen-${i}`);
+    const categoryCycle: DeviceCategory[] = [
+      "endpoint",
+      "server",
+      "network",
+      "iot",
+    ];
+    const category = categoryCycle[hash % categoryCycle.length]!;
+    const platformByCategory: Record<DeviceCategory, DevicePlatform[]> = {
+      endpoint: ["Windows", "macOS", "Linux", "iOS", "Android"],
+      server: ["Windows", "Linux"],
+      network: ["Cisco IOS", "FortiOS"],
+      iot: ["Firmware", "Android", "Linux"],
+    };
+    const platforms = platformByCategory[category];
+    const platform = platforms[hash % platforms.length]!;
+    const statusCycle: DeviceStatus[] = [
+      "online",
+      "online",
+      "online",
+      "at-risk",
+      "offline",
+      "pending",
+    ];
+    const status = statusCycle[hash % statusCycle.length]!;
+    const agentInstalled =
+      category === "iot" ? hash % 3 !== 0 : hash % 7 !== 0;
+    const riskScore = 8 + (hash % 85);
+    const vulns = hash % 17;
+    const dept = deviceDepartments[hash % deviceDepartments.length]!;
+    const owner = deviceOwners[hash % deviceOwners.length]!;
+    const location = deviceLocations[hash % deviceLocations.length]!;
+    const idx = String(i + 1).padStart(3, "0");
+    const prefix =
+      category === "endpoint"
+        ? "LAP"
+        : category === "server"
+          ? "SRV"
+          : category === "network"
+            ? "NET"
+            : "IOT";
+    out.push({
+      ...template,
+      id: `dev-gen-${idx}`,
+      name: `${category === "endpoint" ? "Workstation" : category === "server" ? "Server" : category === "network" ? "Appliance" : "Sensor"} ${idx}`,
+      hostname: `${prefix}-GEN-${idx}`,
+      category,
+      platform,
+      status,
+      owner,
+      department: dept,
+      ipAddress: `10.${(hash % 90) + 10}.${(hash >> 3) % 254}.${(hash >> 7) % 254}`,
+      location,
+      agentInstalled,
+      isolated: status === "at-risk" && hash % 5 === 0,
+      vulnerabilityCount: vulns,
+      lastSeenLabel:
+        status === "offline"
+          ? `${4 + (hash % 40)} hours ago`
+          : status === "pending"
+            ? "Never"
+            : `${1 + (hash % 55)} min ago`,
+      lastSeenValue: 202607241000 + (hash % 500),
+      riskScore,
+    });
+  }
+  return out;
+}
+
+export function buildDeviceCatalog(
+  seeds: AssetDevice[] = seedAssetDevices,
+  size = DEVICE_CATALOG_SIZE,
+): AssetDevice[] {
+  if (seeds.length >= size) return seeds.slice(0, size);
+  return [...seeds, ...buildGeneratedDevices(seeds, size - seeds.length)];
+}
+
+export const assetDevices: AssetDevice[] = buildDeviceCatalog();
+
 export function getDeviceListStats(devices: AssetDevice[]): DeviceListStat[] {
   const total = devices.length;
   const vulnerabilities = devices.reduce(
@@ -798,34 +927,40 @@ export function getDeviceListStats(devices: AssetDevice[]): DeviceListStat[] {
   const atRisk = devices.filter(
     (device) => device.status === "at-risk" || device.riskScore >= 70,
   ).length;
+  const withEdr = devices.filter((device) => device.agentInstalled).length;
+  const edrPct = total === 0 ? 0 : Math.round((withEdr / total) * 100);
+  const critical = devices.filter((device) => device.riskScore >= 80).length;
+  const stale = devices.filter(
+    (device) => device.status === "offline" || device.status === "pending",
+  ).length;
 
   return [
     {
-      title: "Vulnerabilities",
-      value: String(vulnerabilities),
-      delta: -8.2,
-      context: "vs last week",
-      preferLower: true,
-    },
-    {
-      title: "Isolated",
-      value: String(isolated),
-      delta: -12.5,
-      context: "vs last week",
-      preferLower: true,
-    },
-    {
-      title: "Total devices",
-      value: String(total),
-      delta: 6.2,
-      context: "vs last week",
+      title: "EDR coverage",
+      value: `${edrPct}%`,
+      delta: 2.1,
+      context: `${withEdr}/${total} agents`,
       preferLower: false,
+    },
+    {
+      title: "Critical assets",
+      value: String(critical),
+      delta: -1.4,
+      context: "risk ≥ 80",
+      preferLower: true,
+    },
+    {
+      title: "Stale heartbeats",
+      value: String(stale),
+      delta: -4.2,
+      context: "offline / pending",
+      preferLower: true,
     },
     {
       title: "At risk",
       value: String(atRisk),
       delta: -3.4,
-      context: "vs last week",
+      context: `${isolated} isolated · ${vulnerabilities} vulns`,
       preferLower: true,
     },
   ];

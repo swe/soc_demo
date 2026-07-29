@@ -15,6 +15,12 @@ import {
 } from "recharts";
 
 import {
+  OverviewSplit,
+  Panel,
+  PanelGrid,
+  PanelHeading,
+} from "@/components/soc/panel";
+import {
   type ChartConfig,
   ChartContainer,
   ChartLegend,
@@ -40,11 +46,7 @@ import {
   SeverityBadge,
 } from "./dark-web-primitives";
 import { type OverviewFilterTarget } from "./dark-web-url";
-
-const compactNumber = new Intl.NumberFormat("en-US", {
-  notation: "compact",
-  maximumFractionDigits: 1,
-});
+import { EasmCorrelationPanel } from "./easm-correlation-panel";
 
 const severityChartConfig = {
   critical: {
@@ -90,42 +92,6 @@ const severityBarColors: Record<string, string> = {
   low: "#2563eb",
 };
 
-function Panel({
-  className,
-  children,
-}: {
-  className?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className={cn("bg-card rounded-lg border p-4", className)}>
-      {children}
-    </section>
-  );
-}
-
-function PanelHeading({
-  title,
-  description,
-  action,
-}: {
-  title: string;
-  description?: string;
-  action?: React.ReactNode;
-}) {
-  return (
-    <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
-      <div className="min-w-0">
-        <h2 className="text-sm font-semibold">{title}</h2>
-        {description ? (
-          <p className="text-muted-foreground mt-1 text-xs">{description}</p>
-        ) : null}
-      </div>
-      {action}
-    </div>
-  );
-}
-
 function OverviewRangeControl({
   value,
   onChange,
@@ -159,18 +125,11 @@ function OverviewRangeControl({
 
 function ExposuresOverTimeCard({ range }: { range: DarkWebOverviewRange }) {
   const data = useMemo(() => getExposuresOverTime(range), [range]);
-  const latest = data[data.length - 1];
-  const latestTotal = latest
-    ? latest.critical + latest.high + latest.medium + latest.low
-    : 0;
   const xInterval = range === "30d" ? 3 : range === "14d" ? 1 : 0;
 
   return (
-    <Panel className="lg:col-span-2">
-      <PanelHeading
-        title="Exposures over time"
-        description={`${compactNumber.format(latestTotal)} in the latest day · stacked by severity`}
-      />
+    <Panel>
+      <PanelHeading title="Exposures over time" />
       <ChartContainer config={severityChartConfig} className="h-[220px] w-full">
         <AreaChart data={data} margin={{ left: 0, right: 8, top: 8 }}>
           <CartesianGrid vertical={false} strokeDasharray="3 3" />
@@ -240,10 +199,7 @@ function TypeBreakdownCard({
 
   return (
     <Panel>
-      <PanelHeading
-        title="By type"
-        description="Click a bar to open matching exposures"
-      />
+      <PanelHeading title="By type" />
       <ChartContainer config={typeChartConfig} className="h-[220px] w-full">
         <BarChart
           data={data}
@@ -298,14 +254,10 @@ function SeverityDonutCard({
   onFilter: (target: OverviewFilterTarget) => void;
 }) {
   const data = useMemo(() => getSeverityBreakdown(exposures), [exposures]);
-  const total = data.reduce((sum, row) => sum + row.count, 0);
 
   return (
     <Panel>
-      <PanelHeading
-        title="Severity"
-        description={`${total} exposures in range`}
-      />
+      <PanelHeading title="Severity" />
       <ChartContainer
         config={severityDonutConfig}
         className="mx-auto h-[200px] w-full max-w-[240px]"
@@ -352,10 +304,7 @@ function TopDomainsCard({
 
   return (
     <Panel>
-      <PanelHeading
-        title="Top affected domains"
-        description="Most frequent watchlist matches"
-      />
+      <PanelHeading title="Top affected domains" />
       <ul className="space-y-2">
         {data.map((row) => (
           <li key={row.domain}>
@@ -394,7 +343,6 @@ function RecentCriticalCard({
     <Panel>
       <PanelHeading
         title="Recent critical"
-        description="Open critical exposures"
         action={
           <button
             type="button"
@@ -450,17 +398,18 @@ export function DarkWebOverview({
   );
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between gap-3">
-        <p className="text-muted-foreground text-sm">
-          Posture across watchlist-matched dark web findings
-        </p>
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center justify-end">
         <OverviewRangeControl value={range} onChange={setRange} />
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        <ExposuresOverTimeCard range={range} />
-        <TypeBreakdownCard exposures={ranged} onFilter={onFilter} />
+      <OverviewSplit
+        primary={<ExposuresOverTimeCard range={range} />}
+        secondary={
+          <TypeBreakdownCard exposures={ranged} onFilter={onFilter} />
+        }
+      />
+      <PanelGrid columns={3}>
         <SeverityDonutCard exposures={ranged} onFilter={onFilter} />
         <TopDomainsCard exposures={ranged} onFilter={onFilter} />
         <RecentCriticalCard
@@ -468,7 +417,12 @@ export function DarkWebOverview({
           onFilter={onFilter}
           onOpenExposure={onOpenExposure}
         />
-      </div>
+      </PanelGrid>
+
+      <EasmCorrelationPanel
+        exposureTitle="Dark web exposure correlation"
+        tags={["credential", "leak", "domain"]}
+      />
     </div>
   );
 }

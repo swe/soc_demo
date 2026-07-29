@@ -7,8 +7,8 @@ import { ChangePasswordForm } from "@/components/profile/change-password-form";
 import { HardTokensCard } from "@/components/profile/hard-tokens-card";
 import { ManageMfaCard } from "@/components/profile/manage-mfa-card";
 import {
-  currentProfile,
   type CurrentProfile,
+  currentProfile,
 } from "@/components/profile/profile-data";
 import { SecuritySnapshot } from "@/components/profile/security-snapshot";
 

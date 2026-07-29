@@ -3,33 +3,42 @@
 import { useMemo, useSyncExternalStore } from "react";
 
 import { appendAuditLog } from "@/components/audit/audit-log-data";
+import { downloadTextFile } from "@/components/knowledge-base/download-text-file";
 import { currentProfile } from "@/components/profile/profile-data";
 import { downloadCsv } from "@/lib/download-csv";
-import { downloadTextFile } from "@/components/knowledge-base/download-text-file";
 
 import {
+  type ComplianceCollector,
+  complianceCollectors as seedCollectors,
   type ComplianceControl,
-  type ComplianceFinding,
-  type ControlStatus,
-  type FindingStatus,
-  type FrameworkId,
   complianceControls as seedControls,
-  complianceEvidence,
+  type ComplianceEvidence,
+  complianceEvidence as seedEvidence,
+  type ComplianceFinding,
   complianceFindings as seedFindings,
+  type ControlStatus,
   controlStatusLabels,
+  coveragePercent,
+  type FindingStatus,
   findingStatusLabels,
   frameworkById,
+  type FrameworkId,
+  getCoverage,
 } from "./compliance-data";
 
 type ComplianceStore = {
   controls: Map<string, ComplianceControl>;
   findings: Map<string, ComplianceFinding>;
+  evidence: Map<string, ComplianceEvidence>;
+  collectors: Map<string, ComplianceCollector>;
 };
 
 function seedStore(): ComplianceStore {
   return {
     controls: new Map(seedControls.map((control) => [control.id, control])),
     findings: new Map(seedFindings.map((finding) => [finding.id, finding])),
+    evidence: new Map(seedEvidence.map((item) => [item.id, item])),
+    collectors: new Map(seedCollectors.map((item) => [item.id, item])),
   };
 }
 
@@ -62,6 +71,114 @@ export function getSessionControls(): ComplianceControl[] {
 
 export function getSessionFindings(): ComplianceFinding[] {
   return Array.from(store.findings.values());
+}
+
+export function getSessionEvidence(): ComplianceEvidence[] {
+  return Array.from(store.evidence.values());
+}
+
+export function getSessionCollectors(): ComplianceCollector[] {
+  return Array.from(store.collectors.values());
+}
+
+/**
+ * Continuous control monitoring run:
+ * - refresh automated evidence to current
+ * - recompute control status from coverage probes when present
+ * - bump collector last-run metadata
+ */
+export function runCollectors(collectorIds?: Iterable<string>): {
+  collectors: number;
+  evidence: number;
+  controls: number;
+} {
+  const idFilter = collectorIds
+    ? new Set(Array.from(collectorIds))
+    : null;
+  const collectors = new Map(store.collectors);
+  const evidence = new Map(store.evidence);
+  const controls = new Map(store.controls);
+  const now = Date.now();
+  const atIso = new Date(now).toISOString();
+
+  let collectorsTouched = 0;
+  let evidenceTouched = 0;
+  let controlsTouched = 0;
+  const touchedControlCodes = new Set<string>();
+
+  for (const [id, collector] of collectors) {
+    if (idFilter && !idFilter.has(id)) continue;
+    collectorsTouched += 1;
+    collectors.set(id, {
+      ...collector,
+      status: "healthy",
+      lastRunLabel: "Just now",
+      lastRunAt: atIso,
+    });
+    for (const evidenceId of collector.automatedEvidenceIds) {
+      const item = evidence.get(evidenceId);
+      if (!item) continue;
+      evidence.set(evidenceId, {
+        ...item,
+        status: "current",
+        collectedLabel: "Collected just now",
+        expiresLabel: "Refreshes on schedule",
+        daysToExpiry: Math.max(item.daysToExpiry, 7),
+        automated: true,
+      });
+      evidenceTouched += 1;
+      touchedControlCodes.add(item.controlCode);
+    }
+    for (const code of collector.controlCodes) {
+      touchedControlCodes.add(code);
+    }
+  }
+
+  for (const [id, control] of controls) {
+    if (!touchedControlCodes.has(control.code)) continue;
+    let nextStatus: ControlStatus = control.status;
+    if (control.coverage) {
+      const probe = getCoverage(control.coverage);
+      const pct = coveragePercent(probe);
+      if (pct >= 95) nextStatus = "pass";
+      else if (pct >= 80) nextStatus = "attention";
+      else nextStatus = "fail";
+    } else if (control.automation !== "manual") {
+      nextStatus = control.status === "pending" ? "pass" : control.status;
+    }
+    controls.set(id, {
+      ...control,
+      status: nextStatus,
+      evidenceStatus: "current",
+      evidenceCount: Math.max(control.evidenceCount, 1),
+      lastCheckedLabel: "CCM refresh · just now",
+      lastCheckedValue: now,
+      openFindings:
+        nextStatus === "fail"
+          ? Math.max(control.openFindings, 1)
+          : nextStatus === "pass"
+            ? 0
+            : control.openFindings,
+    });
+    controlsTouched += 1;
+  }
+
+  setStore({ controls, findings: store.findings, evidence, collectors });
+
+  appendAuditLog({
+    actorId: currentProfile.id,
+    actorName: currentProfile.name,
+    action: "compliance.collectors_run",
+    targetType: "compliance",
+    targetId: "ccm",
+    detail: `CCM run · ${collectorsTouched} collectors · ${evidenceTouched} evidence · ${controlsTouched} controls`,
+  });
+
+  return {
+    collectors: collectorsTouched,
+    evidence: evidenceTouched,
+    controls: controlsTouched,
+  };
 }
 
 export function patchControlStatus(
@@ -200,7 +317,7 @@ export function exportEvidencePack(frameworkId: FrameworkId | "all") {
       frameworkId === "all" || finding.frameworks.includes(frameworkId),
   );
   const controlCodes = new Set(controls.map((control) => control.code));
-  const evidence = complianceEvidence.filter((item) =>
+  const evidence = getSessionEvidence().filter((item) =>
     controlCodes.has(item.controlCode),
   );
 
@@ -313,10 +430,13 @@ export function useComplianceSession() {
     () => ({
       controls: Array.from(snapshot.controls.values()),
       findings: Array.from(snapshot.findings.values()),
+      evidence: Array.from(snapshot.evidence.values()),
+      collectors: Array.from(snapshot.collectors.values()),
       patchControlStatus,
       patchFindingStatus,
       retestControls,
       requestEvidenceForControls,
+      runCollectors,
       exportSelectedControls,
       exportEvidencePack,
     }),

@@ -11,7 +11,11 @@ export type AuditTargetType =
   | "feed"
   | "asset"
   | "compliance"
-  | "indicator";
+  | "indicator"
+  | "cloud_finding"
+  | "vulnerability"
+  | "training"
+  | "data_security";
 
 export type AuditLogEntry = {
   id: string;
@@ -36,7 +40,7 @@ let entries: AuditLogEntry[] = [
     action: "session.started",
     targetType: "user",
     targetId: "ava-reed",
-    detail: "Demo session initialized",
+    detail: "Session initialized",
   },
 ];
 

@@ -5,8 +5,14 @@ export default function TermsPage() {
     <div className="mx-auto max-w-prose space-y-4 p-8">
       <h1 className="text-2xl font-semibold">Terms of Service</h1>
       <p className="text-muted-foreground text-sm">
-        This is placeholder copy for the admin template. Replace with your real
-        terms before production.
+        Access to Heimdall is provided under your organization&apos;s agreement
+        with Svalbard Security. Use is limited to authorized security operations
+        personnel.
+      </p>
+      <p className="text-sm leading-relaxed">
+        You are responsible for safeguarding credentials, following change
+        control for containment actions, and complying with applicable law and
+        internal policy when using the console.
       </p>
       <p>
         <Link

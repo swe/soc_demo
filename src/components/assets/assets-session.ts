@@ -7,15 +7,15 @@ import { currentProfile } from "@/components/profile/profile-data";
 
 import {
   type AssetDevice,
+  assetDevices as seedDevices,
   type DeviceCategory,
   type DevicePlatform,
-  assetDevices as seedDevices,
 } from "./devices-data";
 import {
+  assetIdentities as seedIdentities,
   type AssetIdentity,
   type IdentityKind,
   type IdentitySource,
-  assetIdentities as seedIdentities,
 } from "./identities-data";
 
 type DeviceStore = Map<string, AssetDevice>;

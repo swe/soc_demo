@@ -7,8 +7,8 @@ import { HTMLAttributes, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { useAuthSession } from "@/components/auth/auth-session";
 import { getAdministrationUserByEmail } from "@/components/administration/users-data";
+import { useAuthSession } from "@/components/auth/auth-session";
 import { PasswordInput } from "@/components/password-input";
 import { Button } from "@/components/ui/button";
 import {
@@ -62,7 +62,7 @@ export function UserAuthForm({
     if (!rosterUser || !isDemoCredential) {
       form.setError("password", {
         message: rosterUser
-          ? "Use ava.reed@svalbard.ca / demodemo123"
+          ? "Invalid password"
           : "No user with that email on the roster",
       });
       return;

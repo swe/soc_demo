@@ -33,12 +33,12 @@ import {
 import { cn } from "@/lib/utils";
 
 import {
-  type IncidentSort,
   getIncidentSlaRemainingLabel,
   getIncidentSlaState,
   getLinkedDevice,
   getLinkedIdentity,
   incidentEntityTypeLabels,
+  type IncidentSort,
   type SocIncident,
 } from "./incidents-data";
 import {

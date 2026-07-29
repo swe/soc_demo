@@ -10,13 +10,13 @@ import {
   Siren,
 } from "lucide-react";
 
+import {
+  RiskScoreBadge,
+  SeverityBadge,
+} from "@/components/alerts/alerts-primitives";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import {
-  SeverityBadge,
-  RiskScoreBadge,
-} from "@/components/alerts/alerts-primitives";
 
 import {
   getIncidentAssignee,
@@ -24,7 +24,7 @@ import {
   incidentStatusLabels,
 } from "./incidents-data";
 
-export { SeverityBadge, RiskScoreBadge };
+export { RiskScoreBadge,SeverityBadge };
 
 export const mutedControlClassName =
   "border-border bg-background text-foreground hover:bg-accent hover:text-accent-foreground";

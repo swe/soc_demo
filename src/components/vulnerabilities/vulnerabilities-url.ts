@@ -2,8 +2,8 @@ import {
   type FindingSort,
   findingSortLabels,
   type VulnScope,
-  type VulnSeverity,
   vulnSeverities,
+  type VulnSeverity,
 } from "./vulnerabilities-data";
 
 function parseList<T extends string>(

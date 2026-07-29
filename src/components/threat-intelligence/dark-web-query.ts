@@ -1,10 +1,10 @@
 import {
   type DarkWebExposure,
+  exposureSearchIndex,
   type ExposureSeverity,
   type ExposureSort,
   type ExposureStatus,
   type ExposureType,
-  exposureSearchIndex,
   openExposureStatuses,
   severityWeight,
 } from "./dark-web-data";

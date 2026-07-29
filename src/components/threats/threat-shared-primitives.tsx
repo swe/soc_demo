@@ -8,9 +8,9 @@ import {
   Globe,
   Hash,
   Link2,
+  type LucideIcon,
   Mail,
   Network,
-  type LucideIcon,
 } from "lucide-react";
 import type { ReactNode } from "react";
 
@@ -19,20 +19,20 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 import {
+  campaignStatusLabels,
+  feedStatusLabels,
   type HuntOutcome,
-  type HuntStatus,
   huntOutcomeLabels,
+  type HuntStatus,
   huntStatusLabels,
   type IndicatorConfidence,
-  type IndicatorStatus,
-  type IndicatorType,
   indicatorConfidenceLabels,
+  type IndicatorStatus,
   indicatorStatusLabels,
+  type IndicatorType,
   indicatorTypeLabels,
-  type ThreatFeed,
-  feedStatusLabels,
-  campaignStatusLabels,
   type ThreatCampaign,
+  type ThreatFeed,
 } from "./threat-shared-data";
 
 export { AlertSeverityBadge as SeverityBadge };

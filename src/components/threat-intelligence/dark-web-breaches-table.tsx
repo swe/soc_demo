@@ -30,9 +30,9 @@ import {
 } from "./dark-web-data";
 import {
   ExposureTypeBadge,
+  mutedControlClassName,
   SeverityBadge,
   SheetDetailRow,
-  mutedControlClassName,
 } from "./dark-web-primitives";
 
 export function DarkWebBreachesTable({

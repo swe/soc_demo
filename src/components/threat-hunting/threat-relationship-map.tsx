@@ -32,12 +32,12 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 import {
-  type ThreatGraphEdge,
-  type ThreatGraphNode,
-  type ThreatNodeKind,
   getConnectedNodeIds,
+  type ThreatGraphEdge,
   threatGraphEdges,
+  type ThreatGraphNode,
   threatGraphNodes,
+  type ThreatNodeKind,
   threatNodeKindLabels,
   threatRelationLabels,
 } from "./threat-analytics-data";

@@ -5,13 +5,13 @@ import {
 } from "@/components/administration/users-data";
 import {
   currentAnalystId,
-  getAlertStats,
   getAlertsOverTime,
+  getAlertStats,
   getSeverityBreakdown,
   getStatusBreakdown,
   openAlertStatuses,
-  socAlerts,
   type SocAlert,
+  socAlerts,
 } from "@/components/alerts/alerts-data";
 import {
   complianceFindings,
@@ -23,11 +23,11 @@ import {
 import {
   currentAnalystId as incidentAnalystId,
   getIncidentSlaState,
-  getIncidentStats,
   getIncidentsOverTime,
+  getIncidentStats,
   openIncidentStatuses,
-  socIncidents,
   type SocIncident,
+  socIncidents,
 } from "@/components/incidents/incidents-data";
 import {
   getFindingOverviewStats,
@@ -342,10 +342,10 @@ export function buildRoleOverview(
       return {
         headline: "Executive security posture",
         subhead:
-          "Board-ready view of risk, response speed, and compliance health.",
+          "Board-ready risk and response across connected SIEM, EDR, and identity sources.",
         chartKind: "compliance",
         chartTitle: "Compliance score trend",
-        chartDescription: "Monthly posture vs target — board narrative ready",
+        chartDescription: "Monthly posture vs target",
         kpis: [
           withSpark(
             {
@@ -375,7 +375,9 @@ export function buildRoleOverview(
               key: "mtta",
               title: "MTTA",
               value: alertStats.find((s) => s.key === "mtta")?.value ?? "—",
-              context: "mean time to acknowledge",
+              context:
+                alertStats.find((s) => s.key === "mtta")?.context ??
+                "mean time to acknowledge",
               delta: -6.2,
               preferLower: true,
             },
@@ -387,7 +389,9 @@ export function buildRoleOverview(
               title: "MTTC",
               value:
                 incidentStats.find((s) => s.key === "mttc")?.value ?? "—",
-              context: "mean time to contain",
+              context:
+                incidentStats.find((s) => s.key === "mttc")?.context ??
+                "mean time to contain",
               preferLower: true,
             },
             sparks.incidents,
@@ -445,9 +449,9 @@ export function buildRoleOverview(
 
     case "ciso":
       return {
-        headline: "Risk digest",
+        headline: "Unified risk digest",
         subhead:
-          "Vulnerability backlog, compliance gaps, and access risk at a glance.",
+          "Risk digest across connected SIEM, EDR, and cloud tools.",
         chartKind: "compliance",
         chartTitle: "Compliance score trend",
         chartDescription: "Control posture vs target with monthly movement",
@@ -660,7 +664,7 @@ export function buildRoleOverview(
       return {
         headline: "Triage queue",
         subhead:
-          "Acknowledge new alerts, follow procedures, and escalate cleanly.",
+          "Acknowledge alerts from connected sources, follow procedures, and escalate cleanly.",
         chartKind: "alerts",
         chartTitle: "Inbound alert volume",
         chartDescription: "What is landing in triage over the last two weeks",
@@ -692,7 +696,9 @@ export function buildRoleOverview(
               key: "mtta",
               title: "MTTA",
               value: alertStats.find((s) => s.key === "mtta")?.value ?? "—",
-              context: "acknowledge target",
+              context:
+                alertStats.find((s) => s.key === "mtta")?.context ??
+                "acknowledge target",
               preferLower: true,
             },
             sparks.alerts,
@@ -720,19 +726,19 @@ export function buildRoleOverview(
         })),
         shortcuts: [
           {
+            label: "Investigate",
+            href: "/investigate",
+            description: "Query across Splunk, Sentinel, Defender, and more",
+          },
+          {
             label: "Alert list",
             href: "/alerts/list",
             description: "Full triage workspace",
           },
           {
-            label: "Procedures",
-            href: "/knowledge-base/procedures",
-            description: "Playbooks for common alert types",
-          },
-          {
-            label: "Assets",
-            href: "/assets/devices",
-            description: "Lookup hosts and identities",
+            label: "Playbooks",
+            href: "/automation/playbooks",
+            description: "Run response automation",
           },
         ],
         insights: [
@@ -763,7 +769,7 @@ export function buildRoleOverview(
       return {
         headline: "Investigation desk",
         subhead:
-          "Own escalated cases, correlate assets and vulns, and use intel indicators.",
+          "Correlate across SIEM, EDR, and identity sources; investigate and contain from one workspace.",
         chartKind: "incidents",
         chartTitle: "Incident intake by priority",
         chartDescription: "Active case creation pressure over 14 days",
@@ -876,7 +882,7 @@ export function buildRoleOverview(
       return {
         headline: "Deep investigation & hunting",
         subhead:
-          "Zero-day exposure, actor context, and hunt library for advanced cases.",
+          "Hunt and deep investigation across connected lakes and endpoint agents.",
         chartKind: "incidents",
         chartTitle: "High-priority incident pressure",
         chartDescription: "P1–P4 intake used to prioritize hunt vs IR time",

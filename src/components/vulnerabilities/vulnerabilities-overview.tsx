@@ -1,7 +1,7 @@
 "use client";
 
-import { useId, useMemo } from "react";
 import Link from "next/link";
+import { useId, useMemo } from "react";
 import {
   Area,
   AreaChart,
@@ -10,6 +10,7 @@ import {
   YAxis,
 } from "recharts";
 
+import { PanelGrid } from "@/components/soc/panel";
 import {
   type ChartConfig,
   ChartContainer,
@@ -529,22 +530,24 @@ export function VulnerabilitiesOverview() {
 
   return (
     <div className="flex flex-col gap-4">
-      <VulnStatsStrip stats={decisionStats} columns={4} />
+      <VulnStatsStrip stats={decisionStats} />
 
-      <div className="grid gap-4 xl:grid-cols-3">
-        {firstRow.map((id) => panels[id])}
-      </div>
+      {firstRow.length > 0 ? (
+        <PanelGrid columns={firstRow.length as 1 | 2 | 3}>
+          {firstRow.map((id) => panels[id])}
+        </PanelGrid>
+      ) : null}
 
       {secondRow.length > 0 ? (
-        <div className="grid gap-4 xl:grid-cols-3">
+        <PanelGrid columns={secondRow.length as 1 | 2 | 3}>
           {secondRow.map((id) => panels[id])}
-        </div>
+        </PanelGrid>
       ) : null}
 
       {thirdRow.length > 0 ? (
-        <div className="grid gap-4 xl:grid-cols-3">
+        <PanelGrid columns={thirdRow.length as 1 | 2 | 3}>
           {thirdRow.map((id) => panels[id])}
-        </div>
+        </PanelGrid>
       ) : null}
     </div>
   );

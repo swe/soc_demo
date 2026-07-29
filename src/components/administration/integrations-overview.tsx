@@ -21,6 +21,13 @@ import {
 } from "recharts";
 
 import {
+  OverviewSplit,
+  Panel,
+  PanelGrid,
+  PanelHeading,
+} from "@/components/soc/panel";
+import { type SocStat,StatsStrip } from "@/components/soc/stats-strip";
+import {
   type ChartConfig,
   ChartContainer,
   ChartLegend,
@@ -28,11 +35,15 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
+import {
+  fieldMappingPreviews,
+  getTelemetrySource,
+  ingestPipelineStages,
+} from "@/lib/source-registry";
 import { cn } from "@/lib/utils";
 
 import {
   type ConnectorActivity,
-  connectorActivity,
   getAverageCoverage,
   getAverageLatency,
   getCategoryCoverage,
@@ -43,6 +54,73 @@ import {
   type Integration,
   vendorMeta,
 } from "./integrations-data";
+import { useIntegrationsSession } from "./integrations-session";
+
+function IngestPipelinePanel() {
+  return (
+    <Panel>
+      <PanelHeading title="Normalization pipeline" />
+      <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+        {ingestPipelineStages.map((stage, index) => (
+          <div
+            key={stage.id}
+            className="relative rounded-lg border px-3 py-2.5"
+          >
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-xs font-medium">
+                {index + 1}. {stage.label}
+              </p>
+              <span
+                className={cn(
+                  "size-1.5 rounded-full",
+                  stage.status === "healthy" ? "bg-emerald-500" : "bg-amber-500",
+                )}
+              />
+            </div>
+            <p className="text-muted-foreground mt-1 text-[11px] leading-relaxed">
+              {stage.description}
+            </p>
+            <p className="mt-2 text-xs font-medium tabular-nums">
+              {stage.throughputLabel}
+            </p>
+          </div>
+        ))}
+      </div>
+      <div className="mt-4 overflow-hidden rounded-lg border">
+        <div className="bg-muted/40 border-b px-3 py-2">
+          <p className="text-xs font-medium">Field mapping preview</p>
+          <p className="text-muted-foreground text-[11px]">
+            Vendor fields → Heimdall common schema
+          </p>
+        </div>
+        <ul className="divide-border divide-y">
+          {fieldMappingPreviews.map((row) => {
+            const source = getTelemetrySource(row.sourceId);
+            return (
+              <li
+                key={`${row.sourceId}-${row.sourceField}`}
+                className="grid grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)_minmax(0,1fr)_minmax(0,1fr)] gap-2 px-3 py-2 text-xs"
+              >
+                <span className="text-muted-foreground truncate">
+                  {source?.shortName ?? row.sourceId}
+                </span>
+                <code className="truncate font-mono text-[11px]">
+                  {row.sourceField}
+                </code>
+                <code className="text-foreground truncate font-mono text-[11px]">
+                  → {row.heimdallField}
+                </code>
+                <span className="text-muted-foreground truncate">
+                  {row.sample}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    </Panel>
+  );
+}
 
 const compactNumber = new Intl.NumberFormat("en-US", {
   notation: "compact",
@@ -90,42 +168,6 @@ const topSourcesChartConfig = {
   },
 } satisfies ChartConfig;
 
-function Panel({
-  className,
-  children,
-}: {
-  className?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className={cn("bg-card rounded-lg border p-4", className)}>
-      {children}
-    </section>
-  );
-}
-
-function PanelHeading({
-  title,
-  description,
-  action,
-}: {
-  title: string;
-  description?: string;
-  action?: React.ReactNode;
-}) {
-  return (
-    <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
-      <div className="min-w-0">
-        <h2 className="text-sm font-semibold">{title}</h2>
-        {description ? (
-          <p className="text-muted-foreground mt-1 text-xs">{description}</p>
-        ) : null}
-      </div>
-      {action}
-    </div>
-  );
-}
-
 function OverviewKpis({ integrations }: { integrations: Integration[] }) {
   const stats = getIntegrationStats(integrations);
   const latency = getAverageLatency(integrations);
@@ -134,52 +176,34 @@ function OverviewKpis({ integrations }: { integrations: Integration[] }) {
     (item) => item.status === "error" || item.health === "failed",
   ).length;
 
-  const items = [
+  const items: SocStat[] = [
     {
-      label: "Events / 24h",
+      key: "events",
+      title: "Events / 24h",
       value: compactNumber.format(stats.eventsPerDay),
-      detail: `${stats.connected} active pipelines`,
+      context: `${stats.connected} active pipelines`,
     },
     {
-      label: "Avg latency",
+      key: "latency",
+      title: "Avg latency",
       value: latency ? `${latency} ms` : "—",
-      detail: "connector round-trip",
+      context: "connector round-trip",
     },
     {
-      label: "Coverage",
+      key: "coverage",
+      title: "Coverage",
       value: `${coverage}%`,
-      detail: "expected stream fill",
+      context: "expected stream fill",
     },
     {
-      label: "Failed syncs",
+      key: "failed",
+      title: "Failed syncs",
       value: failed.toString(),
-      detail: failed ? "needs remediation" : "none open",
+      context: failed ? "needs remediation" : "none open",
     },
   ];
 
-  return (
-    <div className="grid overflow-hidden rounded-lg border sm:grid-cols-2 xl:grid-cols-4">
-      {items.map((item, index) => (
-        <div
-          key={item.label}
-          className={cn(
-            "min-w-0 px-4 py-3",
-            index > 0 && "border-t sm:border-t-0 sm:border-l",
-            index === 2 && "sm:border-l-0 xl:border-l",
-            index >= 2 && "sm:border-t xl:border-t-0",
-          )}
-        >
-          <p className="text-muted-foreground text-xs">{item.label}</p>
-          <p className="mt-1 text-xl font-semibold tabular-nums">
-            {item.value}
-          </p>
-          <p className="text-muted-foreground mt-0.5 truncate text-xs">
-            {item.detail}
-          </p>
-        </div>
-      ))}
-    </div>
-  );
+  return <StatsStrip stats={items} />;
 }
 
 function IngestionVolumeCard() {
@@ -192,10 +216,9 @@ function IngestionVolumeCard() {
     (latest?.other ?? 0);
 
   return (
-    <Panel className="flex flex-col xl:col-span-2">
+    <Panel className="flex flex-col">
       <PanelHeading
         title="Ingestion volume"
-        description="Events / hour by category · last 24 hours"
         action={
           <div className="text-right">
             <p className="text-2xl leading-none font-semibold tabular-nums">
@@ -338,10 +361,7 @@ function HealthMixCard({
 
   return (
     <Panel>
-      <PanelHeading
-        title="Connection health"
-        description="Live status across the catalog"
-      />
+      <PanelHeading title="Connection health" />
       <div className="flex h-3 overflow-hidden rounded-full">
         {active.map((segment) => (
           <button
@@ -398,10 +418,7 @@ function CategoryCoverageCard({
 
   return (
     <Panel className="flex flex-col">
-      <PanelHeading
-        title="Coverage by category"
-        description="Connected vs catalog remaining"
-      />
+      <PanelHeading title="Coverage by category" />
       <ChartContainer
         config={coverageChartConfig}
         className="[aspect-ratio:auto] h-[220px] w-full"
@@ -472,11 +489,8 @@ function TopSourcesCard({
   }));
 
   return (
-    <Panel className="flex flex-col xl:col-span-2">
-      <PanelHeading
-        title="Top sources by volume"
-        description="Highest telemetry producers in the last 24 hours"
-      />
+    <Panel className="flex flex-col">
+      <PanelHeading title="Top sources by volume" />
       <ChartContainer
         config={topSourcesChartConfig}
         className="[aspect-ratio:auto] h-[220px] w-full"
@@ -565,6 +579,8 @@ function activityIcon(kind: ConnectorActivity["kind"]) {
   switch (kind) {
     case "error":
       return XCircle;
+    case "health":
+      return AlertTriangle;
     case "credential":
       return KeyRound;
     case "connect":
@@ -580,6 +596,8 @@ function activityTone(kind: ConnectorActivity["kind"]) {
   switch (kind) {
     case "error":
       return "text-destructive dark:text-red-400";
+    case "health":
+      return "text-amber-600 dark:text-amber-400";
     case "pause":
       return "text-muted-foreground";
     case "credential":
@@ -593,19 +611,18 @@ function activityTone(kind: ConnectorActivity["kind"]) {
 
 function ActivityFeed({
   integrations,
+  activity,
   onSelect,
 }: {
   integrations: Integration[];
+  activity: ConnectorActivity[];
   onSelect: (integration: Integration) => void;
 }) {
   return (
     <Panel className="flex flex-col">
-      <PanelHeading
-        title="Connector activity"
-        description="Recent sync, credential, and health events"
-      />
+      <PanelHeading title="Connector activity" />
       <ul className="space-y-0 divide-y">
-        {connectorActivity.map((event) => {
+        {activity.slice(0, 8).map((event) => {
           const Icon = activityIcon(event.kind);
           const integration = integrations.find(
             (item) => item.id === event.integrationId,
@@ -667,7 +684,6 @@ function AttentionPanel({
     <Panel>
       <PanelHeading
         title="Needs attention"
-        description="Failures, SLA drift, and validating connectors"
         action={
           <span className="bg-muted rounded-md px-1.5 py-0.5 font-mono text-xs tabular-nums">
             {issues.length}
@@ -720,11 +736,17 @@ function AttentionPanel({
                       )}
                     </div>
                     <p className="text-muted-foreground mt-0.5 line-clamp-2 text-xs leading-5">
-                      {item.errorMessage ??
+                      {item.degradedReason?.summary ??
+                        item.errorMessage ??
                         (item.status === "pending"
                           ? "Access validation in progress."
                           : "Review connector health.")}
                     </p>
+                    {item.degradedReason ? (
+                      <p className="text-muted-foreground mt-1 line-clamp-2 text-[11px] leading-4">
+                        {item.degradedReason.detail}
+                      </p>
+                    ) : null}
                     <div className="text-muted-foreground mt-2 flex flex-wrap gap-x-3 gap-y-1 font-mono text-[11px] tabular-nums">
                       {item.latencyMs !== undefined ? (
                         <span>latency {item.latencyMs}ms</span>
@@ -756,36 +778,45 @@ export function IntegrationsOverview({
   onSelectIntegration: (integration: Integration) => void;
   onShowAttention: () => void;
 }) {
+  const { activity } = useIntegrationsSession();
+
   return (
     <div className="flex flex-col gap-4">
       <OverviewKpis integrations={integrations} />
 
-      <div className="grid gap-4 xl:grid-cols-3">
-        <IngestionVolumeCard />
-        <HealthMixCard
-          integrations={integrations}
-          onSelectFailed={onShowAttention}
-        />
-      </div>
+      <IngestPipelinePanel />
 
-      <div className="grid gap-4 xl:grid-cols-3">
-        <CategoryCoverageCard integrations={integrations} />
-        <TopSourcesCard
-          integrations={integrations}
-          onSelect={onSelectIntegration}
-        />
-      </div>
+      <OverviewSplit
+        primary={<IngestionVolumeCard />}
+        secondary={
+          <HealthMixCard
+            integrations={integrations}
+            onSelectFailed={onShowAttention}
+          />
+        }
+      />
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <OverviewSplit
+        primary={<CategoryCoverageCard integrations={integrations} />}
+        secondary={
+          <TopSourcesCard
+            integrations={integrations}
+            onSelect={onSelectIntegration}
+          />
+        }
+      />
+
+      <PanelGrid columns={2}>
         <AttentionPanel
           integrations={integrations}
           onSelect={onSelectIntegration}
         />
         <ActivityFeed
           integrations={integrations}
+          activity={activity}
           onSelect={onSelectIntegration}
         />
-      </div>
+      </PanelGrid>
     </div>
   );
 }

@@ -5,20 +5,20 @@ import {
   Bug,
   ClipboardCheck,
   Crosshair,
+  type LucideIcon,
   Radar,
   ShieldAlert,
-  type LucideIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import * as React from "react";
 
-import { useSocRole } from "@/components/auth/soc-role-provider";
 import {
+  type AlertSeverity,
   openAlertStatuses,
   socAlerts,
-  type AlertSeverity,
 } from "@/components/alerts/alerts-data";
+import { useSocRole } from "@/components/auth/soc-role-provider";
 import {
   complianceFindings,
   complianceFrameworks,
@@ -28,7 +28,6 @@ import {
   openIncidentStatuses,
   socIncidents,
 } from "@/components/incidents/incidents-data";
-import { vulnerabilities } from "@/components/vulnerabilities/vulnerabilities-data";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -40,6 +39,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { vulnerabilities } from "@/components/vulnerabilities/vulnerabilities-data";
 import { canAccessPath, type SocJobRole } from "@/lib/soc-roles";
 import { cn } from "@/lib/utils";
 

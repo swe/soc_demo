@@ -13,6 +13,10 @@ import {
 import { useRouter, useSearchParams } from "next/navigation";
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 
+import { appendAuditLog } from "@/components/audit/audit-log-data";
+import { createIncidentFromAlerts } from "@/components/incidents/incidents-session";
+import { currentProfile } from "@/components/profile/profile-data";
+import { StatsStrip } from "@/components/soc/stats-strip";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -31,13 +35,18 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { toast } from "@/lib/toast";
 import { downloadCsv } from "@/lib/download-csv";
+import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
-import { appendAuditLog } from "@/components/audit/audit-log-data";
-import { currentProfile } from "@/components/profile/profile-data";
 
 import {
   alertSeverities,
@@ -50,75 +59,101 @@ import {
   alertStatuses,
   alertStatusLabels,
   currentAnalystId,
-  getAlertStats,
+  getAlertAssignees,
+  openAlertStatuses,
   type SocAlert,
 } from "./alerts-data";
 import { AlertsOverview } from "./alerts-overview";
 import {
   mutedControlClassName,
-  percentFormatter,
   tabTriggerClassName,
 } from "./alerts-primitives";
 import { queryAlerts } from "./alerts-query";
 import { useAlertsSession } from "./alerts-session";
 import { AlertsTable } from "./alerts-table";
 import {
+  type AssignedScope,
+  assignedScopeToAssigneeIds,
+  buildAlertsAssignedHref,
   buildAlertsListHref,
+  getAlertStatsWithHrefs,
   overviewFilterToHref,
   parseAlertsListSearchParams,
+  parseAssignedScope,
 } from "./alerts-url";
-import { createIncidentFromAlerts } from "@/components/incidents/incidents-session";
 
 type FilterPanel = "severity" | "status" | "source" | "sort";
 
 function AlertsStatsStrip({ alerts }: { alerts: Iterable<SocAlert> }) {
-  const stats = getAlertStats(alerts);
+  return <StatsStrip stats={getAlertStatsWithHrefs(alerts)} />;
+}
+
+function AssignedScopeControl({
+  scope,
+  onScopeChange,
+}: {
+  scope: AssignedScope;
+  onScopeChange: (scope: AssignedScope) => void;
+}) {
+  const assignees = useMemo(() => getAlertAssignees(), []);
+  const isAnalystScope = scope !== "mine" && scope !== "unassigned";
 
   return (
-    <section className="border-border/70 border-b border-dashed pb-4">
-      <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 xl:grid-cols-5 xl:gap-0">
-        {stats.map((stat, index) => {
-          const isIncrease = stat.delta >= 0;
-          const isHealthy = stat.preferLower ? !isIncrease : isIncrease;
-          const deltaLabel = `${isIncrease ? "+" : ""}${percentFormatter.format(
-            stat.delta,
-          )}%`;
-
+    <div className="flex flex-wrap items-center gap-2">
+      <div className="bg-muted/60 inline-flex rounded-md border p-0.5">
+        {(
+          [
+            { value: "mine" as const, label: "Mine" },
+            { value: "unassigned" as const, label: "Unassigned" },
+          ] as const
+        ).map((option) => {
+          const active = scope === option.value;
           return (
-            <section
-              key={stat.key}
-              className={cn(
-                "space-y-2 py-2 sm:py-1",
-                index > 0 && "xl:border-border/70 xl:border-l",
-                index === 0 && "xl:pr-6",
-                index > 0 && index < stats.length - 1 && "xl:px-6",
-                index === stats.length - 1 && "xl:pl-6",
-              )}
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => onScopeChange(option.value)}
+              className={
+                active
+                  ? "bg-background text-foreground rounded-sm px-2.5 py-1 text-xs font-medium shadow-sm"
+                  : "text-muted-foreground hover:text-foreground rounded-sm px-2.5 py-1 text-xs font-medium"
+              }
             >
-              <p className="text-muted-foreground text-sm">{stat.title}</p>
-              <div className="space-y-1.5">
-                <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-                  <p className="text-3xl leading-none font-semibold tracking-tight tabular-nums">
-                    {stat.value}
-                  </p>
-                  <span
-                    className={cn(
-                      "text-sm",
-                      isHealthy ? "text-emerald-600" : "text-rose-600",
-                    )}
-                  >
-                    {deltaLabel}
-                  </span>
-                </div>
-                <span className="text-muted-foreground block text-sm">
-                  {stat.context}
-                </span>
-              </div>
-            </section>
+              {option.label}
+            </button>
           );
         })}
+        <button
+          type="button"
+          onClick={() => {
+            if (!isAnalystScope) {
+              onScopeChange(assignees[0]?.id ?? currentAnalystId);
+            }
+          }}
+          className={
+            isAnalystScope
+              ? "bg-background text-foreground rounded-sm px-2.5 py-1 text-xs font-medium shadow-sm"
+              : "text-muted-foreground hover:text-foreground rounded-sm px-2.5 py-1 text-xs font-medium"
+          }
+        >
+          By analyst
+        </button>
       </div>
-    </section>
+      {isAnalystScope ? (
+        <Select value={scope} onValueChange={(value) => onScopeChange(value)}>
+          <SelectTrigger className={cn("h-8 w-[180px]", mutedControlClassName)}>
+            <SelectValue placeholder="Select analyst" />
+          </SelectTrigger>
+          <SelectContent>
+            {assignees.map((user) => (
+              <SelectItem key={user.id} value={user.id}>
+                {user.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      ) : null}
+    </div>
   );
 }
 
@@ -389,7 +424,7 @@ function AlertFilterControl({
   );
 }
 
-export type AlertsView = "overview" | "list";
+export type AlertsView = "overview" | "list" | "assigned";
 
 export function AlertsCenter({ view }: { view: AlertsView }) {
   const router = useRouter();
@@ -398,6 +433,10 @@ export function AlertsCenter({ view }: { view: AlertsView }) {
 
   const urlFilters = useMemo(
     () => parseAlertsListSearchParams(searchParams),
+    [searchParams],
+  );
+  const urlScope = useMemo(
+    () => parseAssignedScope(searchParams),
     [searchParams],
   );
 
@@ -415,16 +454,26 @@ export function AlertsCenter({ view }: { view: AlertsView }) {
   const [criticalHighOnly, setCriticalHighOnly] = useState(
     urlFilters.criticalHighOnly,
   );
+  const [assignedScope, setAssignedScope] =
+    useState<AssignedScope>(urlScope);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(25);
   const skipNextUrlSync = useRef(false);
 
   const deferredSearchQuery = useDeferredValue(searchQuery);
+  const showFilterBar = view === "list" || view === "assigned";
+  const assigneeIds = useMemo(
+    () =>
+      view === "assigned"
+        ? assignedScopeToAssigneeIds(assignedScope)
+        : undefined,
+    [view, assignedScope],
+  );
 
   // Hydrate filters when navigating from overview (or shared links).
   useEffect(() => {
-    if (view !== "list") return;
+    if (!showFilterBar) return;
     skipNextUrlSync.current = true;
     setSearchQuery(urlFilters.search);
     setSeverityFilters(urlFilters.severities);
@@ -432,7 +481,8 @@ export function AlertsCenter({ view }: { view: AlertsView }) {
     setSourceIdFilters(urlFilters.sourceIds);
     setSort(urlFilters.sort);
     setCriticalHighOnly(urlFilters.criticalHighOnly);
-  }, [urlFilters, view]);
+    if (view === "assigned") setAssignedScope(urlScope);
+  }, [urlFilters, urlScope, view, showFilterBar]);
 
   const queryResult = useMemo(
     () =>
@@ -443,6 +493,7 @@ export function AlertsCenter({ view }: { view: AlertsView }) {
         severities: severityFilters,
         statuses: statusFilters,
         sourceIds: sourceIdFilters,
+        assigneeIds,
         criticalHighOnly,
         sort,
       }),
@@ -454,15 +505,38 @@ export function AlertsCenter({ view }: { view: AlertsView }) {
       severityFilters,
       statusFilters,
       sourceIdFilters,
+      assigneeIds,
       criticalHighOnly,
       sort,
     ],
   );
 
+  const mineOpenCount = useMemo(() => {
+    let count = 0;
+    for (const alert of alertList) {
+      if (
+        alert.assigneeId === currentAnalystId &&
+        openAlertStatuses.includes(alert.status)
+      ) {
+        count += 1;
+      }
+    }
+    return count;
+  }, [alertList]);
+
+  const allOpenCount = useMemo(() => {
+    let count = 0;
+    for (const alert of alertList) {
+      if (openAlertStatuses.includes(alert.status)) count += 1;
+    }
+    return count;
+  }, [alertList]);
+
   useEffect(() => {
     setPage(1);
     setSelectedIds(new Set());
   }, [
+    assignedScope,
     criticalHighOnly,
     deferredSearchQuery,
     pageSize,
@@ -470,6 +544,7 @@ export function AlertsCenter({ view }: { view: AlertsView }) {
     sort,
     sourceIdFilters,
     statusFilters,
+    view,
   ]);
 
   useEffect(() => {
@@ -478,37 +553,49 @@ export function AlertsCenter({ view }: { view: AlertsView }) {
     }
   }, [page, queryResult.page]);
 
-  // Keep list URL in sync with active filters so overview drill-downs and
-  // in-page filter changes share the same query-param contract.
+  // Keep list/assigned URL in sync with active filters.
   useEffect(() => {
-    if (view !== "list") return;
+    if (!showFilterBar) return;
     if (skipNextUrlSync.current) {
       skipNextUrlSync.current = false;
       return;
     }
 
-    const nextHref = buildAlertsListHref({
+    const filterPayload = {
       search: deferredSearchQuery,
       severities: severityFilters,
       statuses: statusFilters,
       sourceIds: sourceIdFilters,
       criticalHighOnly,
       sort,
-    });
-    const currentHref = buildAlertsListHref(
-      parseAlertsListSearchParams(searchParams),
-    );
+    };
+    const nextHref =
+      view === "assigned"
+        ? buildAlertsAssignedHref({
+            scope: assignedScope,
+            filters: filterPayload,
+          })
+        : buildAlertsListHref(filterPayload);
+    const currentHref =
+      view === "assigned"
+        ? buildAlertsAssignedHref({
+            scope: parseAssignedScope(searchParams),
+            filters: parseAlertsListSearchParams(searchParams),
+          })
+        : buildAlertsListHref(parseAlertsListSearchParams(searchParams));
     if (nextHref !== currentHref) {
       router.replace(nextHref, { scroll: false });
     }
   }, [
     view,
+    showFilterBar,
     deferredSearchQuery,
     severityFilters,
     statusFilters,
     sourceIdFilters,
     criticalHighOnly,
     sort,
+    assignedScope,
     router,
     searchParams,
   ]);
@@ -529,8 +616,14 @@ export function AlertsCenter({ view }: { view: AlertsView }) {
     setSearchQuery("");
   };
 
-  const openOverviewFilter = (target: Parameters<typeof overviewFilterToHref>[0]) => {
+  const openOverviewFilter = (
+    target: Parameters<typeof overviewFilterToHref>[0],
+  ) => {
     router.push(overviewFilterToHref(target));
+  };
+
+  const changeAssignedScope = (scope: AssignedScope) => {
+    setAssignedScope(scope);
   };
 
   const toggleSeverityFilter = (severity: AlertSeverity) => {
@@ -639,8 +732,8 @@ export function AlertsCenter({ view }: { view: AlertsView }) {
       id="main-content"
       className="bg-background flex min-h-0 flex-1 flex-col overflow-hidden"
     >
-      {view === "list" ? (
-        <div className="border-b">
+      {showFilterBar ? (
+        <div className="bg-background shrink-0 border-b">
           <div className="flex flex-col gap-2 px-4 py-3 sm:px-6 lg:min-h-14 lg:flex-row lg:items-center lg:justify-between lg:gap-4 lg:py-2">
             <div className="min-w-0 flex-1">
               <InputGroup className="h-9 w-full lg:max-w-sm">
@@ -689,6 +782,7 @@ export function AlertsCenter({ view }: { view: AlertsView }) {
                     severities: severityFilters,
                     statuses: statusFilters,
                     sourceIds: sourceIdFilters,
+                    assigneeIds,
                     criticalHighOnly,
                     sort,
                   });
@@ -747,15 +841,18 @@ export function AlertsCenter({ view }: { view: AlertsView }) {
 
       <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6">
         <div className="mx-auto flex w-full flex-col gap-4">
-          <AlertsStatsStrip alerts={alertList} />
+          {view === "overview" ? (
+            <AlertsStatsStrip alerts={alertList} />
+          ) : null}
 
           <Tabs
             value={view}
-            onValueChange={(value) =>
-              router.push(
-                value === "overview" ? "/alerts/overview" : "/alerts/list",
-              )
-            }
+            onValueChange={(value) => {
+              if (value === "overview") router.push("/alerts/overview");
+              else if (value === "assigned") {
+                router.push(buildAlertsAssignedHref({ scope: "mine" }));
+              } else router.push("/alerts/list");
+            }}
             className="flex flex-col gap-4"
           >
             <div className="overflow-x-auto border-b">
@@ -763,10 +860,16 @@ export function AlertsCenter({ view }: { view: AlertsView }) {
                 <TabsTrigger value="overview" className={tabTriggerClassName}>
                   Overview
                 </TabsTrigger>
+                <TabsTrigger value="assigned" className={tabTriggerClassName}>
+                  Assigned
+                  <span className="bg-muted text-muted-foreground rounded-md px-1.5 py-0.5 text-xs">
+                    {mineOpenCount.toLocaleString("en-US")}
+                  </span>
+                </TabsTrigger>
                 <TabsTrigger value="list" className={tabTriggerClassName}>
                   All Alerts
                   <span className="bg-muted text-muted-foreground rounded-md px-1.5 py-0.5 text-xs">
-                    {queryResult.openCount.toLocaleString("en-US")}
+                    {allOpenCount.toLocaleString("en-US")}
                   </span>
                 </TabsTrigger>
               </TabsList>
@@ -778,48 +881,56 @@ export function AlertsCenter({ view }: { view: AlertsView }) {
                 onFilter={openOverviewFilter}
               />
             ) : (
-              <AlertsTable
-                items={queryResult.items}
-                total={queryResult.total}
-                page={queryResult.page}
-                pageSize={pageSize}
-                sort={sort}
-                selectedIds={selectedIds}
-                activeFilterCount={activeFilterCount}
-                onPageChange={setPage}
-                onPageSizeChange={setPageSize}
-                onSortChange={setSort}
-                onToggleSelectAllPage={toggleSelectAllPage}
-                onToggleSelect={toggleSelect}
-                onClearSelection={() => setSelectedIds(new Set())}
-                onBulkAssignToMe={() => bulkAssign(currentAnalystId)}
-                onBulkEscalate={bulkEscalate}
-                onBulkClose={() => bulkSetStatus("closed")}
-                onBulkFalsePositive={() => bulkSetStatus("false-positive")}
-                onAssignToMe={(id) => {
-                  const alert = getAlert(id);
-                  if (!alert) return;
-                  patchAlerts([id], {
-                    assigneeId: currentAnalystId,
-                    status:
-                      alert.status === "new" ? "triaging" : alert.status,
-                  });
-                  toast({ title: "Assigned to you", description: id });
-                }}
-                onEscalate={handleEscalate}
-                onMarkFalsePositive={(id) => {
-                  patchAlerts([id], { status: "false-positive" });
-                  toast({
-                    title: "Marked false positive",
-                    description: id,
-                  });
-                }}
-                onClose={(id) => {
-                  patchAlerts([id], { status: "closed" });
-                  toast({ title: "Alert closed", description: id });
-                }}
-                onClearFilters={resetFilters}
-              />
+              <div className="flex flex-col gap-3">
+                {view === "assigned" ? (
+                  <AssignedScopeControl
+                    scope={assignedScope}
+                    onScopeChange={changeAssignedScope}
+                  />
+                ) : null}
+                <AlertsTable
+                  items={queryResult.items}
+                  total={queryResult.total}
+                  page={queryResult.page}
+                  pageSize={pageSize}
+                  sort={sort}
+                  selectedIds={selectedIds}
+                  activeFilterCount={activeFilterCount}
+                  onPageChange={setPage}
+                  onPageSizeChange={setPageSize}
+                  onSortChange={setSort}
+                  onToggleSelectAllPage={toggleSelectAllPage}
+                  onToggleSelect={toggleSelect}
+                  onClearSelection={() => setSelectedIds(new Set())}
+                  onBulkAssignToMe={() => bulkAssign(currentAnalystId)}
+                  onBulkEscalate={bulkEscalate}
+                  onBulkClose={() => bulkSetStatus("closed")}
+                  onBulkFalsePositive={() => bulkSetStatus("false-positive")}
+                  onAssignToMe={(id) => {
+                    const alert = getAlert(id);
+                    if (!alert) return;
+                    patchAlerts([id], {
+                      assigneeId: currentAnalystId,
+                      status:
+                        alert.status === "new" ? "triaging" : alert.status,
+                    });
+                    toast({ title: "Assigned to you", description: id });
+                  }}
+                  onEscalate={handleEscalate}
+                  onMarkFalsePositive={(id) => {
+                    patchAlerts([id], { status: "false-positive" });
+                    toast({
+                      title: "Marked false positive",
+                      description: id,
+                    });
+                  }}
+                  onClose={(id) => {
+                    patchAlerts([id], { status: "closed" });
+                    toast({ title: "Alert closed", description: id });
+                  }}
+                  onClearFilters={resetFilters}
+                />
+              </div>
             )}
           </Tabs>
         </div>

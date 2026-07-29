@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation";
+import { RemediationsCenter } from "@/components/vulnerabilities/remediations-center";
 
-export default function RemediationsRedirectPage() {
-  redirect("/vulnerabilities/work");
+export default function RemediationsPage() {
+  return <RemediationsCenter />;
 }

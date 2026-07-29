@@ -8,10 +8,13 @@ import {
   useState,
 } from "react";
 
+import { appendAuditLog } from "@/components/audit/audit-log-data";
+import { currentProfile } from "@/components/profile/profile-data";
+
 import {
-  type DarkWebExposure,
   type DarkWebBreach,
   darkWebBreaches,
+  type DarkWebExposure,
   darkWebExposures,
   initialWatchlist,
   type WatchlistEntry,
@@ -93,12 +96,33 @@ export function DarkWebSessionProvider({
         notes: entry.notes?.trim() || undefined,
       };
       setWatchlist((current) => [next, ...current]);
+      appendAuditLog({
+        actorId: currentProfile.id,
+        actorName: currentProfile.name,
+        action: "dark_web.watchlist_add",
+        targetType: "indicator",
+        targetId: next.id,
+        detail: `Added watchlist ${next.kind} “${next.value}”`,
+      });
     },
     [],
   );
 
   const removeWatchlistEntry = useCallback((id: string) => {
-    setWatchlist((current) => current.filter((item) => item.id !== id));
+    setWatchlist((current) => {
+      const removed = current.find((item) => item.id === id);
+      if (removed) {
+        appendAuditLog({
+          actorId: currentProfile.id,
+          actorName: currentProfile.name,
+          action: "dark_web.watchlist_remove",
+          targetType: "indicator",
+          targetId: id,
+          detail: `Removed watchlist “${removed.value}”`,
+        });
+      }
+      return current.filter((item) => item.id !== id);
+    });
   }, []);
 
   const setWatchlistStatus = useCallback(

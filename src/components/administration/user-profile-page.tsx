@@ -64,9 +64,9 @@ import {
 } from "./user-admin-dialogs";
 import {
   type AdministrationAccessRole,
+  administrationStatusColors,
   type AdministrationUser,
   type AdministrationUserStatus,
-  administrationStatusColors,
   getAdministrationInitials,
   getAdministrationTeams,
   isAdministrationPrivilegedRole,

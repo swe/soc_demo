@@ -1,22 +1,29 @@
-import { buildRoleOverview } from "@/components/overview/overview-data";
-import { openIncidentStatuses } from "@/components/incidents/incidents-data";
-import { getIncidentsFromSession } from "@/components/incidents/incidents-session";
 import { getAlertsFromSession } from "@/components/alerts/alerts-session";
-import { getOverallScore } from "@/components/compliance/compliance-data";
-import { vulnerabilities } from "@/components/vulnerabilities/vulnerabilities-data";
-import { downloadTextFile } from "@/components/knowledge-base/download-text-file";
 import {
   appendAuditLog,
   formatAuditTime,
   getAuditLogEntries,
 } from "@/components/audit/audit-log-data";
+import { getOverallScore } from "@/components/compliance/compliance-data";
+import { openIncidentStatuses } from "@/components/incidents/incidents-data";
+import { getIncidentsFromSession } from "@/components/incidents/incidents-session";
+import { downloadTextFile } from "@/components/knowledge-base/download-text-file";
+import { buildRoleOverview } from "@/components/overview/overview-data";
 import { currentProfile } from "@/components/profile/profile-data";
+import { vulnerabilities } from "@/components/vulnerabilities/vulnerabilities-data";
+import { computeSocLatencyMetrics } from "@/lib/soc-metrics";
+import {
+  getIngestHealthSummary,
+  sourceFamilyLabels,
+  telemetrySources,
+} from "@/lib/source-registry";
 
 export function buildExecutiveBoardPackMarkdown() {
   const alerts = getAlertsFromSession();
   const incidents = getIncidentsFromSession();
   const overview = buildRoleOverview("c_level", { alerts, incidents });
   const score = getOverallScore();
+  const ingest = getIngestHealthSummary();
   const openP1 = incidents.filter(
     (incident) =>
       incident.priority === "P1" &&
@@ -65,11 +72,66 @@ export function buildExecutiveBoardPackMarkdown() {
           )
           .join("\n");
 
+  const sourceLines = telemetrySources
+    .map(
+      (source) =>
+        `- **${source.name}** (${sourceFamilyLabels[source.family]}) · ${source.health} · ${source.eps} EPS`,
+    )
+    .join("\n");
+
+  const latency = computeSocLatencyMetrics(alerts, incidents);
+  const slaBurn = incidents.filter((incident) => {
+    if (!openIncidentStatuses.includes(incident.status)) return false;
+    // Inline SLA risk: age vs priority targets
+    const targets: Record<string, number> = {
+      P1: 60,
+      P2: 240,
+      P3: 1440,
+      P4: 4320,
+    };
+    const target = targets[incident.priority] ?? 1440;
+    return incident.ageMinutes >= target * 0.75;
+  });
+
+  const familyCoverage = [
+    ...new Set(telemetrySources.map((s) => sourceFamilyLabels[s.family])),
+  ].join(", ");
+
   return `# Heimdall Executive Board Pack
 
 Generated: ${generatedAt}
 Author: Svalbard Security · Heimdall SOC
 Prepared for: C-Level Suite
+
+## Tools consolidated
+
+Heimdall normalizes telemetry from existing security stack into one operations console.
+
+- **Connected sources:** ${ingest.connected}/${ingest.total}
+- **Healthy pipelines:** ${ingest.healthy}
+- **Aggregate ingest:** ${ingest.totalEps} EPS
+- **Families covered:** ${familyCoverage}
+
+### Coverage by source
+
+${sourceLines}
+
+## Latency & SLA burn-down
+
+- **MTTA:** ${latency.mttaLabel} (n=${latency.mttaSample})
+- **MTTC:** ${latency.mttcLabel} (n=${latency.mttcSample})
+- **Open cases at SLA risk (≥75% of target):** ${slaBurn.length}
+${
+  slaBurn.length === 0
+    ? ""
+    : slaBurn
+        .slice(0, 8)
+        .map(
+          (i) =>
+            `  - ${i.id} · ${i.priority} · ${i.title} · age ${i.ageLabel}`,
+        )
+        .join("\n")
+}
 
 ## Posture snapshot
 
@@ -96,12 +158,13 @@ ${auditLines}
 ## Recommended board talking points
 
 1. Confirm ownership and ETA for each open P1.
-2. Track MTTA / MTTC against prior quarter.
+2. Track MTTA / MTTC against prior quarter (${latency.mttaLabel} / ${latency.mttcLabel} this period).
 3. Prioritize remediation for exploitable critical findings.
 4. Keep audit evidence packs current ahead of the next control window.
+5. Keep Splunk, Sentinel, Defender, and Okta visibility aligned in a single operational view.
 
 ---
-*Confidential — Heimdall demo board pack*
+*Confidential — Heimdall board pack*
 `;
 }
 

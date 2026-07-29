@@ -93,6 +93,7 @@ import {
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 
+import { ConfigureIdpDialog } from "./configure-idp-dialog";
 import {
   AssignTeamsDialog,
   ChangeRoleDialog,
@@ -111,7 +112,6 @@ import {
   type AdministrationUserStatus,
   getAdministrationInitials,
   getAdministrationTeams,
-  getAdministrationUserStats,
   isAdministrationPrivilegedRole,
   isAdministrationRiskUser,
 } from "./users-data";
@@ -563,86 +563,6 @@ function EmptyState({
         {action}
       </div>
     </div>
-  );
-}
-
-function UserStatsTiles({ users }: { users: AdministrationUser[] }) {
-  const stats = getAdministrationUserStats(users);
-
-  const tiles = [
-    {
-      title: "Total users",
-      value: String(stats.totalUsers),
-      change: "+6.3%",
-      changeTone: "positive",
-      context: "vs last month",
-    },
-    {
-      title: "Active users",
-      value: String(stats.activeUsers),
-      change: null,
-      changeTone: null,
-      context: "currently online",
-    },
-    {
-      title: "MFA coverage",
-      value: `${stats.mfaCoverage}%`,
-      change: "+4.5 pts",
-      changeTone: "positive",
-      context: "vs last month",
-    },
-    {
-      title: "Privileged users",
-      value: String(stats.privilegedUsers),
-      change: null,
-      changeTone: null,
-      context: "owners and admins",
-    },
-  ] as const;
-
-  return (
-    <section className="border-border/70 border-b border-dashed pb-4">
-      <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-4 xl:gap-0">
-        {tiles.map((tile, index) => {
-          return (
-            <section
-              key={tile.title}
-              className={cn(
-                "space-y-2 py-2 sm:py-1",
-                index > 0 && "xl:border-border/70 xl:border-l",
-                index === 0 && "xl:pr-8",
-                index > 0 && index < tiles.length - 1 && "xl:px-8",
-                index === tiles.length - 1 && "xl:pl-8",
-              )}
-            >
-              <p className="text-muted-foreground text-sm">{tile.title}</p>
-              <div className="space-y-1.5">
-                <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-                  <p className="text-3xl leading-none font-semibold tracking-tight tabular-nums">
-                    {tile.value}
-                  </p>
-                  {tile.change ? (
-                    <span
-                      className={cn(
-                        "text-sm",
-                        tile.changeTone === "positive"
-                          ? "text-emerald-600"
-                          : "text-rose-600",
-                      )}
-                    >
-                      {tile.change}
-                    </span>
-                  ) : null}
-                </div>
-                <span className="text-muted-foreground block text-sm">
-                  {tile.context}
-                </span>
-              </div>
-            </section>
-          );
-        })}
-      </div>
-    </section>
   );
 }
 
@@ -1260,6 +1180,7 @@ export function AdministrationUserManagement() {
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
   const [selectedInviteIds, setSelectedInviteIds] = useState<string[]>([]);
   const [inviteOpen, setInviteOpen] = useState(false);
+  const [idpOpen, setIdpOpen] = useState(false);
   const [inviteDrafts, setInviteDrafts] = useState<InviteDraft[]>([
     createInviteDraft(1),
   ]);
@@ -1276,9 +1197,9 @@ export function AdministrationUserManagement() {
   const [removeDialogUser, setRemoveDialogUser] =
     useState<AdministrationUser | null>(null);
   const [memberPage, setMemberPage] = useState(1);
-  const [memberPageSize, setMemberPageSize] = useState(10);
+  const [memberPageSize, setMemberPageSize] = useState(25);
   const [invitePage, setInvitePage] = useState(1);
-  const [invitePageSize, setInvitePageSize] = useState(10);
+  const [invitePageSize, setInvitePageSize] = useState(25);
 
   const deferredSearchQuery = useDeferredValue(searchQuery);
   const normalizedQuery = deferredSearchQuery.trim().toLowerCase();
@@ -1636,7 +1557,7 @@ export function AdministrationUserManagement() {
       id="main-content"
       className="bg-background flex min-h-0 flex-1 flex-col overflow-hidden"
     >
-      <div className="border-b">
+      <div className="bg-background shrink-0 border-b">
         <div className="flex flex-col gap-2 px-4 py-3 sm:px-6 lg:min-h-14 lg:flex-row lg:items-center lg:justify-between lg:gap-4 lg:py-2">
           <div className="min-w-0 flex-1">
             <InputGroup className="h-9 w-full lg:max-w-sm">
@@ -1700,6 +1621,17 @@ export function AdministrationUserManagement() {
 
             <Button
               size="sm"
+              variant="outline"
+              className={cn("h-9 gap-1.5", mutedControlClassName)}
+              onClick={() => setIdpOpen(true)}
+            >
+              <Shield className="size-3.5" />
+              <span className="hidden sm:inline">Configure IdP</span>
+              <span className="sm:hidden">IdP</span>
+            </Button>
+
+            <Button
+              size="sm"
               className="h-9 gap-1.5"
               onClick={() => setInviteOpen(true)}
             >
@@ -1713,8 +1645,6 @@ export function AdministrationUserManagement() {
 
       <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6 lg:px-6">
         <div className="mx-auto flex w-full flex-col gap-4">
-          <UserStatsTiles users={administrationUsers} />
-
           <Tabs
             value={activeTab}
             onValueChange={(value) => setActiveTab(value as UserTab)}
@@ -1911,6 +1841,8 @@ export function AdministrationUserManagement() {
         destructive
         handleConfirm={confirmRemoveAccess}
       />
+
+      <ConfigureIdpDialog open={idpOpen} onOpenChange={setIdpOpen} />
     </main>
   );
 }

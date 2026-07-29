@@ -1,14 +1,14 @@
-import {
-  kbProcedures,
-  type KbProcedure,
-} from "@/components/knowledge-base/knowledge-base-data";
+import type { SocAlert } from "@/components/alerts/alerts-data";
 import { appendAuditLog } from "@/components/audit/audit-log-data";
-import { currentProfile } from "@/components/profile/profile-data";
+import type { SocIncident, WarRoomMessage } from "@/components/incidents/incidents-data";
 import {
   createIncidentFromAlerts,
 } from "@/components/incidents/incidents-session";
-import type { SocAlert } from "@/components/alerts/alerts-data";
-import type { SocIncident, WarRoomMessage } from "@/components/incidents/incidents-data";
+import {
+  type KbProcedure,
+  kbProcedures,
+} from "@/components/knowledge-base/knowledge-base-data";
+import { currentProfile } from "@/components/profile/profile-data";
 
 type PlaybookStore = Map<string, KbProcedure>;
 
@@ -64,7 +64,14 @@ export function runPlaybookAgainstIncident(
   patchIncidents: (
     ids: Iterable<string>,
     patch: Partial<
-      Pick<SocIncident, "notes" | "timeline" | "warRoomMessages">
+      Pick<
+        SocIncident,
+        | "notes"
+        | "timeline"
+        | "warRoomMessages"
+        | "status"
+        | "disruptionStatus"
+      >
     >,
   ) => void,
 ): RunPlaybookResult {
@@ -127,7 +134,14 @@ export function runPlaybookFromAlert(
   patchIncidents: (
     ids: Iterable<string>,
     patch: Partial<
-      Pick<SocIncident, "notes" | "timeline" | "warRoomMessages">
+      Pick<
+        SocIncident,
+        | "notes"
+        | "timeline"
+        | "warRoomMessages"
+        | "status"
+        | "disruptionStatus"
+      >
     >,
   ) => void,
 ): RunPlaybookResult {

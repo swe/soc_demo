@@ -8,8 +8,12 @@ import {
   useSyncExternalStore,
 } from "react";
 
+import type { AssetIdentity } from "@/components/assets/identities-data";
+import type { UebaAnomaly } from "@/components/assets/ueba-data";
 import { appendAuditLog } from "@/components/audit/audit-log-data";
 import { currentProfile } from "@/components/profile/profile-data";
+import { alertsApi } from "@/lib/mock-api/alerts";
+
 import {
   normalizeAlert,
   type SocAlert,
@@ -75,6 +79,14 @@ export function subscribeAlertsSession(listener: () => void) {
   return subscribe(listener);
 }
 
+/** Low-level store patch used by mock API (and session hooks). */
+export function patchAlertsInSession(
+  ids: Iterable<string>,
+  patch: Partial<Pick<SocAlert, "status" | "assigneeId" | "notes">>,
+) {
+  setGlobalStore(patchAlertStore(globalStore, ids, patch));
+}
+
 const pulseTitles = [
   "Beaconing to newly registered domain",
   "Privileged token replay from unusual ASN",
@@ -94,13 +106,13 @@ export function injectPulseCriticalAlert(): SocAlert {
       id,
       title,
       summary:
-        "Demo live pulse — critical detection ingested into the alert session. Open Alerts to triage.",
+        "Critical detection ingested into the alert session. Open Alerts to triage.",
       severity: "critical",
       status: "new",
       sourceId: "int-heimdall-pulse",
       sourceName: "Heimdall Live Pulse",
       sourceCategory: "siem",
-      ruleName: "Demo · Live Pulse Critical",
+      ruleName: "Live Pulse Critical",
       mitreTactic: "Command and Control",
       mitreTechnique: "T1071",
       entityType: "host",
@@ -111,7 +123,7 @@ export function injectPulseCriticalAlert(): SocAlert {
       ageLabel: "just now",
       ageMinutes: 0,
       eventCount: 1,
-      tags: ["demo-pulse", "critical"],
+      tags: ["live-pulse", "critical"],
       firstSeenLabel: "just now",
       lastSeenLabel: "just now",
       riskScore: 92,
@@ -130,6 +142,67 @@ export function injectPulseCriticalAlert(): SocAlert {
     targetType: "alert",
     targetId: alert.id,
     detail: `Live pulse created critical alert: ${alert.title}`,
+  });
+
+  return alert;
+}
+
+/** Promote a UEBA anomaly into a session alert (demo). */
+export function injectUebaAlert(
+  identity: AssetIdentity,
+  anomaly: UebaAnomaly,
+): SocAlert {
+  const stamp = Date.now();
+  const id = `ALT-UEBA-${stamp.toString(36).toUpperCase()}`;
+  const now = new Date().toISOString();
+  const sourceName = anomaly.sourceTags[0] ?? "Heimdall UEBA";
+  const alert = normalizeAlert(
+    {
+      id,
+      title: anomaly.title,
+      summary: anomaly.summary,
+      severity: anomaly.severity,
+      status: "new",
+      sourceId: "int-heimdall-ueba",
+      sourceName,
+      sourceCategory: "identity",
+      ruleName: `UEBA · ${anomaly.kind.replaceAll("_", " ")}`,
+      mitreTactic: "Credential Access",
+      mitreTechnique:
+        anomaly.kind === "privilege_spike"
+          ? "T1078"
+          : anomaly.kind === "impossible_travel"
+            ? "T1078.004"
+            : "T1110",
+      entityType: "user",
+      entityName: identity.principal,
+      identityId: identity.id,
+      assigneeId: null,
+      createdAt: now,
+      updatedAt: now,
+      ageLabel: "just now",
+      ageMinutes: 0,
+      eventCount: 1,
+      tags: ["ueba", anomaly.kind, ...anomaly.sourceTags.map((t) => t.toLowerCase())],
+      firstSeenLabel: "just now",
+      lastSeenLabel: "just now",
+      riskScore: Math.min(99, identity.riskScore + anomaly.riskDelta),
+      recommendedAction: "Validate identity baseline and contain if confirmed.",
+    },
+    stamp % 17,
+  );
+
+  const next = new Map(globalStore);
+  next.set(alert.id, alert);
+  setGlobalStore(next);
+
+  appendAuditLog({
+    actorId: currentProfile.id,
+    actorName: currentProfile.name,
+    action: "alert.ueba_promoted",
+    targetType: "alert",
+    targetId: alert.id,
+    detail: `Promoted UEBA anomaly ${anomaly.id} for ${identity.displayName}`,
   });
 
   return alert;
@@ -154,7 +227,7 @@ export function AlertsSessionProvider({
       ids: Iterable<string>,
       patch: Partial<Pick<SocAlert, "status" | "assigneeId" | "notes">>,
     ) => {
-      setGlobalStore(patchAlertStore(globalStore, ids, patch));
+      alertsApi.patchSync(ids, patch);
     },
     [],
   );
@@ -193,7 +266,7 @@ export function useAlertsSessionStore() {
         ids: Iterable<string>,
         patch: Partial<Pick<SocAlert, "status" | "assigneeId" | "notes">>,
       ) => {
-        setGlobalStore(patchAlertStore(globalStore, ids, patch));
+        alertsApi.patchSync(ids, patch);
       },
     }),
     [store],

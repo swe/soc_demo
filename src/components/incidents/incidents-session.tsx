@@ -8,12 +8,15 @@ import {
   useSyncExternalStore,
 } from "react";
 
+import type { SocAlert } from "@/components/alerts/alerts-data";
+import { incidentsApi } from "@/lib/mock-api/incidents";
+
 import {
   currentAnalystId,
   incidentFromAlerts,
   nextIncidentId,
-  socIncidents,
   type SocIncident,
+  socIncidents,
 } from "./incidents-data";
 import {
   createIncidentStore,
@@ -22,7 +25,6 @@ import {
   patchIncidentStore,
   upsertIncidentStore,
 } from "./incidents-query";
-import type { SocAlert } from "@/components/alerts/alerts-data";
 
 type IncidentsSessionValue = {
   store: IncidentStore;
@@ -30,17 +32,7 @@ type IncidentsSessionValue = {
   getIncident: (id: string) => SocIncident | null;
   patchIncidents: (
     ids: Iterable<string>,
-    patch: Partial<
-      Pick<
-        SocIncident,
-        | "status"
-        | "assigneeId"
-        | "ownerId"
-        | "notes"
-        | "timeline"
-        | "warRoomMessages"
-      >
-    >,
+    patch: import("./incidents-query").IncidentStorePatch,
   ) => void;
   upsertIncident: (incident: SocIncident) => void;
   createFromAlerts: (
@@ -82,6 +74,17 @@ export function getIncidentSessionSnapshot(): IncidentStore {
 
 export function getIncidentsFromSession(): SocIncident[] {
   return Array.from(globalStore.values());
+}
+
+export function getIncidentFromSession(id: string): SocIncident | null {
+  return getIncidentFromStore(globalStore, id);
+}
+
+export function patchIncidentsInSession(
+  ids: Iterable<string>,
+  patch: import("./incidents-query").IncidentStorePatch,
+) {
+  setGlobalStore(patchIncidentStore(globalStore, ids, patch));
 }
 
 export function subscribeIncidentsSession(listener: () => void) {
@@ -137,10 +140,11 @@ export function IncidentsSessionProvider({
           | "notes"
           | "timeline"
           | "warRoomMessages"
+          | "disruptionStatus"
         >
       >,
     ) => {
-      setGlobalStore(patchIncidentStore(globalStore, ids, patch));
+      incidentsApi.patchSync(ids, patch);
     },
     [],
   );

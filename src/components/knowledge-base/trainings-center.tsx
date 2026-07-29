@@ -7,6 +7,7 @@ import {
   GraduationCap,
   ListFilter,
   Plus,
+  RefreshCw,
   Search,
   UserPlus,
   Users,
@@ -15,8 +16,8 @@ import Link from "next/link";
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
 
 import {
-  administrationUsers,
   type AdministrationUser,
+  administrationUsers,
 } from "@/components/administration/users-data";
 import { ListPagination, paginateItems } from "@/components/list-pagination";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -70,18 +71,17 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { trainingsApi } from "@/lib/mock-api/trainings";
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 
 import {
   getKbInitials,
-  getTrainingStats,
   type KbTraining,
   type KbTrainingLevel,
   kbTrainingLevelLabels,
   type KbTrainingStatus,
   kbTrainingStatusLabels,
-  kbTrainings,
   trainingCompletionPercent,
 } from "./knowledge-base-data";
 import {
@@ -95,6 +95,7 @@ import {
   TrainingLevelBadge,
   TrainingStatusBadge,
 } from "./knowledge-base-primitives";
+import { useTrainingsSession } from "./trainings-session";
 
 type FilterPanel = "level" | "status" | "sort";
 
@@ -635,19 +636,29 @@ function TrainingCard({
 }
 
 export function TrainingsCenter() {
-  const [trainings, setTrainings] = useState(kbTrainings);
+  const {
+    trainings,
+    stats,
+    lmsConnected,
+    lastLmsSyncAt,
+    enroll,
+    complete,
+    create,
+    upsert,
+  } = useTrainingsSession();
   const [searchQuery, setSearchQuery] = useState("");
   const [levelFilters, setLevelFilters] = useState<KbTrainingLevel[]>([]);
   const [statusFilters, setStatusFilters] = useState<KbTrainingStatus[]>([]);
   const [sort, setSort] = useState<TrainingSort>("completion-asc");
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(8);
+  const [pageSize, setPageSize] = useState(12);
   const [selected, setSelected] = useState<KbTraining | null>(null);
   const [newOpen, setNewOpen] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const [newLevel, setNewLevel] = useState<KbTrainingLevel>("foundation");
   const [assignOpen, setAssignOpen] = useState(false);
   const [assignTraining, setAssignTraining] = useState<KbTraining | null>(null);
+  const [lmsBusy, setLmsBusy] = useState(false);
   const deferredSearchQuery = useDeferredValue(searchQuery);
 
   const activeFilterCount =
@@ -682,28 +693,16 @@ export function TrainingsCenter() {
     id: string,
     updater: (training: KbTraining) => KbTraining,
   ) => {
-    setTrainings((current) =>
-      current.map((training) =>
-        training.id === id ? updater(training) : training,
-      ),
-    );
-    setSelected((current) =>
-      current && current.id === id ? updater(current) : current,
-    );
+    const current = trainings.find((t) => t.id === id);
+    if (!current) return;
+    const next = updater(current);
+    upsert(next);
+    setSelected((sel) => (sel && sel.id === id ? next : sel));
   };
 
   const enrollTraining = (training: KbTraining) => {
-    patchTraining(training.id, (current) => ({
-      ...current,
-      enrolled: current.enrolled + 1,
-      status:
-        current.status === "completed" || current.status === "overdue"
-          ? "in-progress"
-          : current.status === "open"
-            ? "in-progress"
-            : current.status,
-      updatedAt: new Date().toISOString().slice(0, 10),
-    }));
+    const next = enroll(training.id);
+    if (next) setSelected((sel) => (sel?.id === training.id ? next : sel));
     toast({
       title: "Enrolled",
       description: `You were added to ${training.code}.`,
@@ -718,20 +717,28 @@ export function TrainingsCenter() {
       });
       return;
     }
-    patchTraining(training.id, (current) => {
-      const completed = current.completed + 1;
-      const done = completed >= current.enrolled;
-      return {
-        ...current,
-        completed,
-        status: done ? "completed" : "in-progress",
-        updatedAt: new Date().toISOString().slice(0, 10),
-      };
-    });
+    const next = complete(training.id);
+    if (next) setSelected((sel) => (sel?.id === training.id ? next : sel));
     toast({
       title: "Marked complete",
       description: training.code,
     });
+  };
+
+  const handleLmsSync = async () => {
+    setLmsBusy(true);
+    try {
+      if (!lmsConnected) {
+        await trainingsApi.connectLms();
+      }
+      const { updated, receipt } = await trainingsApi.syncLms();
+      toast({
+        title: "LMS sync complete",
+        description: `${updated} courses · ${receipt.message}`,
+      });
+    } finally {
+      setLmsBusy(false);
+    }
   };
 
   const openAssign = (training?: KbTraining | null) => {
@@ -771,28 +778,11 @@ export function TrainingsCenter() {
       });
       return;
     }
-    const stamp = Date.now();
-    const seq = String(trainings.length + 1).padStart(2, "0");
-    const created: KbTraining = {
-      id: `trn-${stamp}`,
-      code: `TRN-${levelCodePrefix[newLevel]}-${seq}`,
+    const created = create({
       title,
       summary: `Open course for ${title}. Add modules and assign seats when ready.`,
       level: newLevel,
-      status: "open",
-      ownerId: "riya-sharma",
-      durationMinutes: 45,
-      enrolled: 0,
-      completed: 0,
-      dueLabel: "No due date",
-      tags: ["draft", kbTrainingLevelLabels[newLevel].toLowerCase()],
-      related: [
-        { label: "Users", href: "/administration/users" },
-        { label: "Compliance", href: "/compliance" },
-      ],
-      updatedAt: new Date().toISOString().slice(0, 10),
-    };
-    setTrainings((current) => [created, ...current]);
+    });
     setNewOpen(false);
     setNewTitle("");
     setNewLevel("foundation");
@@ -850,14 +840,13 @@ export function TrainingsCenter() {
   const pageCount = Math.max(1, Math.ceil(visibleTrainings.length / pageSize));
   const safePage = Math.min(page, pageCount);
   const pagedTrainings = paginateItems(visibleTrainings, safePage, pageSize);
-  const stats = getTrainingStats();
 
   return (
     <main
       id="main-content"
       className="bg-background flex min-h-0 flex-1 flex-col overflow-hidden"
     >
-      <div className="border-b">
+      <div className="bg-background shrink-0 border-b">
         <div className="flex flex-col gap-2 px-4 py-3 sm:px-6 lg:min-h-14 lg:flex-row lg:items-center lg:justify-between lg:gap-4 lg:py-2">
           <div className="min-w-0 flex-1">
             <InputGroup className="h-9 w-full lg:max-w-sm">
@@ -894,6 +883,21 @@ export function TrainingsCenter() {
               <span className="sm:hidden">Assign</span>
             </Button>
             <Button
+              variant="outline"
+              size="sm"
+              className={cn("h-9 gap-1.5", mutedControlClassName)}
+              disabled={lmsBusy}
+              onClick={() => void handleLmsSync()}
+            >
+              <RefreshCw
+                className={cn("size-3.5", lmsBusy && "animate-spin")}
+              />
+              <span className="hidden sm:inline">
+                {lmsConnected ? "Sync LMS" : "Connect LMS"}
+              </span>
+              <span className="sm:hidden">LMS</span>
+            </Button>
+            <Button
               size="sm"
               className="h-9 gap-1.5"
               onClick={() => setNewOpen(true)}
@@ -904,25 +908,20 @@ export function TrainingsCenter() {
             </Button>
           </div>
         </div>
+        {lmsConnected || lastLmsSyncAt ? (
+          <p className="text-muted-foreground px-4 pb-2 text-[11px] sm:px-6">
+            Workday Learning
+            {lmsConnected ? " connected" : ""}
+            {lastLmsSyncAt
+              ? ` · last sync ${new Date(lastLmsSyncAt).toLocaleString()}`
+              : ""}
+          </p>
+        ) : null}
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6">
         <div className="mx-auto flex w-full flex-col gap-4">
           <KbStatsStrip stats={stats} />
-
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div>
-              <h1 className="text-sm font-semibold">Trainings</h1>
-              <p className="text-muted-foreground text-xs">
-                Awareness, IR drills, and detection labs tied to compliance and
-                users.
-              </p>
-            </div>
-            <p className="text-muted-foreground text-xs tabular-nums">
-              {visibleTrainings.length} result
-              {visibleTrainings.length === 1 ? "" : "s"}
-            </p>
-          </div>
 
           {pagedTrainings.length === 0 ? (
             <EmptyState
@@ -936,7 +935,7 @@ export function TrainingsCenter() {
               }
             />
           ) : (
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
               {pagedTrainings.map((training) => (
                 <TrainingCard
                   key={training.id}
@@ -957,7 +956,7 @@ export function TrainingsCenter() {
               total={visibleTrainings.length}
               onPageChange={setPage}
               onPageSizeChange={setPageSize}
-              pageSizeOptions={[8, 12, 16]}
+              pageSizeOptions={[12, 24, 48]}
             />
           ) : null}
         </div>

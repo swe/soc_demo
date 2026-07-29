@@ -8,8 +8,8 @@ import { currentProfile } from "@/components/profile/profile-data";
 import {
   type AdministrationAccessRole,
   type AdministrationInvitation,
-  type AdministrationUser,
   administrationInvitations as seedInvitations,
+  type AdministrationUser,
   administrationUsers as seedUsers,
 } from "./users-data";
 

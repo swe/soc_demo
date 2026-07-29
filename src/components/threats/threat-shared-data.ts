@@ -1,4 +1,8 @@
-import { getAlertById, type AlertSeverity } from "@/components/alerts/alerts-data";
+import {
+  type AlertSeverity,
+  getAlertById,
+  socAlerts,
+} from "@/components/alerts/alerts-data";
 import { getIncidentById } from "@/components/incidents/incidents-data";
 
 export type IndicatorType = "ip" | "domain" | "hash" | "url" | "email";
@@ -68,6 +72,8 @@ export type ThreatFeed = {
   provider: string;
   status: "healthy" | "degraded" | "paused";
   lastIngestLabel: string;
+  /** ISO timestamp for live aging display. */
+  lastIngestAt: string;
   indicatorCount: number;
   types: IndicatorType[];
   description: string;
@@ -93,6 +99,30 @@ export type Hunt = {
   updatedLabel: string;
   findings?: string;
   severity: AlertSeverity;
+  /** Prefill Investigate / hunt-run QL. */
+  heimdallQl?: string;
+  /** Preferred telemetry sources for Investigate deep-links. */
+  sourceIds?: string[];
+  /** Detection that promoted this hunt, if any. */
+  promotedFromDetectionId?: string;
+};
+
+export type HuntRunHit = {
+  id: string;
+  timestamp: string;
+  entity: string;
+  sourceId: string;
+  severity: AlertSeverity;
+  summary: string;
+};
+
+export type HuntRunResult = {
+  huntId: string;
+  ranAt: string;
+  query: string;
+  sourceIds: string[];
+  hitCount: number;
+  hits: HuntRunHit[];
 };
 
 export const indicatorTypes = [
@@ -256,6 +286,7 @@ export const threatFeeds: ThreatFeed[] = [
     provider: "Community + curated",
     status: "healthy",
     lastIngestLabel: "12m ago",
+    lastIngestAt: "2026-07-28T19:50:00.000Z",
     indicatorCount: 1842,
     types: ["domain", "url"],
     description: "Phishing and C2 domains refreshed every 15 minutes.",
@@ -266,6 +297,7 @@ export const threatFeeds: ThreatFeed[] = [
     provider: "Vendor TIP",
     status: "healthy",
     lastIngestLabel: "28m ago",
+    lastIngestAt: "2026-07-28T19:34:00.000Z",
     indicatorCount: 9621,
     types: ["hash"],
     description: "SHA256 hashes from sandbox detonations and partner shares.",
@@ -276,6 +308,7 @@ export const threatFeeds: ThreatFeed[] = [
     provider: "Heimdall Dark Web",
     status: "healthy",
     lastIngestLabel: "4m ago",
+    lastIngestAt: "2026-07-28T19:58:00.000Z",
     indicatorCount: 316,
     types: ["email", "domain"],
     description: "Indicators minted from stealer logs and combo-list hits.",
@@ -286,6 +319,7 @@ export const threatFeeds: ThreatFeed[] = [
     provider: "ISP + TIP",
     status: "degraded",
     lastIngestLabel: "2h ago",
+    lastIngestAt: "2026-07-28T18:02:00.000Z",
     indicatorCount: 4402,
     types: ["ip"],
     description: "Inbound scanning and known C2 IP ranges — delayed ingest.",
@@ -296,6 +330,7 @@ export const threatFeeds: ThreatFeed[] = [
     provider: "Internal INTEL",
     status: "paused",
     lastIngestLabel: "5d ago",
+    lastIngestAt: "2026-07-23T12:00:00.000Z",
     indicatorCount: 88,
     types: ["domain", "ip", "url"],
     description: "Manual actor bulletins; paused pending analyst review.",
@@ -908,6 +943,41 @@ export function getHuntsForIndicator(indicatorId: string) {
   return threatHunts.filter((hunt) => hunt.indicatorIds.includes(indicatorId));
 }
 
+/** Prefill Investigate QL from a hunt hypothesis + techniques/IOCs. */
+export function buildInvestigateQueryForHunt(hunt: Hunt): string {
+  if (hunt.heimdallQl?.trim()) return hunt.heimdallQl.trim();
+  const techniques = hunt.techniqueIds.slice(0, 4);
+  const iocs = hunt.indicatorIds.slice(0, 4);
+  const lines = [
+    `// Hunt ${hunt.id} — ${hunt.title.slice(0, 64)}`,
+    `events`,
+  ];
+  if (techniques.length > 0) {
+    lines.push(
+      `  | where mitre.technique in (${techniques.map((t) => `"${t}"`).join(", ")})`,
+    );
+  }
+  if (iocs.length > 0) {
+    lines.push(
+      `  | where ioc.id in (${iocs.map((id) => `"${id}"`).join(", ")}) or risk_score >= 50`,
+    );
+  } else {
+    lines.push(`  | where risk_score >= 50 or confidence >= 60`);
+  }
+  lines.push(`  | take 100`);
+  return lines.join("\n");
+}
+
+export function defaultHuntSourceIds(hunt: Hunt): string[] {
+  if (hunt.sourceIds && hunt.sourceIds.length > 0) return [...hunt.sourceIds];
+  return [
+    "int-splunk-core",
+    "int-okta-workforce",
+    "int-sentinel-workspace",
+    "int-defender-endpoint",
+  ];
+}
+
 export function getIndicatorStats(
   indicators: Iterable<Indicator> = threatIndicators,
 ): IndicatorStat[] {
@@ -987,6 +1057,19 @@ export function resolveIndicatorAlerts(indicator: Indicator) {
   return indicator.relatedAlertIds
     .map((id) => getAlertById(id))
     .filter((alert): alert is NonNullable<typeof alert> => Boolean(alert));
+}
+
+/** Alerts whose tags overlap indicator tags (beyond explicit relatedAlertIds). */
+export function resolveMatchedAlertsByTags(indicator: Indicator) {
+  if (indicator.tags.length === 0) return [];
+  const tagSet = new Set(indicator.tags.map((t) => t.toLowerCase()));
+  const related = new Set(indicator.relatedAlertIds);
+  return socAlerts
+    .filter((alert) => {
+      if (related.has(alert.id)) return false;
+      return alert.tags.some((tag) => tagSet.has(tag.toLowerCase()));
+    })
+    .slice(0, 8);
 }
 
 export function resolveHuntAlerts(hunt: Hunt) {

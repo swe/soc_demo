@@ -1,10 +1,10 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
 import { HTMLAttributes, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { useRouter } from "next/navigation";
 
 import { useAuthSession } from "@/components/auth/auth-session";
 import { PasswordInput } from "@/components/password-input";
@@ -113,10 +113,10 @@ export function RegisterForm({
               )}
             />
             <Button className="mt-2" disabled={isLoading}>
-              Continue to demo
+              Create account
             </Button>
             <p className="text-muted-foreground text-center text-xs">
-              Creates a local demo session for {`@svalbard.ca`}
+              Creates a session for {`@svalbard.ca`}
             </p>
           </div>
         </form>

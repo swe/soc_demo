@@ -1,9 +1,14 @@
 "use client";
 
-import Link from "next/link";
 import { ExternalLink, Search } from "lucide-react";
+import Link from "next/link";
 import { useDeferredValue, useMemo, useState } from "react";
 
+import {
+  ModuleShell,
+  ModuleToolbarSearch,
+} from "@/components/soc/module-shell";
+import { type SocStat, StatsStrip } from "@/components/soc/stats-strip";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,21 +26,21 @@ import {
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
+import { getIndicatorFromSession } from "./threat-session";
 import {
-  type ThreatActorProfile,
-  type ThreatCampaign,
   getCampaignById,
+  type ThreatActorProfile,
   threatActorProfiles,
+  type ThreatCampaign,
   threatCampaigns,
 } from "./threat-shared-data";
-import { getIndicatorFromSession } from "./threat-session";
 import {
   ActorAvatar,
   CampaignStatusBadge,
   ConfidenceBadge,
+  mutedControlClassName,
   SeverityBadge,
   SheetDetailRow,
-  mutedControlClassName,
 } from "./threat-shared-primitives";
 
 function ActorDetailSheet({
@@ -249,135 +254,179 @@ export function ActorsCenter({
   const selected =
     threatActorProfiles.find((actor) => actor.id === selectedId) ?? null;
 
+  const stripStats: SocStat[] = useMemo(() => {
+    const highSeverity = threatActorProfiles.filter(
+      (actor) => actor.severity === "critical" || actor.severity === "high",
+    ).length;
+    const linkedIocs = threatActorProfiles.reduce(
+      (sum, actor) => sum + actor.indicatorIds.length,
+      0,
+    );
+    const activeCampaigns = threatCampaigns.filter(
+      (campaign) => campaign.status === "active",
+    ).length;
+
+    return [
+      {
+        key: "actors",
+        title: "Actors",
+        value: String(threatActorProfiles.length),
+        context: "Tracked profiles",
+      },
+      {
+        key: "campaigns",
+        title: "Campaigns",
+        value: String(threatCampaigns.length),
+        context: `${activeCampaigns} active`,
+      },
+      {
+        key: "high",
+        title: "High / critical",
+        value: String(highSeverity),
+        context: "Elevated actor severity",
+      },
+      {
+        key: "iocs",
+        title: "Linked IOCs",
+        value: String(linkedIocs),
+        context: "Across actor profiles",
+      },
+    ] satisfies SocStat[];
+  }, []);
+
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto p-4 md:p-6">
-      <div className="space-y-1">
-        <h1 className="text-xl font-semibold tracking-tight">
-          Actors & Campaigns
-        </h1>
-        <p className="text-muted-foreground text-sm">
-          External threat actor profiles and campaigns that enrich hunting
-          analytics and indicators.
-        </p>
-      </div>
+    <>
+      <ModuleShell
+        toolbar={
+          <ModuleToolbarSearch>
+            <InputGroup className="h-9 w-full lg:max-w-sm">
+              <InputGroupAddon>
+                <Search className="size-4" />
+              </InputGroupAddon>
+              <InputGroupInput
+                placeholder="Search actors, campaigns, techniques…"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+              />
+            </InputGroup>
+          </ModuleToolbarSearch>
+        }
+      >
+        <StatsStrip stats={stripStats} />
 
-      <InputGroup className="max-w-md">
-        <InputGroupAddon>
-          <Search className="size-4" />
-        </InputGroupAddon>
-        <InputGroupInput
-          placeholder="Search actors, campaigns, techniques…"
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-        />
-      </InputGroup>
-
-      <section className="space-y-3">
-        <h2 className="text-sm font-medium tracking-wide uppercase text-muted-foreground">
-          Actors
-        </h2>
-        <div className="grid gap-3 md:grid-cols-2">
-          {filteredActors.map((actor) => (
-            <button
-              key={actor.id}
-              type="button"
-              onClick={() => setSelectedId(actor.id)}
-              className={cn(
-                "hover:bg-muted/40 rounded-lg border p-4 text-left transition-colors",
-                selectedId === actor.id && "border-foreground/40 bg-muted/30",
-              )}
-            >
-              <div className="flex items-start gap-3">
-                <ActorAvatar name={actor.name} />
-                <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <p className="font-medium">{actor.name}</p>
-                    <SeverityBadge severity={actor.severity} />
-                  </div>
-                  <p className="text-muted-foreground mt-1 line-clamp-2 text-sm">
-                    {actor.summary}
-                  </p>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    <ConfidenceBadge confidence={actor.confidence} />
-                    <Badge variant="secondary" className="rounded-full font-normal">
-                      {actor.indicatorIds.length} IOCs
-                    </Badge>
-                    <Badge variant="secondary" className="rounded-full font-normal">
-                      {actor.campaignIds.length} campaigns
-                    </Badge>
+        <section className="space-y-3">
+          <h2 className="text-muted-foreground text-sm font-medium tracking-wide uppercase">
+            Actors
+          </h2>
+          <div className="grid gap-3 md:grid-cols-2">
+            {filteredActors.map((actor) => (
+              <button
+                key={actor.id}
+                type="button"
+                onClick={() => setSelectedId(actor.id)}
+                className={cn(
+                  "hover:bg-muted/40 rounded-lg border p-4 text-left transition-colors",
+                  selectedId === actor.id && "border-foreground/40 bg-muted/30",
+                )}
+              >
+                <div className="flex items-start gap-3">
+                  <ActorAvatar name={actor.name} />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="font-medium">{actor.name}</p>
+                      <SeverityBadge severity={actor.severity} />
+                    </div>
+                    <p className="text-muted-foreground mt-1 line-clamp-2 text-sm">
+                      {actor.summary}
+                    </p>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <ConfidenceBadge confidence={actor.confidence} />
+                      <Badge
+                        variant="secondary"
+                        className="rounded-full font-normal"
+                      >
+                        {actor.indicatorIds.length} IOCs
+                      </Badge>
+                      <Badge
+                        variant="secondary"
+                        className="rounded-full font-normal"
+                      >
+                        {actor.campaignIds.length} campaigns
+                      </Badge>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </button>
-          ))}
-          {filteredActors.length === 0 ? (
-            <p className="text-muted-foreground text-sm md:col-span-2">
-              No actors match the search.
-            </p>
-          ) : null}
-        </div>
-      </section>
-
-      <section className="space-y-3">
-        <h2 className="text-sm font-medium tracking-wide uppercase text-muted-foreground">
-          Campaigns
-        </h2>
-        <div className="bg-card overflow-hidden rounded-lg border">
-          <ul className="divide-y">
-            {filteredCampaigns.map((campaign: ThreatCampaign) => {
-              const actor = threatActorProfiles.find(
-                (item) => item.id === campaign.actorId,
-              );
-              return (
-                <li key={campaign.id} className="p-4">
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div className="min-w-0 space-y-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <p className="font-medium">{campaign.name}</p>
-                        <CampaignStatusBadge status={campaign.status} />
-                      </div>
-                      <p className="text-muted-foreground text-sm leading-relaxed">
-                        {campaign.summary}
-                      </p>
-                      <p className="text-muted-foreground text-xs">
-                        Actor:{" "}
-                        <button
-                          type="button"
-                          className="text-foreground underline-offset-2 hover:underline"
-                          onClick={() =>
-                            actor ? setSelectedId(actor.id) : undefined
-                          }
-                        >
-                          {actor?.name ?? campaign.actorId}
-                        </button>
-                        {" · "}
-                        {campaign.firstSeenLabel} – {campaign.lastSeenLabel}
-                      </p>
-                    </div>
-                    <Button
-                      asChild
-                      variant="outline"
-                      size="sm"
-                      className={cn("shrink-0", mutedControlClassName)}
-                    >
-                      <Link
-                        href={`/threat-intelligence?indicator=${campaign.indicatorIds[0] ?? ""}`}
-                      >
-                        View IOCs
-                      </Link>
-                    </Button>
-                  </div>
-                </li>
-              );
-            })}
-            {filteredCampaigns.length === 0 ? (
-              <li className="text-muted-foreground p-6 text-center text-sm">
-                No campaigns match the search.
-              </li>
+              </button>
+            ))}
+            {filteredActors.length === 0 ? (
+              <p className="text-muted-foreground text-sm md:col-span-2">
+                No actors match the search.
+              </p>
             ) : null}
-          </ul>
-        </div>
-      </section>
+          </div>
+        </section>
+
+        <section className="space-y-3">
+          <h2 className="text-muted-foreground text-sm font-medium tracking-wide uppercase">
+            Campaigns
+          </h2>
+          <div className="bg-card overflow-hidden rounded-lg border">
+            <ul className="divide-y">
+              {filteredCampaigns.map((campaign: ThreatCampaign) => {
+                const actor = threatActorProfiles.find(
+                  (item) => item.id === campaign.actorId,
+                );
+                return (
+                  <li key={campaign.id} className="p-4">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div className="min-w-0 space-y-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="font-medium">{campaign.name}</p>
+                          <CampaignStatusBadge status={campaign.status} />
+                        </div>
+                        <p className="text-muted-foreground text-sm leading-relaxed">
+                          {campaign.summary}
+                        </p>
+                        <p className="text-muted-foreground text-xs">
+                          Actor:{" "}
+                          <button
+                            type="button"
+                            className="text-foreground underline-offset-2 hover:underline"
+                            onClick={() =>
+                              actor ? setSelectedId(actor.id) : undefined
+                            }
+                          >
+                            {actor?.name ?? campaign.actorId}
+                          </button>
+                          {" · "}
+                          {campaign.firstSeenLabel} – {campaign.lastSeenLabel}
+                        </p>
+                      </div>
+                      <Button
+                        asChild
+                        variant="outline"
+                        size="sm"
+                        className={cn("shrink-0", mutedControlClassName)}
+                      >
+                        <Link
+                          href={`/threat-intelligence?indicator=${campaign.indicatorIds[0] ?? ""}`}
+                        >
+                          View IOCs
+                        </Link>
+                      </Button>
+                    </div>
+                  </li>
+                );
+              })}
+              {filteredCampaigns.length === 0 ? (
+                <li className="text-muted-foreground p-6 text-center text-sm">
+                  No campaigns match the search.
+                </li>
+              ) : null}
+            </ul>
+          </div>
+        </section>
+      </ModuleShell>
 
       <ActorDetailSheet
         actor={selected}
@@ -386,6 +435,6 @@ export function ActorsCenter({
           if (!open) setSelectedId(null);
         }}
       />
-    </div>
+    </>
   );
 }

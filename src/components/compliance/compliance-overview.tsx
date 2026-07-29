@@ -36,6 +36,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  OverviewSplit,
+  Panel,
+  PanelHeading,
+} from "@/components/soc/panel";
 import { cn } from "@/lib/utils";
 
 import {
@@ -44,6 +49,7 @@ import {
   type AuditPhase,
   auditPhaseLabels,
   auditPhaseOrder,
+  type ComplianceControl,
   complianceEvidence,
   complianceFrameworks,
   complianceScoreTarget,
@@ -60,20 +66,17 @@ import {
   getFrameworkRollup,
   getOverallScore,
   getUser,
-  type ComplianceControl,
 } from "./compliance-data";
-import { useComplianceSession } from "./compliance-session";
 import {
   AvatarStack,
   ControlStatusCell,
   EvidenceBadge,
   FrameworkStatusBadge,
-  Panel,
-  PanelHeading,
   percentTextClass,
   ProgressTrack,
   RiskBadge,
 } from "./compliance-primitives";
+import { useComplianceSession } from "./compliance-session";
 
 const scoreChartConfig = {
   score: { label: "Compliance score", color: "var(--primary)" },
@@ -904,42 +907,57 @@ export function ComplianceOverview({
   );
 
   return (
-    <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
-      <div className="flex min-w-0 flex-col gap-4">
-        <ActiveAuditCard />
-        <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
-          <ScoreTrendCard controls={controls} />
+    <div className="flex flex-col gap-4">
+      <ActiveAuditCard />
+
+      <OverviewSplit
+        primary={<ScoreTrendCard controls={controls} />}
+        secondary={
           <ControlDistributionCard
             controls={controls}
             onSelectStatus={onSelectStatus}
           />
-        </div>
-        <CoverageMatrixCard
-          controls={controls}
-          onOpenControls={onOpenControls}
-        />
-        <FrameworkReadinessCard
-          controls={controls}
-          onOpenFrameworks={onOpenFrameworks}
-        />
-        <EvidenceTrendCard />
-      </div>
+        }
+      />
 
-      <aside className="flex min-w-0 flex-col gap-4">
-        <Panel>
-          <PanelHeading title="Compliance owners" />
-          <div className="flex items-center justify-between gap-3">
+      <CoverageMatrixCard
+        controls={controls}
+        onOpenControls={onOpenControls}
+      />
+
+      <OverviewSplit
+        primary={
+          <FrameworkReadinessCard
+            controls={controls}
+            onOpenFrameworks={onOpenFrameworks}
+          />
+        }
+        secondary={<EvidenceTrendCard />}
+      />
+
+      <OverviewSplit
+        wide="secondary"
+        primary={
+          <Panel>
+            <PanelHeading
+              title="Compliance owners"
+              description={`${owners.length} framework owners`}
+            />
             <AvatarStack userIds={owners} max={5} />
-            <span className="text-muted-foreground text-xs">
-              {owners.length} framework owners
-            </span>
+          </Panel>
+        }
+        secondary={
+          <div className="flex min-w-0 flex-col gap-4">
+            <UpcomingDeadlinesCard />
+            <EvidenceAtRiskCard onOpenEvidence={onOpenEvidence} />
           </div>
-        </Panel>
-        <UpcomingDeadlinesCard />
-        <EvidenceAtRiskCard onOpenEvidence={onOpenEvidence} />
-        <TopRisksCard controls={controls} onOpenControls={onOpenControls} />
-        <ActivityCard />
-      </aside>
+        }
+      />
+
+      <OverviewSplit
+        primary={<TopRisksCard controls={controls} onOpenControls={onOpenControls} />}
+        secondary={<ActivityCard />}
+      />
     </div>
   );
 }

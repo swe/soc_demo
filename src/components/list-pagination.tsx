@@ -16,7 +16,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-const DEFAULT_PAGE_SIZE_OPTIONS = [10, 20, 50];
+const DEFAULT_PAGE_SIZE_OPTIONS = [25, 50, 100];
+
+/** Canonical default for dense data tables. */
+export const DEFAULT_PAGE_SIZE = 25;
+
+/** Canonical default for card/catalog grids (multiples of 3–4). */
+export const CARD_PAGE_SIZE = 12;
+export const CARD_PAGE_SIZE_OPTIONS = [12, 24, 48];
 
 export function paginateItems<T>(items: T[], page: number, pageSize: number) {
   const startIndex = (page - 1) * pageSize;

@@ -1,13 +1,15 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { MapPin, Search } from "lucide-react";
 import Link from "next/link";
-import { MapPin } from "lucide-react";
+import { useMemo, useState } from "react";
 
 import {
   getThreatGeoStats,
-  threatGeoEvents,
+  investigateHrefForEntity,
+  investigateHrefForGeoEvent,
   type ThreatGeoEvent,
+  threatGeoEvents,
 } from "@/components/threat-hunting/threat-map-data";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -40,6 +42,14 @@ export function ThreatMapCenter() {
     threatGeoEvents[0] ?? null,
   );
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [severityFilter, setSeverityFilter] = useState<
+    ThreatGeoEvent["severity"] | "all"
+  >("all");
+
+  const visibleEvents = useMemo(() => {
+    if (severityFilter === "all") return threatGeoEvents;
+    return threatGeoEvents.filter((e) => e.severity === severityFilter);
+  }, [severityFilter]);
 
   const center = useMemo<[number, number]>(() => {
     if (!selected) return [20, 0];
@@ -52,13 +62,21 @@ export function ThreatMapCenter() {
       className="bg-background flex min-h-0 flex-1 flex-col overflow-hidden"
     >
       <div className="border-b px-4 py-3 sm:px-6">
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-          <div className="space-y-1">
-            <h1 className="text-xl font-semibold tracking-tight">Threat Map</h1>
-            <p className="text-muted-foreground text-sm">
-              Geographic view of active threat observations linked to alerts and
-              intel.
-            </p>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap gap-1.5">
+            {(["all", "critical", "high", "medium", "low"] as const).map(
+              (value) => (
+                <Button
+                  key={value}
+                  size="sm"
+                  variant={severityFilter === value ? "default" : "outline"}
+                  className="h-7 capitalize"
+                  onClick={() => setSeverityFilter(value)}
+                >
+                  {value}
+                </Button>
+              ),
+            )}
           </div>
           <div className="flex flex-wrap gap-4 text-sm">
             <div>
@@ -77,6 +95,10 @@ export function ThreatMapCenter() {
               <p className="text-muted-foreground text-xs">Regions</p>
               <p className="font-semibold tabular-nums">{stats.regions}</p>
             </div>
+            <div>
+              <p className="text-muted-foreground text-xs">Entities</p>
+              <p className="font-semibold tabular-nums">{stats.entities}</p>
+            </div>
           </div>
         </div>
       </div>
@@ -88,7 +110,7 @@ export function ThreatMapCenter() {
             zoom={selected ? 3.2 : 1.4}
             className="absolute inset-0 h-full w-full"
           >
-            {threatGeoEvents.map((event) => (
+            {visibleEvents.map((event) => (
               <MapMarker
                 key={event.id}
                 longitude={event.longitude}
@@ -153,10 +175,10 @@ export function ThreatMapCenter() {
 
         <aside className="overflow-y-auto p-4">
           <h2 className="text-muted-foreground mb-3 text-xs font-medium tracking-wide uppercase">
-            Hotspots
+            Hotspots ({visibleEvents.length})
           </h2>
           <ul className="space-y-2">
-            {threatGeoEvents.map((event) => (
+            {visibleEvents.slice(0, 40).map((event) => (
               <li key={event.id}>
                 <button
                   type="button"
@@ -174,7 +196,7 @@ export function ThreatMapCenter() {
                     <div className="min-w-0 space-y-1">
                       <p className="truncate text-sm font-medium">{event.title}</p>
                       <p className="text-muted-foreground truncate text-xs">
-                        {event.locationLabel}
+                        {event.locationLabel} · {event.entities.length} entities
                       </p>
                       <Badge
                         variant="outline"
@@ -215,16 +237,78 @@ export function ThreatMapCenter() {
                     </p>
                   </div>
                 </div>
+
+                {selected.entities.length > 0 ? (
+                  <div className="space-y-2">
+                    <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+                      Hunt entities
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {selected.entities.map((entity) => (
+                        <Button
+                          key={`${entity.kind}-${entity.value}`}
+                          size="sm"
+                          variant="secondary"
+                          className="h-7 gap-1 font-mono text-[11px]"
+                          asChild
+                        >
+                          <Link href={investigateHrefForEntity(entity)}>
+                            <Search className="size-3" />
+                            <span className="text-muted-foreground lowercase">
+                              {entity.kind}:
+                            </span>
+                            {entity.label ?? entity.value}
+                          </Link>
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+
                 <div className="flex flex-wrap gap-2">
+                  <Button size="sm" asChild>
+                    <Link href={investigateHrefForGeoEvent(selected)}>
+                      Investigate
+                    </Link>
+                  </Button>
                   {selected.alertId ? (
-                    <Button size="sm" asChild>
+                    <Button size="sm" variant="outline" asChild>
                       <Link href={`/alerts/${selected.alertId}`}>
                         Open alert
                       </Link>
                     </Button>
                   ) : null}
+                  {selected.indicatorId ? (
+                    <Button size="sm" variant="outline" asChild>
+                      <Link
+                        href={`/threat-intelligence?indicator=${selected.indicatorId}`}
+                      >
+                        Open indicator
+                      </Link>
+                    </Button>
+                  ) : null}
+                  {selected.actorId ? (
+                    <Button size="sm" variant="outline" asChild>
+                      <Link
+                        href={`/threat-intelligence/actors?actor=${selected.actorId}`}
+                      >
+                        Open actor
+                      </Link>
+                    </Button>
+                  ) : (
+                    <Button size="sm" variant="outline" asChild>
+                      <Link href="/threat-intelligence">Threat intel</Link>
+                    </Button>
+                  )}
+                  <Button size="sm" variant="secondary" asChild>
+                    <Link
+                      href={`/threat-hunting/hunts?from=map&geo=${encodeURIComponent(selected.id)}&q=${encodeURIComponent(selected.title)}`}
+                    >
+                      Hunt from here
+                    </Link>
+                  </Button>
                   <Button size="sm" variant="outline" asChild>
-                    <Link href="/threat-intelligence">Threat intel</Link>
+                    <Link href="/threat-hunting/analytics">Analytics graph</Link>
                   </Button>
                 </div>
               </div>

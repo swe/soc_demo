@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import {
   Crosshair,
   ExternalLink,
@@ -8,9 +7,16 @@ import {
   Radar,
   Search,
 } from "lucide-react";
+import Link from "next/link";
 import { useDeferredValue, useMemo, useState } from "react";
 
 import { ListPagination, paginateItems } from "@/components/list-pagination";
+import {
+  ModuleShell,
+  ModuleToolbarActions,
+  ModuleToolbarSearch,
+} from "@/components/soc/module-shell";
+import { StatsStrip } from "@/components/soc/stats-strip";
 import { Button } from "@/components/ui/button";
 import {
   InputGroup,
@@ -36,57 +42,41 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 
+import { useThreatSession } from "./threat-session";
 import {
-  type Indicator,
-  type IndicatorStatus,
-  type IndicatorType,
   filterIndicators,
   getActorById,
   getHuntById,
   getIndicatorStats,
+  type Indicator,
+  type IndicatorStatus,
   indicatorStatuses,
   indicatorStatusLabels,
-  indicatorTypes,
+  type IndicatorType,
   indicatorTypeLabels,
+  indicatorTypes,
   resolveIndicatorAlerts,
+  resolveMatchedAlertsByTags,
 } from "./threat-shared-data";
-import { useThreatSession } from "./threat-session";
 import {
   ConfidenceBadge,
   IndicatorStatusBadge,
   IndicatorTypeBadge,
+  mutedControlClassName,
   SeverityBadge,
   SheetDetailRow,
-  mutedControlClassName,
 } from "./threat-shared-primitives";
 
-function StatsStrip({ indicators }: { indicators: Indicator[] }) {
-  const stats = getIndicatorStats(indicators);
+function IndicatorsStatsStrip({ indicators }: { indicators: Indicator[] }) {
   return (
-    <section className="border-border/70 border-b border-dashed pb-4">
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4 xl:gap-0">
-        {stats.map((stat, index) => (
-          <section
-            key={stat.key}
-            className={cn(
-              "space-y-2 py-2 sm:py-1",
-              index > 0 && "xl:border-border/70 xl:border-l",
-              index === 0 && "xl:pr-6",
-              index > 0 && index < stats.length - 1 && "xl:px-6",
-              index === stats.length - 1 && "xl:pl-6",
-            )}
-          >
-            <p className="text-muted-foreground text-sm">{stat.title}</p>
-            <p className="text-3xl leading-none font-semibold tracking-tight tabular-nums">
-              {stat.value}
-            </p>
-            <span className="text-muted-foreground block text-sm">
-              {stat.context}
-            </span>
-          </section>
-        ))}
-      </div>
-    </section>
+    <StatsStrip
+      stats={getIndicatorStats(indicators).map((stat) => ({
+        key: stat.key,
+        title: stat.title,
+        value: stat.value,
+        context: stat.context,
+      }))}
+    />
   );
 }
 
@@ -114,6 +104,7 @@ function IndicatorDetailSheet({
     .map((id) => getHuntById(id))
     .filter(Boolean);
   const alerts = resolveIndicatorAlerts(indicator);
+  const matchedByTags = resolveMatchedAlertsByTags(indicator);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -234,6 +225,35 @@ function IndicatorDetailSheet({
             </section>
           ) : null}
 
+          {matchedByTags.length > 0 ? (
+            <section className="space-y-2.5">
+              <h3 className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+                Matched alerts · tag overlap
+              </h3>
+              <ul className="space-y-2">
+                {matchedByTags.map((alert) => (
+                  <li key={alert.id}>
+                    <Link
+                      href={`/alerts/${alert.id}`}
+                      className="hover:bg-muted/60 flex items-start gap-2 rounded-md border px-2.5 py-2 transition-colors"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <span className="font-mono text-xs">{alert.id}</span>
+                        <p className="mt-1 line-clamp-2 text-xs">
+                          {alert.title}
+                        </p>
+                        <p className="text-muted-foreground mt-1 text-[10px]">
+                          Tags overlap with indicator
+                        </p>
+                      </div>
+                      <ExternalLink className="text-muted-foreground mt-0.5 size-3.5 shrink-0" />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
+
           {hunts.length > 0 ? (
             <section className="space-y-2.5">
               <h3 className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
@@ -337,7 +357,7 @@ export function IndicatorsCenter({
   const [statusFilters, setStatusFilters] = useState<IndicatorStatus[]>([]);
   const [activeOnly, setActiveOnly] = useState(false);
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(25);
   const [selectedId, setSelectedId] = useState<string | null>(
     initialIndicatorId ?? null,
   );
@@ -380,79 +400,77 @@ export function IndicatorsCenter({
   };
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto p-4 md:p-6">
-      <div className="space-y-1">
-        <h1 className="text-xl font-semibold tracking-tight">Indicators</h1>
-        <p className="text-muted-foreground text-sm">
-          IOC store spanning feeds, dark web, and actor campaigns — pivot into
-          hunts and alerts.
-        </p>
-      </div>
-
-      <StatsStrip indicators={indicators} />
-
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <InputGroup className="max-w-md">
-          <InputGroupAddon>
-            <Search className="size-4" />
-          </InputGroupAddon>
-          <InputGroupInput
-            placeholder="Search value, ID, tag, technique…"
-            value={query}
-            onChange={(event) => {
-              setPage(1);
-              setQuery(event.target.value);
-            }}
-          />
-        </InputGroup>
-
-        <div className="flex flex-wrap items-center gap-3">
-          <label className="flex items-center gap-2 text-sm">
-            <Switch
-              checked={activeOnly}
-              onCheckedChange={(checked) => {
-                setPage(1);
-                setActiveOnly(checked);
-              }}
-            />
-            Active only
-          </label>
-        </div>
-      </div>
-
-      <div className="flex flex-wrap gap-2">
-        {indicatorTypes.map((type) => {
-          const active = typeFilters.includes(type);
-          return (
-            <Button
-              key={type}
-              type="button"
-              size="sm"
-              variant={active ? "default" : "outline"}
-              className={cn("h-7 rounded-md text-xs", !active && mutedControlClassName)}
-              onClick={() => toggleType(type)}
-            >
-              {indicatorTypeLabels[type]}
-            </Button>
-          );
-        })}
-        <span className="bg-border mx-1 hidden h-7 w-px sm:block" />
-        {indicatorStatuses.map((status) => {
-          const active = statusFilters.includes(status);
-          return (
-            <Button
-              key={status}
-              type="button"
-              size="sm"
-              variant={active ? "default" : "outline"}
-              className={cn("h-7 rounded-md text-xs", !active && mutedControlClassName)}
-              onClick={() => toggleStatus(status)}
-            >
-              {indicatorStatusLabels[status]}
-            </Button>
-          );
-        })}
-      </div>
+    <>
+    <ModuleShell
+      toolbar={
+        <>
+          <ModuleToolbarSearch>
+            <InputGroup className="h-9 w-full lg:max-w-sm">
+              <InputGroupAddon>
+                <Search className="size-4" />
+              </InputGroupAddon>
+              <InputGroupInput
+                placeholder="Search value, ID, tag, technique…"
+                value={query}
+                onChange={(event) => {
+                  setPage(1);
+                  setQuery(event.target.value);
+                }}
+              />
+            </InputGroup>
+          </ModuleToolbarSearch>
+          <ModuleToolbarActions>
+            <label className="border-border bg-background hover:bg-accent flex h-9 cursor-pointer items-center gap-2 rounded-md border px-2.5 text-sm">
+              <Switch
+                checked={activeOnly}
+                onCheckedChange={(checked) => {
+                  setPage(1);
+                  setActiveOnly(checked);
+                }}
+              />
+              <span>Active only</span>
+            </label>
+            {indicatorTypes.map((type) => {
+              const active = typeFilters.includes(type);
+              return (
+                <Button
+                  key={type}
+                  type="button"
+                  size="sm"
+                  variant={active ? "default" : "outline"}
+                  className={cn(
+                    "h-8 rounded-md text-xs",
+                    !active && mutedControlClassName,
+                  )}
+                  onClick={() => toggleType(type)}
+                >
+                  {indicatorTypeLabels[type]}
+                </Button>
+              );
+            })}
+            {indicatorStatuses.map((status) => {
+              const active = statusFilters.includes(status);
+              return (
+                <Button
+                  key={status}
+                  type="button"
+                  size="sm"
+                  variant={active ? "default" : "outline"}
+                  className={cn(
+                    "h-8 rounded-md text-xs",
+                    !active && mutedControlClassName,
+                  )}
+                  onClick={() => toggleStatus(status)}
+                >
+                  {indicatorStatusLabels[status]}
+                </Button>
+              );
+            })}
+          </ModuleToolbarActions>
+        </>
+      }
+    >
+      <IndicatorsStatsStrip indicators={indicators} />
 
       <div className="bg-card overflow-hidden rounded-lg border">
         <Table className="table-fixed">
@@ -518,19 +536,18 @@ export function IndicatorsCenter({
             )}
           </TableBody>
         </Table>
-        <div className="border-t px-3 py-2">
-          <ListPagination
-            page={page}
-            pageSize={pageSize}
-            total={filtered.length}
-            onPageChange={setPage}
-            onPageSizeChange={(size) => {
-              setPage(1);
-              setPageSize(size);
-            }}
-          />
-        </div>
+        <ListPagination
+          page={page}
+          pageSize={pageSize}
+          total={filtered.length}
+          onPageChange={setPage}
+          onPageSizeChange={(size) => {
+            setPage(1);
+            setPageSize(size);
+          }}
+        />
       </div>
+    </ModuleShell>
 
       <IndicatorDetailSheet
         indicator={selected}
@@ -539,6 +556,6 @@ export function IndicatorsCenter({
           if (!open) setSelectedId(null);
         }}
       />
-    </div>
+    </>
   );
 }

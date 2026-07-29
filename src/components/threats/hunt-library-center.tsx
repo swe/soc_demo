@@ -1,16 +1,24 @@
 "use client";
 
-import Link from "next/link";
 import {
   Crosshair,
   ExternalLink,
   Fingerprint,
+  Play,
   Radar,
   Search,
 } from "lucide-react";
+import Link from "next/link";
 import { useDeferredValue, useMemo, useState } from "react";
 
+import { buildInvestigateHref } from "@/components/investigate/investigate-data";
 import { ListPagination, paginateItems } from "@/components/list-pagination";
+import {
+  ModuleShell,
+  ModuleToolbarActions,
+  ModuleToolbarSearch,
+} from "@/components/soc/module-shell";
+import { StatsStrip } from "@/components/soc/stats-strip";
 import { Button } from "@/components/ui/button";
 import {
   InputGroup,
@@ -33,73 +41,79 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { getTelemetrySource } from "@/lib/source-registry";
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 
+import { getIndicatorFromSession, useThreatSession } from "./threat-session";
 import {
-  type Hunt,
-  type HuntOutcome,
-  type HuntStatus,
+  buildInvestigateQueryForHunt,
+  defaultHuntSourceIds,
   filterHunts,
   getActorById,
   getHuntStats,
+  type Hunt,
+  type HuntOutcome,
   huntOutcomeLabels,
+  type HuntRunResult,
+  type HuntStatus,
   huntStatuses,
   huntStatusLabels,
   resolveHuntAlerts,
   resolveHuntIncidents,
 } from "./threat-shared-data";
-import { getIndicatorFromSession, useThreatSession } from "./threat-session";
 import {
   HuntOutcomeBadge,
   HuntStatusBadge,
+  mutedControlClassName,
   SeverityBadge,
   SheetDetailRow,
-  mutedControlClassName,
 } from "./threat-shared-primitives";
 
-function StatsStrip({ hunts }: { hunts: Hunt[] }) {
-  const stats = getHuntStats(hunts);
+function HuntStatsStrip({ hunts }: { hunts: Hunt[] }) {
   return (
-    <section className="border-border/70 border-b border-dashed pb-4">
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4 xl:gap-0">
-        {stats.map((stat, index) => (
-          <section
-            key={stat.key}
-            className={cn(
-              "space-y-2 py-2 sm:py-1",
-              index > 0 && "xl:border-border/70 xl:border-l",
-              index === 0 && "xl:pr-6",
-              index > 0 && index < stats.length - 1 && "xl:px-6",
-              index === stats.length - 1 && "xl:pl-6",
-            )}
-          >
-            <p className="text-muted-foreground text-sm">{stat.title}</p>
-            <p className="text-3xl leading-none font-semibold tracking-tight tabular-nums">
-              {stat.value}
-            </p>
-            <span className="text-muted-foreground block text-sm">
-              {stat.context}
-            </span>
-          </section>
-        ))}
-      </div>
-    </section>
+    <StatsStrip
+      stats={getHuntStats(hunts).map((stat) => ({
+        key: stat.key,
+        title: stat.title,
+        value: stat.value,
+        context: stat.context,
+      }))}
+    />
   );
+}
+
+function formatRunTime(iso: string) {
+  try {
+    return new Date(iso).toLocaleString(undefined, {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } catch {
+    return iso;
+  }
 }
 
 function HuntDetailSheet({
   hunt,
+  runResult,
   open,
   onOpenChange,
   onStart,
   onClose,
+  onRun,
+  running,
 }: {
   hunt: Hunt | null;
+  runResult: HuntRunResult | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onStart: (hunt: Hunt) => void;
   onClose: (hunt: Hunt, outcome: HuntOutcome) => void;
+  onRun: (hunt: Hunt) => void;
+  running: boolean;
 }) {
   if (!hunt) {
     return (
@@ -115,6 +129,9 @@ function HuntDetailSheet({
     .filter(Boolean);
   const alerts = resolveHuntAlerts(hunt);
   const incidents = resolveHuntIncidents(hunt);
+  const investigateQuery = buildInvestigateQueryForHunt(hunt);
+  const sourceIds = defaultHuntSourceIds(hunt);
+  const investigateHref = buildInvestigateHref(investigateQuery, sourceIds);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -130,6 +147,9 @@ function HuntDetailSheet({
               </SheetTitle>
               <SheetDescription className="mt-1 font-mono text-xs">
                 {hunt.id}
+                {hunt.promotedFromDetectionId
+                  ? ` · from ${hunt.promotedFromDetectionId}`
+                  : ""}
               </SheetDescription>
             </div>
           </div>
@@ -154,12 +174,73 @@ function HuntDetailSheet({
             </SheetDetailRow>
           </section>
 
+          <section className="space-y-2">
+            <h3 className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+              Hunt query · Heimdall QL
+            </h3>
+            <pre className="bg-muted/40 max-h-36 overflow-auto rounded-md border p-2.5 font-mono text-[10px] leading-relaxed whitespace-pre-wrap">
+              {investigateQuery}
+            </pre>
+            <div className="flex flex-wrap gap-1.5">
+              {sourceIds.map((id) => (
+                <span
+                  key={id}
+                  className="bg-muted text-muted-foreground rounded-full border px-2 py-0.5 text-[10px]"
+                >
+                  {getTelemetrySource(id)?.shortName ?? id}
+                </span>
+              ))}
+            </div>
+          </section>
+
           {hunt.findings ? (
             <section className="space-y-2">
               <h3 className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
                 Findings
               </h3>
               <p className="text-sm leading-relaxed">{hunt.findings}</p>
+            </section>
+          ) : null}
+
+          {runResult ? (
+            <section className="space-y-2.5">
+              <div className="flex items-center justify-between gap-2">
+                <h3 className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+                  Last run · {runResult.hitCount} hit
+                  {runResult.hitCount === 1 ? "" : "s"}
+                </h3>
+                <span className="text-muted-foreground font-mono text-[10px]">
+                  {formatRunTime(runResult.ranAt)}
+                </span>
+              </div>
+              <div className="overflow-hidden rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-xs">Entity</TableHead>
+                      <TableHead className="text-xs">Sev</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {runResult.hits.map((hit) => (
+                      <TableRow key={hit.id}>
+                        <TableCell className="max-w-[180px] truncate font-mono text-[11px]">
+                          {hit.entity}
+                        </TableCell>
+                        <TableCell>
+                          <SeverityBadge severity={hit.severity} />
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+              <Button asChild size="sm" className="w-full justify-start">
+                <Link href={investigateHref}>
+                  Open in Investigate
+                  <ExternalLink className="ml-1.5 size-3" />
+                </Link>
+              </Button>
             </section>
           ) : null}
 
@@ -288,6 +369,18 @@ function HuntDetailSheet({
                   Start hunt
                 </Button>
               ) : null}
+              {hunt.status !== "closed" ? (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className={cn("justify-start", mutedControlClassName)}
+                  disabled={running}
+                  onClick={() => onRun(hunt)}
+                >
+                  <Play className="mr-1.5 size-3.5" />
+                  {running ? "Running…" : "Run hunt"}
+                </Button>
+              ) : null}
               {hunt.status === "running" ? (
                 <>
                   {(
@@ -311,11 +404,35 @@ function HuntDetailSheet({
                 size="sm"
                 className={cn("justify-start", mutedControlClassName)}
               >
+                <Link href={investigateHref}>
+                  Open in Investigate
+                  <ExternalLink className="ml-1.5 size-3" />
+                </Link>
+              </Button>
+              <Button
+                asChild
+                variant="outline"
+                size="sm"
+                className={cn("justify-start", mutedControlClassName)}
+              >
                 <Link href="/threat-hunting/analytics">
                   Open threat analytics
                   <ExternalLink className="ml-1.5 size-3" />
                 </Link>
               </Button>
+              {hunt.promotedFromDetectionId ? (
+                <Button
+                  asChild
+                  variant="outline"
+                  size="sm"
+                  className={cn("justify-start", mutedControlClassName)}
+                >
+                  <Link href="/threat-hunting/detections">
+                    Open detections
+                    <ExternalLink className="ml-1.5 size-3" />
+                  </Link>
+                </Button>
+              ) : null}
             </div>
           </section>
         </div>
@@ -333,15 +450,17 @@ export function HuntLibraryCenter({
   filterIndicatorId?: string | null;
   filterActorId?: string | null;
 }) {
-  const { hunts, startHunt, closeHunt } = useThreatSession();
+  const { hunts, startHunt, closeHunt, runHunt, getHuntRun } =
+    useThreatSession();
   const [query, setQuery] = useState("");
   const deferredQuery = useDeferredValue(query);
   const [statusFilters, setStatusFilters] = useState<HuntStatus[]>([]);
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(25);
   const [selectedId, setSelectedId] = useState<string | null>(
     initialHuntId ?? null,
   );
+  const [runningId, setRunningId] = useState<string | null>(null);
 
   const baseHunts = useMemo(() => {
     let list = hunts;
@@ -371,6 +490,7 @@ export function HuntLibraryCenter({
   );
 
   const selected = hunts.find((hunt) => hunt.id === selectedId) ?? null;
+  const runResult = selectedId ? (getHuntRun(selectedId) ?? null) : null;
 
   const toggleStatus = (status: HuntStatus) => {
     setPage(1);
@@ -382,148 +502,144 @@ export function HuntLibraryCenter({
   };
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto p-4 md:p-6">
-      <div className="space-y-1">
-        <h1 className="text-xl font-semibold tracking-tight">Hunt Library</h1>
-        <p className="text-muted-foreground text-sm">
-          Hypotheses and saved hunts linking indicators, techniques, and
-          outcomes back to alerts and incidents.
-        </p>
-      </div>
+    <>
+      <ModuleShell
+        toolbar={
+          <>
+            <ModuleToolbarSearch>
+              <InputGroup className="h-9 w-full lg:max-w-sm">
+                <InputGroupAddon>
+                  <Search className="size-4" />
+                </InputGroupAddon>
+                <InputGroupInput
+                  placeholder="Search hunts, techniques, IOCs…"
+                  value={query}
+                  onChange={(event) => {
+                    setPage(1);
+                    setQuery(event.target.value);
+                  }}
+                />
+              </InputGroup>
+            </ModuleToolbarSearch>
+            <ModuleToolbarActions>
+              {huntStatuses.map((status) => {
+                const active = statusFilters.includes(status);
+                return (
+                  <Button
+                    key={status}
+                    type="button"
+                    size="sm"
+                    variant={active ? "default" : "outline"}
+                    className={cn(
+                      "h-8 rounded-md text-xs",
+                      !active && mutedControlClassName,
+                    )}
+                    onClick={() => toggleStatus(status)}
+                  >
+                    {huntStatusLabels[status]}
+                  </Button>
+                );
+              })}
+            </ModuleToolbarActions>
+          </>
+        }
+      >
+        <HuntStatsStrip hunts={hunts} />
 
-      <StatsStrip hunts={hunts} />
-
-      {(filterIndicatorId || filterActorId) && (
-        <div className="bg-muted/40 flex flex-wrap items-center gap-2 rounded-md border px-3 py-2 text-sm">
-          <span className="text-muted-foreground">Filtered by</span>
-          {filterIndicatorId ? (
-            <Link
-              href={`/threat-intelligence?indicator=${filterIndicatorId}`}
-              className="font-mono text-xs underline-offset-2 hover:underline"
-            >
-              {filterIndicatorId}
-            </Link>
-          ) : null}
-          {filterActorId ? (
-            <Link
-              href={`/threat-intelligence/actors?actor=${filterActorId}`}
-              className="underline-offset-2 hover:underline"
-            >
-              {getActorById(filterActorId)?.name ?? filterActorId}
-            </Link>
-          ) : null}
-          <Button asChild variant="ghost" size="sm" className="ml-auto h-7">
-            <Link href="/threat-hunting/hunts">Clear</Link>
-          </Button>
-        </div>
-      )}
-
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <InputGroup className="max-w-md">
-          <InputGroupAddon>
-            <Search className="size-4" />
-          </InputGroupAddon>
-          <InputGroupInput
-            placeholder="Search hunts, techniques, IOCs…"
-            value={query}
-            onChange={(event) => {
-              setPage(1);
-              setQuery(event.target.value);
-            }}
-          />
-        </InputGroup>
-        <div className="flex flex-wrap gap-2">
-          {huntStatuses.map((status) => {
-            const active = statusFilters.includes(status);
-            return (
-              <Button
-                key={status}
-                type="button"
-                size="sm"
-                variant={active ? "default" : "outline"}
-                className={cn(
-                  "h-7 rounded-md text-xs",
-                  !active && mutedControlClassName,
-                )}
-                onClick={() => toggleStatus(status)}
+        {(filterIndicatorId || filterActorId) && (
+          <div className="bg-muted/40 flex flex-wrap items-center gap-2 rounded-md border px-3 py-2 text-sm">
+            <span className="text-muted-foreground">Filtered by</span>
+            {filterIndicatorId ? (
+              <Link
+                href={`/threat-intelligence?indicator=${filterIndicatorId}`}
+                className="font-mono text-xs underline-offset-2 hover:underline"
               >
-                {huntStatusLabels[status]}
-              </Button>
-            );
-          })}
-        </div>
-      </div>
+                {filterIndicatorId}
+              </Link>
+            ) : null}
+            {filterActorId ? (
+              <Link
+                href={`/threat-intelligence/actors?actor=${filterActorId}`}
+                className="underline-offset-2 hover:underline"
+              >
+                {getActorById(filterActorId)?.name ?? filterActorId}
+              </Link>
+            ) : null}
+            <Button asChild variant="ghost" size="sm" className="ml-auto h-7">
+              <Link href="/threat-hunting/hunts">Clear</Link>
+            </Button>
+          </div>
+        )}
 
-      <div className="bg-card overflow-hidden rounded-lg border">
-        <Table className="table-fixed">
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[100px]">ID</TableHead>
-              <TableHead>Hunt</TableHead>
-              <TableHead className="w-[100px]">Status</TableHead>
-              <TableHead className="hidden w-[100px] md:table-cell">
-                Severity
-              </TableHead>
-              <TableHead className="hidden w-[120px] lg:table-cell">
-                Assignee
-              </TableHead>
-              <TableHead className="hidden w-[110px] xl:table-cell">
-                Updated
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {pageItems.length === 0 ? (
+        <div className="bg-card overflow-hidden rounded-lg border">
+          <Table className="table-fixed">
+            <TableHeader>
               <TableRow>
-                <TableCell
-                  colSpan={6}
-                  className="text-muted-foreground h-24 text-center"
-                >
-                  No hunts match the current filters.
-                </TableCell>
+                <TableHead className="w-[100px]">ID</TableHead>
+                <TableHead>Hunt</TableHead>
+                <TableHead className="w-[100px]">Status</TableHead>
+                <TableHead className="hidden w-[100px] md:table-cell">
+                  Severity
+                </TableHead>
+                <TableHead className="hidden w-[120px] lg:table-cell">
+                  Assignee
+                </TableHead>
+                <TableHead className="hidden w-[110px] xl:table-cell">
+                  Updated
+                </TableHead>
               </TableRow>
-            ) : (
-              pageItems.map((hunt) => (
-                <TableRow
-                  key={hunt.id}
-                  className="hover:bg-muted/40 cursor-pointer"
-                  data-state={selectedId === hunt.id ? "selected" : undefined}
-                  onClick={() => setSelectedId(hunt.id)}
-                >
-                  <TableCell className="font-mono text-xs">{hunt.id}</TableCell>
-                  <TableCell>
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-medium">
-                        {hunt.title}
-                      </p>
-                      <p className="text-muted-foreground line-clamp-1 text-xs">
-                        {hunt.hypothesis}
-                      </p>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-col items-start gap-1">
-                      <HuntStatusBadge status={hunt.status} />
-                      {hunt.outcome ? (
-                        <HuntOutcomeBadge outcome={hunt.outcome} />
-                      ) : null}
-                    </div>
-                  </TableCell>
-                  <TableCell className="hidden md:table-cell">
-                    <SeverityBadge severity={hunt.severity} />
-                  </TableCell>
-                  <TableCell className="text-muted-foreground hidden text-sm lg:table-cell">
-                    {hunt.assignee}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground hidden text-xs xl:table-cell">
-                    {hunt.updatedLabel}
+            </TableHeader>
+            <TableBody>
+              {pageItems.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={6}
+                    className="text-muted-foreground h-24 text-center"
+                  >
+                    No hunts match the current filters.
                   </TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-        <div className="border-t px-3 py-2">
+              ) : (
+                pageItems.map((hunt) => (
+                  <TableRow
+                    key={hunt.id}
+                    className="hover:bg-muted/40 cursor-pointer"
+                    data-state={selectedId === hunt.id ? "selected" : undefined}
+                    onClick={() => setSelectedId(hunt.id)}
+                  >
+                    <TableCell className="font-mono text-xs">{hunt.id}</TableCell>
+                    <TableCell>
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium">
+                          {hunt.title}
+                        </p>
+                        <p className="text-muted-foreground line-clamp-1 text-xs">
+                          {hunt.hypothesis}
+                        </p>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-col items-start gap-1">
+                        <HuntStatusBadge status={hunt.status} />
+                        {hunt.outcome ? (
+                          <HuntOutcomeBadge outcome={hunt.outcome} />
+                        ) : null}
+                      </div>
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      <SeverityBadge severity={hunt.severity} />
+                    </TableCell>
+                    <TableCell className="text-muted-foreground hidden text-sm lg:table-cell">
+                      {hunt.assignee}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground hidden text-xs xl:table-cell">
+                      {hunt.updatedLabel}
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
           <ListPagination
             page={page}
             pageSize={pageSize}
@@ -535,10 +651,11 @@ export function HuntLibraryCenter({
             }}
           />
         </div>
-      </div>
+      </ModuleShell>
 
       <HuntDetailSheet
         hunt={selected}
+        runResult={runResult}
         open={Boolean(selectedId)}
         onOpenChange={(open) => {
           if (!open) setSelectedId(null);
@@ -559,7 +676,27 @@ export function HuntLibraryCenter({
             description: `${hunt.id} closed as ${huntOutcomeLabels[outcome]}.`,
           });
         }}
+        running={runningId === selectedId}
+        onRun={(hunt) => {
+          setRunningId(hunt.id);
+          window.setTimeout(() => {
+            const result = runHunt(hunt.id);
+            setRunningId(null);
+            if (!result) {
+              toast({
+                title: "Hunt run failed",
+                description: "Hunt not found in session.",
+                variant: "destructive",
+              });
+              return;
+            }
+            toast({
+              title: "Hunt run complete",
+              description: `${result.hitCount} hit${result.hitCount === 1 ? "" : "s"} persisted in session.`,
+            });
+          }, 360);
+        }}
       />
-    </div>
+    </>
   );
 }

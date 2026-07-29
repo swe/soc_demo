@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { ModulePageSkeleton } from "@/components/soc/module-page-skeleton";
 
 import { HuntLibraryCenter } from "@/components/threats/hunt-library-center";
 
@@ -13,7 +14,7 @@ export default async function HuntLibraryPage({
 }) {
   const params = await searchParams;
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<ModulePageSkeleton />}>
       <HuntLibraryCenter
         initialHuntId={params.hunt ?? null}
         filterIndicatorId={params.indicator ?? null}

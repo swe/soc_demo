@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import {
   Area,
@@ -14,6 +15,7 @@ import {
   YAxis,
 } from "recharts";
 
+import { OverviewSplit, Panel, PanelHeading } from "@/components/soc/panel";
 import {
   type ChartConfig,
   ChartContainer,
@@ -22,19 +24,23 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import { cn } from "@/lib/utils";
 
 import {
   type AlertsOverviewRange,
   alertsOverviewRangeLabels,
   alertsOverviewRanges,
+  currentAnalystId,
   filterAlertsByOverviewRange,
   getAlertsBySource,
   getAlertsOverTime,
+  getAnalystWorkload,
   getSeverityBreakdown,
   getStatusBreakdown,
+  getTriageFocusAlerts,
+  openAlertStatuses,
   type SocAlert,
 } from "./alerts-data";
+import { SeverityBadge, StatusBadge } from "./alerts-primitives";
 import { type OverviewFilterTarget } from "./alerts-url";
 
 const compactNumber = new Intl.NumberFormat("en-US", {
@@ -101,42 +107,6 @@ const severityBarColors: Record<string, string> = {
   low: "#2563eb",
 };
 
-function Panel({
-  className,
-  children,
-}: {
-  className?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className={cn("bg-card rounded-lg border p-4", className)}>
-      {children}
-    </section>
-  );
-}
-
-function PanelHeading({
-  title,
-  description,
-  action,
-}: {
-  title: string;
-  description?: string;
-  action?: React.ReactNode;
-}) {
-  return (
-    <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
-      <div className="min-w-0">
-        <h2 className="text-sm font-semibold">{title}</h2>
-        {description ? (
-          <p className="text-muted-foreground mt-1 text-xs">{description}</p>
-        ) : null}
-      </div>
-      {action}
-    </div>
-  );
-}
-
 function OverviewRangeControl({
   value,
   onChange,
@@ -153,12 +123,11 @@ function OverviewRangeControl({
             key={range}
             type="button"
             onClick={() => onChange(range)}
-            className={cn(
-              "rounded-sm px-2.5 py-1 text-xs font-medium transition-colors",
+            className={
               active
-                ? "bg-background text-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground",
-            )}
+                ? "bg-background text-foreground rounded-sm px-2.5 py-1 text-xs font-medium shadow-sm"
+                : "text-muted-foreground hover:text-foreground rounded-sm px-2.5 py-1 text-xs font-medium"
+            }
           >
             {alertsOverviewRangeLabels[range]}
           </button>
@@ -177,10 +146,9 @@ function AlertsOverTimeCard({ range }: { range: AlertsOverviewRange }) {
   const xInterval = range === "30d" ? 3 : range === "14d" ? 1 : 0;
 
   return (
-    <Panel className="flex flex-col xl:col-span-2">
+    <Panel>
       <PanelHeading
         title="Alerts over time"
-        description="Stacked daily totals by severity · top edge is the day total"
         action={
           <div className="text-right">
             <p className="text-2xl leading-none font-semibold tabular-nums">
@@ -248,7 +216,12 @@ function AlertsOverTimeCard({ range }: { range: AlertsOverviewRange }) {
                 indicator="dot"
                 labelFormatter={(label, payload) => {
                   const point = payload?.[0]?.payload as
-                    | { critical?: number; high?: number; medium?: number; low?: number }
+                    | {
+                        critical?: number;
+                        high?: number;
+                        medium?: number;
+                        low?: number;
+                      }
                     | undefined;
                   const total = point
                     ? (point.critical ?? 0) +
@@ -269,7 +242,6 @@ function AlertsOverTimeCard({ range }: { range: AlertsOverviewRange }) {
             }
           />
           <ChartLegend content={<ChartLegendContent />} />
-          {/* Low at the bottom, critical on top — top edge = daily total. */}
           <Area
             type="monotone"
             dataKey="low"
@@ -327,10 +299,7 @@ function SeverityDistributionCard({
 
   return (
     <Panel>
-      <PanelHeading
-        title="Severity distribution"
-        description="Tap a slice to open matching alerts"
-      />
+      <PanelHeading title="Severity distribution" />
       <div className="flex h-[220px] items-center gap-4">
         <div className="relative mx-auto aspect-square h-full max-h-[200px] min-h-0 flex-1">
           <ChartContainer
@@ -428,10 +397,7 @@ function TopSourcesCard({
 
   return (
     <Panel>
-      <PanelHeading
-        title="Top sources"
-        description="Tap a source to open its alerts"
-      />
+      <PanelHeading title="Top sources" />
       <ChartContainer
         config={sourceChartConfig}
         className="[aspect-ratio:auto] h-[220px] w-full"
@@ -498,11 +464,8 @@ function StatusBreakdownCard({
   }));
 
   return (
-    <Panel className="xl:col-span-2">
-      <PanelHeading
-        title="Status breakdown"
-        description="Tap a status to open matching alerts"
-      />
+    <Panel>
+      <PanelHeading title="Status breakdown" />
       <ChartContainer
         config={statusChartConfig}
         className="[aspect-ratio:auto] h-[220px] w-full"
@@ -552,6 +515,193 @@ function StatusBreakdownCard({
   );
 }
 
+function TriageFocusCard({
+  alerts,
+  onFilter,
+}: {
+  alerts: Iterable<SocAlert>;
+  onFilter: (target: OverviewFilterTarget) => void;
+}) {
+  const focusAlerts = useMemo(
+    () => getTriageFocusAlerts(alerts, 6),
+    [alerts],
+  );
+
+  const { unassignedOpen, criticalHighOpen, mineOpen } = useMemo(() => {
+    let unassigned = 0;
+    let criticalHigh = 0;
+    let mine = 0;
+    for (const alert of alerts) {
+      if (!openAlertStatuses.includes(alert.status)) continue;
+      if (alert.assigneeId === null) unassigned += 1;
+      if (alert.severity === "critical" || alert.severity === "high") {
+        criticalHigh += 1;
+      }
+      if (alert.assigneeId === currentAnalystId) mine += 1;
+    }
+    return {
+      unassignedOpen: unassigned,
+      criticalHighOpen: criticalHigh,
+      mineOpen: mine,
+    };
+  }, [alerts]);
+
+  return (
+    <Panel>
+      <PanelHeading title="Triage focus" />
+
+      <div className="mb-4 grid grid-cols-3 gap-2">
+        <button
+          type="button"
+          onClick={() => onFilter({ type: "critical-high-open" })}
+          className="border-border hover:bg-accent rounded-md border px-2.5 py-2 text-left transition-colors"
+        >
+          <p className="text-muted-foreground text-[11px]">Crit / high</p>
+          <p className="mt-1 text-lg leading-none font-semibold tabular-nums">
+            {criticalHighOpen}
+          </p>
+        </button>
+        <button
+          type="button"
+          onClick={() => onFilter({ type: "assigned", scope: "unassigned" })}
+          className="border-border hover:bg-accent rounded-md border px-2.5 py-2 text-left transition-colors"
+        >
+          <p className="text-muted-foreground text-[11px]">Unassigned</p>
+          <p className="text-destructive mt-1 text-lg leading-none font-semibold tabular-nums">
+            {unassignedOpen}
+          </p>
+        </button>
+        <button
+          type="button"
+          onClick={() => onFilter({ type: "assigned", scope: "mine" })}
+          className="border-border hover:bg-accent rounded-md border px-2.5 py-2 text-left transition-colors"
+        >
+          <p className="text-muted-foreground text-[11px]">Mine open</p>
+          <p className="mt-1 text-lg leading-none font-semibold tabular-nums">
+            {mineOpen}
+          </p>
+        </button>
+      </div>
+
+      {focusAlerts.length === 0 ? (
+        <p className="text-muted-foreground py-6 text-center text-sm">
+          No open alerts
+        </p>
+      ) : (
+        <ul className="divide-border/70 divide-y">
+          {focusAlerts.map((alert) => (
+            <li key={alert.id}>
+              <Link
+                href={`/alerts/${alert.id}`}
+                className="hover:bg-accent/40 -mx-1 flex items-start gap-2.5 rounded-md px-1 py-2.5 transition-colors"
+              >
+                <SeverityBadge severity={alert.severity} />
+                <div className="min-w-0 flex-1 space-y-1">
+                  <p className="truncate text-sm font-medium">{alert.title}</p>
+                  <p className="text-muted-foreground truncate text-xs">
+                    <span className="font-mono">{alert.id}</span>
+                    <span className="mx-1.5">·</span>
+                    <span className="tabular-nums">{alert.ageLabel}</span>
+                    <span className="mx-1.5">·</span>
+                    <span>
+                      {alert.assigneeId === null
+                        ? "Unassigned"
+                        : alert.sourceName}
+                    </span>
+                  </p>
+                </div>
+                <StatusBadge status={alert.status} />
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <div className="mt-3 flex flex-wrap gap-2 border-t pt-3">
+        <button
+          type="button"
+          onClick={() => onFilter({ type: "assigned", scope: "unassigned" })}
+          className="text-muted-foreground hover:text-foreground text-xs font-medium underline-offset-2 hover:underline"
+        >
+          Unassigned queue
+        </button>
+        <span className="text-muted-foreground/50">·</span>
+        <button
+          type="button"
+          onClick={() => onFilter({ type: "assigned", scope: "mine" })}
+          className="text-muted-foreground hover:text-foreground text-xs font-medium underline-offset-2 hover:underline"
+        >
+          My alerts
+        </button>
+        <span className="text-muted-foreground/50">·</span>
+        <button
+          type="button"
+          onClick={() => onFilter({ type: "open" })}
+          className="text-muted-foreground hover:text-foreground text-xs font-medium underline-offset-2 hover:underline"
+        >
+          All open
+        </button>
+      </div>
+    </Panel>
+  );
+}
+
+function AnalystLoadCard({
+  alerts,
+  onFilter,
+}: {
+  alerts: Iterable<SocAlert>;
+  onFilter: (target: OverviewFilterTarget) => void;
+}) {
+  const data = getAnalystWorkload(alerts).slice(0, 8);
+
+  return (
+    <Panel>
+      <PanelHeading title="Analyst load" />
+      {data.length === 0 ? (
+        <p className="text-muted-foreground py-6 text-center text-sm">
+          No open alerts
+        </p>
+      ) : (
+        <ul className="space-y-2.5">
+          {data.map((row) => {
+            const max = data[0]?.count ?? 1;
+            const width = Math.max(8, Math.round((row.count / max) * 100));
+            const scope =
+              row.assigneeId === "unassigned"
+                ? ("unassigned" as const)
+                : row.assigneeId === currentAnalystId
+                  ? ("mine" as const)
+                  : row.assigneeId;
+            return (
+              <li key={row.assigneeId}>
+                <button
+                  type="button"
+                  onClick={() => onFilter({ type: "assigned", scope })}
+                  className="hover:bg-accent/50 w-full space-y-1 rounded-md px-1 py-0.5 text-left transition-colors"
+                >
+                  <div className="flex items-center justify-between gap-2 text-xs">
+                    <span className="truncate font-medium">{row.name}</span>
+                    <span className="text-muted-foreground tabular-nums">
+                      {row.count}
+                    </span>
+                  </div>
+                  <div className="bg-muted h-1.5 overflow-hidden rounded-full">
+                    <div
+                      className="bg-foreground/70 h-full rounded-full"
+                      style={{ width: `${width}%` }}
+                    />
+                  </div>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </Panel>
+  );
+}
+
 export function AlertsOverview({
   alerts,
   onFilter,
@@ -567,20 +717,35 @@ export function AlertsOverview({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between gap-3">
-        <p className="text-muted-foreground text-xs">
-          Charts reflect the selected lookback window
-        </p>
+      <div className="flex items-center justify-end">
         <OverviewRangeControl value={range} onChange={setRange} />
       </div>
-      <div className="grid gap-4 xl:grid-cols-3">
-        <AlertsOverTimeCard range={range} />
-        <SeverityDistributionCard alerts={rangedAlerts} onFilter={onFilter} />
-      </div>
-      <div className="grid gap-4 xl:grid-cols-3">
-        <TopSourcesCard alerts={rangedAlerts} onFilter={onFilter} />
-        <StatusBreakdownCard alerts={rangedAlerts} onFilter={onFilter} />
-      </div>
+      <OverviewSplit
+        primary={<AlertsOverTimeCard range={range} />}
+        secondary={
+          <SeverityDistributionCard
+            alerts={rangedAlerts}
+            onFilter={onFilter}
+          />
+        }
+      />
+      <OverviewSplit
+        wide="secondary"
+        primary={
+          <TopSourcesCard alerts={rangedAlerts} onFilter={onFilter} />
+        }
+        secondary={
+          <StatusBreakdownCard alerts={rangedAlerts} onFilter={onFilter} />
+        }
+      />
+      <OverviewSplit
+        primary={
+          <TriageFocusCard alerts={rangedAlerts} onFilter={onFilter} />
+        }
+        secondary={
+          <AnalystLoadCard alerts={rangedAlerts} onFilter={onFilter} />
+        }
+      />
     </div>
   );
 }

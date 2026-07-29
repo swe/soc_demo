@@ -1,23 +1,24 @@
 import { administrationUsers } from "@/components/administration/users-data";
 import {
   type AlertEntityType,
-  type AlertEnvironment,
-  type AlertSeverity,
-  type AlertSourceCategory,
   alertEntityTypeLabels,
+  type AlertEnvironment,
   alertEnvironmentLabels,
   alertSeverities,
+  type AlertSeverity,
   alertSeverityLabels,
   alertSourceCategories,
+  type AlertSourceCategory,
   alertSourceCategoryLabels,
   getLinkedDevice,
   getLinkedIdentity,
   severityWeight,
-  socAlerts,
   type SocAlert,
+  socAlerts,
 } from "@/components/alerts/alerts-data";
+import { computeSocLatencyMetrics } from "@/lib/soc-metrics";
 
-export type { AlertSourceCategory, AlertEntityType, AlertEnvironment };
+export type { AlertEntityType, AlertEnvironment,AlertSourceCategory };
 
 export type IncidentSeverity = AlertSeverity;
 
@@ -84,15 +85,26 @@ export type SocIncident = {
   warRoomMessages: WarRoomMessage[];
   /** True when created via alert escalate (may still grow to multi-alert). */
   escalatedFromAlerts: boolean;
+  /** Optional Attack Story class override for curated showcase cases. */
+  storyClass?: import("./attack-story").AttackStoryClass;
+  /** Simulated Attack Disruption status for this case. */
+  disruptionStatus?: import("./attack-story").AttackStoryDisruptionStatus;
 };
 
 export type IncidentStat = {
-  key: "active" | "p1-open" | "mttc" | "sla-risk" | "contained";
+  key:
+    | "active"
+    | "p1-open"
+    | "unassigned-open"
+    | "mttc"
+    | "sla-risk"
+    | "contained";
   title: string;
   value: string;
   context: string;
   delta: number;
   preferLower?: boolean;
+  href?: string;
 };
 
 export type IncidentSlaState = "ok" | "at-risk" | "breached";
@@ -227,9 +239,11 @@ export function getIncidentSlaRemainingLabel(incident: SocIncident): string {
   ) {
     return "Contained";
   }
+  const state = getIncidentSlaState(incident);
+  if (state === "breached") return "SLA breached";
+  if (state === "at-risk") return "SLA at risk";
   const remaining = prioritySlaMinutes[incident.priority] - incident.ageMinutes;
-  if (remaining <= 0) return "SLA breached";
-  return `${formatAgeLabel(remaining)} to contain`;
+  return `SLA ${formatAgeLabel(remaining)} left`;
 }
 
 export const incidentSourceCategories = alertSourceCategories;
@@ -444,6 +458,8 @@ export function incidentFromAlerts(
       },
     ],
     escalatedFromAlerts,
+    storyClass: overrides.storyClass,
+    disruptionStatus: overrides.disruptionStatus,
   };
 }
 
@@ -457,6 +473,117 @@ const caseTitles = [
   "Business email compromise targeting executives",
   "Crypto-mining cluster in production VPC",
 ];
+
+const showcaseSpecs: Array<{
+  title: string;
+  summary: string;
+  storyClass: import("./attack-story").AttackStoryClass;
+  match: (alert: SocAlert) => boolean;
+}> = [
+  {
+    title: "User account compromised by device code phishing",
+    summary:
+      "Anomalous OAuth device-code authentication correlated with directory API queries and suspicious device registration. Attack disruption recommended for the compromised identity.",
+    storyClass: "identity-compromise",
+    match: (a) =>
+      a.sourceCategory === "identity" ||
+      /oauth|mfa|device.?code|impossible.?travel|token/i.test(
+        `${a.title} ${a.ruleName}`,
+      ),
+  },
+  {
+    title: "Suspected ransomware staging across finance endpoints",
+    summary:
+      "Endpoint ransomware behavior cluster with backup interference indicators on finance workstations. Isolate hosts and preserve forensic images.",
+    storyClass: "ransomware",
+    match: (a) =>
+      /ransomware|encrypt|note.?file/i.test(`${a.title} ${a.ruleName}`) ||
+      a.mitreTactic === "Impact",
+  },
+  {
+    title: "Lateral movement from jump host to domain controllers",
+    summary:
+      "Admin share bursts and privileged remote logons spanning jump infrastructure toward domain controllers.",
+    storyClass: "lateral-movement",
+    match: (a) =>
+      /lateral|admin.?share|smb/i.test(`${a.title} ${a.ruleName}`) ||
+      a.mitreTactic === "Lateral Movement",
+  },
+  {
+    title: "Multi-source C2 beaconing investigation",
+    summary:
+      "Periodic egress and DNS tunneling scores suggest active command-and-control with possible exfiltration.",
+    storyClass: "c2-exfiltration",
+    match: (a) =>
+      /beacon|c2|dns.?tunnel|exfil|tor/i.test(`${a.title} ${a.ruleName}`) ||
+      a.mitreTactic === "Command and Control" ||
+      a.mitreTactic === "Exfiltration",
+  },
+  {
+    title: "Cloud privilege escalation via shadow admin path",
+    summary:
+      "Privileged policy attachments and atypical control-plane activity indicate a shadow admin escalation path.",
+    storyClass: "cloud-privilege",
+    match: (a) =>
+      a.sourceCategory === "cloud" ||
+      /shadow.?admin|policy.?attach|privilege/i.test(`${a.title} ${a.ruleName}`),
+  },
+  {
+    title: "Business email compromise targeting executives",
+    summary:
+      "Phishing delivery against executive aliases with mailbox and session anomalies consistent with BEC.",
+    storyClass: "bec-phishing",
+    match: (a) =>
+      /phish|bec|mailbox|spam|executive/i.test(`${a.title} ${a.ruleName}`),
+  },
+  {
+    title: "Malicious PowerShell execution cluster",
+    summary:
+      "Download cradles and LOLBin activity on endpoints indicate malware execution requiring host isolation.",
+    storyClass: "malware-execution",
+    match: (a) =>
+      a.sourceCategory === "endpoint" ||
+      /powershell|lolbin|lsass|macro|malware/i.test(`${a.title} ${a.ruleName}`),
+  },
+];
+
+function alertCorrelationScore(seed: SocAlert, candidate: SocAlert): number {
+  if (seed.id === candidate.id) return -1;
+  let score = 0;
+  if (seed.identityId && seed.identityId === candidate.identityId) score += 5;
+  if (seed.deviceId && seed.deviceId === candidate.deviceId) score += 5;
+  if (seed.mitreTactic && seed.mitreTactic === candidate.mitreTactic) score += 3;
+  if (
+    seed.mitreTechnique &&
+    seed.mitreTechnique === candidate.mitreTechnique
+  ) {
+    score += 2;
+  }
+  if (seed.entityName === candidate.entityName) score += 2;
+  if (seed.sourceCategory === candidate.sourceCategory) score += 1;
+  return score;
+}
+
+function pickCorrelatedAlerts(
+  seed: SocAlert,
+  pool: SocAlert[],
+  maxExtra = 2,
+): SocAlert[] {
+  const ranked = pool
+    .map((candidate) => ({
+      candidate,
+      score: alertCorrelationScore(seed, candidate),
+    }))
+    .filter((row) => row.score >= 2)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, maxExtra)
+    .map((row) => row.candidate);
+
+  const linked = Array.from(
+    new Map([seed, ...ranked].map((alert) => [alert.id, alert])).values(),
+  );
+  return linked;
+}
 
 function pickStatus(index: number): IncidentStatus {
   /** Realistic IR funnel — most cases resolve; few stay brand-new. */
@@ -497,10 +624,40 @@ function buildIncidentCatalog(size = INCIDENT_CATALOG_SIZE): SocIncident[] {
     return Math.round((index / (total - 1)) * (catalogSpanMinutes - 45)) + 30;
   };
 
+  // Curated Attack Story showcase cases (one per major class)
+  for (const [index, spec] of showcaseSpecs.entries()) {
+    const seed =
+      pool.find(spec.match) ??
+      socAlerts.find(spec.match) ??
+      pool[index % pool.length]!;
+    const linked = pickCorrelatedAlerts(seed, pool, 3);
+    const ageMinutes = 35 + index * 12;
+    const created = new Date(
+      Date.UTC(2026, 6, 27, 19, 0) - ageMinutes * 60_000,
+    );
+    incidents.push(
+      incidentFromAlerts(linked, {
+        id: `INC-${nextNum}`,
+        title: spec.title,
+        summary: spec.summary,
+        storyClass: spec.storyClass,
+        status: index === 0 ? "investigating" : pickStatus(nextNum),
+        priority: index <= 2 ? "P1" : undefined,
+        escalatedFromAlerts: false,
+        createdAt: created.toISOString(),
+        updatedAt: created.toISOString(),
+        ageMinutes,
+        ageLabel: formatAgeLabel(ageMinutes),
+        disruptionStatus: index === 0 ? "recommended" : undefined,
+      }),
+    );
+    nextNum += 1;
+  }
+
   // 1:1 escalations from known escalated alerts
   const escalatedSlice = escalated.slice(0, Math.min(80, escalated.length));
   for (const [index, alert] of escalatedSlice.entries()) {
-    const ageMinutes = ageForIndex(index, size);
+    const ageMinutes = ageForIndex(index + showcaseSpecs.length, size);
     const created = new Date(
       Date.UTC(2026, 6, 27, 19, 0) - ageMinutes * 60_000,
     );
@@ -518,18 +675,21 @@ function buildIncidentCatalog(size = INCIDENT_CATALOG_SIZE): SocIncident[] {
     nextNum += 1;
   }
 
-  // Multi-alert cases spanning sources
+  // Multi-alert cases — prefer shared identity/device/MITRE correlation
   for (let i = 0; i < 110 && incidents.length < size; i += 1) {
-    const a = pool[i % pool.length]!;
-    const b = pool[(i * 7 + 3) % pool.length]!;
-    const c = pool[(i * 13 + 11) % pool.length]!;
-    const linked = Array.from(
-      new Map(
-        [a, b, i % 3 === 0 ? c : null]
-          .filter((x): x is SocAlert => Boolean(x))
-          .map((alert) => [alert.id, alert]),
-      ).values(),
-    );
+    const seed = pool[i % pool.length]!;
+    let linked = pickCorrelatedAlerts(seed, pool, i % 3 === 0 ? 2 : 1);
+    if (linked.length < 2) {
+      const b = pool[(i * 7 + 3) % pool.length]!;
+      const c = pool[(i * 13 + 11) % pool.length]!;
+      linked = Array.from(
+        new Map(
+          [seed, b, i % 3 === 0 ? c : null]
+            .filter((x): x is SocAlert => Boolean(x))
+            .map((alert) => [alert.id, alert]),
+        ).values(),
+      );
+    }
     const status = pickStatus(i + 40);
     const ageMinutes = ageForIndex(incidents.length, size);
     const created = new Date(
@@ -615,15 +775,18 @@ export function getIncidentById(
 export function getIncidentStats(
   incidents: Iterable<SocIncident> = socIncidents,
 ): IncidentStat[] {
+  const list = Array.from(incidents);
   let active = 0;
   let p1Open = 0;
+  let unassignedOpen = 0;
   let slaRisk = 0;
   let contained = 0;
 
-  for (const incident of incidents) {
+  for (const incident of list) {
     if (openIncidentStatuses.includes(incident.status)) {
       active += 1;
       if (incident.priority === "P1") p1Open += 1;
+      if (incident.assigneeId === null) unassignedOpen += 1;
       const sla = getIncidentSlaState(incident);
       if (sla === "at-risk" || sla === "breached") slaRisk += 1;
     }
@@ -631,6 +794,8 @@ export function getIncidentStats(
       contained += 1;
     }
   }
+
+  const latency = computeSocLatencyMetrics([], list);
 
   return [
     {
@@ -650,10 +815,18 @@ export function getIncidentStats(
       preferLower: true,
     },
     {
+      key: "unassigned-open",
+      title: "Unassigned open",
+      value: unassignedOpen.toLocaleString("en-US"),
+      context: "waiting for an owner",
+      delta: 7.8,
+      preferLower: true,
+    },
+    {
       key: "mttc",
       title: "MTTC",
-      value: "3.4h",
-      context: "mean time to contain",
+      value: latency.mttcLabel,
+      context: `mean time to contain · n=${latency.mttcSample}`,
       delta: -4.6,
       preferLower: true,
     },

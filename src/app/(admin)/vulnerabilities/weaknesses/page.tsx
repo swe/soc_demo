@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation";
+import { WeaknessesCenter } from "@/components/vulnerabilities/weaknesses-center";
 
-export default function WeaknessesRedirectPage() {
-  redirect("/vulnerabilities/findings");
+export default function WeaknessesPage() {
+  return <WeaknessesCenter />;
 }

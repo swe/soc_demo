@@ -23,9 +23,13 @@ import {
   Upload,
 } from "lucide-react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
 
+import { getSessionCloudFindings } from "@/components/cloud-posture/cloud-posture-session";
+import { GrcAuditorPacksPanel } from "@/components/compliance/grc-auditor-packs-panel";
 import { ListPagination, paginateItems } from "@/components/list-pagination";
+import { type SocStat,StatsStrip } from "@/components/soc/stats-strip";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -82,6 +86,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { vulnerabilities } from "@/components/vulnerabilities/vulnerabilities-data";
+import { complianceApi } from "@/lib/mock-api/compliance";
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 
@@ -89,9 +95,10 @@ import {
   type AttentionKey,
   auditEngagements,
   complianceAttentionFilters,
+  type ComplianceCollector,
   type ComplianceControl,
+  type ComplianceEvidence,
   type ComplianceFinding,
-  complianceEvidence,
   type ComplianceFramework,
   complianceFrameworks,
   type ControlCategory,
@@ -100,14 +107,12 @@ import {
   controlStatusLabels,
   findingStatusLabels,
   frameworkAccent,
-  frameworkById,
   type FrameworkId,
   getComplianceStats,
   getCoverage,
   getFrameworkRollup,
   getUser,
 } from "./compliance-data";
-import { useComplianceSession } from "./compliance-session";
 import {
   AuditLifecycleStepper,
   ComplianceOverview,
@@ -126,13 +131,13 @@ import {
   OwnerCell,
   Panel,
   PanelHeading,
-  percentFormatter,
   percentTextClass,
   ProgressTrack,
   RiskBadge,
   SeverityBadge,
   tabTriggerClassName,
 } from "./compliance-primitives";
+import { useComplianceSession } from "./compliance-session";
 
 type ComplianceTab =
   | "overview"
@@ -180,54 +185,18 @@ function ComplianceStatsStrip({
   controls: ComplianceControl[];
   findings: ComplianceFinding[];
 }) {
-  const stats = getComplianceStats(controls, findings);
-
-  return (
-    <section className="border-border/70 border-b border-dashed pb-4">
-      <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 xl:grid-cols-6 xl:gap-0">
-        {stats.map((stat, index) => {
-          const isIncrease = stat.delta >= 0;
-          const isHealthy = stat.preferLower ? !isIncrease : isIncrease;
-          const deltaLabel = `${isIncrease ? "+" : ""}${percentFormatter.format(
-            stat.delta,
-          )}%`;
-
-          return (
-            <section
-              key={stat.title}
-              className={cn(
-                "space-y-2 py-2 sm:py-1",
-                index > 0 && "xl:border-border/70 xl:border-l",
-                index === 0 && "xl:pr-6",
-                index > 0 && index < stats.length - 1 && "xl:px-6",
-                index === stats.length - 1 && "xl:pl-6",
-              )}
-            >
-              <p className="text-muted-foreground text-sm">{stat.title}</p>
-              <div className="space-y-1.5">
-                <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-                  <p className="text-3xl leading-none font-semibold tracking-tight tabular-nums">
-                    {stat.value}
-                  </p>
-                  <span
-                    className={cn(
-                      "text-sm",
-                      isHealthy ? "text-emerald-600" : "text-rose-600",
-                    )}
-                  >
-                    {deltaLabel}
-                  </span>
-                </div>
-                <span className="text-muted-foreground block text-sm">
-                  {stat.context}
-                </span>
-              </div>
-            </section>
-          );
-        })}
-      </div>
-    </section>
+  const stats: SocStat[] = getComplianceStats(controls, findings).map(
+    (stat) => ({
+      key: stat.title,
+      title: stat.title,
+      value: stat.value,
+      context: stat.context,
+      delta: stat.delta,
+      preferLower: stat.preferLower,
+    }),
   );
+
+  return <StatsStrip stats={stats} />;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -669,20 +638,32 @@ function SheetDetailRow({
 function ControlDetailSheet({
   control,
   findings,
+  evidenceItems,
   onOpenChange,
   onRetest,
 }: {
   control: ComplianceControl | null;
   findings: ComplianceFinding[];
+  evidenceItems: ComplianceEvidence[];
   onOpenChange: (open: boolean) => void;
   onRetest: (control: ComplianceControl) => void;
 }) {
   const probe = control?.coverage ? getCoverage(control.coverage) : null;
   const evidence = control
-    ? complianceEvidence.filter((item) => item.controlCode === control.code)
+    ? evidenceItems.filter((item) => item.controlCode === control.code)
     : [];
   const linkedFindings = control
     ? findings.filter((item) => item.controlCode === control.code)
+    : [];
+  const linkedCloud = control
+    ? getSessionCloudFindings().filter((f) =>
+        f.complianceControlIds?.includes(control.code),
+      )
+    : [];
+  const linkedVulns = control
+    ? vulnerabilities.filter((v) =>
+        v.complianceControlIds?.includes(control.code),
+      )
     : [];
 
   return (
@@ -829,6 +810,64 @@ function ControlDetailSheet({
               ) : (
                 <p className="text-muted-foreground text-sm">
                   No open findings against this control.
+                </p>
+              )}
+            </div>
+
+            <div className="border-t py-4">
+              <p className="mb-3 text-xs font-medium tracking-wide uppercase">
+                Cloud posture ({linkedCloud.length})
+              </p>
+              {linkedCloud.length > 0 ? (
+                <ul className="space-y-2">
+                  {linkedCloud.slice(0, 6).map((finding) => (
+                    <li key={finding.id}>
+                      <Link
+                        href={`/cloud-posture?q=${encodeURIComponent(finding.id)}`}
+                        className="hover:text-primary block min-w-0"
+                      >
+                        <p className="truncate text-sm font-medium">
+                          {finding.title}
+                        </p>
+                        <p className="text-muted-foreground truncate text-xs">
+                          {finding.id} · {finding.provider.toUpperCase()}
+                        </p>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-muted-foreground text-sm">
+                  No CSPM findings mapped to this control.
+                </p>
+              )}
+            </div>
+
+            <div className="border-t py-4">
+              <p className="mb-3 text-xs font-medium tracking-wide uppercase">
+                Vulnerabilities ({linkedVulns.length})
+              </p>
+              {linkedVulns.length > 0 ? (
+                <ul className="space-y-2">
+                  {linkedVulns.slice(0, 6).map((vuln) => (
+                    <li key={vuln.id}>
+                      <Link
+                        href={`/vulnerabilities/findings?q=${encodeURIComponent(vuln.cve)}`}
+                        className="hover:text-primary block min-w-0"
+                      >
+                        <p className="truncate text-sm font-medium">
+                          {vuln.cve} · {vuln.title}
+                        </p>
+                        <p className="text-muted-foreground truncate text-xs">
+                          Priority {vuln.socPriority}
+                        </p>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-muted-foreground text-sm">
+                  No CVE findings mapped to this control.
                 </p>
               )}
             </div>
@@ -1094,11 +1133,13 @@ function ControlsTable({
 function EvidenceTable({
   frameworkFilter,
   query,
+  evidence,
 }: {
   frameworkFilter: FrameworkId | "all";
   query: string;
+  evidence: ComplianceEvidence[];
 }) {
-  const rows = complianceEvidence.filter((item) => {
+  const rows = evidence.filter((item) => {
     const matchesFramework =
       frameworkFilter === "all" || item.frameworks.includes(frameworkFilter);
     const matchesQuery =
@@ -1543,6 +1584,8 @@ export function ComplianceCenter() {
   const {
     controls: complianceControls,
     findings: complianceFindings,
+    evidence: complianceEvidence,
+    collectors,
     exportEvidencePack,
     exportSelectedControls,
     patchControlStatus,
@@ -1550,8 +1593,12 @@ export function ComplianceCenter() {
     retestControls,
     requestEvidenceForControls,
   } = useComplianceSession();
+  const [ccmBusy, setCcmBusy] = useState(false);
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<ComplianceTab>("overview");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState(
+    () => searchParams.get("q") ?? "",
+  );
   const [frameworkFilter, setFrameworkFilter] = useState<FrameworkId | "all">(
     "all",
   );
@@ -1561,9 +1608,17 @@ export function ComplianceCenter() {
   const [attentionKey, setAttentionKey] = useState<AttentionKey | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(25);
   const [selectedControl, setSelectedControl] =
     useState<ComplianceControl | null>(null);
+
+  useEffect(() => {
+    const q = searchParams.get("q");
+    if (q != null && q !== "") {
+      setSearchQuery(q);
+      setActiveTab("controls");
+    }
+  }, [searchParams]);
 
   const deferredSearchQuery = useDeferredValue(searchQuery);
   const normalizedQuery = deferredSearchQuery.trim().toLowerCase();
@@ -1727,7 +1782,7 @@ export function ComplianceCenter() {
       id="main-content"
       className="bg-background flex min-h-0 flex-1 flex-col overflow-hidden"
     >
-      <div className="border-b">
+      <div className="bg-background shrink-0 border-b">
         <div className="flex flex-col gap-2 px-4 py-3 sm:px-6 lg:min-h-14 lg:flex-row lg:items-center lg:justify-between lg:gap-4 lg:py-2">
           <div className="min-w-0 flex-1">
             <InputGroup className="h-9 w-full lg:max-w-sm">
@@ -1801,6 +1856,8 @@ export function ComplianceCenter() {
             findings={complianceFindings}
           />
 
+          <GrcAuditorPacksPanel />
+
           <Tabs
             value={activeTab}
             onValueChange={(value) => setActiveTab(value as ComplianceTab)}
@@ -1858,7 +1915,7 @@ export function ComplianceCenter() {
 
             <TabsContent value="frameworks" className="mt-0">
               {scopedFrameworks.length > 0 ? (
-                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                   {scopedFrameworks.map((framework) => (
                     <FrameworkCard
                       key={framework.id}
@@ -1970,30 +2027,72 @@ export function ComplianceCenter() {
                 <div className="border-border/70 flex flex-wrap items-center gap-2 rounded-lg border border-dashed px-3 py-2.5">
                   <Sparkles className="text-muted-foreground size-3.5" />
                   <p className="text-muted-foreground text-xs">
+                    Continuous control monitoring · {collectors.length}{" "}
+                    collectors ·{" "}
                     {complianceEvidence.filter((item) => item.automated).length}{" "}
-                    of {complianceEvidence.length} artifacts are collected
-                    automatically. Manual artifacts expire and need an owner to
-                    refresh them.
+                    of {complianceEvidence.length} artifacts automated.
                   </p>
                   <Button
                     variant="ghost"
                     size="sm"
                     className="ml-auto h-7 gap-1.5 px-2 text-xs"
-                    onClick={() =>
-                      toast({
-                        title: "Collection run started",
-                        description:
-                          "Automated collectors are refreshing every connected artifact.",
-                      })
-                    }
+                    disabled={ccmBusy}
+                    onClick={() => {
+                      void (async () => {
+                        setCcmBusy(true);
+                        try {
+                          const { receipt, result } =
+                            await complianceApi.runCollectors();
+                          toast({
+                            title: "CCM collectors finished",
+                            description: `${receipt.message} · ${receipt.id}`,
+                          });
+                          // Keep TS happy if result unused visually
+                          void result;
+                        } finally {
+                          setCcmBusy(false);
+                        }
+                      })();
+                    }}
                   >
-                    <RefreshCw className="size-3.5" />
-                    Run collectors
+                    <RefreshCw
+                      className={cn("size-3.5", ccmBusy && "animate-spin")}
+                    />
+                    {ccmBusy ? "Running…" : "Run collectors"}
                   </Button>
                 </div>
+                {collectors.length > 0 ? (
+                  <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                    {collectors.map((collector: ComplianceCollector) => (
+                      <div
+                        key={collector.id}
+                        className="border-border/70 rounded-lg border px-3 py-2.5"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <p className="text-sm font-medium">{collector.name}</p>
+                          <Badge
+                            variant="outline"
+                            className="rounded-full text-[10px] capitalize"
+                          >
+                            {collector.status}
+                          </Badge>
+                        </div>
+                        <p className="text-muted-foreground mt-1 text-xs">
+                          {collector.sourceId} · {collector.schedule}
+                        </p>
+                        <p className="text-muted-foreground mt-1 text-[11px]">
+                          controlId={collector.controlId} · Last run{" "}
+                          {collector.lastRunLabel} ·{" "}
+                          {collector.controlCodes.join(", ")}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
                 <EvidenceTable
                   frameworkFilter={frameworkFilter}
                   query={normalizedQuery}
+                  evidence={complianceEvidence}
                 />
               </div>
             </TabsContent>
@@ -2038,6 +2137,7 @@ export function ComplianceCenter() {
             : null
         }
         findings={complianceFindings}
+        evidenceItems={complianceEvidence}
         onRetest={(control) => {
           patchControlStatus(control.id, "pending");
           setSelectedControl((current) =>

@@ -8,9 +8,9 @@ import {
   ArrowUpRight,
   ClipboardCheck,
   Crosshair,
+  type LucideIcon,
   Radar,
   Shield,
-  type LucideIcon,
 } from "lucide-react";
 import Link from "next/link";
 import {
@@ -30,34 +30,43 @@ import {
   YAxis,
 } from "recharts";
 
-import { useSocRole } from "@/components/auth/soc-role-provider";
-import {
-  buildRoleOverview,
-  type OverviewBreakdown,
-  type OverviewKpi,
-  type OverviewQueueItem,
-} from "@/components/overview/overview-data";
-import { downloadExecutiveBoardPack } from "@/components/overview/executive-board-pack";
+import { getAlertsOverTime } from "@/components/alerts/alerts-data";
 import {
   getAlertSessionSnapshot,
   injectPulseCriticalAlert,
   subscribeAlertsSession,
 } from "@/components/alerts/alerts-session";
 import {
-  getIncidentSessionSnapshot,
-  subscribeIncidentsSession,
-} from "@/components/incidents/incidents-session";
-import { getAlertsOverTime } from "@/components/alerts/alerts-data";
+  formatAuditTime,
+  getAuditLogEntries,
+  subscribeAuditLog,
+} from "@/components/audit/audit-log-data";
+import { useSocRole } from "@/components/auth/soc-role-provider";
 import {
   complianceScoreTarget,
   complianceScoreTrend,
 } from "@/components/compliance/compliance-data";
 import { getIncidentsOverTime } from "@/components/incidents/incidents-data";
 import {
-  formatAuditTime,
-  getAuditLogEntries,
-  subscribeAuditLog,
-} from "@/components/audit/audit-log-data";
+  getIncidentSessionSnapshot,
+  subscribeIncidentsSession,
+} from "@/components/incidents/incidents-session";
+import { downloadExecutiveBoardPack } from "@/components/overview/executive-board-pack";
+import { IdentityRiskWidget } from "@/components/overview/identity-risk-widget";
+import {
+  crossSourceAttention,
+  IngestHealthStrip,
+} from "@/components/overview/ingest-health-strip";
+import {
+  buildRoleOverview,
+  type OverviewBreakdown,
+  type OverviewKpi,
+  type OverviewQueueItem,
+} from "@/components/overview/overview-data";
+import { PagerDutyOnCallPanel } from "@/components/overview/pagerduty-on-call-panel";
+import { SocPerformancePanel } from "@/components/overview/soc-performance-panel";
+import { UnifiedRiskQueue } from "@/components/overview/unified-risk-queue";
+import { OverviewSplit, PanelGrid } from "@/components/soc/panel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -69,8 +78,8 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { toast } from "@/lib/toast";
 import { socJobRoleLabels } from "@/lib/soc-roles";
+import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 
 const compactNumber = new Intl.NumberFormat("en-US", {
@@ -183,7 +192,7 @@ function KpiCard({ kpi, index }: { kpi: OverviewKpi; index: number }) {
       : !kpi.preferLower;
 
   return (
-    <div className="bg-card flex flex-col gap-2 rounded-xl border p-3">
+    <div className="bg-card flex flex-col gap-2 rounded-lg border p-3">
       <div className="flex items-center justify-between gap-2">
         <div className="flex min-w-0 items-center gap-2">
           <div className="bg-muted text-muted-foreground flex size-7 shrink-0 items-center justify-center rounded-lg">
@@ -272,7 +281,7 @@ function TrendChart({
     complianceScoreTrend[complianceScoreTrend.length - 1]?.score ?? 0;
 
   return (
-    <section className="bg-card flex flex-col rounded-xl border">
+    <section className="bg-card flex flex-col rounded-lg border">
       <div className="flex items-center justify-between gap-3 border-b px-3 py-2.5 sm:px-4">
         <h3 className="text-sm font-medium leading-tight">{title}</h3>
         <div className="shrink-0 text-right">
@@ -524,7 +533,7 @@ function BreakdownPanel({ breakdown }: { breakdown: OverviewBreakdown }) {
   }));
 
   return (
-    <section className="bg-card flex flex-col rounded-xl border">
+    <section className="bg-card flex flex-col rounded-lg border">
       <div className="flex items-center justify-between gap-2 border-b px-3 py-2.5 sm:px-4">
         <h3 className="text-sm font-medium leading-tight">{breakdown.title}</h3>
         <p className="text-muted-foreground shrink-0 text-[11px] tabular-nums">
@@ -711,7 +720,7 @@ export function RoleOverview() {
   const slaBurnLabel =
     tick === 0
       ? "SLA clocks live"
-      : `SLA clocks aged ×${tick} (demo pulse)`;
+      : `SLA clocks aged ×${tick}`;
 
   return (
     <main
@@ -728,6 +737,9 @@ export function RoleOverview() {
               <h2 className="text-lg font-semibold tracking-tight sm:text-xl">
                 {model.headline}
               </h2>
+              <p className="text-muted-foreground mt-0.5 max-w-2xl text-xs sm:text-sm">
+                {model.subhead}
+              </p>
               <p className="text-muted-foreground mt-1 text-xs">{slaBurnLabel}</p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
@@ -762,13 +774,74 @@ export function RoleOverview() {
             ))}
           </div>
 
-          <div className="grid items-start gap-2 xl:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)] sm:gap-3">
-            <TrendChart kind={model.chartKind} title={model.chartTitle} />
-            <BreakdownPanel breakdown={model.primaryBreakdown} />
-          </div>
+          {(effectiveRole === "ciso" ||
+            effectiveRole === "c_level" ||
+            effectiveRole === "soc_manager" ||
+            effectiveRole === "analyst_t2" ||
+            effectiveRole === "analyst_t3") && (
+            <IngestHealthStrip />
+          )}
 
-          <div className="grid items-start gap-2 xl:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)_minmax(0,0.85fr)] sm:gap-3">
-            <section className="bg-card rounded-xl border">
+          {(effectiveRole === "ciso" ||
+            effectiveRole === "c_level") && <UnifiedRiskQueue />}
+
+          {(effectiveRole === "ciso" ||
+            effectiveRole === "soc_manager" ||
+            effectiveRole === "c_level") && <SocPerformancePanel />}
+
+          {(effectiveRole === "ciso" ||
+            effectiveRole === "soc_manager" ||
+            effectiveRole === "analyst_t1" ||
+            effectiveRole === "analyst_t2" ||
+            effectiveRole === "analyst_t3") && <PagerDutyOnCallPanel />}
+
+          {(effectiveRole === "ciso" ||
+            effectiveRole === "soc_manager" ||
+            effectiveRole === "analyst_t1" ||
+            effectiveRole === "analyst_t2" ||
+            effectiveRole === "analyst_t3") && (
+            <IdentityRiskWidget />
+          )}
+
+          {(effectiveRole === "ciso" ||
+            effectiveRole === "soc_manager" ||
+            effectiveRole === "analyst_t1" ||
+            effectiveRole === "analyst_t2" ||
+            effectiveRole === "analyst_t3") && (
+            <section className="bg-card rounded-lg border">
+              <div className="flex items-center justify-between gap-2 border-b px-3 py-2.5 sm:px-4">
+                <div>
+                  <h3 className="text-sm font-medium leading-tight">
+                    Cross-source attention
+                  </h3>
+                  <p className="text-muted-foreground text-xs">
+                    Cases correlated across Splunk, Sentinel, Defender, Okta, and more
+                  </p>
+                </div>
+                <Badge variant="secondary" className="tabular-nums">
+                  {crossSourceAttention.length}
+                </Badge>
+              </div>
+              <ul className="divide-border divide-y">
+                {crossSourceAttention.map((item) => (
+                  <li key={item.id}>
+                    <AttentionItem item={item} />
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          <OverviewSplit
+            className="items-start gap-2 sm:gap-3"
+            primary={
+              <TrendChart kind={model.chartKind} title={model.chartTitle} />
+            }
+            secondary={<BreakdownPanel breakdown={model.primaryBreakdown} />}
+          />
+
+          <PanelGrid columns={3} className="items-start gap-2 sm:gap-3">
+            <section className="bg-card rounded-lg border">
               <div className="flex items-center justify-between gap-2 border-b px-3 py-2.5 sm:px-4">
                 <h3 className="text-sm font-medium leading-tight">
                   {model.queueTitle}
@@ -792,7 +865,7 @@ export function RoleOverview() {
               </ul>
             </section>
 
-            <section className="bg-card rounded-xl border">
+            <section className="bg-card rounded-lg border">
               <div className="border-b px-3 py-2.5 sm:px-4">
                 <h3 className="text-sm font-medium leading-tight">Insights</h3>
               </div>
@@ -818,7 +891,7 @@ export function RoleOverview() {
 
             <div className="flex flex-col gap-2 sm:gap-3">
               <BreakdownPanel breakdown={model.secondaryBreakdown} />
-              <section className="bg-card rounded-xl border">
+              <section className="bg-card rounded-lg border">
                 <div className="border-b px-3 py-2.5 sm:px-4">
                   <h3 className="text-sm font-medium leading-tight">
                     Shortcuts
@@ -847,11 +920,11 @@ export function RoleOverview() {
                 </ul>
               </section>
             </div>
-          </div>
+          </PanelGrid>
 
           {hydrated &&
           (effectiveRole === "soc_manager" || effectiveRole === "ciso") ? (
-            <section className="bg-card rounded-xl border">
+            <section className="bg-card rounded-lg border">
               <div className="flex items-center justify-between border-b px-3 py-2.5 sm:px-4">
                 <h3 className="text-sm font-medium leading-tight">
                   Recent activity

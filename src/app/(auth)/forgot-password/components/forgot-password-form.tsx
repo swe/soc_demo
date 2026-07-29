@@ -42,8 +42,8 @@ export function ForgotPasswordForm({
     setTimeout(() => {
       setIsLoading(false);
       toast({
-        title: "Reset link sent (demo)",
-        description: `If ${data.email} exists in the Noldor tenant, a reset email would be sent.`,
+        title: "Reset link sent",
+        description: `If ${data.email} exists for this organization, a reset email will be sent.`,
       });
     }, 800);
   }

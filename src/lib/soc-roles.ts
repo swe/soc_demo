@@ -16,18 +16,32 @@ export type SocJobRole =
 export type SocNavId =
   | "overview"
   | "alerts-incidents"
+  | "phishing"
+  | "investigate"
   | "assets"
+  | "cloud-posture"
   | "vulnerabilities"
   | "vulnerabilities-overview"
   | "vulnerabilities-findings"
   | "vulnerabilities-exposure"
   | "vulnerabilities-work"
+  | "vulnerabilities-recommendations"
+  | "vulnerabilities-remediations"
+  | "vulnerabilities-inventories"
+  | "vulnerabilities-event-timeline"
+  | "data-security"
   | "threat-hunting"
+  | "on-call"
   | "threat-intelligence"
   | "threat-intelligence-indicators"
   | "threat-intelligence-actors"
   | "threat-intelligence-dark-web"
+  | "threat-intelligence-attack-surface"
   | "threat-intelligence-feeds"
+  | "automation"
+  | "automation-playbooks"
+  | "automation-builder"
+  | "automation-approvals"
   | "compliance"
   | "knowledge-base"
   | "knowledge-base-documentation"
@@ -37,6 +51,7 @@ export type SocNavId =
   | "administration"
   | "administration-users"
   | "administration-integrations"
+  | "administration-enterprise"
   | "administration-audit"
   | "profile";
 
@@ -63,6 +78,10 @@ const allVuln: SocNavId[] = [
   "vulnerabilities-findings",
   "vulnerabilities-exposure",
   "vulnerabilities-work",
+  "vulnerabilities-recommendations",
+  "vulnerabilities-remediations",
+  "vulnerabilities-inventories",
+  "vulnerabilities-event-timeline",
 ];
 
 const allIntel: SocNavId[] = [
@@ -70,6 +89,7 @@ const allIntel: SocNavId[] = [
   "threat-intelligence-indicators",
   "threat-intelligence-actors",
   "threat-intelligence-dark-web",
+  "threat-intelligence-attack-surface",
   "threat-intelligence-feeds",
 ];
 
@@ -85,7 +105,15 @@ const allAdmin: SocNavId[] = [
   "administration",
   "administration-users",
   "administration-integrations",
+  "administration-enterprise",
   "administration-audit",
+];
+
+const allAutomation: SocNavId[] = [
+  "automation",
+  "automation-playbooks",
+  "automation-builder",
+  "automation-approvals",
 ];
 
 function navSet(...ids: SocNavId[]): ReadonlySet<SocNavId> {
@@ -101,6 +129,7 @@ export const socRoleDefinitions: Record<SocJobRole, SocRoleDefinition> = {
       "overview",
       "vulnerabilities",
       "vulnerabilities-overview",
+      "cloud-posture",
       "compliance",
       "knowledge-base",
       "knowledge-base-reports",
@@ -114,14 +143,22 @@ export const socRoleDefinitions: Record<SocJobRole, SocRoleDefinition> = {
     allowedNavIds: navSet(
       "overview",
       "alerts-incidents",
+      "phishing",
+      "investigate",
       "assets",
+      "cloud-posture",
       ...allVuln,
+      "data-security",
       "threat-hunting",
+      "on-call",
       ...allIntel,
+      ...allAutomation,
       "compliance",
       ...allKb,
       "administration",
       "administration-users",
+      "administration-integrations",
+      "administration-enterprise",
       "administration-audit",
       "profile",
     ),
@@ -133,10 +170,16 @@ export const socRoleDefinitions: Record<SocJobRole, SocRoleDefinition> = {
     allowedNavIds: navSet(
       "overview",
       "alerts-incidents",
+      "phishing",
+      "investigate",
       "assets",
+      "cloud-posture",
       ...allVuln,
+      "data-security",
       "threat-hunting",
+      "on-call",
       ...allIntel,
+      ...allAutomation,
       "compliance",
       ...allKb,
       ...allAdmin,
@@ -150,9 +193,16 @@ export const socRoleDefinitions: Record<SocJobRole, SocRoleDefinition> = {
     allowedNavIds: navSet(
       "overview",
       "alerts-incidents",
+      "phishing",
+      "investigate",
       "assets",
       "vulnerabilities",
       "vulnerabilities-findings",
+      "on-call",
+      "automation",
+      "automation-playbooks",
+      "automation-builder",
+      "automation-approvals",
       "knowledge-base",
       "knowledge-base-procedures",
       "profile",
@@ -165,10 +215,16 @@ export const socRoleDefinitions: Record<SocJobRole, SocRoleDefinition> = {
     allowedNavIds: navSet(
       "overview",
       "alerts-incidents",
+      "phishing",
+      "investigate",
       "assets",
+      "cloud-posture",
       ...allVuln,
+      "data-security",
+      "on-call",
       "threat-intelligence",
       "threat-intelligence-indicators",
+      ...allAutomation,
       ...allKb,
       "profile",
     ),
@@ -180,10 +236,16 @@ export const socRoleDefinitions: Record<SocJobRole, SocRoleDefinition> = {
     allowedNavIds: navSet(
       "overview",
       "alerts-incidents",
+      "phishing",
+      "investigate",
       "assets",
+      "cloud-posture",
       ...allVuln,
+      "data-security",
       "threat-hunting",
+      "on-call",
       ...allIntel,
+      ...allAutomation,
       ...allKb,
       "profile",
     ),
@@ -230,13 +292,21 @@ const SOC_PATH_PREFIXES = [
   "/overview",
   "/alerts",
   "/incidents",
+  "/phishing",
+  "/email-security",
+  "/investigate",
   "/assets",
+  "/cloud-posture",
   "/vulnerabilities",
+  "/data-security",
   "/threat-hunting",
+  "/purple-team",
   "/threat-intelligence",
+  "/automation",
   "/compliance",
   "/knowledge-base",
   "/administration",
+  "/on-call",
   "/profile",
 ] as const;
 
@@ -260,6 +330,18 @@ export function pathToNavIds(pathname: string): SocNavId[] {
   ) {
     return ["alerts-incidents"];
   }
+  if (
+    pathname.startsWith("/phishing") ||
+    pathname.startsWith("/email-security")
+  ) {
+    return ["phishing"];
+  }
+  if (pathname.startsWith("/investigate")) {
+    return ["investigate"];
+  }
+  if (pathname.startsWith("/cloud-posture")) {
+    return ["cloud-posture"];
+  }
   if (pathname.startsWith("/assets")) {
     return ["assets"];
   }
@@ -279,7 +361,28 @@ export function pathToNavIds(pathname: string): SocNavId[] {
     if (pathname.startsWith("/vulnerabilities/work")) {
       return ["vulnerabilities-work", "vulnerabilities"];
     }
+    if (pathname.startsWith("/vulnerabilities/recommendations")) {
+      return ["vulnerabilities-recommendations", "vulnerabilities-work", "vulnerabilities"];
+    }
+    if (pathname.startsWith("/vulnerabilities/remediations")) {
+      return ["vulnerabilities-remediations", "vulnerabilities-work", "vulnerabilities"];
+    }
+    if (pathname.startsWith("/vulnerabilities/inventories")) {
+      return ["vulnerabilities-inventories", "vulnerabilities-work", "vulnerabilities"];
+    }
+    if (pathname.startsWith("/vulnerabilities/event-timeline")) {
+      return ["vulnerabilities-event-timeline", "vulnerabilities-work", "vulnerabilities"];
+    }
     return ["vulnerabilities"];
+  }
+  if (pathname.startsWith("/data-security")) {
+    return ["data-security"];
+  }
+  if (pathname.startsWith("/purple-team")) {
+    return ["threat-hunting"];
+  }
+  if (pathname.startsWith("/on-call")) {
+    return ["on-call", "alerts-incidents"];
   }
   if (pathname.startsWith("/threat-hunting")) {
     return ["threat-hunting"];
@@ -297,10 +400,25 @@ export function pathToNavIds(pathname: string): SocNavId[] {
     if (pathname.startsWith("/threat-intelligence/dark-web")) {
       return ["threat-intelligence-dark-web", "threat-intelligence"];
     }
+    if (pathname.startsWith("/threat-intelligence/attack-surface")) {
+      return ["threat-intelligence-attack-surface", "threat-intelligence"];
+    }
     if (pathname.startsWith("/threat-intelligence/feeds")) {
       return ["threat-intelligence-feeds", "threat-intelligence"];
     }
     return ["threat-intelligence"];
+  }
+  if (pathname.startsWith("/automation")) {
+    if (pathname.startsWith("/automation/builder")) {
+      return ["automation-builder", "automation"];
+    }
+    if (pathname.startsWith("/automation/playbooks")) {
+      return ["automation-playbooks", "automation"];
+    }
+    if (pathname.startsWith("/automation/approvals")) {
+      return ["automation-approvals", "automation"];
+    }
+    return ["automation"];
   }
   if (pathname.startsWith("/compliance")) {
     return ["compliance"];
@@ -326,6 +444,9 @@ export function pathToNavIds(pathname: string): SocNavId[] {
     }
     if (pathname.startsWith("/administration/integrations")) {
       return ["administration-integrations", "administration"];
+    }
+    if (pathname.startsWith("/administration/enterprise")) {
+      return ["administration-enterprise", "administration"];
     }
     if (pathname.startsWith("/administration/audit")) {
       return ["administration-audit", "administration"];
@@ -367,14 +488,12 @@ type NavGroupLike = { title: string; items: NavItemLike[] };
 function leafAllowed(role: SocJobRole, leaf: NavLeaf, parentId?: SocNavId) {
   if (leaf.id) return roleAllowsNavId(role, leaf.id);
   if (parentId) return roleAllowsNavId(role, parentId);
-  // Untagged leaf — allow (SOC items should always carry an id)
   return true;
 }
 
 function itemAllowed(role: SocJobRole, item: NavItemLike): boolean {
   if (item.items) {
     if (item.id && !roleAllowsNavId(role, item.id)) {
-      // Parent blocked unless any child is explicitly allowed
       const anyChild = item.items.some((leaf) =>
         leaf.id ? roleAllowsNavId(role, leaf.id) : false,
       );

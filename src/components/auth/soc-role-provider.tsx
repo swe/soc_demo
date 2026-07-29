@@ -1,15 +1,15 @@
 "use client";
 
+import { usePathname, useRouter } from "next/navigation";
 import {
   createContext,
+  type ReactNode,
   useCallback,
   useContext,
   useEffect,
   useMemo,
   useState,
-  type ReactNode,
 } from "react";
-import { usePathname, useRouter } from "next/navigation";
 
 import { useAuthSession } from "@/components/auth/auth-session";
 import {

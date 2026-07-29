@@ -15,6 +15,9 @@ import {
 import { useRouter, useSearchParams } from "next/navigation";
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 
+import { appendAuditLog } from "@/components/audit/audit-log-data";
+import { currentProfile } from "@/components/profile/profile-data";
+import { type SocStat,StatsStrip } from "@/components/soc/stats-strip";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -35,11 +38,9 @@ import {
 } from "@/components/ui/popover";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { downloadCsv } from "@/lib/download-csv";
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
-import { appendAuditLog } from "@/components/audit/audit-log-data";
-import { currentProfile } from "@/components/profile/profile-data";
-import { downloadCsv } from "@/lib/download-csv";
 
 import {
   DarkWebBreachDetailSheet,
@@ -49,8 +50,8 @@ import {
   type DarkWebExposure,
   darkWebSources,
   EXPOSURE_CATALOG_SIZE,
-  type ExposureSeverity,
   exposureSeverities,
+  type ExposureSeverity,
   exposureSeverityLabels,
   type ExposureSort,
   exposureSortLabels,
@@ -58,8 +59,8 @@ import {
   exposureStatuses,
   exposureStatusLabels,
   type ExposureType,
-  exposureTypes,
   exposureTypeLabels,
+  exposureTypes,
   getBreachById,
   getDarkWebStats,
 } from "./dark-web-data";
@@ -68,7 +69,6 @@ import { DarkWebExposuresTable } from "./dark-web-exposures-table";
 import { DarkWebOverview } from "./dark-web-overview";
 import {
   mutedControlClassName,
-  percentFormatter,
   tabTriggerClassName,
 } from "./dark-web-primitives";
 import { queryExposures } from "./dark-web-query";
@@ -96,57 +96,19 @@ function DarkWebStatsStrip({
   exposures: Iterable<DarkWebExposure>;
   watchlist: Parameters<typeof getDarkWebStats>[1];
 }) {
-  const stats = getDarkWebStats(exposures, watchlist);
-
-  return (
-    <section className="border-border/70 border-b border-dashed pb-4">
-      <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 xl:grid-cols-5 xl:gap-0">
-        {stats.map((stat, index) => {
-          const isIncrease = stat.delta >= 0;
-          const isHealthy = stat.preferLower ? !isIncrease : isIncrease;
-          const deltaLabel =
-            stat.delta === 0
-              ? "0%"
-              : `${isIncrease ? "+" : ""}${percentFormatter.format(stat.delta)}%`;
-
-          return (
-            <section
-              key={stat.key}
-              className={cn(
-                "space-y-2 py-2 sm:py-1",
-                index > 0 && "xl:border-border/70 xl:border-l",
-                index === 0 && "xl:pr-6",
-                index > 0 && index < stats.length - 1 && "xl:px-6",
-                index === stats.length - 1 && "xl:pl-6",
-              )}
-            >
-              <p className="text-muted-foreground text-sm">{stat.title}</p>
-              <div className="space-y-1.5">
-                <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-                  <p className="text-3xl leading-none font-semibold tracking-tight tabular-nums">
-                    {stat.value}
-                  </p>
-                  {stat.key !== "watchlist" ? (
-                    <span
-                      className={cn(
-                        "text-sm",
-                        isHealthy ? "text-emerald-600" : "text-rose-600",
-                      )}
-                    >
-                      {deltaLabel}
-                    </span>
-                  ) : null}
-                </div>
-                <span className="text-muted-foreground block text-sm">
-                  {stat.context}
-                </span>
-              </div>
-            </section>
-          );
-        })}
-      </div>
-    </section>
+  const stats: SocStat[] = getDarkWebStats(exposures, watchlist).map(
+    (stat) => ({
+      key: stat.key,
+      title: stat.title,
+      value: stat.value,
+      context: stat.context,
+      delta: stat.delta,
+      preferLower: stat.preferLower,
+      hideDelta: stat.key === "watchlist",
+    }),
   );
+
+  return <StatsStrip stats={stats} />;
 }
 
 function FilterPanelHeader({
@@ -795,7 +757,7 @@ export function DarkWebCenter() {
       className="bg-background flex min-h-0 flex-1 flex-col overflow-hidden"
     >
       {tab === "exposures" ? (
-        <div className="border-b">
+        <div className="bg-background shrink-0 border-b">
           <div className="flex flex-col gap-2 px-4 py-3 sm:px-6 lg:min-h-14 lg:flex-row lg:items-center lg:justify-between lg:gap-4 lg:py-2">
             <div className="min-w-0 flex-1">
               <InputGroup className="h-9 w-full lg:max-w-sm">
@@ -922,7 +884,9 @@ export function DarkWebCenter() {
 
       <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6">
         <div className="mx-auto flex w-full flex-col gap-4">
-          <DarkWebStatsStrip exposures={exposures} watchlist={watchlist} />
+          {tab === "overview" ? (
+            <DarkWebStatsStrip exposures={exposures} watchlist={watchlist} />
+          ) : null}
 
           <Tabs
             value={tab}

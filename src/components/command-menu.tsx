@@ -91,6 +91,51 @@ export function CommandMenu() {
             </CommandGroup>
           ))}
           <CommandSeparator />
+          <CommandGroup heading="Quick open">
+            <CommandItem
+              value="Investigate query console"
+              onSelect={() => runCommand(() => router.push("/investigate"))}
+            >
+              <div className="mr-2 flex h-4 w-4 items-center justify-center">
+                <IconArrowRightDashed className="text-muted-foreground/80 size-2" />
+              </div>
+              Investigate
+            </CommandItem>
+            <CommandItem
+              value="Automation playbooks"
+              onSelect={() =>
+                runCommand(() => router.push("/automation/playbooks"))
+              }
+            >
+              <div className="mr-2 flex h-4 w-4 items-center justify-center">
+                <IconArrowRightDashed className="text-muted-foreground/80 size-2" />
+              </div>
+              Playbooks
+            </CommandItem>
+            <CommandItem
+              value="Playbook builder canvas"
+              onSelect={() =>
+                runCommand(() => router.push("/automation/builder"))
+              }
+            >
+              <div className="mr-2 flex h-4 w-4 items-center justify-center">
+                <IconArrowRightDashed className="text-muted-foreground/80 size-2" />
+              </div>
+              Playbook builder
+            </CommandItem>
+            <CommandItem
+              value="Cloud posture CSPM"
+              onSelect={() =>
+                runCommand(() => router.push("/cloud-posture"))
+              }
+            >
+              <div className="mr-2 flex h-4 w-4 items-center justify-center">
+                <IconArrowRightDashed className="text-muted-foreground/80 size-2" />
+              </div>
+              Cloud Posture
+            </CommandItem>
+          </CommandGroup>
+          <CommandSeparator />
           <CommandGroup heading="Theme">
             <CommandItem onSelect={() => runCommand(() => setTheme("light"))}>
               <IconSun /> <span>Light</span>

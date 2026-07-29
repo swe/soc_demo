@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation";
+import { InventoriesCenter } from "@/components/vulnerabilities/inventories-center";
 
-export default function InventoriesRedirectPage() {
-  redirect("/vulnerabilities/exposure");
+export default function InventoriesPage() {
+  return <InventoriesCenter />;
 }

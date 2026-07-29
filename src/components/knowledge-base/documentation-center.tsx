@@ -70,12 +70,12 @@ import { cn } from "@/lib/utils";
 
 import { downloadTextFile } from "./download-text-file";
 import {
+  getDocumentationStats,
   type KbDocCategory,
   kbDocCategoryLabels,
-  type KbDocument,
   type KbDocStatus,
   kbDocStatusLabels,
-  getDocumentationStats,
+  type KbDocument,
   kbDocuments,
 } from "./knowledge-base-data";
 import {
@@ -442,7 +442,7 @@ export function DocumentationCenter() {
   const [categoryFilters, setCategoryFilters] = useState<KbDocCategory[]>([]);
   const [sort, setSort] = useState<DocSort>("updated-desc");
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(9);
+  const [pageSize, setPageSize] = useState(12);
   const [selected, setSelected] = useState<KbDocument | null>(null);
   const [reading, setReading] = useState(false);
   const [newDocOpen, setNewDocOpen] = useState(false);
@@ -627,7 +627,7 @@ export function DocumentationCenter() {
       id="main-content"
       className="bg-background flex min-h-0 flex-1 flex-col overflow-hidden"
     >
-      <div className="border-b">
+      <div className="bg-background shrink-0 border-b">
         <div className="flex flex-col gap-2 px-4 py-3 sm:px-6 lg:min-h-14 lg:flex-row lg:items-center lg:justify-between lg:gap-4 lg:py-2">
           <div className="min-w-0 flex-1">
             <InputGroup className="h-9 w-full lg:max-w-sm">
@@ -679,20 +679,6 @@ export function DocumentationCenter() {
         <div className="mx-auto flex w-full flex-col gap-4">
           <KbStatsStrip stats={stats} />
 
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div>
-              <h1 className="text-sm font-semibold">Documentation</h1>
-              <p className="text-muted-foreground text-xs">
-                Architecture, detection, response, and policy references for the
-                SOC.
-              </p>
-            </div>
-            <p className="text-muted-foreground text-xs tabular-nums">
-              {visibleDocuments.length} result
-              {visibleDocuments.length === 1 ? "" : "s"}
-            </p>
-          </div>
-
           {pagedDocuments.length === 0 ? (
             <EmptyState
               icon={BookOpen}
@@ -724,7 +710,7 @@ export function DocumentationCenter() {
               total={visibleDocuments.length}
               onPageChange={setPage}
               onPageSizeChange={setPageSize}
-              pageSizeOptions={[9, 12, 24]}
+              pageSizeOptions={[12, 24, 48]}
             />
           ) : null}
         </div>

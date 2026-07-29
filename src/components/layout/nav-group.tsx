@@ -3,7 +3,7 @@
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ReactNode } from "react";
+import { ReactNode, useEffect, useState } from "react";
 
 import {
   Collapsible,
@@ -101,55 +101,81 @@ export function NavGroup({ title, items }: NavGroup) {
           }
 
           return (
-            <Collapsible
+            <NavCollapsibleItem
               key={item.title}
-              asChild
-              defaultOpen={checkIsActive(pathname, item, true)}
-              className="group/collapsible"
-            >
-              <SidebarMenuItem>
-                <CollapsibleTrigger asChild>
-                  <SidebarMenuButton tooltip={item.title}>
-                    {item.icon && <item.icon />}
-                    <span>{item.title}</span>
-                    {item.badge && <NavBadge>{item.badge}</NavBadge>}
-                    <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
-                  </SidebarMenuButton>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="CollapsibleContent">
-                  <SidebarMenuSub>
-                    {item.items.map((subItem) => (
-                      <SidebarMenuSubItem key={subItem.title}>
-                        <SidebarMenuSubButton
-                          asChild
-                          isActive={checkIsActive(
-                            pathname,
-                            subItem,
-                            false,
-                            item.items,
-                          )}
-                        >
-                          <Link
-                            href={subItem.url}
-                            onClick={() => setOpenMobile(false)}
-                          >
-                            {subItem.icon && <subItem.icon />}
-                            <span>{subItem.title}</span>
-                            {subItem.badge && (
-                              <NavBadge>{subItem.badge}</NavBadge>
-                            )}
-                          </Link>
-                        </SidebarMenuSubButton>
-                      </SidebarMenuSubItem>
-                    ))}
-                  </SidebarMenuSub>
-                </CollapsibleContent>
-              </SidebarMenuItem>
-            </Collapsible>
+              item={item}
+              pathname={pathname}
+              onNavigate={() => setOpenMobile(false)}
+            />
           );
         })}
       </SidebarMenu>
     </SidebarGroup>
+  );
+}
+
+function NavCollapsibleItem({
+  item,
+  pathname,
+  onNavigate,
+}: {
+  item: NavItem & { items: NavItem[] };
+  pathname: string;
+  onNavigate: () => void;
+}) {
+  const sectionActive = checkIsActive(pathname, item, true);
+  const [open, setOpen] = useState(sectionActive);
+
+  useEffect(() => {
+    if (sectionActive) {
+      setOpen(true);
+    }
+  }, [sectionActive, pathname]);
+
+  return (
+    <Collapsible
+      asChild
+      open={open}
+      onOpenChange={setOpen}
+      className="group/collapsible"
+    >
+      <SidebarMenuItem>
+        <CollapsibleTrigger asChild>
+          <SidebarMenuButton
+            tooltip={item.title}
+            isActive={sectionActive}
+          >
+            {item.icon && <item.icon />}
+            <span>{item.title}</span>
+            {item.badge && <NavBadge>{item.badge}</NavBadge>}
+            <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+          </SidebarMenuButton>
+        </CollapsibleTrigger>
+        <CollapsibleContent className="CollapsibleContent">
+          <SidebarMenuSub>
+            {item.items.map((subItem) => (
+              <SidebarMenuSubItem key={subItem.title}>
+                <SidebarMenuSubButton
+                  asChild
+                  isActive={checkIsActive(
+                    pathname,
+                    subItem,
+                    false,
+                    item.items,
+                  )}
+                >
+                  <Link href={subItem.url} onClick={onNavigate}>
+                    {subItem.icon && <subItem.icon />}
+                    <span>{subItem.title}</span>
+                    {subItem.badge && <NavBadge>{subItem.badge}</NavBadge>}
+                  </Link>
+                </SidebarMenuSubButton>
+              </SidebarMenuSubItem>
+            ))}
+          </SidebarMenuSub>
+        </CollapsibleContent>
+      </SidebarMenuItem>
+    </Collapsible>
   );
 }
 

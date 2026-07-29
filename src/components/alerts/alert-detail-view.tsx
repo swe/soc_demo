@@ -11,6 +11,13 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
+import { AssistChat } from "@/components/assist/assist-chat";
+import { TriageAssistPanel } from "@/components/assist/triage-assist-panel";
+import { appendAuditLog } from "@/components/audit/audit-log-data";
+import { CorrelationPanel } from "@/components/correlation/correlation-panel";
+import { createIncidentFromAlerts } from "@/components/incidents/incidents-session";
+import { RunPlaybookControl } from "@/components/playbooks/run-playbook-control";
+import { currentProfile } from "@/components/profile/profile-data";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -43,14 +50,11 @@ import {
   mutedControlClassName,
   RiskScoreBadge,
   SeverityBadge,
+  SourceBadge,
   StatusBadge,
 } from "./alerts-primitives";
 import { useAlertsSession } from "./alerts-session";
-import { createIncidentFromAlerts } from "@/components/incidents/incidents-session";
-import { appendAuditLog } from "@/components/audit/audit-log-data";
-import { currentProfile } from "@/components/profile/profile-data";
-import { RunPlaybookControl } from "@/components/playbooks/run-playbook-control";
-import { TriageAssistPanel } from "@/components/assist/triage-assist-panel";
+import { RelatedAcrossSourcesPanel } from "./related-across-sources-panel";
 
 function MetaRow({
   label,
@@ -178,6 +182,10 @@ export function AlertDetailView({ alertId }: { alertId: string }) {
                 <SeverityBadge severity={alert.severity} />
                 <StatusBadge status={alert.status} />
                 <RiskScoreBadge score={alert.riskScore} />
+                <SourceBadge
+                  sourceName={alert.sourceName}
+                  sourceCategory={alert.sourceCategory}
+                />
                 <Badge variant="outline" className="rounded-full font-normal">
                   {alertEnvironmentLabels[alert.environment]}
                 </Badge>
@@ -191,6 +199,11 @@ export function AlertDetailView({ alertId }: { alertId: string }) {
 
           <div className="flex flex-wrap items-center gap-2 lg:justify-end">
             <TriageAssistPanel
+              alert={alert}
+              onApplyNotes={(draft) => setNotes(draft)}
+              triggerClassName={mutedControlClassName}
+            />
+            <AssistChat
               alert={alert}
               onApplyNotes={(draft) => setNotes(draft)}
               triggerClassName={mutedControlClassName}
@@ -252,11 +265,16 @@ export function AlertDetailView({ alertId }: { alertId: string }) {
             </h2>
             <div className="space-y-2.5">
               <MetaRow label="Source">
-                <span className="font-medium">{alert.sourceName}</span>
-                <span className="text-muted-foreground">
-                  {" "}
-                  · {alertSourceCategoryLabels[alert.sourceCategory]}
-                </span>
+                <div className="flex flex-wrap items-center gap-2">
+                  <SourceBadge
+                    sourceName={alert.sourceName}
+                    sourceCategory={alert.sourceCategory}
+                  />
+                  <span className="font-medium">{alert.sourceName}</span>
+                  <span className="text-muted-foreground">
+                    · {alertSourceCategoryLabels[alert.sourceCategory]}
+                  </span>
+                </div>
               </MetaRow>
               <MetaRow label="MITRE">
                 <span className="font-medium">
@@ -376,6 +394,10 @@ export function AlertDetailView({ alertId }: { alertId: string }) {
               ) : null}
             </div>
           </section>
+
+          <RelatedAcrossSourcesPanel alert={alert} />
+
+          <CorrelationPanel alertId={alert.id} />
         </div>
 
         <aside className="space-y-4">

@@ -18,6 +18,8 @@ export type AlertQueryParams = {
   statuses?: AlertStatus[];
   sourceCategories?: AlertSourceCategory[];
   sourceIds?: string[];
+  /** When set, alert.assigneeId must be one of these values (`null` = unassigned). */
+  assigneeIds?: Array<string | null>;
   criticalHighOnly?: boolean;
   sort?: AlertSort;
 };
@@ -84,6 +86,7 @@ function matchesQuery(alert: SocAlert, params: AlertQueryParams) {
     statuses = [],
     sourceCategories = [],
     sourceIds = [],
+    assigneeIds,
     criticalHighOnly = false,
   } = params;
 
@@ -101,6 +104,11 @@ function matchesQuery(alert: SocAlert, params: AlertQueryParams) {
   }
   if (sourceIds.length > 0 && !sourceIds.includes(alert.sourceId)) {
     return false;
+  }
+  if (assigneeIds !== undefined) {
+    if (!assigneeIds.some((id) => id === alert.assigneeId)) {
+      return false;
+    }
   }
   if (
     criticalHighOnly &&

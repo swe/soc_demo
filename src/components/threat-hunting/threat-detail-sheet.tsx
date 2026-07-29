@@ -1,15 +1,16 @@
 "use client";
 
-import Link from "next/link";
 import {
   ArrowDownLeft,
   ArrowUpRight,
   Crosshair,
   ExternalLink,
 } from "lucide-react";
+import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { SeverityBadge } from "@/components/alerts/alerts-primitives";
+import { getActorByGraphNodeId } from "@/components/threats/threat-shared-data";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -22,9 +23,8 @@ import {
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
-import { getActorByGraphNodeId } from "@/components/threats/threat-shared-data";
-
 import {
+  buildInvestigateQueryForNode,
   type ThreatNodeDetail,
   threatNodeKindLabels,
   threatRelationLabels,
@@ -339,18 +339,104 @@ export function ThreatDetailSheet({
                     </ol>
                     <Button
                       asChild
-                      variant="outline"
                       size="sm"
                       className="mt-1 h-8 w-full justify-start"
+                    >
+                      <Link
+                        href={`/investigate?q=${encodeURIComponent(
+                          buildInvestigateQueryForNode(node),
+                        )}`}
+                      >
+                        Investigate this {threatNodeKindLabels[node.kind].toLowerCase()}
+                        <ExternalLink className="ml-1.5 size-3" />
+                      </Link>
+                    </Button>
+                    <Button
+                      asChild
+                      variant="outline"
+                      size="sm"
+                      className="h-8 w-full justify-start"
                     >
                       <Link href="/threat-hunting/hunts">
                         Open hunt library
                         <ExternalLink className="ml-1.5 size-3" />
                       </Link>
                     </Button>
+                    {node.kind === "technique" || node.meta.technique ? (
+                      <Button
+                        asChild
+                        variant="outline"
+                        size="sm"
+                        className="h-8 w-full justify-start"
+                      >
+                        <Link
+                          href={`/investigate?q=${encodeURIComponent(
+                            `events | where mitre.technique == "${String(node.meta.technique ?? node.label)}" | take 50`,
+                          )}`}
+                        >
+                          Technique query in Investigate
+                          <ExternalLink className="ml-1.5 size-3" />
+                        </Link>
+                      </Button>
+                    ) : null}
+                    {detail.alerts[0] ? (
+                      <Button
+                        asChild
+                        variant="outline"
+                        size="sm"
+                        className="h-8 w-full justify-start"
+                      >
+                        <Link href={`/alerts/${detail.alerts[0].id}`}>
+                          Pivot to alert {detail.alerts[0].id}
+                          <ExternalLink className="ml-1.5 size-3" />
+                        </Link>
+                      </Button>
+                    ) : null}
+                    <Button
+                      asChild
+                      variant="outline"
+                      size="sm"
+                      className="h-8 w-full justify-start"
+                    >
+                      <Link href="/threat-hunting/map">
+                        Open threat map
+                        <ExternalLink className="ml-1.5 size-3" />
+                      </Link>
+                    </Button>
+                    <Button
+                      asChild
+                      variant="outline"
+                      size="sm"
+                      className="h-8 w-full justify-start"
+                    >
+                      <Link href="/threat-intelligence">
+                        Open threat intelligence
+                        <ExternalLink className="ml-1.5 size-3" />
+                      </Link>
+                    </Button>
                   </section>
                 </>
-              ) : null}
+              ) : (
+                <>
+                  <Separator />
+                  <section className="space-y-2.5">
+                    <Button
+                      asChild
+                      size="sm"
+                      className="h-8 w-full justify-start"
+                    >
+                      <Link
+                        href={`/investigate?q=${encodeURIComponent(
+                          buildInvestigateQueryForNode(node),
+                        )}`}
+                      >
+                        Investigate this {threatNodeKindLabels[node.kind].toLowerCase()}
+                        <ExternalLink className="ml-1.5 size-3" />
+                      </Link>
+                    </Button>
+                  </section>
+                </>
+              )}
             </div>
           </>
         ) : null}

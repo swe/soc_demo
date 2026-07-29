@@ -1,6 +1,7 @@
 import { administrationUsers } from "@/components/administration/users-data";
 import { assetDevices } from "@/components/assets/devices-data";
 import { assetIdentities } from "@/components/assets/identities-data";
+import { computeSocLatencyMetrics } from "@/lib/soc-metrics";
 
 export type AlertSeverity = "critical" | "high" | "medium" | "low";
 
@@ -92,12 +93,19 @@ type AlertSeed = Omit<
   >;
 
 export type AlertStat = {
-  key: "open" | "critical-open" | "mtta" | "escalated" | "false-positive";
+  key:
+    | "open"
+    | "critical-open"
+    | "unassigned-open"
+    | "mtta"
+    | "escalated"
+    | "false-positive";
   title: string;
   value: string;
   context: string;
   delta: number;
   preferLower?: boolean;
+  href?: string;
 };
 
 export type AlertsOverTimePoint = {
@@ -1680,15 +1688,18 @@ export function getAlertById(
 }
 
 export function getAlertStats(alerts: Iterable<SocAlert> = socAlerts): AlertStat[] {
+  const list = Array.from(alerts);
   const {
     total,
     openCount,
     criticalOpen,
+    unassignedOpen,
     escalated,
     falsePositive,
-  } = aggregateAlertsForStats(alerts);
+  } = aggregateAlertsForStats(list);
   const fpRate =
     total === 0 ? 0 : Math.round((falsePositive / total) * 1000) / 10;
+  const latency = computeSocLatencyMetrics(list, []);
 
   return [
     {
@@ -1708,10 +1719,18 @@ export function getAlertStats(alerts: Iterable<SocAlert> = socAlerts): AlertStat
       preferLower: true,
     },
     {
+      key: "unassigned-open",
+      title: "Unassigned open",
+      value: unassignedOpen.toLocaleString("en-US"),
+      context: "waiting for an owner",
+      delta: 9.2,
+      preferLower: true,
+    },
+    {
       key: "mtta",
       title: "MTTA",
-      value: "14m",
-      context: "mean time to acknowledge",
+      value: latency.mttaLabel,
+      context: `mean time to acknowledge · n=${latency.mttaSample}`,
       delta: -6.2,
       preferLower: true,
     },
@@ -1738,6 +1757,7 @@ function aggregateAlertsForStats(alerts: Iterable<SocAlert>) {
   let total = 0;
   let openCount = 0;
   let criticalOpen = 0;
+  let unassignedOpen = 0;
   let escalated = 0;
   let falsePositive = 0;
 
@@ -1746,12 +1766,20 @@ function aggregateAlertsForStats(alerts: Iterable<SocAlert>) {
     if (openAlertStatuses.includes(alert.status)) {
       openCount += 1;
       if (alert.severity === "critical") criticalOpen += 1;
+      if (alert.assigneeId === null) unassignedOpen += 1;
     }
     if (alert.status === "escalated") escalated += 1;
     if (alert.status === "false-positive") falsePositive += 1;
   }
 
-  return { total, openCount, criticalOpen, escalated, falsePositive };
+  return {
+    total,
+    openCount,
+    criticalOpen,
+    unassignedOpen,
+    escalated,
+    falsePositive,
+  };
 }
 
 export function getSeverityBreakdown(alerts: Iterable<SocAlert> = socAlerts) {
@@ -1828,6 +1856,64 @@ export function getSourceCategoryBreakdown(
     label: alertSourceCategoryLabels[category],
     count: counts[category],
   }));
+}
+
+export type AnalystWorkloadRow = {
+  assigneeId: string;
+  name: string;
+  count: number;
+};
+
+/** Open-alert counts by assignee, including an Unassigned bucket. */
+export function getAnalystWorkload(
+  alerts: Iterable<SocAlert> = socAlerts,
+): AnalystWorkloadRow[] {
+  const counts = new Map<string, AnalystWorkloadRow>();
+
+  for (const alert of alerts) {
+    if (!openAlertStatuses.includes(alert.status)) continue;
+    const id = alert.assigneeId ?? "unassigned";
+    const name =
+      id === "unassigned"
+        ? "Unassigned"
+        : (getAlertAssignee(id)?.name ?? id);
+    const existing = counts.get(id);
+    if (existing) existing.count += 1;
+    else counts.set(id, { assigneeId: id, name, count: 1 });
+  }
+
+  return Array.from(counts.values()).sort((a, b) => b.count - a.count);
+}
+
+/**
+ * Highest-urgency open alerts for the Overview triage queue:
+ * unassigned critical/high first, then other critical/high, then oldest open.
+ */
+export function getTriageFocusAlerts(
+  alerts: Iterable<SocAlert>,
+  limit = 6,
+): SocAlert[] {
+  return Array.from(alerts)
+    .filter((alert) => openAlertStatuses.includes(alert.status))
+    .sort((a, b) => {
+      const aUnassignedCrit =
+        a.assigneeId === null &&
+        (a.severity === "critical" || a.severity === "high")
+          ? 0
+          : 1;
+      const bUnassignedCrit =
+        b.assigneeId === null &&
+        (b.severity === "critical" || b.severity === "high")
+          ? 0
+          : 1;
+      if (aUnassignedCrit !== bUnassignedCrit) {
+        return aUnassignedCrit - bUnassignedCrit;
+      }
+      const sev = severityWeight[a.severity] - severityWeight[b.severity];
+      if (sev !== 0) return sev;
+      return b.ageMinutes - a.ageMinutes;
+    })
+    .slice(0, limit);
 }
 
 /** Prefer `@/components/incidents/incidents-data` `nextIncidentId` for new code. */

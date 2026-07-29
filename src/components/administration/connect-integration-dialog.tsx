@@ -35,11 +35,17 @@ import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 
 import {
+  defaultFieldMapForIntegration,
   type Integration,
   type IntegrationCategory,
   integrationCategoryLabels,
   vendorMeta,
 } from "./integrations-data";
+import {
+  type ConnectorConfig,
+  deriveHealthUrl,
+  mintCredentialsRef,
+} from "./integrations-session";
 
 type ConnectStep = 1 | 2 | 3;
 
@@ -50,8 +56,10 @@ const categoryChips: Array<IntegrationCategory | "all"> = [
   "identity",
   "endpoint",
   "network",
+  "etl",
   "communication",
   "ticketing",
+  "training",
 ];
 
 function SourceLogo({
@@ -169,7 +177,7 @@ export function ConnectIntegrationDialog({
   onOpenChange: (open: boolean) => void;
   integrations: Integration[];
   initialIntegrationId: string | null;
-  onConnected: (id: string, dataTypes: string[]) => void;
+  onConnected: (config: ConnectorConfig, dataTypes: string[]) => void;
 }) {
   const [step, setStep] = useState<ConnectStep>(1);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -256,7 +264,24 @@ export function ConnectIntegrationDialog({
     }
 
     if (!selected) return;
-    onConnected(selected.id, selectedDataTypes);
+
+    const scopeTokens = scope
+      .split(/[,;\n]/)
+      .map((token) => token.trim())
+      .filter(Boolean);
+    const scopes = [
+      ...new Set([...selectedDataTypes, ...scopeTokens]),
+    ];
+    const config: ConnectorConfig = {
+      integrationId: selected.id,
+      endpoint: endpoint.trim(),
+      healthUrl: deriveHealthUrl(endpoint.trim()),
+      scopes,
+      fieldMap: defaultFieldMapForIntegration(selected.id),
+      credentialsRef: mintCredentialsRef(selected.id),
+    };
+
+    onConnected(config, selectedDataTypes);
     toast({
       title: "Connection validation started",
       description: `${selected.name} is validating credentials and telemetry access.`,
@@ -486,10 +511,24 @@ export function ConnectIntegrationDialog({
                     Encrypted token
                   </span>
                 </div>
-                <div className="grid grid-cols-[140px_minmax(0,1fr)] gap-3 px-3 py-2.5 text-sm">
+                <div className="grid grid-cols-[140px_minmax(0,1fr)] gap-3 border-b px-3 py-2.5 text-sm">
                   <span className="text-muted-foreground">Scope</span>
                   <span className="truncate text-right text-xs">
                     {scope || "Default organization scope"}
+                  </span>
+                </div>
+                <div className="grid grid-cols-[140px_minmax(0,1fr)] gap-3 border-b px-3 py-2.5 text-sm">
+                  <span className="text-muted-foreground">Health URL</span>
+                  <span className="truncate text-right font-mono text-xs">
+                    {deriveHealthUrl(endpoint)}
+                  </span>
+                </div>
+                <div className="grid grid-cols-[140px_minmax(0,1fr)] gap-3 px-3 py-2.5 text-sm">
+                  <span className="text-muted-foreground">Field map</span>
+                  <span className="truncate text-right font-mono text-xs">
+                    {Object.keys(defaultFieldMapForIntegration(selected.id))
+                      .length}{" "}
+                    source → Heimdall fields
                   </span>
                 </div>
               </div>
@@ -509,6 +548,19 @@ export function ConnectIntegrationDialog({
                       {dataType}
                     </Badge>
                   ))}
+                </div>
+                <div className="mt-3 space-y-1.5">
+                  {Object.entries(defaultFieldMapForIntegration(selected.id))
+                    .slice(0, 4)
+                    .map(([sourceField, heimdallField]) => (
+                      <div
+                        key={sourceField}
+                        className="text-muted-foreground flex items-center justify-between gap-2 font-mono text-[11px]"
+                      >
+                        <span className="truncate">{sourceField}</span>
+                        <span className="shrink-0">→ {heimdallField}</span>
+                      </div>
+                    ))}
                 </div>
                 <p className="text-muted-foreground mt-3 text-xs leading-5">
                   The connector will validate access first, then establish a

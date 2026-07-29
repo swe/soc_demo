@@ -154,6 +154,58 @@ export type ComplianceEvidence = {
   automated: boolean;
 };
 
+/** Continuous control monitoring collector — polls a connector for evidence. */
+export type ComplianceCollectorStatus =
+  | "idle"
+  | "running"
+  | "healthy"
+  | "degraded"
+  | "failed";
+
+export type ComplianceCollector = {
+  id: string;
+  name: string;
+  description: string;
+  /** Primary control id this probe asserts (GRC continuous probe stub). */
+  controlId: string;
+  /** Control codes this collector refreshes. */
+  controlCodes: string[];
+  /** Integration / telemetry source feeding the collector. */
+  sourceId: string;
+  schedule: string;
+  status: ComplianceCollectorStatus;
+  lastRunLabel: string;
+  lastRunAt: string | null;
+  automatedEvidenceIds: string[];
+};
+
+/** Continuous GRC probe — thin view over CCM collectors for auditor packs. */
+export type ContinuousProbe = {
+  id: string;
+  name: string;
+  status: ComplianceCollectorStatus;
+  lastRun: string;
+  lastRunAt: string | null;
+  controlId: string;
+  schedule: string;
+  sourceId: string;
+};
+
+export function toContinuousProbe(
+  collector: ComplianceCollector,
+): ContinuousProbe {
+  return {
+    id: collector.id,
+    name: collector.name,
+    status: collector.status,
+    lastRun: collector.lastRunLabel,
+    lastRunAt: collector.lastRunAt,
+    controlId: collector.controlId,
+    schedule: collector.schedule,
+    sourceId: collector.sourceId,
+  };
+}
+
 export type ComplianceFinding = {
   id: string;
   title: string;
@@ -1942,6 +1994,88 @@ export const complianceEvidence: ComplianceEvidence[] = [
     expiresLabel: "Refreshes daily",
     daysToExpiry: 1,
     automated: true,
+  },
+];
+
+/** CCM collectors — continuous evidence refresh against connected tools. */
+export const complianceCollectors: ComplianceCollector[] = [
+  {
+    id: "ccm-okta-mfa",
+    name: "Okta MFA coverage",
+    description: "Pulls MFA enrollment and privileged MFA posture for access controls.",
+    controlId: "AC-01",
+    controlCodes: ["AC-01", "AC-02", "AC-05"],
+    sourceId: "int-okta-workforce",
+    schedule: "Every 6 hours",
+    status: "healthy",
+    lastRunLabel: "2 hours ago",
+    lastRunAt: null,
+    automatedEvidenceIds: ["ev-01", "ev-02", "ev-04"],
+  },
+  {
+    id: "ccm-edr-agents",
+    name: "EDR agent fleet",
+    description: "Defender / Falcon agent coverage for endpoint controls.",
+    controlId: "EP-01",
+    controlCodes: ["EP-01", "EP-02", "EP-03"],
+    sourceId: "int-defender-endpoint",
+    schedule: "Hourly",
+    status: "healthy",
+    lastRunLabel: "38 minutes ago",
+    lastRunAt: null,
+    automatedEvidenceIds: ["ev-05"],
+  },
+  {
+    id: "ccm-siem-logging",
+    name: "SIEM logging coverage",
+    description: "Splunk / Sentinel logging and detection coverage for LM controls.",
+    controlId: "LM-01",
+    controlCodes: ["LM-01", "LM-02", "LM-03"],
+    sourceId: "int-splunk-core",
+    schedule: "Daily 06:00 UTC",
+    status: "healthy",
+    lastRunLabel: "Today 06:12",
+    lastRunAt: null,
+    automatedEvidenceIds: ["ev-11", "ev-12"],
+  },
+  {
+    id: "ccm-cloud-config",
+    name: "Cloud config posture",
+    description: "AWS configuration exports for data protection controls.",
+    controlId: "DP-02",
+    controlCodes: ["DP-02", "DP-03", "DP-04"],
+    sourceId: "int-aws-prod",
+    schedule: "Every 12 hours",
+    status: "degraded",
+    lastRunLabel: "Yesterday",
+    lastRunAt: null,
+    automatedEvidenceIds: ["ev-08", "ev-09", "ev-10"],
+  },
+  {
+    id: "ccm-vuln-sla",
+    name: "Vulnerability SLA scanner",
+    description: "Snyk / vuln inventory against remediation SLA controls.",
+    controlId: "VM-01",
+    controlCodes: ["VM-01", "VM-02", "VM-04"],
+    sourceId: "int-snyk",
+    schedule: "Daily",
+    status: "idle",
+    lastRunLabel: "3 days ago",
+    lastRunAt: null,
+    automatedEvidenceIds: ["ev-27"],
+  },
+  {
+    id: "ccm-change-tickets",
+    name: "Change ticket sampler",
+    description: "Jira change approvals sampled for governance controls.",
+    controlId: "GV-05",
+    controlCodes: ["GV-05"],
+    sourceId: "int-jira-secops",
+    schedule: "Weekly",
+    status: "healthy",
+    lastRunLabel: "Mon 09:00",
+    lastRunAt: null,
+    automatedEvidenceIds: ["ev-31"],
   },
 ];
 

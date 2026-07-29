@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation";
+import { RecommendationsCenter } from "@/components/vulnerabilities/recommendations-center";
 
-export default function RecommendationsRedirectPage() {
-  redirect("/vulnerabilities/work");
+export default function RecommendationsPage() {
+  return <RecommendationsCenter />;
 }

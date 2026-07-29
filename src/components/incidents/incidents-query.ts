@@ -1,10 +1,10 @@
 import {
+  type AlertSourceCategory,
   type IncidentPriority,
+  incidentSearchIndex,
   type IncidentSeverity,
   type IncidentSort,
   type IncidentStatus,
-  type AlertSourceCategory,
-  incidentSearchIndex,
   openIncidentStatuses,
   priorityWeight,
   severityWeight,
@@ -23,6 +23,8 @@ export type IncidentQueryParams = {
   statuses?: IncidentStatus[];
   sourceCategories?: AlertSourceCategory[];
   sourceIds?: string[];
+  /** When set, incident.assigneeId must be one of these values (`null` = unassigned). */
+  assigneeIds?: Array<string | null>;
   p1P2Only?: boolean;
   criticalHighOnly?: boolean;
   sort?: IncidentSort;
@@ -65,20 +67,26 @@ export function getIncidentFromStore(store: IncidentStore, id: string) {
   return store.get(id) ?? null;
 }
 
+export type IncidentStorePatch = Partial<
+  Pick<
+    SocIncident,
+    | "status"
+    | "assigneeId"
+    | "ownerId"
+    | "notes"
+    | "summary"
+    | "timeline"
+    | "warRoomMessages"
+    | "disruptionStatus"
+    | "alertIds"
+    | "tags"
+  >
+>;
+
 export function patchIncidentStore(
   store: IncidentStore,
   ids: Iterable<string>,
-  patch: Partial<
-    Pick<
-      SocIncident,
-      | "status"
-      | "assigneeId"
-      | "ownerId"
-      | "notes"
-      | "timeline"
-      | "warRoomMessages"
-    >
-  >,
+  patch: IncidentStorePatch,
 ): IncidentStore {
   const idList = Array.from(ids);
   if (idList.length === 0) return store;
@@ -110,6 +118,7 @@ function matchesQuery(incident: SocIncident, params: IncidentQueryParams) {
     statuses = [],
     sourceCategories = [],
     sourceIds = [],
+    assigneeIds,
     p1P2Only = false,
     criticalHighOnly = false,
   } = params;
@@ -134,6 +143,11 @@ function matchesQuery(incident: SocIncident, params: IncidentQueryParams) {
     !sourceIds.some((id) => incident.sourceIds.includes(id))
   ) {
     return false;
+  }
+  if (assigneeIds !== undefined) {
+    if (!assigneeIds.some((id) => id === incident.assigneeId)) {
+      return false;
+    }
   }
   if (p1P2Only || criticalHighOnly) {
     if (incident.priority !== "P1" && incident.priority !== "P2") {

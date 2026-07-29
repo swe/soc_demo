@@ -4,8 +4,12 @@ import {
   IconBug,
   IconCertificate,
   IconChartDots,
+  IconCloud,
   IconDevices,
   IconLayoutDashboard,
+  IconMail,
+  IconPlayerPlay,
+  IconSearch,
   IconSettings,
   IconUserCircle,
   IconWorldWww,
@@ -39,6 +43,18 @@ export const sidebarData: SidebarData = {
           ],
         },
         {
+          title: "Mailbox security",
+          url: "/email-security",
+          icon: IconMail,
+          id: "phishing",
+        },
+        {
+          title: "Investigate",
+          url: "/investigate",
+          icon: IconSearch,
+          id: "investigate",
+        },
+        {
           title: "Assets",
           icon: IconDevices,
           id: "assets",
@@ -46,6 +62,12 @@ export const sidebarData: SidebarData = {
             { title: "Devices", url: "/assets/devices", id: "assets" },
             { title: "Identities", url: "/assets/identities", id: "assets" },
           ],
+        },
+        {
+          title: "Cloud Posture",
+          url: "/cloud-posture",
+          icon: IconCloud,
+          id: "cloud-posture",
         },
         {
           title: "Vulnerabilities",
@@ -72,7 +94,33 @@ export const sidebarData: SidebarData = {
               url: "/vulnerabilities/work",
               id: "vulnerabilities-work",
             },
+            {
+              title: "Recommendations",
+              url: "/vulnerabilities/recommendations",
+              id: "vulnerabilities-recommendations",
+            },
+            {
+              title: "Remediations",
+              url: "/vulnerabilities/remediations",
+              id: "vulnerabilities-remediations",
+            },
+            {
+              title: "Inventories",
+              url: "/vulnerabilities/inventories",
+              id: "vulnerabilities-inventories",
+            },
+            {
+              title: "Event timeline",
+              url: "/vulnerabilities/event-timeline",
+              id: "vulnerabilities-event-timeline",
+            },
           ],
+        },
+        {
+          title: "Data Security",
+          url: "/data-security",
+          icon: IconCertificate,
+          id: "data-security",
         },
         {
           title: "Threat Hunting",
@@ -99,6 +147,11 @@ export const sidebarData: SidebarData = {
               url: "/threat-hunting/map",
               id: "threat-hunting",
             },
+            {
+              title: "Purple Team / BAS",
+              url: "/purple-team",
+              id: "threat-hunting",
+            },
           ],
         },
         {
@@ -122,9 +175,36 @@ export const sidebarData: SidebarData = {
               id: "threat-intelligence-dark-web",
             },
             {
+              title: "Attack Surface",
+              url: "/threat-intelligence/attack-surface",
+              id: "threat-intelligence-attack-surface",
+            },
+            {
               title: "Threat Feeds",
               url: "/threat-intelligence/feeds",
               id: "threat-intelligence-feeds",
+            },
+          ],
+        },
+        {
+          title: "Automation",
+          icon: IconPlayerPlay,
+          id: "automation",
+          items: [
+            {
+              title: "Playbooks",
+              url: "/automation/playbooks",
+              id: "automation-playbooks",
+            },
+            {
+              title: "Builder",
+              url: "/automation/builder",
+              id: "automation-builder",
+            },
+            {
+              title: "Approvals",
+              url: "/automation/approvals",
+              id: "automation-approvals",
             },
           ],
         },
@@ -177,11 +257,22 @@ export const sidebarData: SidebarData = {
               id: "administration-integrations",
             },
             {
+              title: "Enterprise",
+              url: "/administration/enterprise",
+              id: "administration-enterprise",
+            },
+            {
               title: "Audit log",
               url: "/administration/audit",
               id: "administration-audit",
             },
           ],
+        },
+        {
+          title: "On-call",
+          url: "/on-call",
+          icon: IconAlertTriangle,
+          id: "on-call",
         },
         {
           title: "Profile",

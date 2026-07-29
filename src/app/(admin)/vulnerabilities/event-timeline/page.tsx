@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation";
+import { EventTimelineCenter } from "@/components/vulnerabilities/event-timeline-center";
 
-export default function EventTimelineRedirectPage() {
-  redirect("/vulnerabilities");
+export default function EventTimelinePage() {
+  return <EventTimelineCenter />;
 }

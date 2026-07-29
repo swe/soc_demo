@@ -1,6 +1,6 @@
 import {
-  type ExposureSeverity,
   exposureSeverities,
+  type ExposureSeverity,
   type ExposureSort,
   type ExposureStatus,
   exposureStatuses,

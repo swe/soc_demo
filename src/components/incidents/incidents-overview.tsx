@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import {
   Area,
@@ -14,6 +15,7 @@ import {
   YAxis,
 } from "recharts";
 
+import { OverviewSplit, Panel, PanelHeading } from "@/components/soc/panel";
 import {
   type ChartConfig,
   ChartContainer,
@@ -25,9 +27,7 @@ import {
 import { cn } from "@/lib/utils";
 
 import {
-  type IncidentsOverviewRange,
-  incidentsOverviewRangeLabels,
-  incidentsOverviewRanges,
+  currentAnalystId,
   filterIncidentsByOverviewRange,
   getAgingBreakdown,
   getCasesOpenedOverTime,
@@ -37,12 +37,14 @@ import {
   getPriorityBreakdown,
   getResponderWorkload,
   getStatusBreakdown,
+  type IncidentsOverviewRange,
+  incidentsOverviewRangeLabels,
+  incidentsOverviewRanges,
   openIncidentStatuses,
   type SocIncident,
 } from "./incidents-data";
-import { type OverviewFilterTarget } from "./incidents-url";
 import { PriorityBadge, SlaBadge } from "./incidents-primitives";
-import Link from "next/link";
+import { type OverviewFilterTarget } from "./incidents-url";
 
 const compactNumber = new Intl.NumberFormat("en-US", {
   notation: "compact",
@@ -96,42 +98,6 @@ const priorityColors: Record<string, string> = {
   P4: "#2563eb",
 };
 
-function Panel({
-  className,
-  children,
-}: {
-  className?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className={cn("bg-card rounded-lg border p-4", className)}>
-      {children}
-    </section>
-  );
-}
-
-function PanelHeading({
-  title,
-  description,
-  action,
-}: {
-  title: string;
-  description?: string;
-  action?: React.ReactNode;
-}) {
-  return (
-    <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
-      <div className="min-w-0">
-        <h2 className="text-sm font-semibold">{title}</h2>
-        {description ? (
-          <p className="text-muted-foreground mt-1 text-xs">{description}</p>
-        ) : null}
-      </div>
-      {action}
-    </div>
-  );
-}
-
 function OverviewRangeControl({
   value,
   onChange,
@@ -179,13 +145,11 @@ function CasesOpenedCard({
     ? latest.p1 + latest.p2 + latest.p3 + latest.p4
     : 0;
   const xInterval = range === "30d" ? 3 : range === "14d" ? 1 : 0;
-  const rangeLabel = incidentsOverviewRangeLabels[range];
 
   return (
-    <Panel className="flex flex-col xl:col-span-2">
+    <Panel>
       <PanelHeading
         title="Cases opened"
-        description={`Daily openings by priority · last ${rangeLabel}`}
         action={
           <div className="text-right">
             <p className="text-2xl leading-none font-semibold tabular-nums">
@@ -318,11 +282,9 @@ function CasesOpenedCard({
 
 function PriorityDistributionCard({
   incidents,
-  range,
   onFilter,
 }: {
   incidents: Iterable<SocIncident>;
-  range: IncidentsOverviewRange;
   onFilter: (target: OverviewFilterTarget) => void;
 }) {
   const data = getPriorityBreakdown(incidents).map((item) => ({
@@ -330,14 +292,10 @@ function PriorityDistributionCard({
     fill: priorityColors[item.priority],
   }));
   const total = data.reduce((sum, item) => sum + item.count, 0);
-  const rangeLabel = incidentsOverviewRangeLabels[range];
 
   return (
     <Panel>
-      <PanelHeading
-        title="Priority mix"
-        description={`Cases opened in last ${rangeLabel} · tap to filter`}
-      />
+      <PanelHeading title="Priority mix" />
       <div className="flex h-[220px] items-center gap-4">
         <div className="relative mx-auto aspect-square h-full max-h-[200px] min-h-0 flex-1">
           <ChartContainer
@@ -418,20 +376,14 @@ function PriorityDistributionCard({
 
 function AgingQueueCard({
   incidents,
-  range,
 }: {
   incidents: Iterable<SocIncident>;
-  range: IncidentsOverviewRange;
 }) {
   const data = getAgingBreakdown(incidents);
-  const rangeLabel = incidentsOverviewRangeLabels[range];
 
   return (
     <Panel>
-      <PanelHeading
-        title="Open case age"
-        description={`Active cases from last ${rangeLabel}`}
-      />
+      <PanelHeading title="Open case age" />
       <ChartContainer
         config={agingChartConfig}
         className="[aspect-ratio:auto] h-[220px] w-full"
@@ -472,11 +424,9 @@ function AgingQueueCard({
 
 function ResponsePhaseCard({
   incidents,
-  range,
   onFilter,
 }: {
   incidents: Iterable<SocIncident>;
-  range: IncidentsOverviewRange;
   onFilter: (target: OverviewFilterTarget) => void;
 }) {
   const data = getStatusBreakdown(incidents).map((item) => ({
@@ -484,14 +434,10 @@ function ResponsePhaseCard({
     status: item.status,
     count: item.count,
   }));
-  const rangeLabel = incidentsOverviewRangeLabels[range];
 
   return (
-    <Panel className="xl:col-span-2">
-      <PanelHeading
-        title="Response phases"
-        description={`Lifecycle mix · last ${rangeLabel} · tap a phase to filter`}
-      />
+    <Panel>
+      <PanelHeading title="Response phases" />
       <ChartContainer
         config={phaseChartConfig}
         className="[aspect-ratio:auto] h-[220px] w-full"
@@ -543,43 +489,51 @@ function ResponsePhaseCard({
 
 function ResponderLoadCard({
   incidents,
-  range,
+  onFilter,
 }: {
   incidents: Iterable<SocIncident>;
-  range: IncidentsOverviewRange;
+  onFilter: (target: OverviewFilterTarget) => void;
 }) {
-  const data = getResponderWorkload(incidents).slice(0, 6);
-  const rangeLabel = incidentsOverviewRangeLabels[range];
+  const data = getResponderWorkload(incidents).slice(0, 8);
 
   return (
     <Panel>
-      <PanelHeading
-        title="Responder load"
-        description={`Open cases by owner · last ${rangeLabel}`}
-      />
+      <PanelHeading title="Responder load" />
       {data.length === 0 ? (
-        <p className="text-muted-foreground py-12 text-center text-sm">
-          No open cases in this window
+        <p className="text-muted-foreground py-6 text-center text-sm">
+          No open cases
         </p>
       ) : (
         <ul className="space-y-2.5">
           {data.map((row) => {
             const max = data[0]?.count ?? 1;
             const width = Math.max(8, Math.round((row.count / max) * 100));
+            const scope =
+              row.assigneeId === "unassigned"
+                ? ("unassigned" as const)
+                : row.assigneeId === currentAnalystId
+                  ? ("mine" as const)
+                  : row.assigneeId;
             return (
-              <li key={row.assigneeId} className="space-y-1">
-                <div className="flex items-center justify-between gap-2 text-xs">
-                  <span className="truncate font-medium">{row.name}</span>
-                  <span className="text-muted-foreground tabular-nums">
-                    {row.count}
-                  </span>
-                </div>
-                <div className="bg-muted h-1.5 overflow-hidden rounded-full">
-                  <div
-                    className="bg-foreground/70 h-full rounded-full"
-                    style={{ width: `${width}%` }}
-                  />
-                </div>
+              <li key={row.assigneeId}>
+                <button
+                  type="button"
+                  onClick={() => onFilter({ type: "assigned", scope })}
+                  className="hover:bg-accent/50 w-full space-y-1 rounded-md px-1 py-0.5 text-left transition-colors"
+                >
+                  <div className="flex items-center justify-between gap-2 text-xs">
+                    <span className="truncate font-medium">{row.name}</span>
+                    <span className="text-muted-foreground tabular-nums">
+                      {row.count}
+                    </span>
+                  </div>
+                  <div className="bg-muted h-1.5 overflow-hidden rounded-full">
+                    <div
+                      className="bg-foreground/70 h-full rounded-full"
+                      style={{ width: `${width}%` }}
+                    />
+                  </div>
+                </button>
               </li>
             );
           })}
@@ -591,14 +545,11 @@ function ResponderLoadCard({
 
 function ContainmentFocusCard({
   incidents,
-  range,
   onFilter,
 }: {
   incidents: Iterable<SocIncident>;
-  range: IncidentsOverviewRange;
   onFilter: (target: OverviewFilterTarget) => void;
 }) {
-  const rangeLabel = incidentsOverviewRangeLabels[range];
   const focusCases = useMemo(
     () => getContainmentFocusCases(incidents, 5),
     [incidents],
@@ -619,20 +570,17 @@ function ContainmentFocusCard({
   }, [incidents]);
 
   return (
-    <Panel className="xl:col-span-2 flex flex-col">
-      <PanelHeading
-        title="Containment focus"
-        description={`Highest-urgency queue · last ${rangeLabel}`}
-      />
+    <Panel>
+      <PanelHeading title="Containment focus" />
 
       <div className="mb-4 grid grid-cols-3 gap-2">
         <button
           type="button"
-          onClick={() => onFilter({ type: "p1p2" })}
+          onClick={() => onFilter({ type: "priority", priority: "P1" })}
           className="border-border hover:bg-accent rounded-md border px-2.5 py-2 text-left transition-colors"
         >
           <p className="text-muted-foreground text-[11px]">P1 open</p>
-          <p className="text-lg font-semibold tabular-nums leading-none mt-1">
+          <p className="mt-1 text-lg leading-none font-semibold tabular-nums">
             {p1Open}
           </p>
         </button>
@@ -642,7 +590,7 @@ function ContainmentFocusCard({
           className="border-border hover:bg-accent rounded-md border px-2.5 py-2 text-left transition-colors"
         >
           <p className="text-muted-foreground text-[11px]">SLA at risk</p>
-          <p className="text-lg font-semibold tabular-nums leading-none mt-1 text-amber-700 dark:text-amber-400">
+          <p className="mt-1 text-lg leading-none font-semibold tabular-nums text-amber-700 dark:text-amber-400">
             {atRisk}
           </p>
         </button>
@@ -652,15 +600,15 @@ function ContainmentFocusCard({
           className="border-border hover:bg-accent rounded-md border px-2.5 py-2 text-left transition-colors"
         >
           <p className="text-muted-foreground text-[11px]">SLA breached</p>
-          <p className="text-lg font-semibold tabular-nums leading-none mt-1 text-destructive">
+          <p className="text-destructive mt-1 text-lg leading-none font-semibold tabular-nums">
             {breached}
           </p>
         </button>
       </div>
 
       {focusCases.length === 0 ? (
-        <p className="text-muted-foreground flex flex-1 items-center justify-center py-8 text-center text-sm">
-          No P1 or SLA-risk cases in this window
+        <p className="text-muted-foreground py-6 text-center text-sm">
+          No P1 or SLA-risk cases
         </p>
       ) : (
         <ul className="divide-border/70 divide-y">
@@ -702,28 +650,26 @@ function ContainmentFocusCard({
       <div className="mt-3 flex flex-wrap gap-2 border-t pt-3">
         <button
           type="button"
+          onClick={() => onFilter({ type: "assigned", scope: "unassigned" })}
+          className="text-muted-foreground hover:text-foreground text-xs font-medium underline-offset-2 hover:underline"
+        >
+          Unassigned queue
+        </button>
+        <span className="text-muted-foreground/50">·</span>
+        <button
+          type="button"
+          onClick={() => onFilter({ type: "assigned", scope: "mine" })}
+          className="text-muted-foreground hover:text-foreground text-xs font-medium underline-offset-2 hover:underline"
+        >
+          My cases
+        </button>
+        <span className="text-muted-foreground/50">·</span>
+        <button
+          type="button"
           onClick={() => onFilter({ type: "p1p2" })}
           className="text-muted-foreground hover:text-foreground text-xs font-medium underline-offset-2 hover:underline"
         >
-          Open P1 & P2 queue
-        </button>
-        <span className="text-muted-foreground/50">·</span>
-        <button
-          type="button"
-          onClick={() =>
-            onFilter({ type: "status", status: "investigating" })
-          }
-          className="text-muted-foreground hover:text-foreground text-xs font-medium underline-offset-2 hover:underline"
-        >
-          Investigating
-        </button>
-        <span className="text-muted-foreground/50">·</span>
-        <button
-          type="button"
-          onClick={() => onFilter({ type: "status", status: "contained" })}
-          className="text-muted-foreground hover:text-foreground text-xs font-medium underline-offset-2 hover:underline"
-        >
-          Contained
+          P1 & P2
         </button>
       </div>
     </Panel>
@@ -742,40 +688,46 @@ export function IncidentsOverview({
     () => filterIncidentsByOverviewRange(incidents, range),
     [incidents, range],
   );
-  const rangeLabel = incidentsOverviewRangeLabels[range];
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between gap-3">
-        <p className="text-muted-foreground text-xs">
-          All panels below use the <span className="text-foreground font-medium">{rangeLabel}</span> lookback
-        </p>
+      <div className="flex items-center justify-end">
         <OverviewRangeControl value={range} onChange={setRange} />
       </div>
-      <div className="grid gap-4 xl:grid-cols-3">
-        <CasesOpenedCard incidents={rangedIncidents} range={range} />
-        <PriorityDistributionCard
-          incidents={rangedIncidents}
-          range={range}
-          onFilter={onFilter}
-        />
-      </div>
-      <div className="grid gap-4 xl:grid-cols-3">
-        <AgingQueueCard incidents={rangedIncidents} range={range} />
-        <ResponsePhaseCard
-          incidents={rangedIncidents}
-          range={range}
-          onFilter={onFilter}
-        />
-      </div>
-      <div className="grid gap-4 xl:grid-cols-3">
-        <ResponderLoadCard incidents={rangedIncidents} range={range} />
-        <ContainmentFocusCard
-          incidents={rangedIncidents}
-          range={range}
-          onFilter={onFilter}
-        />
-      </div>
+      <OverviewSplit
+        primary={
+          <CasesOpenedCard incidents={rangedIncidents} range={range} />
+        }
+        secondary={
+          <PriorityDistributionCard
+            incidents={rangedIncidents}
+            onFilter={onFilter}
+          />
+        }
+      />
+      <OverviewSplit
+        primary={<AgingQueueCard incidents={rangedIncidents} />}
+        secondary={
+          <ResponsePhaseCard
+            incidents={rangedIncidents}
+            onFilter={onFilter}
+          />
+        }
+      />
+      <OverviewSplit
+        primary={
+          <ContainmentFocusCard
+            incidents={rangedIncidents}
+            onFilter={onFilter}
+          />
+        }
+        secondary={
+          <ResponderLoadCard
+            incidents={rangedIncidents}
+            onFilter={onFilter}
+          />
+        }
+      />
     </div>
   );
 }

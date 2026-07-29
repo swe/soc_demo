@@ -22,14 +22,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useCompanyLogo } from "@/hooks/use-company-logo";
 import { site } from "@/data/site";
+import { useCompanyLogo } from "@/hooks/use-company-logo";
 import {
   COMPANY_LOGO_ACCEPT,
   COMPANY_LOGO_MAX_BYTES,
   readFileAsDataUrl,
 } from "@/lib/company-logo";
-import { toast } from "@/lib/toast";
 import {
   type AllowedThemePresetId,
   applyThemePresetToDocument,
@@ -38,6 +37,7 @@ import {
   persistThemePresetId,
   readStoredThemePresetId,
 } from "@/lib/theme-preset-apply";
+import { toast } from "@/lib/toast";
 
 const LANGUAGE_STORAGE_KEY = "profile-language";
 const TIMEZONE_STORAGE_KEY = "profile-timezone";

@@ -3,15 +3,16 @@
 import {
   ChevronDown,
   ChevronRight,
+  Minus,
   TrendingDown,
   TrendingUp,
-  Minus,
 } from "lucide-react";
+import Link from "next/link";
 import * as React from "react";
 
-import { Button } from "@/components/ui/button";
 import { SeverityBadge } from "@/components/alerts/alerts-primitives";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 import {
@@ -181,17 +182,60 @@ export function TechniqueInventory({
                               Last seen {row.lastSeen} · {row.openAlertCount}{" "}
                               open
                             </span>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="ml-auto h-7 rounded-md text-xs"
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                onViewDetails(row);
-                              }}
-                            >
-                              View details
-                            </Button>
+                            <div className="ml-auto flex flex-wrap gap-1.5">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-7 rounded-md text-xs"
+                                asChild
+                              >
+                                <Link
+                                  href={`/alerts?q=${encodeURIComponent(row.id)}`}
+                                  onClick={(event) => event.stopPropagation()}
+                                >
+                                  Alerts
+                                </Link>
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-7 rounded-md text-xs"
+                                asChild
+                              >
+                                <Link
+                                  href={`/investigate?q=${encodeURIComponent(
+                                    `events | where mitre.technique == "${row.id}" | take 50`,
+                                  )}`}
+                                  onClick={(event) => event.stopPropagation()}
+                                >
+                                  Investigate
+                                </Link>
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-7 rounded-md text-xs"
+                                asChild
+                              >
+                                <Link
+                                  href="/threat-intelligence"
+                                  onClick={(event) => event.stopPropagation()}
+                                >
+                                  TI
+                                </Link>
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-7 rounded-md text-xs"
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  onViewDetails(row);
+                                }}
+                              >
+                                View details
+                              </Button>
+                            </div>
                           </div>
                         </td>
                       </tr>

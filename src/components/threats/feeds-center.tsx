@@ -1,25 +1,47 @@
 "use client";
 
-import Link from "next/link";
 import { ExternalLink, Pause, Play, Rss, ShieldPlus } from "lucide-react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
 
+import { ModuleShell } from "@/components/soc/module-shell";
+import { type SocStat, StatsStrip } from "@/components/soc/stats-strip";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { formatRelativeAge, nextAgeTick } from "@/lib/relative-time";
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 
+import { StixTaxiiPanel } from "./stix-taxii-panel";
+import { useThreatSession } from "./threat-session";
 import {
   indicatorTypeLabels,
 } from "./threat-shared-data";
-import { useThreatSession } from "./threat-session";
 import {
   FeedStatusBadge,
   mutedControlClassName,
 } from "./threat-shared-primitives";
 
+function feedAgeTone(status: string, ageLabel: string) {
+  if (status === "paused") return "text-muted-foreground";
+  const stale =
+    ageLabel.includes("d ago") ||
+    (ageLabel.includes("h ago") && !ageLabel.startsWith("1h"));
+  if (status === "degraded" || stale) {
+    return "text-amber-700 dark:text-amber-400";
+  }
+  return "text-emerald-700 dark:text-emerald-400";
+}
+
 export function FeedsCenter() {
   const { feeds, indicators, toggleFeedPause, pushFeedIocsToDetection } =
     useThreatSession();
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const id = window.setInterval(() => setTick(nextAgeTick()), 30_000);
+    return () => window.clearInterval(id);
+  }, []);
+
   const healthy = feeds.filter((feed) => feed.status === "healthy").length;
   const degraded = feeds.filter((feed) => feed.status === "degraded").length;
   const paused = feeds.filter((feed) => feed.status === "paused").length;
@@ -29,52 +51,33 @@ export function FeedsCenter() {
   );
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto p-4 md:p-6">
-      <div className="space-y-1">
-        <h1 className="text-xl font-semibold tracking-tight">Threat Feeds</h1>
-        <p className="text-muted-foreground text-sm">
-          External and internal feed sources that populate the Indicators store.
-        </p>
-      </div>
-
-      <section className="border-border/70 border-b border-dashed pb-4">
-        <div className="grid gap-3 sm:grid-cols-3 xl:gap-0">
-          {[
+    <ModuleShell>
+      <StatsStrip
+        stats={
+          [
             {
+              key: "healthy",
               title: "Healthy feeds",
               value: String(healthy),
               context: "Ingesting normally",
             },
             {
+              key: "attention",
               title: "Degraded / paused",
               value: String(degraded + paused),
               context: "Needs attention",
             },
             {
+              key: "indicators",
               title: "Indicators ingested",
               value: totalIndicators.toLocaleString(),
               context: "Across all feeds",
             },
-          ].map((stat, index) => (
-            <section
-              key={stat.title}
-              className={cn(
-                "space-y-2 py-2 sm:py-1",
-                index > 0 && "sm:border-border/70 sm:border-l sm:pl-6",
-                index === 0 && "sm:pr-6",
-              )}
-            >
-              <p className="text-muted-foreground text-sm">{stat.title}</p>
-              <p className="text-3xl leading-none font-semibold tracking-tight tabular-nums">
-                {stat.value}
-              </p>
-              <span className="text-muted-foreground block text-sm">
-                {stat.context}
-              </span>
-            </section>
-          ))}
-        </div>
-      </section>
+          ] satisfies SocStat[]
+        }
+      />
+
+      <StixTaxiiPanel />
 
       <div className="grid gap-3">
         {feeds.map((feed) => {
@@ -82,6 +85,7 @@ export function FeedsCenter() {
             item.feedIds.includes(feed.id),
           );
           const isPaused = feed.status === "paused";
+          const ageLabel = formatRelativeAge(feed.lastIngestAt);
           return (
             <article key={feed.id} className="bg-card rounded-lg border p-4">
               <div className="flex flex-wrap items-start justify-between gap-3">
@@ -93,9 +97,18 @@ export function FeedsCenter() {
                     <div className="flex flex-wrap items-center gap-2">
                       <h2 className="font-medium">{feed.name}</h2>
                       <FeedStatusBadge status={feed.status} />
+                      <Badge
+                        variant="outline"
+                        className={cn(
+                          "rounded-full font-normal",
+                          feedAgeTone(feed.status, ageLabel),
+                        )}
+                      >
+                        Ingest {ageLabel}
+                      </Badge>
                     </div>
                     <p className="text-muted-foreground text-sm">
-                      {feed.provider} · Last ingest {feed.lastIngestLabel}
+                      {feed.provider} · Seed label {feed.lastIngestLabel}
                     </p>
                     <p className="text-muted-foreground text-sm leading-relaxed">
                       {feed.description}
@@ -121,7 +134,7 @@ export function FeedsCenter() {
                           variant="outline"
                           className="rounded-full font-normal"
                         >
-                          {linked.length} in demo catalog
+                          {linked.length} in catalog
                         </Badge>
                       ) : null}
                     </div>
@@ -215,6 +228,6 @@ export function FeedsCenter() {
           <Link href="/threat-hunting/detections">Detection catalog</Link>
         </Button>
       </div>
-    </div>
+    </ModuleShell>
   );
 }

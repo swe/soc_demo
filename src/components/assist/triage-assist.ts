@@ -1,17 +1,21 @@
 import {
-  openAlertStatuses,
-  severityWeight,
   type AlertSeverity,
   type AlertStatus,
+  openAlertStatuses,
+  severityWeight,
   type SocAlert,
 } from "@/components/alerts/alerts-data";
 import { getAlertsFromSession } from "@/components/alerts/alerts-session";
 import {
+  attackStoryClassLabels,
+  buildAttackStory,
+} from "@/components/incidents/attack-story";
+import {
   type IncidentPriority,
   type SocIncident,
 } from "@/components/incidents/incidents-data";
-import { getApprovedPlaybooks } from "@/components/playbooks/playbooks-session";
 import type { KbProcedure } from "@/components/knowledge-base/knowledge-base-data";
+import { getApprovedPlaybooks } from "@/components/playbooks/playbooks-session";
 
 export type AssistSimilarAlert = {
   id: string;
@@ -32,10 +36,18 @@ export type AssistPlaybookSuggestion = {
 export type AssistSuggestion = {
   similarAlerts: AssistSimilarAlert[];
   playbook: AssistPlaybookSuggestion | null;
+  /** Additional approved KB procedures related to this entity. */
+  linkedProcedures: AssistPlaybookSuggestion[];
   draftNotes: string;
+  /** Investigation narrative grounded on case fields (for apply / export). */
+  investigationDraft: string;
+  /** 0–100 heuristic confidence in the overall suggestion package. */
+  confidence: number;
   suggestedSeverity: AlertSeverity | null;
   suggestedPriority: IncidentPriority | null;
   nextActions: string[];
+  /** Status to apply when using Apply all (alerts). */
+  suggestedStatus: AlertStatus | null;
 };
 
 function scoreAlertSimilarity(seed: SocAlert, candidate: SocAlert): number {
@@ -118,23 +130,29 @@ function pickPlaybookForAlert(alert: SocAlert): AssistPlaybookSuggestion | null 
 
 function pickPlaybookForIncident(
   incident: SocIncident,
+  recommendedCode?: string | null,
 ): AssistPlaybookSuggestion | null {
   const approved = getApprovedPlaybooks();
   const linked = approved.find((procedure) =>
     procedure.linkedIncidentIds.includes(incident.id),
   );
+  const byStory = recommendedCode
+    ? approved.find((procedure) => procedure.code === recommendedCode)
+    : null;
   const byAlert = approved.find((procedure) =>
     incident.alertIds.some((id) => procedure.linkedAlertIds.includes(id)),
   );
-  const procedure = linked ?? byAlert ?? approved[0] ?? null;
+  const procedure = linked ?? byStory ?? byAlert ?? approved[0] ?? null;
   return procedure
     ? toPlaybookSuggestion(
         procedure,
         linked
           ? "linked to this case"
-          : byAlert
-            ? "linked via alert"
-            : "first approved playbook",
+          : byStory
+            ? "matched to attack story class"
+            : byAlert
+              ? "linked via alert"
+              : "first approved playbook",
       )
     : null;
 }
@@ -150,6 +168,45 @@ function toPlaybookSuggestion(
     reason,
     href: `/knowledge-base/procedures?id=${encodeURIComponent(procedure.id)}`,
   };
+}
+
+function linkedProceduresForAlert(
+  alert: SocAlert,
+  primaryId: string | null,
+): AssistPlaybookSuggestion[] {
+  return getApprovedPlaybooks()
+    .filter(
+      (procedure) =>
+        procedure.id !== primaryId &&
+        (procedure.linkedAlertIds.includes(alert.id) ||
+          (alert.mitreTactic != null &&
+            procedure.title
+              .toLowerCase()
+              .includes(alert.mitreTactic.toLowerCase().split(" ")[0] ?? ""))),
+    )
+    .slice(0, 3)
+    .map((procedure) =>
+      toPlaybookSuggestion(procedure, "Related KB procedure"),
+    );
+}
+
+function linkedProceduresForIncident(
+  incident: SocIncident,
+  primaryId: string | null,
+): AssistPlaybookSuggestion[] {
+  return getApprovedPlaybooks()
+    .filter(
+      (procedure) =>
+        procedure.id !== primaryId &&
+        (procedure.linkedIncidentIds.includes(incident.id) ||
+          incident.alertIds.some((id) =>
+            procedure.linkedAlertIds.includes(id),
+          )),
+    )
+    .slice(0, 3)
+    .map((procedure) =>
+      toPlaybookSuggestion(procedure, "Related KB procedure"),
+    );
 }
 
 function suggestSeverity(alert: SocAlert, similar: AssistSimilarAlert[]): AlertSeverity {
@@ -212,10 +269,19 @@ function draftNotesForAlert(
 function draftNotesForIncident(
   incident: SocIncident,
   playbook: AssistPlaybookSuggestion | null,
+  storyLabel?: string,
+  priorityAssessment?: number,
 ): string {
   const lines = [
     `Assist draft — ${incident.id}`,
     `Priority ${incident.priority} · ${incident.status} · ${incident.entityName}`,
+    storyLabel
+      ? `Attack story: ${storyLabel}${
+          priorityAssessment != null
+            ? ` · assessment ${priorityAssessment}`
+            : ""
+        }`
+      : null,
     incident.mitreTactic
       ? `MITRE: ${incident.mitreTactic}${incident.mitreTechnique ? ` / ${incident.mitreTechnique}` : ""}`
       : "MITRE: unmapped",
@@ -228,7 +294,7 @@ function draftNotesForIncident(
     "- Confirm blast radius on linked assets",
     "- Contain primary entity and related identities/hosts",
     "- Preserve timeline evidence before eradication",
-  ];
+  ].filter((line): line is string => line != null);
   if (playbook) {
     lines.push("", `Suggested playbook: ${playbook.code} — ${playbook.title}`);
   }
@@ -267,14 +333,19 @@ function nextActionsForAlert(
 function nextActionsForIncident(
   incident: SocIncident,
   playbook: AssistPlaybookSuggestion | null,
+  disruptionEligible?: boolean,
+  disruptionStatus?: string,
 ): string[] {
   const actions = [
     incident.status === "new"
       ? "Take ownership and begin investigation"
       : "Advance response checklist to the next incomplete phase",
-    "Review linked alerts for session status changes",
+    "Review Attack Story graph and correlated alert timeline",
     "Update war room with containment ETA",
   ];
+  if (disruptionEligible && disruptionStatus !== "executed") {
+    actions.push("Run Attack Disruption against linked identity/host");
+  }
   if (playbook) {
     actions.push(`Execute playbook ${playbook.code}`);
   }
@@ -289,12 +360,47 @@ export function buildAlertAssist(alert: SocAlert): AssistSuggestion {
   const similarAlerts = findSimilarAlerts(alert);
   const playbook = pickPlaybookForAlert(alert);
   const suggestedSeverity = suggestSeverity(alert, similarAlerts);
+  const draftNotes = draftNotesForAlert(alert, similarAlerts, playbook);
+  const confidence = Math.min(
+    97,
+    55 +
+      similarAlerts.length * 8 +
+      (playbook ? 12 : 0) +
+      Math.round(alert.confidence * 0.15),
+  );
+  const investigationDraft = [
+    `## Investigation draft — ${alert.id}`,
+    "",
+    `**Hypothesis:** ${alert.summary}`,
+    `**Entity:** ${alert.entityName} (${alert.entityType})`,
+    `**Source:** ${alert.sourceName} · ${alert.ruleName}`,
+    alert.mitreTechnique
+      ? `**MITRE:** ${alert.mitreTactic} / ${alert.mitreTechnique}`
+      : null,
+    "",
+    "### Evidence to collect",
+    "- Related detections (see similar alerts)",
+    "- Asset/identity posture and recent auth",
+    "- Investigate query hits for the entity window",
+    "",
+    "### Proposed disposition",
+    `- Severity: ${suggestedSeverity}`,
+    `- Status: ${alert.status === "new" ? "triaging" : alert.status}`,
+    playbook ? `- Playbook: ${playbook.code}` : "- Playbook: select from KB",
+  ]
+    .filter((line): line is string => line != null)
+    .join("\n");
+
   return {
     similarAlerts,
     playbook,
-    draftNotes: draftNotesForAlert(alert, similarAlerts, playbook),
+    linkedProcedures: linkedProceduresForAlert(alert, playbook?.id ?? null),
+    draftNotes,
+    investigationDraft,
+    confidence,
     suggestedSeverity,
     suggestedPriority: null,
+    suggestedStatus: alert.status === "new" ? "triaging" : null,
     nextActions: nextActionsForAlert(alert, suggestedSeverity, playbook),
   };
 }
@@ -302,18 +408,68 @@ export function buildAlertAssist(alert: SocAlert): AssistSuggestion {
 /** Deterministic demo assist — no LLM calls. */
 export function buildIncidentAssist(incident: SocIncident): AssistSuggestion {
   const catalog = getAlertsFromSession();
-  const seedAlert =
-    incident.alertIds
-      .map((id) => catalog.find((alert) => alert.id === id))
-      .find(Boolean) ?? null;
+  const linkedAlerts = incident.alertIds
+    .map((id) => catalog.find((alert) => alert.id === id))
+    .filter((alert): alert is SocAlert => Boolean(alert));
+  const seedAlert = linkedAlerts[0] ?? null;
   const similarAlerts = seedAlert ? findSimilarAlerts(seedAlert, 3) : [];
-  const playbook = pickPlaybookForIncident(incident);
+  const story = buildAttackStory(incident, linkedAlerts);
+  const playbook = pickPlaybookForIncident(
+    incident,
+    story.recommendedPlaybookCode,
+  );
+  const draftNotes = draftNotesForIncident(
+    incident,
+    playbook,
+    attackStoryClassLabels[story.storyClass],
+    story.priorityAssessment,
+  );
+  const confidence = Math.min(
+    96,
+    50 +
+      linkedAlerts.length * 6 +
+      (story.disruption.eligible ? 10 : 0) +
+      (playbook ? 12 : 0) +
+      Math.round(story.priorityAssessment * 0.15),
+  );
+  const investigationDraft = [
+    `## Investigation draft — ${incident.id}`,
+    "",
+    `**Story class:** ${attackStoryClassLabels[story.storyClass]}`,
+    `**Priority assessment:** ${story.priorityAssessment}`,
+    `**Entity:** ${incident.entityName}`,
+    `**Linked alerts:** ${incident.alertIds.join(", ") || "none"}`,
+    "",
+    "### Narrative",
+    incident.summary,
+    "",
+    "### Next investigative moves",
+    ...nextActionsForIncident(
+      incident,
+      playbook,
+      story.disruption.eligible,
+      story.disruption.status,
+    ).map((a) => `- ${a}`),
+  ].join("\n");
+
   return {
     similarAlerts,
     playbook,
-    draftNotes: draftNotesForIncident(incident, playbook),
+    linkedProcedures: linkedProceduresForIncident(
+      incident,
+      playbook?.id ?? null,
+    ),
+    draftNotes,
+    investigationDraft,
+    confidence,
     suggestedSeverity: null,
     suggestedPriority: suggestPriority(incident),
-    nextActions: nextActionsForIncident(incident, playbook),
+    suggestedStatus: null,
+    nextActions: nextActionsForIncident(
+      incident,
+      playbook,
+      story.disruption.eligible,
+      story.disruption.status,
+    ),
   };
 }

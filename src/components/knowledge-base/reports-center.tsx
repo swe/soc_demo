@@ -10,8 +10,8 @@ import {
   ListFilter,
   Plus,
   RefreshCw,
-  Search,
   Scale,
+  Search,
 } from "lucide-react";
 import Link from "next/link";
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
@@ -85,9 +85,9 @@ import {
   type KbReport,
   type KbReportKind,
   kbReportKindLabels,
+  kbReports,
   type KbReportStatus,
   kbReportStatusLabels,
-  kbReports,
 } from "./knowledge-base-data";
 import {
   EmptyState,
@@ -338,7 +338,7 @@ export function ReportsCenter() {
   const [statusFilters, setStatusFilters] = useState<KbReportStatus[]>([]);
   const [sort, setSort] = useState<ReportSort>("updated-desc");
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(25);
   const [selected, setSelected] = useState<KbReport | null>(null);
   const [generateOpen, setGenerateOpen] = useState(false);
   const [newTitle, setNewTitle] = useState("");
@@ -546,7 +546,7 @@ export function ReportsCenter() {
       id="main-content"
       className="bg-background flex min-h-0 flex-1 flex-col overflow-hidden"
     >
-      <div className="border-b">
+      <div className="bg-background shrink-0 border-b">
         <div className="flex flex-col gap-2 px-4 py-3 sm:px-6 lg:min-h-14 lg:flex-row lg:items-center lg:justify-between lg:gap-4 lg:py-2">
           <div className="min-w-0 flex-1">
             <InputGroup className="h-9 w-full lg:max-w-sm">
@@ -600,33 +600,36 @@ export function ReportsCenter() {
         <div className="mx-auto flex w-full flex-col gap-4">
           <KbStatsStrip stats={stats} />
 
-          <div className="border-border/70 flex flex-wrap items-center gap-2 rounded-lg border border-dashed px-3 py-2.5">
-            <FileBarChart className="text-muted-foreground size-3.5 shrink-0" />
-            <p className="text-muted-foreground text-xs">
-              Compliance activity links here for the SOC audit log. Export packs
-              also land in{" "}
-              <Link
-                href="/compliance"
-                className="text-foreground font-medium underline-offset-2 hover:underline"
-              >
-                Compliance
-              </Link>
-              .
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div>
-              <h1 className="text-sm font-semibold">Reports</h1>
+          <div className="border-border/70 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-dashed px-3 py-2.5">
+            <div className="flex min-w-0 flex-wrap items-center gap-2">
+              <FileBarChart className="text-muted-foreground size-3.5 shrink-0" />
               <p className="text-muted-foreground text-xs">
-                Incident summaries, audit logs, SLA scorecards, and evidence
-                packs.
+                Executive board pack is available as a one-click Markdown export.
+                Compliance activity also links{" "}
+                <Link
+                  href="/compliance"
+                  className="text-foreground font-medium underline-offset-2 hover:underline"
+                >
+                  Compliance
+                </Link>
+                .
               </p>
             </div>
-            <p className="text-muted-foreground text-xs tabular-nums">
-              {visibleReports.length} result
-              {visibleReports.length === 1 ? "" : "s"}
-            </p>
+            <Button
+              size="sm"
+              variant="outline"
+              className={cn("h-8 gap-1.5", mutedControlClassName)}
+              onClick={() => {
+                const filename = downloadExecutiveBoardPack();
+                toast({
+                  title: "Board pack downloaded",
+                  description: filename,
+                });
+              }}
+            >
+              <Download className="size-3.5" />
+              Download board pack
+            </Button>
           </div>
 
           {pagedReports.length === 0 ? (

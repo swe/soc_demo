@@ -353,7 +353,7 @@ export function WorkCenter() {
   );
   const [selectedId, setSelectedId] = useState<string | null>(selectedFromUrl);
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(20);
+  const [pageSize, setPageSize] = useState(25);
   const deferredSearch = useDeferredValue(searchQuery);
 
   useEffect(() => {
@@ -449,7 +449,7 @@ export function WorkCenter() {
       id="main-content"
       className="bg-background flex min-h-0 flex-1 flex-col overflow-hidden"
     >
-      <div className="border-b">
+      <div className="bg-background shrink-0 border-b">
         <div className="flex flex-col gap-2 px-4 py-3 sm:px-6 lg:min-h-14 lg:flex-row lg:items-center lg:justify-between lg:gap-4 lg:py-2">
           <div className="min-w-0 flex-1">
             <InputGroup className="h-9 w-full lg:max-w-sm">

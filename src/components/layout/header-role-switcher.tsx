@@ -13,9 +13,9 @@ import {
 import {
   canAccessPath,
   getHomePath,
-  socJobRoles,
-  socJobRoleLabels,
   type SocJobRole,
+  socJobRoleLabels,
+  socJobRoles,
 } from "@/lib/soc-roles";
 import { cn } from "@/lib/utils";
 

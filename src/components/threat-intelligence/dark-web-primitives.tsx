@@ -8,9 +8,9 @@ import {
   KeyRound,
   type LucideIcon,
   MessageSquareWarning,
-  Skull,
-  Siren,
   ShieldAlert,
+  Siren,
+  Skull,
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";

@@ -38,7 +38,9 @@ export function Providers({ children }: Props) {
       <NuqsAdapter>
         <AuthSessionProvider>
           <SocRoleProvider>
-            <SearchProvider value={{ open, setOpen }}>{children}</SearchProvider>
+            <SearchProvider value={{ open, setOpen }}>
+              {children}
+            </SearchProvider>
           </SocRoleProvider>
         </AuthSessionProvider>
       </NuqsAdapter>

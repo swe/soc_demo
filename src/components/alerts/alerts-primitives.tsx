@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils";
 import {
   type AlertSeverity,
   alertSeverityLabels,
+  type AlertSourceCategory,
   type AlertStatus,
   alertStatusLabels,
   getAlertAssignee,
@@ -150,6 +151,62 @@ export function SourceCategoryChip({
     >
       {label}
     </span>
+  );
+}
+
+const sourceBadgeTone: Record<string, string> = {
+  siem: "border-blue-500/35 bg-blue-500/10 text-blue-800 dark:text-blue-300",
+  endpoint:
+    "border-orange-500/35 bg-orange-500/10 text-orange-800 dark:text-orange-300",
+  identity:
+    "border-violet-500/35 bg-violet-500/10 text-violet-800 dark:text-violet-300",
+  network:
+    "border-cyan-500/35 bg-cyan-500/10 text-cyan-800 dark:text-cyan-300",
+  cloud:
+    "border-teal-500/35 bg-teal-500/10 text-teal-800 dark:text-teal-300",
+};
+
+function shortAlertSourceName(sourceName: string): string {
+  const map: Record<string, string> = {
+    "Splunk Enterprise": "Splunk",
+    "Okta Workforce": "Okta",
+    "AWS Production": "AWS",
+    "PAN-OS Edge Firewalls": "PAN-OS",
+    "Cloudflare Enterprise": "Cloudflare",
+    "Heimdall Live Pulse": "Heimdall",
+    "Microsoft Sentinel": "Sentinel",
+    "Microsoft Defender": "Defender",
+  };
+  if (map[sourceName]) return map[sourceName];
+  return sourceName.split(/\s+/)[0] || sourceName;
+}
+
+/** High-visibility source badge for alert list / detail. */
+export function SourceBadge({
+  sourceName,
+  sourceCategory,
+  className,
+}: {
+  sourceName: string;
+  sourceCategory?: AlertSourceCategory;
+  className?: string;
+}) {
+  const tone =
+    (sourceCategory && sourceBadgeTone[sourceCategory]) ||
+    "border-border bg-muted/60 text-foreground";
+
+  return (
+    <Badge
+      variant="outline"
+      className={cn(
+        "rounded-md px-1.5 py-0 text-[11px] font-semibold tracking-tight",
+        tone,
+        className,
+      )}
+      title={sourceName}
+    >
+      {shortAlertSourceName(sourceName)}
+    </Badge>
   );
 }
 

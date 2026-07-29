@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 import { ListPagination } from "@/components/list-pagination";
 import { Button } from "@/components/ui/button";
@@ -31,11 +32,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  formatRelativeAgeCompact,
+  nextAgeTick,
+} from "@/lib/relative-time";
 import { cn } from "@/lib/utils";
 
 import {
-  type AlertSort,
   alertEntityTypeLabels,
+  type AlertSort,
   alertSourceCategoryLabels,
   getLinkedDevice,
   getLinkedIdentity,
@@ -46,6 +51,7 @@ import {
   mutedControlClassName,
   RiskScoreBadge,
   SeverityBadge,
+  SourceBadge,
   StatusBadge,
 } from "./alerts-primitives";
 
@@ -101,7 +107,13 @@ export function AlertsTable({
   onClearFilters,
 }: AlertsTableProps) {
   const router = useRouter();
-
+  const [ageTick, setAgeTick] = useState(0);
+  useEffect(() => {
+    const id = window.setInterval(() => setAgeTick(nextAgeTick()), 30_000);
+    setAgeTick(nextAgeTick());
+    return () => window.clearInterval(id);
+  }, []);
+  void ageTick;
   const selectedVisibleCount = items.filter((alert) =>
     selectedIds.has(alert.id),
   ).length;
@@ -281,6 +293,10 @@ export function AlertsTable({
                       <div className="flex flex-wrap items-center gap-2">
                         <SeverityBadge severity={alert.severity} />
                         <StatusBadge status={alert.status} />
+                        <SourceBadge
+                          sourceName={alert.sourceName}
+                          sourceCategory={alert.sourceCategory}
+                        />
                         <p className="min-w-0 truncate font-medium">
                           {alert.title}
                         </p>
@@ -294,9 +310,9 @@ export function AlertsTable({
                           {alertSourceCategoryLabels[alert.sourceCategory]}
                         </span>
                         <span className="mx-1.5">·</span>
-                        <span>{alert.sourceName}</span>
-                        <span className="mx-1.5">·</span>
-                        <span className="tabular-nums">{alert.ageLabel}</span>
+                        <span className="tabular-nums">
+                          {formatRelativeAgeCompact(alert.createdAt)}
+                        </span>
                         <span className="text-muted-foreground/80 mx-1.5">
                           ·
                         </span>

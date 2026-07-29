@@ -6,20 +6,17 @@ import {
 } from "lucide-react";
 import * as React from "react";
 
-import { type AlertSeverity, alertSeverities } from "@/components/alerts/alerts-data";
+import { alertSeverities,type AlertSeverity } from "@/components/alerts/alerts-data";
+import { type SocStat,StatsStrip } from "@/components/soc/stats-strip";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 
+import { MitreCoverageMap } from "./mitre-coverage-map";
 import { TechniqueInventory } from "./technique-inventory";
-import { ThreatDetailSheet } from "./threat-detail-sheet";
-import { ThreatRelationshipMap } from "./threat-relationship-map";
 import {
-  type TechniqueInventoryRow,
-  type ThreatAnalyticsFilters,
-  type ThreatNodeDetail,
   emptyThreatFilters,
   filterGraphNodes,
   filterTechniqueInventory,
@@ -27,8 +24,13 @@ import {
   getTechniqueDetail,
   getThreatAnalyticsKpis,
   techniqueInventory,
+  type TechniqueInventoryRow,
+  type ThreatAnalyticsFilters,
   threatGraphNodes,
+  type ThreatNodeDetail,
 } from "./threat-analytics-data";
+import { ThreatDetailSheet } from "./threat-detail-sheet";
+import { ThreatRelationshipMap } from "./threat-relationship-map";
 
 const dateRangeLabel = "Jan 29, 2025 – Jul 28, 2026";
 
@@ -129,26 +131,8 @@ export function ThreatAnalytics() {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-      <div className="shrink-0 border-b px-4 py-4 sm:px-6">
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-          <div className="min-w-0">
-            <p className="text-muted-foreground text-[11px] font-medium tracking-wide uppercase">
-              Threat hunting
-            </p>
-            <h1 className="mt-1 text-xl font-semibold tracking-tight sm:text-2xl">
-              Threat analytics
-            </h1>
-            <p className="text-muted-foreground mt-1 max-w-2xl text-sm">
-              Technique-level hunting coverage with multi-hop relationships
-              between actors, identities, vulnerabilities, and alerts.
-            </p>
-          </div>
-          <p className="text-muted-foreground text-xs tabular-nums">
-            Range · {dateRangeLabel}
-          </p>
-        </div>
-
-        <div className="mt-4 flex flex-col gap-3 lg:flex-row lg:items-center">
+      <div className="bg-background shrink-0 border-b px-4 py-4 sm:px-6">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
           <div className="relative min-w-0 flex-1 lg:max-w-md">
             <Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
             <Input
@@ -190,6 +174,9 @@ export function ThreatAnalytics() {
           </div>
 
           <div className="flex flex-wrap items-center gap-4 lg:ml-auto">
+            <p className="text-muted-foreground text-xs tabular-nums">
+              {dateRangeLabel}
+            </p>
             <div className="flex items-center gap-2">
               <Switch
                 id="critical-only"
@@ -235,43 +222,42 @@ export function ThreatAnalytics() {
             )}
           </div>
         </div>
-
-        <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
-          {kpis.map((kpi) => (
-            <div
-              key={kpi.key}
-              className="bg-card rounded-lg border px-3 py-3 sm:px-4"
-            >
-              <p className="text-muted-foreground text-[11px] font-medium tracking-wide uppercase">
-                {kpi.title}
-              </p>
-              <p className="mt-1.5 text-2xl font-semibold tabular-nums tracking-tight">
-                {kpi.value}
-              </p>
-              <p className="text-muted-foreground mt-1 text-[11px]">
-                {kpi.context}
-              </p>
-            </div>
-          ))}
-        </div>
       </div>
 
-      <div className="grid min-h-0 flex-1 gap-4 overflow-auto p-4 sm:p-6 lg:grid-cols-[minmax(0,1.55fr)_minmax(320px,1fr)] lg:overflow-hidden">
-        <div className="flex min-h-[420px] flex-col lg:min-h-0">
-          <ThreatRelationshipMap
-            selectedId={selectedGraphId}
-            onSelect={handleGraphSelect}
-            visibleNodeIds={visibleNodeIds}
+      <div className="min-h-0 flex-1 overflow-auto p-4 sm:p-6">
+        <div className="flex flex-col gap-4">
+          <StatsStrip
+            className="border-b-0 pb-0"
+            stats={kpis.map(
+              (kpi): SocStat => ({
+                key: kpi.key,
+                title: kpi.title,
+                value: kpi.value,
+                context: kpi.context,
+              }),
+            )}
           />
-        </div>
-        <div className="flex min-h-[420px] flex-col lg:min-h-0">
-          <TechniqueInventory
-            rows={filteredInventory}
-            selectedTechniqueId={selectedTechniqueId}
-            selectedGraphNodeId={selectedGraphId}
-            onSelect={handleInventorySelect}
-            onViewDetails={openTechniqueDetail}
-          />
+
+          <div className="grid min-h-0 gap-4 lg:grid-cols-[minmax(0,1.55fr)_minmax(320px,1fr)]">
+            <div className="flex min-h-[420px] flex-col lg:min-h-[560px]">
+              <ThreatRelationshipMap
+                selectedId={selectedGraphId}
+                onSelect={handleGraphSelect}
+                visibleNodeIds={visibleNodeIds}
+              />
+            </div>
+            <div className="flex min-h-[420px] flex-col lg:min-h-[560px]">
+              <TechniqueInventory
+                rows={filteredInventory}
+                selectedTechniqueId={selectedTechniqueId}
+                selectedGraphNodeId={selectedGraphId}
+                onSelect={handleInventorySelect}
+                onViewDetails={openTechniqueDetail}
+              />
+            </div>
+          </div>
+
+          <MitreCoverageMap />
         </div>
       </div>
 

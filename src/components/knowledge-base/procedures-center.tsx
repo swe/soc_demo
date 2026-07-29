@@ -16,6 +16,7 @@ import {
 import Link from "next/link";
 import { useDeferredValue, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 
+import { useIncidentsSession } from "@/components/incidents/incidents-session";
 import { ListPagination, paginateItems } from "@/components/list-pagination";
 import {
   getPlaybookSnapshot,
@@ -23,7 +24,6 @@ import {
   subscribePlaybooks,
   upsertPlaybook,
 } from "@/components/playbooks/playbooks-session";
-import { useIncidentsSession } from "@/components/incidents/incidents-session";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -367,7 +367,7 @@ export function ProceduresCenter() {
   const [statusFilters, setStatusFilters] = useState<KbProcedureStatus[]>([]);
   const [sort, setSort] = useState<ProcedureSort>("severity");
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(25);
   const [selected, setSelected] = useState<KbProcedure | null>(null);
   const [newOpen, setNewOpen] = useState(false);
   const [runOpen, setRunOpen] = useState(false);
@@ -566,7 +566,7 @@ export function ProceduresCenter() {
       id="main-content"
       className="bg-background flex min-h-0 flex-1 flex-col overflow-hidden"
     >
-      <div className="border-b">
+      <div className="bg-background shrink-0 border-b">
         <div className="flex flex-col gap-2 px-4 py-3 sm:px-6 lg:min-h-14 lg:flex-row lg:items-center lg:justify-between lg:gap-4 lg:py-2">
           <div className="min-w-0 flex-1">
             <InputGroup className="h-9 w-full lg:max-w-sm">
@@ -620,19 +620,6 @@ export function ProceduresCenter() {
       <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6">
         <div className="mx-auto flex w-full flex-col gap-4">
           <KbStatsStrip stats={stats} />
-
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div>
-              <h1 className="text-sm font-semibold">Procedures</h1>
-              <p className="text-muted-foreground text-xs">
-                Approved playbooks and SOPs tied to live incidents and alerts.
-              </p>
-            </div>
-            <p className="text-muted-foreground text-xs tabular-nums">
-              {visibleProcedures.length} result
-              {visibleProcedures.length === 1 ? "" : "s"}
-            </p>
-          </div>
 
           {pagedProcedures.length === 0 ? (
             <EmptyState
