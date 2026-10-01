@@ -58,10 +58,7 @@ import { socJobRoleLabels } from "@/lib/soc-roles";
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 
-import {
-  AssignTeamsDialog,
-  ChangeRoleDialog,
-} from "./user-admin-dialogs";
+import { AssignTeamsDialog, ChangeRoleDialog } from "./user-admin-dialogs";
 import {
   type AdministrationAccessRole,
   administrationStatusColors,
@@ -181,9 +178,7 @@ function useIncidentsSnapshot() {
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
   return (
-    <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
-      {children}
-    </p>
+    <p className="text-muted-foreground text-caption font-medium">{children}</p>
   );
 }
 
@@ -204,7 +199,8 @@ export function AdministrationUserProfilePage({ userId }: { userId: string }) {
   const user = users.find((entry) => entry.id === userId) ?? null;
 
   const [roleDialogOpen, setRoleDialogOpen] = useState(false);
-  const [draftRole, setDraftRole] = useState<AdministrationAccessRole>("Analyst");
+  const [draftRole, setDraftRole] =
+    useState<AdministrationAccessRole>("Analyst");
   const [teamsDialogOpen, setTeamsDialogOpen] = useState(false);
   const [draftTeamIds, setDraftTeamIds] = useState<string[]>([]);
   const [mfaConfirmOpen, setMfaConfirmOpen] = useState(false);
@@ -335,10 +331,13 @@ export function AdministrationUserProfilePage({ userId }: { userId: string }) {
   return (
     <main
       id="main-content"
-      className="bg-background flex min-h-0 flex-1 flex-col overflow-y-auto"
+      className="bg-canvas flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-y-contain"
     >
-      <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
-        <div className="flex flex-wrap items-center gap-2 text-sm">
+      <div className="px-gutter mx-auto flex w-full max-w-4xl flex-col gap-4 pt-4 pb-8 sm:pt-5 md:gap-5">
+        <nav
+          aria-label="Breadcrumb"
+          className="text-callout hidden flex-wrap items-center gap-2 md:flex"
+        >
           <Link
             href="/administration/users"
             className="text-muted-foreground hover:text-foreground transition-colors"
@@ -346,10 +345,12 @@ export function AdministrationUserProfilePage({ userId }: { userId: string }) {
             User Management
           </Link>
           <span className="text-muted-foreground">/</span>
-          <span className="font-medium">{user.name}</span>
-        </div>
+          <span className="font-medium" aria-current="page">
+            {user.name}
+          </span>
+        </nav>
 
-        <section className="bg-card rounded-lg border p-5 sm:p-6">
+        <section className="bg-card shadow-card rounded-xl border p-4 sm:p-6">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
             <div className="flex items-start gap-4">
               <div className="relative shrink-0">
@@ -370,27 +371,13 @@ export function AdministrationUserProfilePage({ userId }: { userId: string }) {
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <h1 className="text-xl font-semibold tracking-tight">
-                    {user.name}
-                  </h1>
-                  <Badge variant="secondary" className="rounded-full">
-                    {user.role}
-                  </Badge>
+                  <h1 className="text-title-2 font-semibold">{user.name}</h1>
+                  <Badge variant="secondary">{user.role}</Badge>
                   {privileged ? (
-                    <Badge
-                      variant="outline"
-                      className="rounded-full border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400"
-                    >
-                      Privileged
-                    </Badge>
+                    <Badge variant="warning">Privileged</Badge>
                   ) : null}
                   {user.suspended ? (
-                    <Badge
-                      variant="outline"
-                      className="rounded-full border-destructive/40 bg-destructive/10 text-destructive"
-                    >
-                      Suspended
-                    </Badge>
+                    <Badge variant="critical">Suspended</Badge>
                   ) : null}
                 </div>
                 <p className="text-muted-foreground mt-1 text-sm">
@@ -496,8 +483,8 @@ export function AdministrationUserProfilePage({ userId }: { userId: string }) {
                   className={cn(
                     "mt-1 inline-flex items-center gap-1.5 text-sm font-medium",
                     user.twoFactorEnabled
-                      ? "text-green-600 dark:text-green-500"
-                      : "text-destructive dark:text-red-400",
+                      ? "text-success-text"
+                      : "text-destructive-text",
                   )}
                 >
                   {user.twoFactorEnabled ? (
@@ -509,7 +496,7 @@ export function AdministrationUserProfilePage({ userId }: { userId: string }) {
                 </p>
               </div>
               {!user.twoFactorEnabled ? (
-                <div className="border-destructive/30 bg-destructive/5 text-destructive flex max-w-sm items-start gap-2 rounded-md border px-3 py-2 text-sm">
+                <div className="border-destructive/30 bg-destructive/5 text-destructive-text flex max-w-sm items-start gap-2 rounded-md border px-3 py-2 text-sm">
                   <ShieldAlert className="mt-0.5 size-4 shrink-0" />
                   <span>
                     MFA is off
@@ -528,7 +515,9 @@ export function AdministrationUserProfilePage({ userId }: { userId: string }) {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Device</TableHead>
-                      <TableHead>Location</TableHead>
+                      <TableHead className="hidden sm:table-cell">
+                        Location
+                      </TableHead>
                       <TableHead>Last active</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -550,12 +539,7 @@ export function AdministrationUserProfilePage({ userId }: { userId: string }) {
                                 </Badge>
                               ) : null}
                               {session.stale ? (
-                                <Badge
-                                  variant="outline"
-                                  className="rounded-full border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400"
-                                >
-                                  Stale
-                                </Badge>
+                                <Badge variant="warning">Stale</Badge>
                               ) : null}
                             </div>
                             <p className="text-muted-foreground text-xs">
@@ -563,7 +547,7 @@ export function AdministrationUserProfilePage({ userId }: { userId: string }) {
                             </p>
                           </div>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="hidden sm:table-cell">
                           <div className="space-y-0.5">
                             <p className="text-sm">{session.location}</p>
                             <p className="text-muted-foreground font-mono text-xs">
@@ -675,7 +659,9 @@ export function AdministrationUserProfilePage({ userId }: { userId: string }) {
                             </Link>
                             <p className="text-muted-foreground mt-0.5 font-mono text-xs">
                               {incident.id}
-                              {incident.priority ? ` · ${incident.priority}` : ""}
+                              {incident.priority
+                                ? ` · ${incident.priority}`
+                                : ""}
                             </p>
                           </TableCell>
                           <TableCell className="hidden sm:table-cell">
@@ -712,7 +698,9 @@ export function AdministrationUserProfilePage({ userId }: { userId: string }) {
                   <TableRow>
                     <TableHead>When</TableHead>
                     <TableHead>Action</TableHead>
-                    <TableHead className="hidden md:table-cell">Detail</TableHead>
+                    <TableHead className="hidden md:table-cell">
+                      Detail
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -725,7 +713,9 @@ export function AdministrationUserProfilePage({ userId }: { userId: string }) {
                         <div className="space-y-0.5">
                           <p className="font-mono text-xs">{entry.action}</p>
                           <p className="text-muted-foreground text-xs">
-                            {entry.actorId === user.id ? "As actor" : "As target"}{" "}
+                            {entry.actorId === user.id
+                              ? "As actor"
+                              : "As target"}{" "}
                             · {entry.targetType}/{entry.targetId}
                           </p>
                         </div>
@@ -751,7 +741,7 @@ export function AdministrationUserProfilePage({ userId }: { userId: string }) {
             <Button
               type="button"
               variant="outline"
-              className="text-destructive hover:text-destructive h-9 gap-1.5"
+              className="text-destructive-text hover:text-destructive-text h-9 gap-1.5"
               disabled={isOwner || Boolean(user.suspended)}
               onClick={() => setSuspendConfirmOpen(true)}
             >

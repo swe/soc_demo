@@ -86,7 +86,7 @@ export function ChangePasswordForm({
       description="Use a unique password you do not reuse on other sites."
     >
       <form onSubmit={handleSubmit} className="space-y-5">
-        <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+        <p className="text-muted-foreground text-caption font-medium">
           Last changed · {profile.passwordChangedLabel}
         </p>
 
@@ -113,7 +113,9 @@ export function ChangePasswordForm({
           </Field>
 
           <Field>
-            <FieldLabel htmlFor="confirm-password">Confirm new password</FieldLabel>
+            <FieldLabel htmlFor="confirm-password">
+              Confirm new password
+            </FieldLabel>
             <PasswordInput
               id="confirm-password"
               value={confirmPassword}

@@ -46,3 +46,15 @@ test("clickable table rows open from the keyboard", async ({ page }) => {
   await page.keyboard.press("Enter");
   await expect(page).toHaveURL(/\/incidents\/INC-\d+/);
 });
+
+test("filled buttons keep white text alongside type-scale sizes", async ({
+  page,
+}) => {
+  await page.goto("/profile/security");
+  await waitForPage(page);
+
+  await expect(page.getByRole("button", { name: "Disable MFA" })).toHaveCSS(
+    "color",
+    "rgb(255, 255, 255)",
+  );
+});

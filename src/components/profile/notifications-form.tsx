@@ -15,17 +15,11 @@ import { toast } from "@/lib/toast";
 const notificationGroups: {
   key: keyof Pick<
     ProfileNotificationPrefs,
-    | "securityEmail"
-    | "casesEmail"
-    | "mentionsEmail"
-    | "digestEmail"
+    "securityEmail" | "casesEmail" | "mentionsEmail" | "digestEmail"
   >;
   inAppKey: keyof Pick<
     ProfileNotificationPrefs,
-    | "securityInApp"
-    | "casesInApp"
-    | "mentionsInApp"
-    | "digestInApp"
+    "securityInApp" | "casesInApp" | "mentionsInApp" | "digestInApp"
   >;
   title: string;
   description: string;
@@ -61,10 +55,7 @@ export function NotificationsForm() {
     currentProfile.notifications,
   );
 
-  const updatePref = (
-    key: keyof ProfileNotificationPrefs,
-    value: boolean,
-  ) => {
+  const updatePref = (key: keyof ProfileNotificationPrefs, value: boolean) => {
     setPrefs((current) => ({ ...current, [key]: value }));
   };
 
@@ -83,7 +74,7 @@ export function NotificationsForm() {
         description="Choose how you want to hear about security and operational events."
       >
         <div className="space-y-4">
-          <div className="text-muted-foreground grid grid-cols-[1fr_auto_auto] items-center gap-3 px-1 text-xs font-medium tracking-wide uppercase">
+          <div className="text-muted-foreground grid grid-cols-[1fr_auto_auto] items-center gap-3 px-1 text-caption font-medium">
             <span>Channel</span>
             <span className="w-14 text-center">Email</span>
             <span className="w-14 text-center">In-app</span>

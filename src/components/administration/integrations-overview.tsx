@@ -29,7 +29,7 @@ import {
   PanelGrid,
   PanelHeading,
 } from "@/components/soc/panel";
-import { type SocStat,StatsStrip } from "@/components/soc/stats-strip";
+import { type SocStat, StatsStrip } from "@/components/soc/stats-strip";
 import {
   type ChartConfig,
   ChartContainer,
@@ -204,7 +204,11 @@ function IngestionVolumeCard() {
   );
   const latest = data[data.length - 1];
   const current = latest
-    ? latest.cloud + latest.siem + latest.identity + latest.network + latest.other
+    ? latest.cloud +
+      latest.siem +
+      latest.identity +
+      latest.network +
+      latest.other
     : 0;
 
   return (
@@ -529,7 +533,7 @@ function AttentionPanel({
                         {item.name}
                       </p>
                       {item.status === "error" || item.health === "failed" ? (
-                        <XCircle className="size-3.5 shrink-0 text-destructive" />
+                        <XCircle className="size-3.5 shrink-0 text-destructive-text" />
                       ) : item.status === "pending" ? (
                         <Clock3 className="text-info-text size-3.5 shrink-0" />
                       ) : (

@@ -84,7 +84,10 @@ const scoreChartConfig = {
   target: { label: "Target", color: "var(--muted-foreground)" },
 } satisfies ChartConfig;
 
-const scoreSeries = [{ key: "score" }, { key: "target", dashed: true }] as const;
+const scoreSeries = [
+  { key: "score" },
+  { key: "target", dashed: true },
+] as const;
 
 const evidenceChartConfig = {
   collected: { label: "Collected", color: "var(--primary)" },
@@ -230,9 +233,7 @@ function CoverageMatrixCard({
       <PanelHeading
         title="Coverage matrix"
         description="Control-domain readiness for each framework, computed from the live control set."
-        action={
-          <PanelLink onClick={onOpenControls}>Open controls</PanelLink>
-        }
+        action={<PanelLink onClick={onOpenControls}>Open controls</PanelLink>}
       />
       <div className="overflow-x-auto">
         <table className="w-full table-fixed border-separate border-spacing-1">
@@ -510,9 +511,7 @@ function FrameworkReadinessCard({
     <Panel>
       <PanelHeading
         title="Framework readiness"
-        action={
-          <PanelLink onClick={onOpenFrameworks}>View all</PanelLink>
-        }
+        action={<PanelLink onClick={onOpenFrameworks}>View all</PanelLink>}
       />
       <ul className="divide-separator divide-y">
         {rows.map(({ framework, rollup }) => (
@@ -619,7 +618,7 @@ function UpcomingDeadlinesCard() {
               className={cn(
                 "mt-0.5 size-4 shrink-0",
                 framework.daysToMilestone <= 14
-                  ? "text-destructive"
+                  ? "text-destructive-text"
                   : framework.daysToMilestone <= 45
                     ? "text-warning-text"
                     : "text-muted-foreground",
@@ -637,7 +636,7 @@ function UpcomingDeadlinesCard() {
               className={cn(
                 "shrink-0 text-xs font-medium tabular-nums",
                 framework.daysToMilestone <= 14
-                  ? "text-destructive"
+                  ? "text-destructive-text"
                   : "text-muted-foreground",
               )}
             >
@@ -664,9 +663,7 @@ function EvidenceAtRiskCard({
     <Panel>
       <PanelHeading
         title="Evidence at risk"
-        action={
-          <PanelLink onClick={onOpenEvidence}>Open</PanelLink>
-        }
+        action={<PanelLink onClick={onOpenEvidence}>Open</PanelLink>}
       />
       <ul className="space-y-3">
         {atRisk.map((item) => (
@@ -702,9 +699,7 @@ function TopRisksCard({
     <Panel>
       <PanelHeading
         title="Highest-risk controls"
-        action={
-          <PanelLink onClick={onOpenControls}>Open</PanelLink>
-        }
+        action={<PanelLink onClick={onOpenControls}>Open</PanelLink>}
       />
       <ul className="space-y-3">
         {risky.map((control) => (
@@ -771,9 +766,7 @@ function ActivityCard() {
     <Panel>
       <PanelHeading
         title="Compliance activity"
-        action={
-          <PanelLink href="/knowledge-base/reports">Audit log</PanelLink>
-        }
+        action={<PanelLink href="/knowledge-base/reports">Audit log</PanelLink>}
       />
       <ComplianceActivityTimeline limit={7} />
     </Panel>
@@ -814,10 +807,7 @@ export function ComplianceOverview({
         }
       />
 
-      <CoverageMatrixCard
-        controls={controls}
-        onOpenControls={onOpenControls}
-      />
+      <CoverageMatrixCard controls={controls} onOpenControls={onOpenControls} />
 
       <OverviewSplit
         primary={
@@ -849,7 +839,9 @@ export function ComplianceOverview({
       />
 
       <OverviewSplit
-        primary={<TopRisksCard controls={controls} onOpenControls={onOpenControls} />}
+        primary={
+          <TopRisksCard controls={controls} onOpenControls={onOpenControls} />
+        }
         secondary={<ActivityCard />}
       />
     </div>

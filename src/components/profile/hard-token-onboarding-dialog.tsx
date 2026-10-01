@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  CheckCircle2,
-  KeyRound,
-  Loader2,
-  Usb,
-  Wifi,
-} from "lucide-react";
+import { CheckCircle2, KeyRound, Loader2, Usb, Wifi } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -188,7 +182,7 @@ export function HardTokenOnboardingDialog({
         {step === "register" ? (
           <div className="space-y-4 py-2">
             {registerError ? (
-              <div className="rounded-md border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-800 dark:text-amber-300">
+              <div className="rounded-md border border-warning/40 bg-warning/10 px-4 py-3 text-sm text-warning-text">
                 {registerError}
               </div>
             ) : (
@@ -213,9 +207,11 @@ export function HardTokenOnboardingDialog({
 
         {step === "success" ? (
           <div className="bg-muted/40 flex flex-col items-center gap-3 rounded-md border px-4 py-8 text-center">
-            <CheckCircle2 className="size-8 text-emerald-600 dark:text-emerald-400" />
+            <CheckCircle2 className="size-8 text-success-text" />
             <div className="space-y-1">
-              <p className="text-sm font-medium">{name.trim() || defaultName}</p>
+              <p className="text-sm font-medium">
+                {name.trim() || defaultName}
+              </p>
               <p className="text-muted-foreground text-xs">
                 Registered just now · Ready for sign-in challenges
               </p>

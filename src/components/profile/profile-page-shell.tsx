@@ -4,21 +4,19 @@ export function ProfilePageShell({ children }: { children: React.ReactNode }) {
   return (
     <main
       id="main-content"
-      className="bg-background flex min-h-0 flex-1 flex-col overflow-hidden"
+      className="bg-canvas flex min-h-0 flex-1 flex-col overflow-hidden"
     >
-      <div className="border-b md:hidden">
-        <div className="px-4 py-3 sm:px-6">
-          <ProfileLayoutNav variant="mobile" />
-        </div>
+      <div className="bg-background px-gutter shrink-0 md:hidden">
+        <ProfileLayoutNav variant="mobile" />
       </div>
 
       <div className="flex min-h-0 flex-1 overflow-hidden">
-        <aside className="hidden w-52 shrink-0 overflow-y-auto border-r px-3 py-4 md:block lg:w-56 lg:px-4">
+        <aside className="bg-background border-separator hidden w-52 shrink-0 overflow-y-auto border-r px-3 py-4 md:block lg:w-56">
           <ProfileLayoutNav variant="sidebar" />
         </aside>
 
-        <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6 lg:px-8">
-          <div className="mx-auto w-full max-w-3xl pb-8">{children}</div>
+        <div className="px-gutter min-h-0 flex-1 overflow-y-auto overscroll-y-contain pt-4 pb-8 sm:pt-5">
+          <div className="mx-auto w-full max-w-3xl">{children}</div>
         </div>
       </div>
     </main>

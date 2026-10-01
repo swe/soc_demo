@@ -1,11 +1,8 @@
 "use client";
 
 import {
-  CheckIcon,
-  ChevronRight,
   Ellipsis,
   GraduationCap,
-  ListFilter,
   Plus,
   RefreshCw,
   Search,
@@ -20,16 +17,15 @@ import {
   administrationUsers,
 } from "@/components/administration/users-data";
 import { ListPagination, paginateItems } from "@/components/list-pagination";
+import { type FilterFacet, FilterMenu } from "@/components/soc/filter-menu";
+import {
+  ModuleShell,
+  ModuleToolbarActions,
+  ModuleToolbarSearch,
+} from "@/components/soc/module-shell";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Command,
-  CommandGroup,
-  CommandItem,
-  CommandList,
-  CommandSeparator,
-} from "@/components/ui/command";
 import {
   Dialog,
   DialogContent,
@@ -52,11 +48,6 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group";
 import { Label } from "@/components/ui/label";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -96,8 +87,6 @@ import {
 } from "./knowledge-base-primitives";
 import { useTrainingsSession } from "./trainings-session";
 
-type FilterPanel = "level" | "status" | "sort";
-
 type TrainingSort =
   | "completion-asc"
   | "completion-desc"
@@ -110,28 +99,6 @@ const sortLabels: Record<TrainingSort, string> = {
   "title-asc": "Title A–Z",
   "enrolled-desc": "Most enrolled",
 };
-
-function FilterPanelHeader({
-  title,
-  onBack,
-}: {
-  title: string;
-  onBack: () => void;
-}) {
-  return (
-    <div className="flex items-center border-b p-2">
-      <Button
-        variant="ghost"
-        size="sm"
-        className="h-7 gap-1 px-2 text-xs"
-        onClick={onBack}
-      >
-        <ChevronRight className="size-3.5 rotate-180" />
-        {title}
-      </Button>
-    </div>
-  );
-}
 
 function TrainingFilterControl({
   levelFilters,
@@ -152,154 +119,45 @@ function TrainingFilterControl({
   onSetSort: (sort: TrainingSort) => void;
   onClearFilters: () => void;
 }) {
-  const [open, setOpen] = useState(false);
-  const [panel, setPanel] = useState<FilterPanel | null>(null);
-  const closePanel = () => setPanel(null);
+  const facets: FilterFacet[] = [
+    {
+      id: "level",
+      label: "Level",
+      options: (Object.keys(kbTrainingLevelLabels) as KbTrainingLevel[]).map(
+        (level) => ({ value: level, label: kbTrainingLevelLabels[level] }),
+      ),
+      selected: levelFilters,
+      onToggle: (value) => onToggleLevel(value as KbTrainingLevel),
+    },
+    {
+      id: "status",
+      label: "Status",
+      options: (Object.keys(kbTrainingStatusLabels) as KbTrainingStatus[]).map(
+        (status) => ({ value: status, label: kbTrainingStatusLabels[status] }),
+      ),
+      selected: statusFilters,
+      onToggle: (value) => onToggleStatus(value as KbTrainingStatus),
+    },
+    {
+      id: "sort",
+      label: "Sort by",
+      single: true,
+      hideCount: true,
+      options: (Object.keys(sortLabels) as TrainingSort[]).map((option) => ({
+        value: option,
+        label: sortLabels[option],
+      })),
+      selected: [sort],
+      onToggle: (value) => onSetSort(value as TrainingSort),
+    },
+  ];
 
   return (
-    <Popover
-      open={open}
-      onOpenChange={(next) => {
-        setOpen(next);
-        if (!next) setPanel(null);
-      }}
-    >
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          className="relative h-9 gap-1.5 px-2.5"
-        >
-          <ListFilter className="size-3.5" />
-          Filter
-          {activeFilterCount > 0 ? (
-            <span className="bg-primary text-primary-foreground absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full text-xs font-semibold">
-              {activeFilterCount}
-            </span>
-          ) : null}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-60 p-0" align="end">
-        {panel === null ? (
-          <Command>
-            <CommandList>
-              <CommandGroup>
-                <CommandItem
-                  onSelect={() => setPanel("level")}
-                  className="flex items-center justify-between"
-                >
-                  <span>Level</span>
-                  <div className="flex items-center">
-                    {levelFilters.length > 0 ? (
-                      <span className="mr-1 text-xs text-zinc-500">
-                        {levelFilters.length}
-                      </span>
-                    ) : null}
-                    <ChevronRight className="size-4" />
-                  </div>
-                </CommandItem>
-                <CommandItem
-                  onSelect={() => setPanel("status")}
-                  className="flex items-center justify-between"
-                >
-                  <span>Status</span>
-                  <div className="flex items-center">
-                    {statusFilters.length > 0 ? (
-                      <span className="mr-1 text-xs text-zinc-500">
-                        {statusFilters.length}
-                      </span>
-                    ) : null}
-                    <ChevronRight className="size-4" />
-                  </div>
-                </CommandItem>
-                <CommandItem
-                  onSelect={() => setPanel("sort")}
-                  className="flex items-center justify-between"
-                >
-                  <span>Sort by</span>
-                  <ChevronRight className="size-4" />
-                </CommandItem>
-              </CommandGroup>
-              {activeFilterCount > 0 ? (
-                <>
-                  <CommandSeparator />
-                  <CommandGroup>
-                    <CommandItem onSelect={onClearFilters}>
-                      Clear all filters
-                    </CommandItem>
-                  </CommandGroup>
-                </>
-              ) : null}
-            </CommandList>
-          </Command>
-        ) : panel === "level" ? (
-          <Command>
-            <FilterPanelHeader title="Level" onBack={closePanel} />
-            <CommandList>
-              <CommandGroup>
-                {(Object.keys(kbTrainingLevelLabels) as KbTrainingLevel[]).map(
-                  (level) => (
-                    <CommandItem
-                      key={level}
-                      onSelect={() => onToggleLevel(level)}
-                      className="flex items-center justify-between"
-                    >
-                      {kbTrainingLevelLabels[level]}
-                      {levelFilters.includes(level) ? (
-                        <CheckIcon className="size-4" />
-                      ) : null}
-                    </CommandItem>
-                  ),
-                )}
-              </CommandGroup>
-            </CommandList>
-          </Command>
-        ) : panel === "status" ? (
-          <Command>
-            <FilterPanelHeader title="Status" onBack={closePanel} />
-            <CommandList>
-              <CommandGroup>
-                {(
-                  Object.keys(kbTrainingStatusLabels) as KbTrainingStatus[]
-                ).map((status) => (
-                  <CommandItem
-                    key={status}
-                    onSelect={() => onToggleStatus(status)}
-                    className="flex items-center justify-between"
-                  >
-                    {kbTrainingStatusLabels[status]}
-                    {statusFilters.includes(status) ? (
-                      <CheckIcon className="size-4" />
-                    ) : null}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </CommandList>
-          </Command>
-        ) : (
-          <Command>
-            <FilterPanelHeader title="Sort by" onBack={closePanel} />
-            <CommandList>
-              <CommandGroup>
-                {(Object.keys(sortLabels) as TrainingSort[]).map((option) => (
-                  <CommandItem
-                    key={option}
-                    onSelect={() => {
-                      onSetSort(option);
-                      closePanel();
-                    }}
-                    className="flex items-center justify-between"
-                  >
-                    {sortLabels[option]}
-                    {sort === option ? <CheckIcon className="size-4" /> : null}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </CommandList>
-          </Command>
-        )}
-      </PopoverContent>
-    </Popover>
+    <FilterMenu
+      facets={facets}
+      activeCount={activeFilterCount}
+      onClear={onClearFilters}
+    />
   );
 }
 
@@ -516,7 +374,7 @@ function TrainingCard({
           onOpen(training);
         }
       }}
-      className="border-border/70 bg-card group flex cursor-pointer flex-col overflow-hidden rounded-xl border shadow-none transition-colors hover:border-zinc-300 dark:hover:border-white/16"
+      className="border-border/70 bg-card group flex cursor-pointer flex-col overflow-hidden rounded-xl border shadow-none transition-colors hover:border-foreground/20 dark:hover:border-white/16"
     >
       <div className="flex flex-1 flex-col gap-3 p-4">
         <div className="flex items-start justify-between gap-2">
@@ -832,14 +690,11 @@ export function TrainingsCenter() {
   const pagedTrainings = paginateItems(visibleTrainings, safePage, pageSize);
 
   return (
-    <main
-      id="main-content"
-      className="bg-background flex min-h-0 flex-1 flex-col overflow-hidden"
-    >
-      <div className="bg-background shrink-0 border-b">
-        <div className="flex flex-col gap-2 px-4 py-3 sm:px-6 lg:min-h-14 lg:flex-row lg:items-center lg:justify-between lg:gap-4 lg:py-2">
-          <div className="min-w-0 flex-1">
-            <InputGroup className="h-9 w-full lg:max-w-sm">
+    <ModuleShell
+      toolbar={
+        <>
+          <ModuleToolbarSearch>
+            <InputGroup className="h-9 w-full">
               <InputGroupAddon>
                 <Search />
               </InputGroupAddon>
@@ -849,9 +704,9 @@ export function TrainingsCenter() {
                 onChange={(event) => setSearchQuery(event.target.value)}
               />
             </InputGroup>
-          </div>
+          </ModuleToolbarSearch>
 
-          <div className="flex min-w-0 flex-wrap items-center gap-2 lg:justify-end">
+          <ModuleToolbarActions>
             <TrainingFilterControl
               levelFilters={levelFilters}
               statusFilters={statusFilters}
@@ -896,61 +751,57 @@ export function TrainingsCenter() {
               <span className="hidden sm:inline">New training</span>
               <span className="sm:hidden">New</span>
             </Button>
-          </div>
-        </div>
-        {lmsConnected || lastLmsSyncAt ? (
-          <p className="text-muted-foreground px-4 pb-2 text-xs sm:px-6">
-            Workday Learning
-            {lmsConnected ? " connected" : ""}
-            {lastLmsSyncAt
-              ? ` · last sync ${new Date(lastLmsSyncAt).toLocaleString()}`
-              : ""}
-          </p>
-        ) : null}
-      </div>
+          </ModuleToolbarActions>
+        </>
+      }
+    >
+      {lmsConnected || lastLmsSyncAt ? (
+        <p className="text-muted-foreground text-caption -mb-2">
+          Workday Learning
+          {lmsConnected ? " connected" : ""}
+          {lastLmsSyncAt
+            ? ` · last sync ${new Date(lastLmsSyncAt).toLocaleString()}`
+            : ""}
+        </p>
+      ) : null}
+      <KbStatsStrip stats={stats} />
 
-      <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6">
-        <div className="mx-auto flex w-full flex-col gap-4">
-          <KbStatsStrip stats={stats} />
-
-          {pagedTrainings.length === 0 ? (
-            <EmptyState
-              icon={GraduationCap}
-              title="No trainings match"
-              description="Clear level or status filters to browse the full training catalog."
-              action={
-                <Button variant="outline" size="sm" onClick={resetFilters}>
-                  Reset filters
-                </Button>
-              }
+      {pagedTrainings.length === 0 ? (
+        <EmptyState
+          icon={GraduationCap}
+          title="No trainings match"
+          description="Clear level or status filters to browse the full training catalog."
+          action={
+            <Button variant="outline" size="sm" onClick={resetFilters}>
+              Reset filters
+            </Button>
+          }
+        />
+      ) : (
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          {pagedTrainings.map((training) => (
+            <TrainingCard
+              key={training.id}
+              training={training}
+              onOpen={setSelected}
+              onEnroll={enrollTraining}
+              onAssign={openAssign}
+              onMarkComplete={markComplete}
             />
-          ) : (
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-              {pagedTrainings.map((training) => (
-                <TrainingCard
-                  key={training.id}
-                  training={training}
-                  onOpen={setSelected}
-                  onEnroll={enrollTraining}
-                  onAssign={openAssign}
-                  onMarkComplete={markComplete}
-                />
-              ))}
-            </div>
-          )}
-
-          {visibleTrainings.length > 0 ? (
-            <ListPagination
-              page={safePage}
-              pageSize={pageSize}
-              total={visibleTrainings.length}
-              onPageChange={setPage}
-              onPageSizeChange={setPageSize}
-              pageSizeOptions={[12, 24, 48]}
-            />
-          ) : null}
+          ))}
         </div>
-      </div>
+      )}
+
+      {visibleTrainings.length > 0 ? (
+        <ListPagination
+          page={safePage}
+          pageSize={pageSize}
+          total={visibleTrainings.length}
+          onPageChange={setPage}
+          onPageSizeChange={setPageSize}
+          pageSizeOptions={[12, 24, 48]}
+        />
+      ) : null}
 
       <Dialog open={newOpen} onOpenChange={setNewOpen}>
         <DialogContent className="sm:max-w-md">
@@ -1062,7 +913,7 @@ export function TrainingsCenter() {
                   </div>
                 </div>
                 <div className="space-y-1.5">
-                  <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+                  <p className="text-muted-foreground text-caption font-medium">
                     Owner
                   </p>
                   <OwnerCell
@@ -1071,7 +922,7 @@ export function TrainingsCenter() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+                  <p className="text-muted-foreground text-caption font-medium">
                     Related
                   </p>
                   <RelatedLinks links={selected.related} />
@@ -1095,6 +946,6 @@ export function TrainingsCenter() {
           ) : null}
         </SheetContent>
       </Sheet>
-    </main>
+    </ModuleShell>
   );
 }

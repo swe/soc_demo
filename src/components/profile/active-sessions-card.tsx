@@ -86,7 +86,7 @@ export function ActiveSessionsCard({
             <TableHeader>
               <TableRow>
                 <TableHead>Device</TableHead>
-                <TableHead>Location</TableHead>
+                <TableHead className="hidden sm:table-cell">Location</TableHead>
                 <TableHead>Last active</TableHead>
                 <TableHead className="w-[100px]" />
               </TableRow>
@@ -101,17 +101,14 @@ export function ActiveSessionsCard({
                           {session.device}
                         </span>
                         {session.current ? (
-                          <Badge
-                            variant="secondary"
-                            className="rounded-full"
-                          >
+                          <Badge variant="secondary" className="rounded-full">
                             This device
                           </Badge>
                         ) : null}
                         {session.stale ? (
                           <Badge
                             variant="outline"
-                            className="rounded-full border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400"
+                            className="rounded-full border-warning/40 bg-warning/10 text-warning-text"
                           >
                             Stale
                           </Badge>
@@ -122,7 +119,7 @@ export function ActiveSessionsCard({
                       </p>
                     </div>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="hidden sm:table-cell">
                     <div className="space-y-0.5">
                       <p className="text-sm">{session.location}</p>
                       <p className="text-muted-foreground font-mono text-xs">

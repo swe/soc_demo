@@ -17,14 +17,12 @@ import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 
 const probeTone: Record<string, string> = {
-  healthy:
-    "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
-  degraded:
-    "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300",
-  failed: "border-red-500/40 bg-red-500/10 text-red-700 dark:text-red-300",
+  healthy: "border-success/40 bg-success/10 text-success-text",
+  degraded: "border-warning/40 bg-warning/10 text-warning-text",
+  failed: "border-destructive/40 bg-destructive/10 text-destructive-text",
   paused: "border-muted-foreground/30 bg-muted text-muted-foreground",
   idle: "border-muted-foreground/30 bg-muted text-muted-foreground",
-  running: "border-blue-500/40 bg-blue-500/10 text-blue-700 dark:text-blue-300",
+  running: "border-info/40 bg-info/10 text-info-text",
 };
 
 export function GrcAuditorPacksPanel() {
@@ -87,9 +85,9 @@ export function GrcAuditorPacksPanel() {
         }
       />
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <div>
-          <p className="text-muted-foreground mb-2 text-xs font-medium tracking-wide uppercase">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <div className="min-w-0">
+          <p className="text-muted-foreground text-caption mb-2 font-medium">
             Control owners
           </p>
           <ul className="space-y-2">
@@ -102,7 +100,7 @@ export function GrcAuditorPacksPanel() {
                   <p className="font-mono text-xs">{row.code}</p>
                   <p className="truncate">{row.title}</p>
                 </div>
-                <span className="text-muted-foreground shrink-0 text-xs">
+                <span className="text-muted-foreground max-w-[45%] shrink-0 truncate text-xs">
                   {row.owner}
                 </span>
               </li>
@@ -110,8 +108,8 @@ export function GrcAuditorPacksPanel() {
           </ul>
         </div>
 
-        <div>
-          <p className="text-muted-foreground mb-2 text-xs font-medium tracking-wide uppercase">
+        <div className="min-w-0">
+          <p className="text-muted-foreground text-caption mb-2 font-medium">
             Continuous probes
           </p>
           <ul className="space-y-2">

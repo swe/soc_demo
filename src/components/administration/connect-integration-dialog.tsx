@@ -269,9 +269,7 @@ export function ConnectIntegrationDialog({
       .split(/[,;\n]/)
       .map((token) => token.trim())
       .filter(Boolean);
-    const scopes = [
-      ...new Set([...selectedDataTypes, ...scopeTokens]),
-    ];
+    const scopes = [...new Set([...selectedDataTypes, ...scopeTokens])];
     const config: ConnectorConfig = {
       integrationId: selected.id,
       endpoint: endpoint.trim(),
@@ -469,7 +467,7 @@ export function ConnectIntegrationDialog({
               </Field>
 
               <div className="flex items-start gap-2 rounded-lg border border-dashed p-3">
-                <ShieldCheck className="mt-0.5 size-4 shrink-0 text-green-600 dark:text-green-400" />
+                <ShieldCheck className="mt-0.5 size-4 shrink-0 text-success-text" />
                 <p className="text-muted-foreground text-xs leading-5">
                   Credentials are stored encrypted and used only by the
                   connector. Read-only, least-privilege access is recommended.
@@ -488,7 +486,7 @@ export function ConnectIntegrationDialog({
                     {selected.vendor} ·{" "}
                     {integrationCategoryLabels[selected.category]}
                   </p>
-                  <div className="mt-2 inline-flex items-center gap-1.5 text-xs text-green-600 dark:text-green-400">
+                  <div className="mt-2 inline-flex items-center gap-1.5 text-xs text-success-text">
                     <CheckCircle2 className="size-3.5" />
                     Ready to validate
                   </div>
@@ -526,8 +524,10 @@ export function ConnectIntegrationDialog({
                 <div className="grid grid-cols-[140px_minmax(0,1fr)] gap-3 px-3 py-2.5 text-sm">
                   <span className="text-muted-foreground">Field map</span>
                   <span className="truncate text-right font-mono text-xs">
-                    {Object.keys(defaultFieldMapForIntegration(selected.id))
-                      .length}{" "}
+                    {
+                      Object.keys(defaultFieldMapForIntegration(selected.id))
+                        .length
+                    }{" "}
                     source → Heimdall fields
                   </span>
                 </div>

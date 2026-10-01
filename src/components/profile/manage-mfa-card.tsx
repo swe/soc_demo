@@ -38,7 +38,8 @@ export function ManageMfaCard({
     });
     toast({
       title: "MFA enabled",
-      description: "Authenticator enrollment completed. Save your backup codes.",
+      description:
+        "Authenticator enrollment completed. Save your backup codes.",
     });
     setCodesOpen(true);
   };
@@ -80,8 +81,8 @@ export function ManageMfaCard({
             variant="outline"
             className={
               profile.mfaEnabled
-                ? "rounded-full border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
-                : "rounded-full border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400"
+                ? "rounded-full border-success/40 bg-success/10 text-success-text"
+                : "rounded-full border-warning/40 bg-warning/10 text-warning-text"
             }
           >
             {profile.mfaEnabled ? "Enabled" : "Disabled"}
@@ -171,7 +172,9 @@ export function ManageMfaCard({
               type="button"
               variant="outline"
               onClick={() => {
-                void navigator.clipboard.writeText(profileBackupCodes.join("\n"));
+                void navigator.clipboard.writeText(
+                  profileBackupCodes.join("\n"),
+                );
                 toast({
                   title: "Copied",
                   description: "Backup codes copied to clipboard.",

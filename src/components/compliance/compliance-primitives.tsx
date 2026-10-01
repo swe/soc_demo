@@ -57,20 +57,20 @@ const controlStatusDetails: Record<
   ControlStatus,
   { className: string; icon: LucideIcon }
 > = {
-  pass: { className: "text-green-600 dark:text-green-400", icon: ShieldCheck },
+  pass: { className: "text-success-text", icon: ShieldCheck },
   attention: {
-    className: "text-amber-600 dark:text-amber-400",
+    className: "text-warning-text",
     icon: ShieldAlert,
   },
   fail: {
-    className: "text-destructive dark:text-red-400",
+    className: "text-destructive-text",
     icon: AlertTriangle,
   },
   pending: {
-    className: "text-blue-600 dark:text-blue-400",
+    className: "text-info-text",
     icon: CircleDashed,
   },
-  "not-applicable": { className: "text-zinc-500", icon: CircleSlash },
+  "not-applicable": { className: "text-muted-foreground", icon: CircleSlash },
 };
 
 export function ControlStatusCell({ status }: { status: ControlStatus }) {
@@ -116,12 +116,9 @@ export function AutomationBadge({
 }
 
 const evidenceTones: Record<EvidenceStatus, string> = {
-  current:
-    "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
-  expiring:
-    "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400",
-  expired:
-    "border-destructive/30 bg-destructive/10 text-destructive dark:text-red-400",
+  current: "border-success/30 bg-success/10 text-success-text",
+  expiring: "border-warning/30 bg-warning/10 text-warning-text",
+  expired: "border-destructive/30 bg-destructive/10 text-destructive-text",
   missing: "border-border bg-muted text-muted-foreground",
 };
 
@@ -145,10 +142,10 @@ export function EvidenceBadge({
 
 const severityTones: Record<FindingSeverity, string> = {
   critical:
-    "border-destructive/30 bg-destructive/10 text-destructive dark:text-red-400",
-  high: "border-orange-500/30 bg-orange-500/10 text-orange-700 dark:text-orange-400",
+    "border-severity-critical/30 bg-severity-critical/10 text-severity-critical-text",
+  high: "border-severity-high/30 bg-severity-high/10 text-severity-high-text",
   medium:
-    "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400",
+    "border-severity-medium/30 bg-severity-medium/10 text-severity-medium-text",
   low: "border-border bg-muted text-muted-foreground",
 };
 
@@ -166,10 +163,10 @@ export function SeverityBadge({ severity }: { severity: FindingSeverity }) {
 export function RiskBadge({ score }: { score: number }) {
   const tone =
     score >= 70
-      ? "border-destructive/30 bg-destructive/10 text-destructive dark:text-red-400"
+      ? "border-destructive/30 bg-destructive/10 text-destructive-text"
       : score >= 40
-        ? "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400"
-        : "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400";
+        ? "border-warning/30 bg-warning/10 text-warning-text"
+        : "border-success/30 bg-success/10 text-success-text";
 
   return (
     <Badge variant="outline" className={cn("rounded-full tabular-nums", tone)}>
@@ -179,23 +176,19 @@ export function RiskBadge({ score }: { score: number }) {
 }
 
 const frameworkStatusTones: Record<FrameworkStatus, string> = {
-  certified:
-    "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
-  "in-audit":
-    "border-blue-500/30 bg-blue-500/10 text-blue-700 dark:text-blue-400",
-  remediation:
-    "border-destructive/30 bg-destructive/10 text-destructive dark:text-red-400",
+  certified: "border-success/30 bg-success/10 text-success-text",
+  "in-audit": "border-info/30 bg-info/10 text-info-text",
+  remediation: "border-destructive/30 bg-destructive/10 text-destructive-text",
   monitoring: "border-border bg-muted text-muted-foreground",
-  "gap-analysis":
-    "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400",
+  "gap-analysis": "border-warning/30 bg-warning/10 text-warning-text",
 };
 
 const frameworkStatusDots: Record<FrameworkStatus, string> = {
-  certified: "bg-emerald-500",
-  "in-audit": "bg-blue-500",
-  remediation: "bg-red-500",
-  monitoring: "bg-zinc-400",
-  "gap-analysis": "bg-amber-500",
+  certified: "bg-success",
+  "in-audit": "bg-info",
+  remediation: "bg-destructive",
+  monitoring: "bg-muted-foreground/50",
+  "gap-analysis": "bg-warning",
 };
 
 export function FrameworkStatusBadge({ status }: { status: FrameworkStatus }) {
@@ -333,15 +326,15 @@ export function AvatarStack({
 /* -------------------------------------------------------------------------- */
 
 export function toneForPercent(percent: number) {
-  if (percent >= 90) return "bg-emerald-500";
-  if (percent >= 70) return "bg-amber-500";
+  if (percent >= 90) return "bg-success";
+  if (percent >= 70) return "bg-warning";
   return "bg-destructive";
 }
 
 export function percentTextClass(percent: number) {
-  if (percent >= 90) return "text-emerald-600 dark:text-emerald-400";
-  if (percent >= 70) return "text-amber-600 dark:text-amber-400";
-  return "text-destructive dark:text-red-400";
+  if (percent >= 90) return "text-success-text";
+  if (percent >= 70) return "text-warning-text";
+  return "text-destructive-text";
 }
 
 export function ProgressTrack({

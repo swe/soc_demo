@@ -371,14 +371,16 @@ export function OnCallCenter() {
 
       <div className="grid min-h-0 gap-4 xl:grid-cols-[minmax(0,1.6fr)_minmax(280px,1fr)]">
         <div className="bg-card shadow-card overflow-hidden rounded-xl border">
-          <Table>
+          <Table className="max-md:table-fixed">
             <TableHeader>
               <TableRow>
                 <TableHead>Incident</TableHead>
-                <TableHead>Severity</TableHead>
+                <TableHead className="hidden sm:table-cell">Severity</TableHead>
                 <TableHead className="hidden md:table-cell">Age</TableHead>
                 <TableHead className="hidden lg:table-cell">Status</TableHead>
-                <TableHead className="w-[1%] text-right">Actions</TableHead>
+                <TableHead className="w-36 text-right md:w-[1%]">
+                  Actions
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -404,19 +406,21 @@ export function OnCallCenter() {
                       <TableCell>
                         <div className="min-w-0">
                           <p className="font-mono text-xs">{incident.id}</p>
-                          <p className="truncate text-sm font-medium">
+                          <p className="line-clamp-2 text-sm font-medium whitespace-normal md:line-clamp-1">
                             {incident.title}
                           </p>
+                          <Badge
+                            variant={incident.severity}
+                            className="mt-1 capitalize sm:hidden"
+                          >
+                            {incident.severity}
+                          </Badge>
                         </div>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="hidden sm:table-cell">
                         <Badge
-                          variant="outline"
-                          className={cn(
-                            "capitalize",
-                            incident.severity === "critical" &&
-                              "border-destructive/40 text-destructive",
-                          )}
+                          variant={incident.severity}
+                          className="capitalize"
                         >
                           {incident.severity}
                         </Badge>
@@ -546,9 +550,7 @@ export function OnCallCenter() {
               </Button>
 
               <div className="space-y-2 border-t pt-3">
-                <p className="text-xs font-medium tracking-wide uppercase">
-                  War room reply
-                </p>
+                <p className="text-callout font-semibold">War room reply</p>
                 <Textarea
                   value={reply}
                   onChange={(e) => setReply(e.target.value)}

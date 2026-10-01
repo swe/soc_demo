@@ -71,19 +71,19 @@ const docStatusDetails: Record<
   { className: string; icon: LucideIcon }
 > = {
   published: {
-    className: "text-emerald-600 dark:text-emerald-400",
+    className: "text-success-text",
     icon: CheckCircle2,
   },
   draft: {
-    className: "text-blue-600 dark:text-blue-400",
+    className: "text-info-text",
     icon: PencilLine,
   },
   review: {
-    className: "text-amber-600 dark:text-amber-400",
+    className: "text-warning-text",
     icon: CircleDashed,
   },
   archived: {
-    className: "text-zinc-500",
+    className: "text-muted-foreground",
     icon: Archive,
   },
 };
@@ -119,10 +119,10 @@ export function DocCategoryBadge({ category }: { category: KbDocCategory }) {
 
 const severityTones: Record<KbProcedureSeverity, string> = {
   critical:
-    "border-destructive/30 bg-destructive/10 text-destructive dark:text-red-400",
-  high: "border-orange-500/30 bg-orange-500/10 text-orange-700 dark:text-orange-400",
+    "border-severity-critical/30 bg-severity-critical/10 text-severity-critical-text",
+  high: "border-severity-high/30 bg-severity-high/10 text-severity-high-text",
   medium:
-    "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400",
+    "border-severity-medium/30 bg-severity-medium/10 text-severity-medium-text",
   low: "border-border bg-muted text-muted-foreground",
 };
 
@@ -142,11 +142,9 @@ export function ProcedureSeverityBadge({
 }
 
 const procedureStatusTones: Record<KbProcedureStatus, string> = {
-  approved:
-    "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
-  draft: "border-blue-500/30 bg-blue-500/10 text-blue-700 dark:text-blue-400",
-  "in-review":
-    "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400",
+  approved: "border-success/30 bg-success/10 text-success-text",
+  draft: "border-info/30 bg-info/10 text-info-text",
+  "in-review": "border-warning/30 bg-warning/10 text-warning-text",
   deprecated: "border-border bg-muted text-muted-foreground",
 };
 
@@ -166,10 +164,8 @@ export function ProcedureStatusBadge({
 }
 
 const reportStatusTones: Record<KbReportStatus, string> = {
-  ready:
-    "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
-  generating:
-    "border-blue-500/30 bg-blue-500/10 text-blue-700 dark:text-blue-400",
+  ready: "border-success/30 bg-success/10 text-success-text",
+  generating: "border-info/30 bg-info/10 text-info-text",
   scheduled:
     "border-violet-500/30 bg-violet-500/10 text-violet-700 dark:text-violet-400",
   archived: "border-border bg-muted text-muted-foreground",
@@ -187,13 +183,10 @@ export function ReportStatusBadge({ status }: { status: KbReportStatus }) {
 }
 
 const trainingStatusTones: Record<KbTrainingStatus, string> = {
-  open: "border-blue-500/30 bg-blue-500/10 text-blue-700 dark:text-blue-400",
-  "in-progress":
-    "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400",
-  completed:
-    "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
-  overdue:
-    "border-destructive/30 bg-destructive/10 text-destructive dark:text-red-400",
+  open: "border-info/30 bg-info/10 text-info-text",
+  "in-progress": "border-warning/30 bg-warning/10 text-warning-text",
+  completed: "border-success/30 bg-success/10 text-success-text",
+  overdue: "border-destructive/30 bg-destructive/10 text-destructive-text",
 };
 
 export function TrainingStatusBadge({ status }: { status: KbTrainingStatus }) {
@@ -266,15 +259,15 @@ export function OwnerCell({ userId, href }: { userId: string; href?: string }) {
 /* -------------------------------------------------------------------------- */
 
 export function toneForPercent(percent: number) {
-  if (percent >= 90) return "bg-emerald-500";
-  if (percent >= 70) return "bg-amber-500";
+  if (percent >= 90) return "bg-success";
+  if (percent >= 70) return "bg-warning";
   return "bg-destructive";
 }
 
 export function percentTextClass(percent: number) {
-  if (percent >= 90) return "text-emerald-600 dark:text-emerald-400";
-  if (percent >= 70) return "text-amber-600 dark:text-amber-400";
-  return "text-destructive dark:text-red-400";
+  if (percent >= 90) return "text-success-text";
+  if (percent >= 70) return "text-warning-text";
+  return "text-destructive-text";
 }
 
 export function ProgressTrack({

@@ -40,9 +40,9 @@ export function SecuritySnapshot({ profile }: { profile: CurrentProfile }) {
               className="hover:bg-muted/40 flex items-start gap-3 px-4 py-3 transition-colors"
             >
               {item.passed ? (
-                <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-success-text" />
               ) : (
-                <CircleAlert className="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                <CircleAlert className="mt-0.5 size-4 shrink-0 text-warning-text" />
               )}
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
@@ -52,8 +52,8 @@ export function SecuritySnapshot({ profile }: { profile: CurrentProfile }) {
                     className={cn(
                       "rounded-full",
                       item.passed
-                        ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
-                        : "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400",
+                        ? "border-success/40 bg-success/10 text-success-text"
+                        : "border-warning/40 bg-warning/10 text-warning-text",
                     )}
                   >
                     {item.passed ? "Pass" : "Action needed"}

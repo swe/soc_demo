@@ -1,7 +1,12 @@
 "use client";
 
 import { Search } from "lucide-react";
-import { useDeferredValue, useMemo, useState, useSyncExternalStore } from "react";
+import {
+  useDeferredValue,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+} from "react";
 
 import {
   type AuditLogEntry,
@@ -156,10 +161,14 @@ export function AuditLogCenter() {
           <TableHeader>
             <TableRow>
               <TableHead className="w-[140px]">When</TableHead>
-              <TableHead className="w-[160px]">Actor</TableHead>
+              <TableHead className="hidden sm:table-cell w-[160px]">
+                Actor
+              </TableHead>
               <TableHead className="w-[180px]">Action</TableHead>
-              <TableHead className="w-[120px]">Target</TableHead>
-              <TableHead>Detail</TableHead>
+              <TableHead className="hidden md:table-cell w-[120px]">
+                Target
+              </TableHead>
+              <TableHead className="hidden lg:table-cell">Detail</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -178,11 +187,13 @@ export function AuditLogCenter() {
                   <TableCell className="text-muted-foreground whitespace-nowrap text-xs">
                     {formatAuditTime(entry.at)}
                   </TableCell>
-                  <TableCell className="text-sm">{entry.actorName}</TableCell>
+                  <TableCell className="hidden sm:table-cell text-sm">
+                    {entry.actorName}
+                  </TableCell>
                   <TableCell>
                     <code className="text-xs">{entry.action}</code>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="hidden md:table-cell">
                     <div className="flex flex-col gap-1">
                       <Badge variant="outline" className="w-fit text-xs">
                         {entry.targetType}
@@ -192,7 +203,7 @@ export function AuditLogCenter() {
                       </span>
                     </div>
                   </TableCell>
-                  <TableCell className="text-muted-foreground text-sm">
+                  <TableCell className="hidden lg:table-cell text-muted-foreground text-sm">
                     {entry.detail}
                   </TableCell>
                 </TableRow>

@@ -30,6 +30,11 @@ import { IntegrationsOverview } from "@/components/administration/integrations-o
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { ListPagination, paginateItems } from "@/components/list-pagination";
 import {
+  ModuleShell,
+  ModuleToolbarActions,
+  ModuleToolbarSearch,
+} from "@/components/soc/module-shell";
+import {
   ModuleTabsList,
   ModuleTabsTrigger,
   TabCount,
@@ -632,7 +637,7 @@ function IntegrationsTable({
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
-                          className="text-destructive focus:text-destructive"
+                          className="text-destructive-text focus:text-destructive-text"
                           onClick={() => onDisconnect(integration)}
                         >
                           Disconnect
@@ -761,7 +766,7 @@ function IntegrationDetailSheet({
                     "mt-0.5 size-4 shrink-0",
                     integration.status === "error" ||
                       integration.health === "failed"
-                      ? "text-destructive"
+                      ? "text-destructive-text"
                       : "text-warning-text",
                   )}
                 />
@@ -806,9 +811,7 @@ function IntegrationDetailSheet({
 
           <section>
             <div className="mb-1 flex items-center justify-between">
-              <h3 className="text-xs font-semibold tracking-wide uppercase">
-                Connection
-              </h3>
+              <h3 className="text-callout font-semibold">Connection</h3>
               <CategoryBadge category={integration.category} />
             </div>
             <dl className="divide-y">
@@ -852,9 +855,7 @@ function IntegrationDetailSheet({
             {connectorConfig &&
             Object.keys(connectorConfig.fieldMap).length > 0 ? (
               <div className="mt-3 rounded-lg border p-3">
-                <p className="text-muted-foreground text-xs uppercase">
-                  Field map
-                </p>
+                <p className="text-muted-foreground text-caption">Field map</p>
                 <div className="mt-2 space-y-1.5">
                   {Object.entries(connectorConfig.fieldMap)
                     .slice(0, 5)
@@ -875,13 +876,11 @@ function IntegrationDetailSheet({
           </section>
 
           <section className="mt-6">
-            <h3 className="mb-2 text-xs font-semibold tracking-wide uppercase">
-              Data flow
-            </h3>
+            <h3 className="text-callout mb-2 font-semibold">Data flow</h3>
             <div className="rounded-lg border">
               <div className="grid grid-cols-2 divide-x border-b sm:grid-cols-4">
                 <div className="px-3 py-3">
-                  <p className="text-muted-foreground text-xs uppercase">
+                  <p className="text-muted-foreground text-caption">
                     Throughput
                   </p>
                   <p className="mt-1 font-mono text-sm font-medium tabular-nums">
@@ -891,9 +890,7 @@ function IntegrationDetailSheet({
                   </p>
                 </div>
                 <div className="px-3 py-3">
-                  <p className="text-muted-foreground text-xs uppercase">
-                    Latency
-                  </p>
+                  <p className="text-muted-foreground text-caption">Latency</p>
                   <p className="mt-1 font-mono text-sm font-medium tabular-nums">
                     {integration.latencyMs !== undefined
                       ? `${integration.latencyMs}ms`
@@ -901,7 +898,7 @@ function IntegrationDetailSheet({
                   </p>
                 </div>
                 <div className="px-3 py-3">
-                  <p className="text-muted-foreground text-xs uppercase">
+                  <p className="text-muted-foreground text-caption">
                     Error rate
                   </p>
                   <p className="mt-1 font-mono text-sm font-medium tabular-nums">
@@ -911,9 +908,7 @@ function IntegrationDetailSheet({
                   </p>
                 </div>
                 <div className="px-3 py-3">
-                  <p className="text-muted-foreground text-xs uppercase">
-                    Coverage
-                  </p>
+                  <p className="text-muted-foreground text-caption">Coverage</p>
                   <p className="mt-1 font-mono text-sm font-medium tabular-nums">
                     {integration.coveragePercent !== undefined
                       ? `${integration.coveragePercent}%`
@@ -923,9 +918,9 @@ function IntegrationDetailSheet({
               </div>
 
               {sparkData.length > 0 ? (
-                <div className="border-b p-3">
+                <div className="border-separator border-b p-3">
                   <div className="mb-2 flex items-center justify-between">
-                    <p className="text-muted-foreground text-xs uppercase">
+                    <p className="text-muted-foreground text-caption">
                       Volume · 24h
                     </p>
                     <p className="text-muted-foreground text-xs">
@@ -987,7 +982,7 @@ function IntegrationDetailSheet({
               ) : null}
 
               <div className="p-3">
-                <p className="text-muted-foreground text-xs uppercase">
+                <p className="text-muted-foreground text-caption">
                   Telemetry streams
                 </p>
                 <div className="mt-2 flex flex-wrap gap-1.5">
@@ -1014,7 +1009,7 @@ function IntegrationDetailSheet({
           </section>
 
           <section className="mt-6">
-            <h3 className="mb-2 text-xs font-semibold tracking-wide uppercase">
+            <h3 className="text-callout mb-2 font-semibold">
               Sync / health history
             </h3>
             <div className="space-y-3 border-l pl-4">
@@ -1091,7 +1086,7 @@ function IntegrationDetailSheet({
           <Button
             variant="outline"
             size="sm"
-            className="text-destructive hover:text-destructive"
+            className="text-destructive-text hover:text-destructive-text"
             onClick={() => onDisconnect(integration)}
           >
             <Unplug className="size-3.5" />
@@ -1400,14 +1395,11 @@ export function IntegrationsManagement() {
   };
 
   return (
-    <main
-      id="main-content"
-      className="bg-background flex min-h-0 flex-1 flex-col overflow-hidden"
-    >
-      <div className="bg-background shrink-0 border-b">
-        <div className="flex flex-col gap-2 px-4 py-3 sm:px-6 lg:min-h-14 lg:flex-row lg:items-center lg:justify-between lg:gap-4 lg:py-2">
-          <div className="min-w-0 flex-1">
-            <InputGroup className="h-9 w-full lg:max-w-sm">
+    <ModuleShell
+      toolbar={
+        <>
+          <ModuleToolbarSearch>
+            <InputGroup className="h-9 w-full">
               <InputGroupAddon>
                 <Search />
               </InputGroupAddon>
@@ -1417,9 +1409,9 @@ export function IntegrationsManagement() {
                 onChange={(event) => setSearchQuery(event.target.value)}
               />
             </InputGroup>
-          </div>
+          </ModuleToolbarSearch>
 
-          <div className="flex min-w-0 flex-wrap items-center gap-2 lg:justify-end">
+          <ModuleToolbarActions>
             <ToolbarToggle
               checked={issuesOnly}
               onCheckedChange={(checked) => {
@@ -1473,86 +1465,82 @@ export function IntegrationsManagement() {
               <span className="hidden sm:inline">Add integration</span>
               <span className="sm:hidden">Add</span>
             </Button>
-          </div>
-        </div>
-      </div>
+          </ModuleToolbarActions>
+        </>
+      }
+    >
+      <Tabs
+        value={activeTab}
+        onValueChange={(value) => {
+          setActiveTab(value as IntegrationTab);
+          setAttention(null);
+          if (value !== "attention") setIssuesOnly(false);
+        }}
+        className="flex flex-col gap-4"
+      >
+        <ModuleTabsList>
+          {(
+            [
+              ["overview", "Overview"],
+              ["all", "All integrations"],
+              ["connected", "Connected"],
+              ["available", "Available"],
+              ["attention", "Needs attention"],
+            ] as const
+          ).map(([value, label]) => (
+            <ModuleTabsTrigger key={value} value={value}>
+              {label}
+              {value !== "overview" ? (
+                <TabCount>{tabCounts[value]}</TabCount>
+              ) : null}
+            </ModuleTabsTrigger>
+          ))}
+        </ModuleTabsList>
+      </Tabs>
 
-      <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6">
-        <div className="mx-auto flex w-full flex-col gap-4">
-          <Tabs
-            value={activeTab}
-            onValueChange={(value) => {
-              setActiveTab(value as IntegrationTab);
-              setAttention(null);
-              if (value !== "attention") setIssuesOnly(false);
-            }}
-            className="flex flex-col gap-4"
-          >
-            <ModuleTabsList>
-              {(
-                [
-                  ["overview", "Overview"],
-                  ["all", "All integrations"],
-                  ["connected", "Connected"],
-                  ["available", "Available"],
-                  ["attention", "Needs attention"],
-                ] as const
-              ).map(([value, label]) => (
-                <ModuleTabsTrigger key={value} value={value}>
-                  {label}
-                  {value !== "overview" ? (
-                    <TabCount>{tabCounts[value]}</TabCount>
-                  ) : null}
-                </ModuleTabsTrigger>
-              ))}
-            </ModuleTabsList>
-          </Tabs>
-
-          {activeTab === "overview" ? (
-            <IntegrationsOverview
-              integrations={integrations}
-              onSelectIntegration={(integration) => {
-                if (integration.status === "available") {
-                  openWizard(integration);
-                } else {
-                  setDetailId(integration.id);
-                }
-              }}
-              onShowAttention={() => setActiveTab("attention")}
+      {activeTab === "overview" ? (
+        <IntegrationsOverview
+          integrations={integrations}
+          onSelectIntegration={(integration) => {
+            if (integration.status === "available") {
+              openWizard(integration);
+            } else {
+              setDetailId(integration.id);
+            }
+          }}
+          onShowAttention={() => setActiveTab("attention")}
+        />
+      ) : visibleIntegrations.length > 0 ? (
+        <IntegrationsTable
+          integrations={pagedIntegrations}
+          selectedIds={selectedIds}
+          onToggle={toggleSelection}
+          onToggleAll={toggleAll}
+          onClearSelection={() => setSelectedIds([])}
+          onView={(integration) => {
+            if (integration.status === "available") {
+              openWizard(integration);
+            } else {
+              setDetailId(integration.id);
+            }
+          }}
+          onConnect={openWizard}
+          onSync={syncIntegration}
+          onPause={togglePause}
+          onDisconnect={(integration) => setDisconnectId(integration.id)}
+          footer={
+            <ListPagination
+              page={page}
+              pageSize={pageSize}
+              total={visibleIntegrations.length}
+              onPageChange={setPage}
+              onPageSizeChange={setPageSize}
             />
-          ) : visibleIntegrations.length > 0 ? (
-            <IntegrationsTable
-              integrations={pagedIntegrations}
-              selectedIds={selectedIds}
-              onToggle={toggleSelection}
-              onToggleAll={toggleAll}
-              onClearSelection={() => setSelectedIds([])}
-              onView={(integration) => {
-                if (integration.status === "available") {
-                  openWizard(integration);
-                } else {
-                  setDetailId(integration.id);
-                }
-              }}
-              onConnect={openWizard}
-              onSync={syncIntegration}
-              onPause={togglePause}
-              onDisconnect={(integration) => setDisconnectId(integration.id)}
-              footer={
-                <ListPagination
-                  page={page}
-                  pageSize={pageSize}
-                  total={visibleIntegrations.length}
-                  onPageChange={setPage}
-                  onPageSizeChange={setPageSize}
-                />
-              }
-            />
-          ) : (
-            <EmptyState onReset={resetFilters} />
-          )}
-        </div>
-      </div>
+          }
+        />
+      ) : (
+        <EmptyState onReset={resetFilters} />
+      )}
 
       <IntegrationDetailSheet
         integration={detailIntegration}
@@ -1653,6 +1641,6 @@ export function IntegrationsManagement() {
         destructive
         handleConfirm={confirmDisconnect}
       />
-    </main>
+    </ModuleShell>
   );
 }

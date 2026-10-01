@@ -2,12 +2,8 @@
 
 import { format } from "date-fns";
 import {
-  ArrowUpDown,
-  CheckIcon,
-  ChevronRight,
   CircleX,
   Ellipsis,
-  ListFilter,
   type LucideIcon,
   Mail,
   MailPlus,
@@ -18,7 +14,6 @@ import {
   ShieldCheck,
   Trash2,
   UserPlus,
-  Users,
   UserX,
   X,
 } from "lucide-react";
@@ -28,6 +23,12 @@ import { useDeferredValue, useEffect, useMemo, useState } from "react";
 
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { ListPagination, paginateItems } from "@/components/list-pagination";
+import { type FilterFacet, FilterMenu } from "@/components/soc/filter-menu";
+import {
+  ModuleShell,
+  ModuleToolbarActions,
+  ModuleToolbarSearch,
+} from "@/components/soc/module-shell";
 import {
   ModuleTabsList,
   ModuleTabsTrigger,
@@ -38,13 +39,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Command,
-  CommandGroup,
-  CommandItem,
-  CommandList,
-  CommandSeparator,
-} from "@/components/ui/command";
 import {
   Dialog,
   DialogContent,
@@ -67,11 +61,6 @@ import {
   InputGroupAddon,
   InputGroupInput,
 } from "@/components/ui/input-group";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -125,7 +114,6 @@ import { useUsersSession } from "./users-session";
 type UserTab = "members" | "pending";
 type UserSort = "name-asc" | "name-desc" | "joined-desc" | "joined-asc";
 type TwoFactorFilter = "all" | "enabled" | "disabled";
-type FilterPanel = "role" | "teams" | "twoFactor" | "sort";
 
 type InviteRole = Exclude<AdministrationAccessRole, "Owner" | "Admin">;
 
@@ -153,13 +141,11 @@ const invitationStatusDetails: Record<
   },
   expiring: {
     label: "Expiring soon",
-    className:
-      "border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400",
+    className: "border-warning/30 bg-warning/10 text-warning-text",
   },
   expired: {
     label: "Expired",
-    className:
-      "border-destructive/30 bg-destructive/10 text-destructive dark:text-red-400",
+    className: "border-destructive/30 bg-destructive/10 text-destructive-text",
   },
 };
 
@@ -194,7 +180,7 @@ function PrivilegedBadge() {
           <button
             type="button"
             aria-label="Privileged"
-            className="inline-flex size-6 shrink-0 items-center justify-center rounded-full border border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400"
+            className="inline-flex size-6 shrink-0 items-center justify-center rounded-full border border-warning/40 bg-warning/10 text-warning-text"
           >
             <ShieldAlert className="size-3.5" />
           </button>
@@ -231,9 +217,7 @@ function MfaStatus({ enabled }: { enabled: boolean }) {
     <span
       className={cn(
         "inline-flex items-center gap-1.5 text-xs font-medium",
-        enabled
-          ? "text-green-600 dark:text-green-500"
-          : "text-destructive dark:text-red-400",
+        enabled ? "text-success-text" : "text-destructive-text",
       )}
     >
       {enabled ? (
@@ -265,29 +249,6 @@ function UserAvatar({ user }: { user: AdministrationUser }) {
   );
 }
 
-function FilterPanelHeader({
-  title,
-  onBack,
-}: {
-  title: string;
-  onBack: () => void;
-}) {
-  return (
-    <div className="flex items-center border-b p-2">
-      <Button
-        variant="ghost"
-        size="sm"
-        className="size-6 p-0"
-        aria-label="Back to filter list"
-        onClick={onBack}
-      >
-        <ChevronRight className="size-4 rotate-180" />
-      </Button>
-      <span className="ml-2 text-sm font-medium">{title}</span>
-    </div>
-  );
-}
-
 function UserFilterControl({
   showMemberFilters,
   roleFilters,
@@ -313,225 +274,71 @@ function UserFilterControl({
   onSetSort: (value: UserSort) => void;
   onClearFilters: () => void;
 }) {
-  const [open, setOpen] = useState(false);
-  const [panel, setPanel] = useState<FilterPanel | null>(null);
-  const closePanel = () => setPanel(null);
+  const facets: FilterFacet[] = [
+    {
+      id: "role",
+      label: "Access role",
+      options: administrationAccessRoles.map((role) => ({
+        value: role,
+        label: role,
+      })),
+      selected: roleFilters,
+      onToggle: (value) => onToggleRole(value as AdministrationAccessRole),
+    },
+    {
+      id: "teams",
+      label: "Teams",
+      options: administrationTeams.map((team) => ({
+        value: team.id,
+        label: team.name,
+      })),
+      selected: teamFilters,
+      onToggle: (value) => onToggleTeam(value),
+    },
+    ...(showMemberFilters
+      ? [
+          {
+            id: "twoFactor",
+            label: "MFA",
+            single: true,
+            options: [
+              { value: "enabled", label: "Enabled" },
+              { value: "disabled", label: "Disabled" },
+            ],
+            selected: twoFactorFilter === "all" ? [] : [twoFactorFilter],
+            onToggle: (value: string) =>
+              onSetTwoFactor(
+                value === twoFactorFilter ? "all" : (value as TwoFactorFilter),
+              ),
+          } satisfies FilterFacet,
+        ]
+      : []),
+    {
+      id: "sort",
+      label: "Sort by",
+      single: true,
+      hideCount: true,
+      options: [
+        ...(["name-asc", "name-desc"] as const).map((option) => ({
+          value: option,
+          label: sortLabels[option],
+        })),
+        ...(["joined-desc", "joined-asc"] as const).map((option) => ({
+          value: option,
+          label: sortLabels[option],
+        })),
+      ],
+      selected: [sort],
+      onToggle: (value) => onSetSort(value as UserSort),
+    },
+  ];
 
   return (
-    <Popover
-      open={open}
-      onOpenChange={(nextOpen) => {
-        setOpen(nextOpen);
-        if (!nextOpen) {
-          setPanel(null);
-        }
-      }}
-    >
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          className={cn("relative h-9 shrink-0 justify-center gap-1.5 px-2.5")}
-        >
-          <ListFilter className="size-3.5" />
-          Filter
-          {activeFilterCount > 0 ? (
-            <span className="bg-primary text-primary-foreground absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full text-xs font-semibold">
-              {activeFilterCount}
-            </span>
-          ) : null}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-60 p-0" align="end">
-        {panel === null ? (
-          <Command>
-            <CommandList>
-              <CommandGroup>
-                <CommandItem
-                  onSelect={() => setPanel("role")}
-                  className="flex items-center justify-between"
-                >
-                  <span className="flex items-center gap-2">
-                    <Shield className="text-muted-foreground size-4" />
-                    Access role
-                  </span>
-                  <div className="flex items-center">
-                    {roleFilters.length > 0 ? (
-                      <span className="text-muted-foreground mr-1 text-xs">
-                        {roleFilters.length}
-                      </span>
-                    ) : null}
-                    <ChevronRight className="size-4" />
-                  </div>
-                </CommandItem>
-
-                <CommandItem
-                  onSelect={() => setPanel("teams")}
-                  className="flex items-center justify-between"
-                >
-                  <span className="flex items-center gap-2">
-                    <Users className="text-muted-foreground size-4" />
-                    Teams
-                  </span>
-                  <div className="flex items-center">
-                    {teamFilters.length > 0 ? (
-                      <span className="text-muted-foreground mr-1 text-xs">
-                        {teamFilters.length}
-                      </span>
-                    ) : null}
-                    <ChevronRight className="size-4" />
-                  </div>
-                </CommandItem>
-
-                {showMemberFilters ? (
-                  <CommandItem
-                    onSelect={() => setPanel("twoFactor")}
-                    className="flex items-center justify-between"
-                  >
-                    <span className="flex items-center gap-2">
-                      <ShieldCheck className="text-muted-foreground size-4" />
-                      MFA
-                    </span>
-                    <div className="flex items-center">
-                      {twoFactorFilter !== "all" ? (
-                        <span className="text-muted-foreground mr-1 text-xs capitalize">
-                          {twoFactorFilter}
-                        </span>
-                      ) : null}
-                      <ChevronRight className="size-4" />
-                    </div>
-                  </CommandItem>
-                ) : null}
-
-                <CommandItem
-                  onSelect={() => setPanel("sort")}
-                  className="flex items-center justify-between"
-                >
-                  <span className="flex items-center gap-2">
-                    <ArrowUpDown className="text-muted-foreground size-4" />
-                    Sort by
-                  </span>
-                  <div className="flex items-center">
-                    <span className="text-muted-foreground mr-1 text-xs">
-                      {sortLabels[sort]}
-                    </span>
-                    <ChevronRight className="size-4" />
-                  </div>
-                </CommandItem>
-              </CommandGroup>
-
-              {activeFilterCount > 0 ? (
-                <>
-                  <CommandSeparator />
-                  <CommandGroup>
-                    <CommandItem onSelect={onClearFilters}>
-                      Clear all filters
-                    </CommandItem>
-                  </CommandGroup>
-                </>
-              ) : null}
-            </CommandList>
-          </Command>
-        ) : panel === "role" ? (
-          <Command>
-            <FilterPanelHeader title="Access role" onBack={closePanel} />
-            <CommandList>
-              <CommandGroup>
-                {administrationAccessRoles.map((role) => (
-                  <CommandItem
-                    key={role}
-                    onSelect={() => onToggleRole(role)}
-                    className="flex items-center justify-between"
-                  >
-                    {role}
-                    {roleFilters.includes(role) ? (
-                      <CheckIcon className="size-4" />
-                    ) : null}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </CommandList>
-          </Command>
-        ) : panel === "teams" ? (
-          <Command>
-            <FilterPanelHeader title="Teams" onBack={closePanel} />
-            <CommandList>
-              <CommandGroup>
-                {administrationTeams.map((team) => (
-                  <CommandItem
-                    key={team.id}
-                    onSelect={() => onToggleTeam(team.id)}
-                    className="flex items-center justify-between"
-                  >
-                    <span className="truncate">{team.name}</span>
-                    {teamFilters.includes(team.id) ? (
-                      <CheckIcon className="size-4 shrink-0" />
-                    ) : null}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </CommandList>
-          </Command>
-        ) : panel === "twoFactor" ? (
-          <Command>
-            <FilterPanelHeader title="MFA" onBack={closePanel} />
-            <CommandList>
-              <CommandGroup>
-                {(
-                  [
-                    { value: "all", label: "Any status" },
-                    { value: "enabled", label: "Enabled" },
-                    { value: "disabled", label: "Disabled" },
-                  ] as const
-                ).map((option) => (
-                  <CommandItem
-                    key={option.value}
-                    onSelect={() => onSetTwoFactor(option.value)}
-                    className="flex items-center justify-between"
-                  >
-                    {option.label}
-                    {twoFactorFilter === option.value ? (
-                      <CheckIcon className="size-4" />
-                    ) : null}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </CommandList>
-          </Command>
-        ) : (
-          <Command>
-            <FilterPanelHeader title="Sort by" onBack={closePanel} />
-            <CommandList>
-              <CommandGroup heading="Name">
-                {(["name-asc", "name-desc"] as const).map((option) => (
-                  <CommandItem
-                    key={option}
-                    onSelect={() => onSetSort(option)}
-                    className="flex items-center justify-between"
-                  >
-                    {sortLabels[option]}
-                    {sort === option ? <CheckIcon className="size-4" /> : null}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-              <CommandSeparator />
-              <CommandGroup heading="Date">
-                {(["joined-desc", "joined-asc"] as const).map((option) => (
-                  <CommandItem
-                    key={option}
-                    onSelect={() => onSetSort(option)}
-                    className="flex items-center justify-between"
-                  >
-                    {sortLabels[option]}
-                    {sort === option ? <CheckIcon className="size-4" /> : null}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </CommandList>
-          </Command>
-        )}
-      </PopoverContent>
-    </Popover>
+    <FilterMenu
+      facets={facets}
+      activeCount={activeFilterCount}
+      onClear={onClearFilters}
+    />
   );
 }
 
@@ -596,11 +403,11 @@ function MembersTable({
 
   return (
     <div className="bg-card shadow-card overflow-hidden rounded-xl border">
-      <Table>
+      <Table className="max-md:table-fixed">
         <TableHeader>
           {hasSelection ? (
             <TableRow className="hover:bg-transparent">
-              <TableHead className="w-12 px-4">
+              <TableHead className="w-10 px-3 sm:w-12 sm:px-4">
                 <Checkbox
                   aria-label="Select all visible members"
                   checked={
@@ -630,7 +437,7 @@ function MembersTable({
                     <Button
                       variant="outline"
                       size="sm"
-                      className="text-destructive hover:text-destructive h-8"
+                      className="text-destructive-text hover:text-destructive-text h-8"
                     >
                       <Trash2 className="size-3.5" />
                       Remove
@@ -649,14 +456,14 @@ function MembersTable({
             </TableRow>
           ) : (
             <TableRow className="hover:bg-transparent">
-              <TableHead className="w-12 px-4">
+              <TableHead className="w-10 px-3 sm:w-12 sm:px-4">
                 <Checkbox
                   aria-label="Select all visible members"
                   checked={false}
                   onCheckedChange={onToggleAll}
                 />
               </TableHead>
-              <TableHead className="min-w-64">Member</TableHead>
+              <TableHead className="sm:min-w-64">Member</TableHead>
               <TableHead className="hidden w-44 text-center md:table-cell">
                 Role
               </TableHead>
@@ -665,7 +472,7 @@ function MembersTable({
               <TableHead className="hidden w-32 xl:table-cell">
                 Last active
               </TableHead>
-              <TableHead className="w-12">
+              <TableHead className="w-10 sm:w-12">
                 <span className="sr-only">Actions</span>
               </TableHead>
             </TableRow>
@@ -691,7 +498,7 @@ function MembersTable({
                 onClick={() => router.push(`/administration/users/${user.id}`)}
               >
                 <TableCell
-                  className="px-4"
+                  className="px-3 sm:px-4"
                   onClick={(event) => event.stopPropagation()}
                 >
                   <Checkbox
@@ -772,7 +579,7 @@ function MembersTable({
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
                           disabled={user.role === "Owner"}
-                          className="text-destructive"
+                          className="text-destructive-text"
                           onSelect={() => onRemoveAccess(user)}
                         >
                           Remove access
@@ -823,11 +630,11 @@ function InvitationsTable({
 
   return (
     <div className="bg-card shadow-card overflow-hidden rounded-xl border">
-      <Table>
+      <Table className="max-md:table-fixed">
         <TableHeader>
           {hasSelection ? (
             <TableRow className="hover:bg-transparent">
-              <TableHead className="w-12 px-4">
+              <TableHead className="w-10 px-3 sm:w-12 sm:px-4">
                 <Checkbox
                   aria-label="Select all visible invitations"
                   checked={
@@ -853,7 +660,7 @@ function InvitationsTable({
                     <Button
                       variant="outline"
                       size="sm"
-                      className="text-destructive hover:text-destructive h-8"
+                      className="text-destructive-text hover:text-destructive-text h-8"
                     >
                       <Trash2 className="size-3.5" />
                       Revoke
@@ -872,14 +679,14 @@ function InvitationsTable({
             </TableRow>
           ) : (
             <TableRow className="hover:bg-transparent">
-              <TableHead className="w-12 px-4">
+              <TableHead className="w-10 px-3 sm:w-12 sm:px-4">
                 <Checkbox
                   aria-label="Select all visible invitations"
                   checked={false}
                   onCheckedChange={onToggleAll}
                 />
               </TableHead>
-              <TableHead className="min-w-64">Invitee</TableHead>
+              <TableHead className="sm:min-w-64">Invitee</TableHead>
               <TableHead className="hidden w-44 text-center md:table-cell">
                 Role
               </TableHead>
@@ -906,7 +713,7 @@ function InvitationsTable({
                   selectedIds.includes(invitation.id) ? "selected" : undefined
                 }
               >
-                <TableCell className="px-4">
+                <TableCell className="px-3 sm:px-4">
                   <Checkbox
                     aria-label={`Select invitation for ${invitation.email}`}
                     checked={selectedIds.includes(invitation.id)}
@@ -983,7 +790,7 @@ function InvitationsTable({
                         </DropdownMenuGroup>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
-                          className="text-destructive"
+                          className="text-destructive-text"
                           onSelect={() => onRevoke(invitation)}
                         >
                           Revoke invitation
@@ -1541,14 +1348,11 @@ export function AdministrationUserManagement() {
   };
 
   return (
-    <main
-      id="main-content"
-      className="bg-background flex min-h-0 flex-1 flex-col overflow-hidden"
-    >
-      <div className="bg-background shrink-0 border-b">
-        <div className="flex flex-col gap-2 px-4 py-3 sm:px-6 lg:min-h-14 lg:flex-row lg:items-center lg:justify-between lg:gap-4 lg:py-2">
-          <div className="min-w-0 flex-1">
-            <InputGroup className="h-9 w-full lg:max-w-sm">
+    <ModuleShell
+      toolbar={
+        <>
+          <ModuleToolbarSearch>
+            <InputGroup className="h-9 w-full">
               <InputGroupAddon>
                 <Search />
               </InputGroupAddon>
@@ -1562,9 +1366,9 @@ export function AdministrationUserManagement() {
                 onChange={(event) => setSearchQuery(event.target.value)}
               />
             </InputGroup>
-          </div>
+          </ModuleToolbarSearch>
 
-          <div className="flex min-w-0 flex-wrap items-center gap-2 lg:justify-end">
+          <ModuleToolbarActions>
             {onMembersTab ? (
               <>
                 <ToolbarToggle
@@ -1624,131 +1428,127 @@ export function AdministrationUserManagement() {
               <span className="hidden sm:inline">Invite users</span>
               <span className="sm:hidden">Invite</span>
             </Button>
-          </div>
-        </div>
-      </div>
+          </ModuleToolbarActions>
+        </>
+      }
+    >
+      <Tabs
+        value={activeTab}
+        onValueChange={(value) => setActiveTab(value as UserTab)}
+        className="flex flex-col gap-4"
+      >
+        <ModuleTabsList>
+          <ModuleTabsTrigger value="members">
+            Team Members
+            <TabCount>{administrationUsers.length}</TabCount>
+          </ModuleTabsTrigger>
+          <ModuleTabsTrigger value="pending">
+            Pending Invitations
+            <TabCount>{administrationInvitations.length}</TabCount>
+          </ModuleTabsTrigger>
+        </ModuleTabsList>
 
-      <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6 lg:px-6">
-        <div className="mx-auto flex w-full flex-col gap-4">
-          <Tabs
-            value={activeTab}
-            onValueChange={(value) => setActiveTab(value as UserTab)}
-            className="flex flex-col gap-4"
-          >
-            <ModuleTabsList>
-              <ModuleTabsTrigger value="members">
-                Team Members
-                <TabCount>{administrationUsers.length}</TabCount>
-              </ModuleTabsTrigger>
-              <ModuleTabsTrigger value="pending">
-                Pending Invitations
-                <TabCount>{administrationInvitations.length}</TabCount>
-              </ModuleTabsTrigger>
-            </ModuleTabsList>
+        <TabsContent value="members" className="mt-0">
+          {visibleUsers.length > 0 ? (
+            <MembersTable
+              users={pagedUsers}
+              selectedIds={selectedUserIds}
+              onToggleUser={(id) => toggleSelection(setSelectedUserIds, id)}
+              onToggleAll={() =>
+                toggleAllSelection(
+                  setSelectedUserIds,
+                  pagedUsers.map((user) => user.id),
+                )
+              }
+              onClearSelection={() => setSelectedUserIds([])}
+              onChangeRole={openChangeRole}
+              onAssignTeams={openAssignTeams}
+              onResetMfa={setMfaDialogUser}
+              onRemoveAccess={setRemoveDialogUser}
+              footer={
+                <ListPagination
+                  page={memberPage}
+                  pageSize={memberPageSize}
+                  total={visibleUsers.length}
+                  onPageChange={setMemberPage}
+                  onPageSizeChange={setMemberPageSize}
+                />
+              }
+            />
+          ) : (
+            <EmptyState
+              icon={riskUsersOnly ? ShieldAlert : UserPlus}
+              title={
+                riskUsersOnly
+                  ? "No risk users match the current filters"
+                  : "No members match the current filters"
+              }
+              description={
+                riskUsersOnly
+                  ? "Risk users are accounts without MFA enabled."
+                  : "Adjust the search or filters to bring team members back into view."
+              }
+              action={
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8"
+                  onClick={resetFilters}
+                >
+                  Reset filters
+                </Button>
+              }
+            />
+          )}
+        </TabsContent>
 
-            <TabsContent value="members" className="mt-0">
-              {visibleUsers.length > 0 ? (
-                <MembersTable
-                  users={pagedUsers}
-                  selectedIds={selectedUserIds}
-                  onToggleUser={(id) => toggleSelection(setSelectedUserIds, id)}
-                  onToggleAll={() =>
-                    toggleAllSelection(
-                      setSelectedUserIds,
-                      pagedUsers.map((user) => user.id),
-                    )
-                  }
-                  onClearSelection={() => setSelectedUserIds([])}
-                  onChangeRole={openChangeRole}
-                  onAssignTeams={openAssignTeams}
-                  onResetMfa={setMfaDialogUser}
-                  onRemoveAccess={setRemoveDialogUser}
-                  footer={
-                    <ListPagination
-                      page={memberPage}
-                      pageSize={memberPageSize}
-                      total={visibleUsers.length}
-                      onPageChange={setMemberPage}
-                      onPageSizeChange={setMemberPageSize}
-                    />
-                  }
+        <TabsContent value="pending" className="mt-0">
+          {visibleInvitations.length > 0 ? (
+            <InvitationsTable
+              invitations={pagedInvitations}
+              selectedIds={selectedInviteIds}
+              onToggleInvitation={(id) =>
+                toggleSelection(setSelectedInviteIds, id)
+              }
+              onToggleAll={() =>
+                toggleAllSelection(
+                  setSelectedInviteIds,
+                  pagedInvitations.map((invitation) => invitation.id),
+                )
+              }
+              onClearSelection={() => setSelectedInviteIds([])}
+              onResend={resendInvitationAction}
+              onCopyLink={copyInviteLink}
+              onRevoke={revokeInvitationAction}
+              footer={
+                <ListPagination
+                  page={invitePage}
+                  pageSize={invitePageSize}
+                  total={visibleInvitations.length}
+                  onPageChange={setInvitePage}
+                  onPageSizeChange={setInvitePageSize}
                 />
-              ) : (
-                <EmptyState
-                  icon={riskUsersOnly ? ShieldAlert : UserPlus}
-                  title={
-                    riskUsersOnly
-                      ? "No risk users match the current filters"
-                      : "No members match the current filters"
-                  }
-                  description={
-                    riskUsersOnly
-                      ? "Risk users are accounts without MFA enabled."
-                      : "Adjust the search or filters to bring team members back into view."
-                  }
-                  action={
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-8"
-                      onClick={resetFilters}
-                    >
-                      Reset filters
-                    </Button>
-                  }
-                />
-              )}
-            </TabsContent>
-
-            <TabsContent value="pending" className="mt-0">
-              {visibleInvitations.length > 0 ? (
-                <InvitationsTable
-                  invitations={pagedInvitations}
-                  selectedIds={selectedInviteIds}
-                  onToggleInvitation={(id) =>
-                    toggleSelection(setSelectedInviteIds, id)
-                  }
-                  onToggleAll={() =>
-                    toggleAllSelection(
-                      setSelectedInviteIds,
-                      pagedInvitations.map((invitation) => invitation.id),
-                    )
-                  }
-                  onClearSelection={() => setSelectedInviteIds([])}
-                  onResend={resendInvitationAction}
-                  onCopyLink={copyInviteLink}
-                  onRevoke={revokeInvitationAction}
-                  footer={
-                    <ListPagination
-                      page={invitePage}
-                      pageSize={invitePageSize}
-                      total={visibleInvitations.length}
-                      onPageChange={setInvitePage}
-                      onPageSizeChange={setInvitePageSize}
-                    />
-                  }
-                />
-              ) : (
-                <EmptyState
-                  icon={MailPlus}
-                  title="No pending invitations"
-                  description="Everyone you invited has already joined, or no invites match the current filters."
-                  action={
-                    <Button
-                      size="sm"
-                      className="h-8"
-                      onClick={() => setInviteOpen(true)}
-                    >
-                      <UserPlus className="size-3.5" />
-                      Invite users
-                    </Button>
-                  }
-                />
-              )}
-            </TabsContent>
-          </Tabs>
-        </div>
-      </div>
+              }
+            />
+          ) : (
+            <EmptyState
+              icon={MailPlus}
+              title="No pending invitations"
+              description="Everyone you invited has already joined, or no invites match the current filters."
+              action={
+                <Button
+                  size="sm"
+                  className="h-8"
+                  onClick={() => setInviteOpen(true)}
+                >
+                  <UserPlus className="size-3.5" />
+                  Invite users
+                </Button>
+              }
+            />
+          )}
+        </TabsContent>
+      </Tabs>
 
       <InviteDialog
         open={inviteOpen}
@@ -1822,6 +1622,6 @@ export function AdministrationUserManagement() {
       />
 
       <ConfigureIdpDialog open={idpOpen} onOpenChange={setIdpOpen} />
-    </main>
+    </ModuleShell>
   );
 }

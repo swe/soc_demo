@@ -2,12 +2,9 @@
 
 import {
   CalendarClock,
-  CheckIcon,
-  ChevronRight,
   Download,
   Ellipsis,
   FileBarChart,
-  ListFilter,
   Plus,
   RefreshCw,
   Scale,
@@ -18,15 +15,14 @@ import { useDeferredValue, useEffect, useMemo, useState } from "react";
 
 import { ListPagination, paginateItems } from "@/components/list-pagination";
 import { downloadExecutiveBoardPack } from "@/components/overview/executive-board-pack";
+import { type FilterFacet, FilterMenu } from "@/components/soc/filter-menu";
+import {
+  ModuleShell,
+  ModuleToolbarActions,
+  ModuleToolbarSearch,
+} from "@/components/soc/module-shell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Command,
-  CommandGroup,
-  CommandItem,
-  CommandList,
-  CommandSeparator,
-} from "@/components/ui/command";
 import {
   Dialog,
   DialogContent,
@@ -49,11 +45,6 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group";
 import { Label } from "@/components/ui/label";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -96,8 +87,6 @@ import {
   ReportStatusBadge,
 } from "./knowledge-base-primitives";
 
-type FilterPanel = "kind" | "status" | "sort";
-
 type ReportSort = "updated-desc" | "title-asc" | "kind";
 
 const sortLabels: Record<ReportSort, string> = {
@@ -137,28 +126,6 @@ function reportMarkdown(report: KbReport) {
   ].join("\n");
 }
 
-function FilterPanelHeader({
-  title,
-  onBack,
-}: {
-  title: string;
-  onBack: () => void;
-}) {
-  return (
-    <div className="flex items-center border-b p-2">
-      <Button
-        variant="ghost"
-        size="sm"
-        className="h-7 gap-1 px-2 text-xs"
-        onClick={onBack}
-      >
-        <ChevronRight className="size-3.5 rotate-180" />
-        {title}
-      </Button>
-    </div>
-  );
-}
-
 function ReportFilterControl({
   kindFilters,
   statusFilters,
@@ -178,154 +145,45 @@ function ReportFilterControl({
   onSetSort: (sort: ReportSort) => void;
   onClearFilters: () => void;
 }) {
-  const [open, setOpen] = useState(false);
-  const [panel, setPanel] = useState<FilterPanel | null>(null);
-  const closePanel = () => setPanel(null);
+  const facets: FilterFacet[] = [
+    {
+      id: "kind",
+      label: "Type",
+      options: (Object.keys(kbReportKindLabels) as KbReportKind[]).map(
+        (kind) => ({ value: kind, label: kbReportKindLabels[kind] }),
+      ),
+      selected: kindFilters,
+      onToggle: (value) => onToggleKind(value as KbReportKind),
+    },
+    {
+      id: "status",
+      label: "Status",
+      options: (Object.keys(kbReportStatusLabels) as KbReportStatus[]).map(
+        (status) => ({ value: status, label: kbReportStatusLabels[status] }),
+      ),
+      selected: statusFilters,
+      onToggle: (value) => onToggleStatus(value as KbReportStatus),
+    },
+    {
+      id: "sort",
+      label: "Sort by",
+      single: true,
+      hideCount: true,
+      options: (Object.keys(sortLabels) as ReportSort[]).map((option) => ({
+        value: option,
+        label: sortLabels[option],
+      })),
+      selected: [sort],
+      onToggle: (value) => onSetSort(value as ReportSort),
+    },
+  ];
 
   return (
-    <Popover
-      open={open}
-      onOpenChange={(next) => {
-        setOpen(next);
-        if (!next) setPanel(null);
-      }}
-    >
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          className="relative h-9 gap-1.5 px-2.5"
-        >
-          <ListFilter className="size-3.5" />
-          Filter
-          {activeFilterCount > 0 ? (
-            <span className="bg-primary text-primary-foreground absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full text-xs font-semibold">
-              {activeFilterCount}
-            </span>
-          ) : null}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-60 p-0" align="end">
-        {panel === null ? (
-          <Command>
-            <CommandList>
-              <CommandGroup>
-                <CommandItem
-                  onSelect={() => setPanel("kind")}
-                  className="flex items-center justify-between"
-                >
-                  <span>Type</span>
-                  <div className="flex items-center">
-                    {kindFilters.length > 0 ? (
-                      <span className="mr-1 text-xs text-zinc-500">
-                        {kindFilters.length}
-                      </span>
-                    ) : null}
-                    <ChevronRight className="size-4" />
-                  </div>
-                </CommandItem>
-                <CommandItem
-                  onSelect={() => setPanel("status")}
-                  className="flex items-center justify-between"
-                >
-                  <span>Status</span>
-                  <div className="flex items-center">
-                    {statusFilters.length > 0 ? (
-                      <span className="mr-1 text-xs text-zinc-500">
-                        {statusFilters.length}
-                      </span>
-                    ) : null}
-                    <ChevronRight className="size-4" />
-                  </div>
-                </CommandItem>
-                <CommandItem
-                  onSelect={() => setPanel("sort")}
-                  className="flex items-center justify-between"
-                >
-                  <span>Sort by</span>
-                  <ChevronRight className="size-4" />
-                </CommandItem>
-              </CommandGroup>
-              {activeFilterCount > 0 ? (
-                <>
-                  <CommandSeparator />
-                  <CommandGroup>
-                    <CommandItem onSelect={onClearFilters}>
-                      Clear all filters
-                    </CommandItem>
-                  </CommandGroup>
-                </>
-              ) : null}
-            </CommandList>
-          </Command>
-        ) : panel === "kind" ? (
-          <Command>
-            <FilterPanelHeader title="Type" onBack={closePanel} />
-            <CommandList>
-              <CommandGroup>
-                {(Object.keys(kbReportKindLabels) as KbReportKind[]).map(
-                  (kind) => (
-                    <CommandItem
-                      key={kind}
-                      onSelect={() => onToggleKind(kind)}
-                      className="flex items-center justify-between"
-                    >
-                      {kbReportKindLabels[kind]}
-                      {kindFilters.includes(kind) ? (
-                        <CheckIcon className="size-4" />
-                      ) : null}
-                    </CommandItem>
-                  ),
-                )}
-              </CommandGroup>
-            </CommandList>
-          </Command>
-        ) : panel === "status" ? (
-          <Command>
-            <FilterPanelHeader title="Status" onBack={closePanel} />
-            <CommandList>
-              <CommandGroup>
-                {(Object.keys(kbReportStatusLabels) as KbReportStatus[]).map(
-                  (status) => (
-                    <CommandItem
-                      key={status}
-                      onSelect={() => onToggleStatus(status)}
-                      className="flex items-center justify-between"
-                    >
-                      {kbReportStatusLabels[status]}
-                      {statusFilters.includes(status) ? (
-                        <CheckIcon className="size-4" />
-                      ) : null}
-                    </CommandItem>
-                  ),
-                )}
-              </CommandGroup>
-            </CommandList>
-          </Command>
-        ) : (
-          <Command>
-            <FilterPanelHeader title="Sort by" onBack={closePanel} />
-            <CommandList>
-              <CommandGroup>
-                {(Object.keys(sortLabels) as ReportSort[]).map((option) => (
-                  <CommandItem
-                    key={option}
-                    onSelect={() => {
-                      onSetSort(option);
-                      closePanel();
-                    }}
-                    className="flex items-center justify-between"
-                  >
-                    {sortLabels[option]}
-                    {sort === option ? <CheckIcon className="size-4" /> : null}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </CommandList>
-          </Command>
-        )}
-      </PopoverContent>
-    </Popover>
+    <FilterMenu
+      facets={facets}
+      activeCount={activeFilterCount}
+      onClear={onClearFilters}
+    />
   );
 }
 
@@ -542,14 +400,11 @@ export function ReportsCenter() {
   const stats = getReportStats();
 
   return (
-    <main
-      id="main-content"
-      className="bg-background flex min-h-0 flex-1 flex-col overflow-hidden"
-    >
-      <div className="bg-background shrink-0 border-b">
-        <div className="flex flex-col gap-2 px-4 py-3 sm:px-6 lg:min-h-14 lg:flex-row lg:items-center lg:justify-between lg:gap-4 lg:py-2">
-          <div className="min-w-0 flex-1">
-            <InputGroup className="h-9 w-full lg:max-w-sm">
+    <ModuleShell
+      toolbar={
+        <>
+          <ModuleToolbarSearch>
+            <InputGroup className="h-9 w-full">
               <InputGroupAddon>
                 <Search />
               </InputGroupAddon>
@@ -559,9 +414,9 @@ export function ReportsCenter() {
                 onChange={(event) => setSearchQuery(event.target.value)}
               />
             </InputGroup>
-          </div>
+          </ModuleToolbarSearch>
 
-          <div className="flex min-w-0 flex-wrap items-center gap-2 lg:justify-end">
+          <ModuleToolbarActions>
             <ReportFilterControl
               kindFilters={kindFilters}
               statusFilters={statusFilters}
@@ -587,191 +442,185 @@ export function ReportsCenter() {
               <span className="hidden sm:inline">Generate report</span>
               <span className="sm:hidden">Generate</span>
             </Button>
-          </div>
-        </div>
-      </div>
+          </ModuleToolbarActions>
+        </>
+      }
+    >
+      <KbStatsStrip stats={stats} />
 
-      <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6">
-        <div className="mx-auto flex w-full flex-col gap-4">
-          <KbStatsStrip stats={stats} />
-
-          <div className="border-border/70 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-dashed px-3 py-2.5">
-            <div className="flex min-w-0 flex-wrap items-center gap-2">
-              <FileBarChart className="text-muted-foreground size-3.5 shrink-0" />
-              <p className="text-muted-foreground text-xs">
-                Executive board pack is available as a one-click Markdown
-                export. Compliance activity also links{" "}
-                <Link
-                  href="/compliance"
-                  className="text-foreground font-medium underline-offset-2 hover:underline"
-                >
-                  Compliance
-                </Link>
-                .
-              </p>
-            </div>
-            <Button
-              size="sm"
-              variant="outline"
-              className="h-8 gap-1.5"
-              onClick={() => {
-                const filename = downloadExecutiveBoardPack();
-                toast({
-                  title: "Board pack downloaded",
-                  description: filename,
-                });
-              }}
+      <div className="border-border/70 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-dashed px-3 py-2.5">
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
+          <FileBarChart className="text-muted-foreground size-3.5 shrink-0" />
+          <p className="text-muted-foreground text-xs">
+            Executive board pack is available as a one-click Markdown export.
+            Compliance activity also links{" "}
+            <Link
+              href="/compliance"
+              className="text-foreground font-medium underline-offset-2 hover:underline"
             >
-              <Download className="size-3.5" />
-              Download board pack
-            </Button>
-          </div>
-
-          {pagedReports.length === 0 ? (
-            <EmptyState
-              icon={FileBarChart}
-              title="No reports match"
-              description="Try a different type or status, or clear filters to see scheduled deliveries."
-              action={
-                <Button variant="outline" size="sm" onClick={resetFilters}>
-                  Reset filters
-                </Button>
-              }
-            />
-          ) : (
-            <div className="bg-card shadow-card overflow-hidden rounded-xl border">
-              <Table>
-                <TableHeader>
-                  <TableRow className="hover:bg-transparent">
-                    <TableHead className="w-[36%]">Report</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="hidden md:table-cell">
-                      Period
-                    </TableHead>
-                    <TableHead>Owner</TableHead>
-                    <TableHead className="hidden lg:table-cell text-right">
-                      Size
-                    </TableHead>
-                    <TableHead className="w-12" />
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {pagedReports.map((report) => (
-                    <TableRow
-                      key={report.id}
-                      className="cursor-pointer"
-                      onClick={() => setSelected(report)}
-                    >
-                      <TableCell>
-                        <div className="min-w-0 space-y-1">
-                          <span className="text-muted-foreground font-mono text-xs">
-                            {report.code}
-                          </span>
-                          <p className="text-sm font-medium">{report.title}</p>
-                          <p className="text-muted-foreground line-clamp-1 text-xs">
-                            {report.summary}
-                          </p>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant="secondary"
-                          className="rounded-full font-medium"
-                        >
-                          {kbReportKindLabels[report.kind]}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <ReportStatusBadge status={report.status} />
-                      </TableCell>
-                      <TableCell className="hidden md:table-cell">
-                        <div className="space-y-0.5">
-                          <p className="text-sm">{report.periodLabel}</p>
-                          <p className="text-muted-foreground text-xs">
-                            {report.generatedLabel}
-                          </p>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <OwnerCell
-                          userId={report.ownerId}
-                          href={`/administration/users/${report.ownerId}`}
-                        />
-                      </TableCell>
-                      <TableCell className="hidden text-right text-sm tabular-nums lg:table-cell">
-                        {report.sizeLabel}
-                      </TableCell>
-                      <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="size-8"
-                              onClick={(event) => event.stopPropagation()}
-                              aria-label="Report actions"
-                            >
-                              <Ellipsis className="size-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-48">
-                            <DropdownMenuItem
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                downloadReport(report);
-                              }}
-                            >
-                              <Download className="size-3.5" />
-                              Download
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                regenerateReport(report);
-                              }}
-                            >
-                              <RefreshCw className="size-3.5" />
-                              Regenerate
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                scheduleReport(report);
-                              }}
-                            >
-                              <CalendarClock className="size-3.5" />
-                              Schedule
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            {report.related.slice(0, 2).map((link) => (
-                              <DropdownMenuItem key={link.href} asChild>
-                                <Link
-                                  href={link.href}
-                                  onClick={(e) => e.stopPropagation()}
-                                >
-                                  {link.label}
-                                </Link>
-                              </DropdownMenuItem>
-                            ))}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-              <ListPagination
-                page={safePage}
-                pageSize={pageSize}
-                total={visibleReports.length}
-                onPageChange={setPage}
-                onPageSizeChange={setPageSize}
-              />
-            </div>
-          )}
+              Compliance
+            </Link>
+            .
+          </p>
         </div>
+        <Button
+          size="sm"
+          variant="outline"
+          className="h-8 gap-1.5"
+          onClick={() => {
+            const filename = downloadExecutiveBoardPack();
+            toast({
+              title: "Board pack downloaded",
+              description: filename,
+            });
+          }}
+        >
+          <Download className="size-3.5" />
+          Download board pack
+        </Button>
       </div>
+
+      {pagedReports.length === 0 ? (
+        <EmptyState
+          icon={FileBarChart}
+          title="No reports match"
+          description="Try a different type or status, or clear filters to see scheduled deliveries."
+          action={
+            <Button variant="outline" size="sm" onClick={resetFilters}>
+              Reset filters
+            </Button>
+          }
+        />
+      ) : (
+        <div className="bg-card shadow-card overflow-hidden rounded-xl border">
+          <Table className="max-md:table-fixed">
+            <TableHeader>
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="md:w-[36%]">Report</TableHead>
+                <TableHead className="hidden sm:table-cell">Type</TableHead>
+                <TableHead className="hidden md:table-cell">Status</TableHead>
+                <TableHead className="hidden md:table-cell">Period</TableHead>
+                <TableHead className="hidden lg:table-cell">Owner</TableHead>
+                <TableHead className="hidden lg:table-cell text-right">
+                  Size
+                </TableHead>
+                <TableHead className="w-12" />
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {pagedReports.map((report) => (
+                <TableRow
+                  key={report.id}
+                  className="cursor-pointer"
+                  onClick={() => setSelected(report)}
+                >
+                  <TableCell>
+                    <div className="min-w-0 space-y-1">
+                      <span className="text-muted-foreground font-mono text-xs">
+                        {report.code}
+                      </span>
+                      <p className="text-sm font-medium">{report.title}</p>
+                      <p className="text-muted-foreground line-clamp-1 text-xs">
+                        {report.summary}
+                      </p>
+                    </div>
+                  </TableCell>
+                  <TableCell className="hidden sm:table-cell">
+                    <Badge
+                      variant="secondary"
+                      className="rounded-full font-medium"
+                    >
+                      {kbReportKindLabels[report.kind]}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="hidden md:table-cell">
+                    <ReportStatusBadge status={report.status} />
+                  </TableCell>
+                  <TableCell className="hidden md:table-cell">
+                    <div className="space-y-0.5">
+                      <p className="text-sm">{report.periodLabel}</p>
+                      <p className="text-muted-foreground text-xs">
+                        {report.generatedLabel}
+                      </p>
+                    </div>
+                  </TableCell>
+                  <TableCell className="hidden lg:table-cell">
+                    <OwnerCell
+                      userId={report.ownerId}
+                      href={`/administration/users/${report.ownerId}`}
+                    />
+                  </TableCell>
+                  <TableCell className="hidden text-right text-sm tabular-nums lg:table-cell">
+                    {report.sizeLabel}
+                  </TableCell>
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="size-8"
+                          onClick={(event) => event.stopPropagation()}
+                          aria-label="Report actions"
+                        >
+                          <Ellipsis className="size-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-48">
+                        <DropdownMenuItem
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            downloadReport(report);
+                          }}
+                        >
+                          <Download className="size-3.5" />
+                          Download
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            regenerateReport(report);
+                          }}
+                        >
+                          <RefreshCw className="size-3.5" />
+                          Regenerate
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            scheduleReport(report);
+                          }}
+                        >
+                          <CalendarClock className="size-3.5" />
+                          Schedule
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        {report.related.slice(0, 2).map((link) => (
+                          <DropdownMenuItem key={link.href} asChild>
+                            <Link
+                              href={link.href}
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {link.label}
+                            </Link>
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+          <ListPagination
+            page={safePage}
+            pageSize={pageSize}
+            total={visibleReports.length}
+            onPageChange={setPage}
+            onPageSizeChange={setPageSize}
+          />
+        </div>
+      )}
 
       <Dialog
         open={generateOpen}
@@ -878,7 +727,7 @@ export function ReportsCenter() {
                   </div>
                 </div>
                 <div className="space-y-1.5">
-                  <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+                  <p className="text-muted-foreground text-caption font-medium">
                     Owner
                   </p>
                   <OwnerCell
@@ -887,7 +736,7 @@ export function ReportsCenter() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+                  <p className="text-muted-foreground text-caption font-medium">
                     Scope links
                   </p>
                   <RelatedLinks links={selected.related} />
@@ -916,6 +765,6 @@ export function ReportsCenter() {
           ) : null}
         </SheetContent>
       </Sheet>
-    </main>
+    </ModuleShell>
   );
 }

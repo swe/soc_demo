@@ -1,13 +1,10 @@
 "use client";
 
 import {
-  CheckIcon,
-  ChevronRight,
   ClipboardList,
   Copy,
   Download,
   Ellipsis,
-  ListFilter,
   Play,
   Plus,
   Search,
@@ -30,14 +27,13 @@ import {
   subscribePlaybooks,
   upsertPlaybook,
 } from "@/components/playbooks/playbooks-session";
-import { Button } from "@/components/ui/button";
+import { type FilterFacet, FilterMenu } from "@/components/soc/filter-menu";
 import {
-  Command,
-  CommandGroup,
-  CommandItem,
-  CommandList,
-  CommandSeparator,
-} from "@/components/ui/command";
+  ModuleShell,
+  ModuleToolbarActions,
+  ModuleToolbarSearch,
+} from "@/components/soc/module-shell";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -60,11 +56,6 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group";
 import { Label } from "@/components/ui/label";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -107,8 +98,6 @@ import {
   ProcedureStatusBadge,
   RelatedLinks,
 } from "./knowledge-base-primitives";
-
-type FilterPanel = "severity" | "status" | "sort";
 
 type ProcedureSort = "severity" | "runs-desc" | "updated-desc" | "title-asc";
 
@@ -165,28 +154,6 @@ function procedureMarkdown(procedure: KbProcedure) {
     .join("\n");
 }
 
-function FilterPanelHeader({
-  title,
-  onBack,
-}: {
-  title: string;
-  onBack: () => void;
-}) {
-  return (
-    <div className="flex items-center border-b p-2">
-      <Button
-        variant="ghost"
-        size="sm"
-        className="h-7 gap-1 px-2 text-xs"
-        onClick={onBack}
-      >
-        <ChevronRight className="size-3.5 rotate-180" />
-        {title}
-      </Button>
-    </div>
-  );
-}
-
 function ProcedureFilterControl({
   severityFilters,
   statusFilters,
@@ -206,156 +173,51 @@ function ProcedureFilterControl({
   onSetSort: (sort: ProcedureSort) => void;
   onClearFilters: () => void;
 }) {
-  const [open, setOpen] = useState(false);
-  const [panel, setPanel] = useState<FilterPanel | null>(null);
-  const closePanel = () => setPanel(null);
+  const facets: FilterFacet[] = [
+    {
+      id: "severity",
+      label: "Severity",
+      options: (
+        Object.keys(kbProcedureSeverityLabels) as KbProcedureSeverity[]
+      ).map((severity) => ({
+        value: severity,
+        label: kbProcedureSeverityLabels[severity],
+      })),
+      selected: severityFilters,
+      onToggle: (value) => onToggleSeverity(value as KbProcedureSeverity),
+    },
+    {
+      id: "status",
+      label: "Status",
+      options: (
+        Object.keys(kbProcedureStatusLabels) as KbProcedureStatus[]
+      ).map((status) => ({
+        value: status,
+        label: kbProcedureStatusLabels[status],
+      })),
+      selected: statusFilters,
+      onToggle: (value) => onToggleStatus(value as KbProcedureStatus),
+    },
+    {
+      id: "sort",
+      label: "Sort by",
+      single: true,
+      hideCount: true,
+      options: (Object.keys(sortLabels) as ProcedureSort[]).map((option) => ({
+        value: option,
+        label: sortLabels[option],
+      })),
+      selected: [sort],
+      onToggle: (value) => onSetSort(value as ProcedureSort),
+    },
+  ];
 
   return (
-    <Popover
-      open={open}
-      onOpenChange={(next) => {
-        setOpen(next);
-        if (!next) setPanel(null);
-      }}
-    >
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          className="relative h-9 gap-1.5 px-2.5"
-        >
-          <ListFilter className="size-3.5" />
-          Filter
-          {activeFilterCount > 0 ? (
-            <span className="bg-primary text-primary-foreground absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full text-xs font-semibold">
-              {activeFilterCount}
-            </span>
-          ) : null}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-60 p-0" align="end">
-        {panel === null ? (
-          <Command>
-            <CommandList>
-              <CommandGroup>
-                <CommandItem
-                  onSelect={() => setPanel("severity")}
-                  className="flex items-center justify-between"
-                >
-                  <span>Severity</span>
-                  <div className="flex items-center">
-                    {severityFilters.length > 0 ? (
-                      <span className="mr-1 text-xs text-zinc-500">
-                        {severityFilters.length}
-                      </span>
-                    ) : null}
-                    <ChevronRight className="size-4" />
-                  </div>
-                </CommandItem>
-                <CommandItem
-                  onSelect={() => setPanel("status")}
-                  className="flex items-center justify-between"
-                >
-                  <span>Status</span>
-                  <div className="flex items-center">
-                    {statusFilters.length > 0 ? (
-                      <span className="mr-1 text-xs text-zinc-500">
-                        {statusFilters.length}
-                      </span>
-                    ) : null}
-                    <ChevronRight className="size-4" />
-                  </div>
-                </CommandItem>
-                <CommandItem
-                  onSelect={() => setPanel("sort")}
-                  className="flex items-center justify-between"
-                >
-                  <span>Sort by</span>
-                  <ChevronRight className="size-4" />
-                </CommandItem>
-              </CommandGroup>
-              {activeFilterCount > 0 ? (
-                <>
-                  <CommandSeparator />
-                  <CommandGroup>
-                    <CommandItem onSelect={onClearFilters}>
-                      Clear all filters
-                    </CommandItem>
-                  </CommandGroup>
-                </>
-              ) : null}
-            </CommandList>
-          </Command>
-        ) : panel === "severity" ? (
-          <Command>
-            <FilterPanelHeader title="Severity" onBack={closePanel} />
-            <CommandList>
-              <CommandGroup>
-                {(
-                  Object.keys(
-                    kbProcedureSeverityLabels,
-                  ) as KbProcedureSeverity[]
-                ).map((severity) => (
-                  <CommandItem
-                    key={severity}
-                    onSelect={() => onToggleSeverity(severity)}
-                    className="flex items-center justify-between"
-                  >
-                    {kbProcedureSeverityLabels[severity]}
-                    {severityFilters.includes(severity) ? (
-                      <CheckIcon className="size-4" />
-                    ) : null}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </CommandList>
-          </Command>
-        ) : panel === "status" ? (
-          <Command>
-            <FilterPanelHeader title="Status" onBack={closePanel} />
-            <CommandList>
-              <CommandGroup>
-                {(
-                  Object.keys(kbProcedureStatusLabels) as KbProcedureStatus[]
-                ).map((status) => (
-                  <CommandItem
-                    key={status}
-                    onSelect={() => onToggleStatus(status)}
-                    className="flex items-center justify-between"
-                  >
-                    {kbProcedureStatusLabels[status]}
-                    {statusFilters.includes(status) ? (
-                      <CheckIcon className="size-4" />
-                    ) : null}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </CommandList>
-          </Command>
-        ) : (
-          <Command>
-            <FilterPanelHeader title="Sort by" onBack={closePanel} />
-            <CommandList>
-              <CommandGroup>
-                {(Object.keys(sortLabels) as ProcedureSort[]).map((option) => (
-                  <CommandItem
-                    key={option}
-                    onSelect={() => {
-                      onSetSort(option);
-                      closePanel();
-                    }}
-                    className="flex items-center justify-between"
-                  >
-                    {sortLabels[option]}
-                    {sort === option ? <CheckIcon className="size-4" /> : null}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </CommandList>
-          </Command>
-        )}
-      </PopoverContent>
-    </Popover>
+    <FilterMenu
+      facets={facets}
+      activeCount={activeFilterCount}
+      onClear={onClearFilters}
+    />
   );
 }
 
@@ -568,14 +430,11 @@ export function ProceduresCenter() {
       : DEFAULT_RUN_INCIDENTS;
 
   return (
-    <main
-      id="main-content"
-      className="bg-background flex min-h-0 flex-1 flex-col overflow-hidden"
-    >
-      <div className="bg-background shrink-0 border-b">
-        <div className="flex flex-col gap-2 px-4 py-3 sm:px-6 lg:min-h-14 lg:flex-row lg:items-center lg:justify-between lg:gap-4 lg:py-2">
-          <div className="min-w-0 flex-1">
-            <InputGroup className="h-9 w-full lg:max-w-sm">
+    <ModuleShell
+      toolbar={
+        <>
+          <ModuleToolbarSearch>
+            <InputGroup className="h-9 w-full">
               <InputGroupAddon>
                 <Search />
               </InputGroupAddon>
@@ -585,9 +444,9 @@ export function ProceduresCenter() {
                 onChange={(event) => setSearchQuery(event.target.value)}
               />
             </InputGroup>
-          </div>
+          </ModuleToolbarSearch>
 
-          <div className="flex min-w-0 flex-wrap items-center gap-2 lg:justify-end">
+          <ModuleToolbarActions>
             <ProcedureFilterControl
               severityFilters={severityFilters}
               statusFilters={statusFilters}
@@ -614,189 +473,190 @@ export function ProceduresCenter() {
               <span className="hidden sm:inline">New procedure</span>
               <span className="sm:hidden">New</span>
             </Button>
-          </div>
-        </div>
-      </div>
+          </ModuleToolbarActions>
+        </>
+      }
+    >
+      <KbStatsStrip stats={stats} />
 
-      <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6">
-        <div className="mx-auto flex w-full flex-col gap-4">
-          <KbStatsStrip stats={stats} />
-
-          {pagedProcedures.length === 0 ? (
-            <EmptyState
-              icon={ClipboardList}
-              title="No procedures match"
-              description="Adjust severity or status filters, or clear search to see the full catalog."
-              action={
-                <Button variant="outline" size="sm" onClick={resetFilters}>
-                  Reset filters
-                </Button>
-              }
-            />
-          ) : (
-            <div className="bg-card shadow-card overflow-hidden rounded-xl border">
-              <Table>
-                <TableHeader>
-                  <TableRow className="hover:bg-transparent">
-                    <TableHead className="w-[38%]">Procedure</TableHead>
-                    <TableHead>Severity</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Owner</TableHead>
-                    <TableHead className="hidden lg:table-cell">
-                      Linked cases
-                    </TableHead>
-                    <TableHead className="text-right">Runs</TableHead>
-                    <TableHead className="w-12" />
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {pagedProcedures.map((procedure) => (
-                    <TableRow
-                      key={procedure.id}
-                      className="cursor-pointer"
-                      onClick={() => setSelected(procedure)}
-                    >
-                      <TableCell>
-                        <div className="min-w-0 space-y-1">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <span className="text-muted-foreground font-mono text-xs">
-                              {procedure.code}
-                            </span>
-                            {procedure.mitreTactic ? (
-                              <span className="border-border/70 bg-background rounded-md border px-1.5 py-0.5 text-xs font-medium">
-                                {procedure.mitreTactic}
-                              </span>
-                            ) : null}
-                          </div>
-                          <p className="text-sm font-medium">
-                            {procedure.title}
-                          </p>
-                          <p className="text-muted-foreground line-clamp-1 text-xs">
-                            {procedure.summary}
-                          </p>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <ProcedureSeverityBadge severity={procedure.severity} />
-                      </TableCell>
-                      <TableCell>
-                        <ProcedureStatusBadge status={procedure.status} />
-                      </TableCell>
-                      <TableCell>
-                        <OwnerCell
-                          userId={procedure.ownerId}
-                          href={`/administration/users/${procedure.ownerId}`}
-                        />
-                      </TableCell>
-                      <TableCell className="hidden lg:table-cell">
-                        <div className="flex flex-wrap gap-1">
-                          {procedure.linkedIncidentIds.slice(0, 2).map((id) => (
-                            <Link
-                              key={id}
-                              href={`/incidents/${id}`}
-                              onClick={(event) => event.stopPropagation()}
-                              className={chipLinkClassName}
-                            >
-                              {id}
-                            </Link>
-                          ))}
-                          {procedure.linkedAlertIds.slice(0, 1).map((id) => (
-                            <Link
-                              key={id}
-                              href={`/alerts/${id}`}
-                              onClick={(event) => event.stopPropagation()}
-                              className={chipLinkClassName}
-                            >
-                              {id}
-                            </Link>
-                          ))}
-                          {procedure.linkedIncidentIds.length +
-                            procedure.linkedAlertIds.length ===
-                          0 ? (
-                            <span className="text-muted-foreground text-xs">
-                              —
-                            </span>
-                          ) : null}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right tabular-nums">
-                        <div className="space-y-0.5">
-                          <p className="text-sm font-medium">
-                            {procedure.runCount}
-                          </p>
-                          <p className="text-muted-foreground text-xs">
-                            {procedure.lastRunLabel}
-                          </p>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="size-8"
-                              onClick={(event) => event.stopPropagation()}
-                              aria-label="Procedure actions"
-                            >
-                              <Ellipsis className="size-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-52">
-                            <DropdownMenuItem
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                openRunDialog(procedure);
-                              }}
-                            >
-                              <Play className="size-3.5" />
-                              Run against incident
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                duplicateProcedure(procedure);
-                              }}
-                            >
-                              <Copy className="size-3.5" />
-                              Duplicate
-                            </DropdownMenuItem>
-                            <DropdownMenuItem asChild>
-                              <Link
-                                href="/incidents/list"
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                View linked cases
-                              </Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                exportProcedure(procedure);
-                              }}
-                            >
-                              <Download className="size-3.5" />
-                              Export
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-              <ListPagination
-                page={safePage}
-                pageSize={pageSize}
-                total={visibleProcedures.length}
-                onPageChange={setPage}
-                onPageSizeChange={setPageSize}
-              />
-            </div>
-          )}
+      {pagedProcedures.length === 0 ? (
+        <EmptyState
+          icon={ClipboardList}
+          title="No procedures match"
+          description="Adjust severity or status filters, or clear search to see the full catalog."
+          action={
+            <Button variant="outline" size="sm" onClick={resetFilters}>
+              Reset filters
+            </Button>
+          }
+        />
+      ) : (
+        <div className="bg-card shadow-card overflow-hidden rounded-xl border">
+          <Table className="max-md:table-fixed">
+            <TableHeader>
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="md:w-[38%]">Procedure</TableHead>
+                <TableHead className="hidden sm:table-cell">Severity</TableHead>
+                <TableHead className="hidden md:table-cell">Status</TableHead>
+                <TableHead className="hidden lg:table-cell">Owner</TableHead>
+                <TableHead className="hidden lg:table-cell">
+                  Linked cases
+                </TableHead>
+                <TableHead className="hidden xl:table-cell text-right">
+                  Runs
+                </TableHead>
+                <TableHead className="w-12" />
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {pagedProcedures.map((procedure) => (
+                <TableRow
+                  key={procedure.id}
+                  className="cursor-pointer"
+                  onClick={() => setSelected(procedure)}
+                >
+                  <TableCell>
+                    <div className="min-w-0 space-y-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-muted-foreground font-mono text-xs">
+                          {procedure.code}
+                        </span>
+                        {procedure.mitreTactic ? (
+                          <span className="border-border/70 bg-background rounded-md border px-1.5 py-0.5 text-xs font-medium">
+                            {procedure.mitreTactic}
+                          </span>
+                        ) : null}
+                        <span className="sm:hidden">
+                          <ProcedureSeverityBadge
+                            severity={procedure.severity}
+                          />
+                        </span>
+                      </div>
+                      <p className="text-sm font-medium whitespace-normal">
+                        {procedure.title}
+                      </p>
+                      <p className="text-muted-foreground line-clamp-1 text-xs">
+                        {procedure.summary}
+                      </p>
+                    </div>
+                  </TableCell>
+                  <TableCell className="hidden sm:table-cell">
+                    <ProcedureSeverityBadge severity={procedure.severity} />
+                  </TableCell>
+                  <TableCell className="hidden md:table-cell">
+                    <ProcedureStatusBadge status={procedure.status} />
+                  </TableCell>
+                  <TableCell className="hidden lg:table-cell">
+                    <OwnerCell
+                      userId={procedure.ownerId}
+                      href={`/administration/users/${procedure.ownerId}`}
+                    />
+                  </TableCell>
+                  <TableCell className="hidden lg:table-cell">
+                    <div className="flex flex-wrap gap-1">
+                      {procedure.linkedIncidentIds.slice(0, 2).map((id) => (
+                        <Link
+                          key={id}
+                          href={`/incidents/${id}`}
+                          onClick={(event) => event.stopPropagation()}
+                          className={chipLinkClassName}
+                        >
+                          {id}
+                        </Link>
+                      ))}
+                      {procedure.linkedAlertIds.slice(0, 1).map((id) => (
+                        <Link
+                          key={id}
+                          href={`/alerts/${id}`}
+                          onClick={(event) => event.stopPropagation()}
+                          className={chipLinkClassName}
+                        >
+                          {id}
+                        </Link>
+                      ))}
+                      {procedure.linkedIncidentIds.length +
+                        procedure.linkedAlertIds.length ===
+                      0 ? (
+                        <span className="text-muted-foreground text-xs">—</span>
+                      ) : null}
+                    </div>
+                  </TableCell>
+                  <TableCell className="hidden xl:table-cell text-right tabular-nums">
+                    <div className="space-y-0.5">
+                      <p className="text-sm font-medium">
+                        {procedure.runCount}
+                      </p>
+                      <p className="text-muted-foreground text-xs">
+                        {procedure.lastRunLabel}
+                      </p>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="size-8"
+                          onClick={(event) => event.stopPropagation()}
+                          aria-label="Procedure actions"
+                        >
+                          <Ellipsis className="size-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-52">
+                        <DropdownMenuItem
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            openRunDialog(procedure);
+                          }}
+                        >
+                          <Play className="size-3.5" />
+                          Run against incident
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            duplicateProcedure(procedure);
+                          }}
+                        >
+                          <Copy className="size-3.5" />
+                          Duplicate
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link
+                            href="/incidents/list"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            View linked cases
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            exportProcedure(procedure);
+                          }}
+                        >
+                          <Download className="size-3.5" />
+                          Export
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+          <ListPagination
+            page={safePage}
+            pageSize={pageSize}
+            total={visibleProcedures.length}
+            onPageChange={setPage}
+            onPageSizeChange={setPageSize}
+          />
         </div>
-      </div>
+      )}
 
       <Dialog
         open={newOpen}
@@ -965,7 +825,7 @@ export function ProceduresCenter() {
                   </div>
                 </div>
                 <div className="space-y-1.5">
-                  <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+                  <p className="text-muted-foreground text-caption font-medium">
                     Owner
                   </p>
                   <OwnerCell
@@ -974,7 +834,7 @@ export function ProceduresCenter() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+                  <p className="text-muted-foreground text-caption font-medium">
                     Linked incidents
                   </p>
                   <div className="flex flex-wrap gap-1.5">
@@ -996,7 +856,7 @@ export function ProceduresCenter() {
                   </div>
                 </div>
                 <div className="space-y-1.5">
-                  <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+                  <p className="text-muted-foreground text-caption font-medium">
                     Linked alerts
                   </p>
                   <div className="flex flex-wrap gap-1.5">
@@ -1018,7 +878,7 @@ export function ProceduresCenter() {
                   </div>
                 </div>
                 <div className="space-y-1.5">
-                  <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+                  <p className="text-muted-foreground text-caption font-medium">
                     Related
                   </p>
                   <RelatedLinks links={selected.related} />
@@ -1042,6 +902,6 @@ export function ProceduresCenter() {
           ) : null}
         </SheetContent>
       </Sheet>
-    </main>
+    </ModuleShell>
   );
 }

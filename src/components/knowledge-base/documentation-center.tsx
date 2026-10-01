@@ -2,13 +2,10 @@
 
 import {
   BookOpen,
-  CheckIcon,
-  ChevronRight,
   Clock3,
   Ellipsis,
   FilePlus,
   FileText,
-  ListFilter,
   Search,
   Upload,
 } from "lucide-react";
@@ -16,14 +13,13 @@ import Link from "next/link";
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
 
 import { ListPagination, paginateItems } from "@/components/list-pagination";
-import { Button } from "@/components/ui/button";
+import { type FilterFacet, FilterMenu } from "@/components/soc/filter-menu";
 import {
-  Command,
-  CommandGroup,
-  CommandItem,
-  CommandList,
-  CommandSeparator,
-} from "@/components/ui/command";
+  ModuleShell,
+  ModuleToolbarActions,
+  ModuleToolbarSearch,
+} from "@/components/soc/module-shell";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -46,11 +42,6 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group";
 import { Label } from "@/components/ui/label";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -85,8 +76,6 @@ import {
   OwnerCell,
   RelatedLinks,
 } from "./knowledge-base-primitives";
-
-type FilterPanel = "status" | "category";
 
 type DocSort = "updated-desc" | "title-asc" | "read-asc";
 
@@ -137,28 +126,6 @@ function documentBodyParagraphs(document: KbDocument) {
   ];
 }
 
-function FilterPanelHeader({
-  title,
-  onBack,
-}: {
-  title: string;
-  onBack: () => void;
-}) {
-  return (
-    <div className="flex items-center border-b p-2">
-      <Button
-        variant="ghost"
-        size="sm"
-        className="h-7 gap-1 px-2 text-xs"
-        onClick={onBack}
-      >
-        <ChevronRight className="size-3.5 rotate-180" />
-        {title}
-      </Button>
-    </div>
-  );
-}
-
 function DocFilterControl({
   statusFilters,
   categoryFilters,
@@ -178,154 +145,48 @@ function DocFilterControl({
   onSetSort: (sort: DocSort) => void;
   onClearFilters: () => void;
 }) {
-  const [open, setOpen] = useState(false);
-  const [panel, setPanel] = useState<FilterPanel | "sort" | null>(null);
-  const closePanel = () => setPanel(null);
+  const facets: FilterFacet[] = [
+    {
+      id: "status",
+      label: "Status",
+      options: (Object.keys(kbDocStatusLabels) as KbDocStatus[]).map(
+        (status) => ({ value: status, label: kbDocStatusLabels[status] }),
+      ),
+      selected: statusFilters,
+      onToggle: (value) => onToggleStatus(value as KbDocStatus),
+    },
+    {
+      id: "category",
+      label: "Category",
+      options: (Object.keys(kbDocCategoryLabels) as KbDocCategory[]).map(
+        (category) => ({
+          value: category,
+          label: kbDocCategoryLabels[category],
+        }),
+      ),
+      selected: categoryFilters,
+      onToggle: (value) => onToggleCategory(value as KbDocCategory),
+    },
+    {
+      id: "sort",
+      label: "Sort by",
+      single: true,
+      hideCount: true,
+      options: (Object.keys(sortLabels) as DocSort[]).map((option) => ({
+        value: option,
+        label: sortLabels[option],
+      })),
+      selected: [sort],
+      onToggle: (value) => onSetSort(value as DocSort),
+    },
+  ];
 
   return (
-    <Popover
-      open={open}
-      onOpenChange={(next) => {
-        setOpen(next);
-        if (!next) setPanel(null);
-      }}
-    >
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          className="relative h-9 gap-1.5 px-2.5"
-        >
-          <ListFilter className="size-3.5" />
-          Filter
-          {activeFilterCount > 0 ? (
-            <span className="bg-primary text-primary-foreground absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full text-xs font-semibold">
-              {activeFilterCount}
-            </span>
-          ) : null}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-60 p-0" align="end">
-        {panel === null ? (
-          <Command>
-            <CommandList>
-              <CommandGroup>
-                <CommandItem
-                  onSelect={() => setPanel("status")}
-                  className="flex items-center justify-between"
-                >
-                  <span>Status</span>
-                  <div className="flex items-center">
-                    {statusFilters.length > 0 ? (
-                      <span className="mr-1 text-xs text-zinc-500">
-                        {statusFilters.length}
-                      </span>
-                    ) : null}
-                    <ChevronRight className="size-4" />
-                  </div>
-                </CommandItem>
-                <CommandItem
-                  onSelect={() => setPanel("category")}
-                  className="flex items-center justify-between"
-                >
-                  <span>Category</span>
-                  <div className="flex items-center">
-                    {categoryFilters.length > 0 ? (
-                      <span className="mr-1 text-xs text-zinc-500">
-                        {categoryFilters.length}
-                      </span>
-                    ) : null}
-                    <ChevronRight className="size-4" />
-                  </div>
-                </CommandItem>
-                <CommandItem
-                  onSelect={() => setPanel("sort")}
-                  className="flex items-center justify-between"
-                >
-                  <span>Sort by</span>
-                  <ChevronRight className="size-4" />
-                </CommandItem>
-              </CommandGroup>
-              {activeFilterCount > 0 ? (
-                <>
-                  <CommandSeparator />
-                  <CommandGroup>
-                    <CommandItem onSelect={onClearFilters}>
-                      Clear all filters
-                    </CommandItem>
-                  </CommandGroup>
-                </>
-              ) : null}
-            </CommandList>
-          </Command>
-        ) : panel === "status" ? (
-          <Command>
-            <FilterPanelHeader title="Status" onBack={closePanel} />
-            <CommandList>
-              <CommandGroup>
-                {(Object.keys(kbDocStatusLabels) as KbDocStatus[]).map(
-                  (status) => (
-                    <CommandItem
-                      key={status}
-                      onSelect={() => onToggleStatus(status)}
-                      className="flex items-center justify-between"
-                    >
-                      {kbDocStatusLabels[status]}
-                      {statusFilters.includes(status) ? (
-                        <CheckIcon className="size-4" />
-                      ) : null}
-                    </CommandItem>
-                  ),
-                )}
-              </CommandGroup>
-            </CommandList>
-          </Command>
-        ) : panel === "category" ? (
-          <Command>
-            <FilterPanelHeader title="Category" onBack={closePanel} />
-            <CommandList>
-              <CommandGroup>
-                {(Object.keys(kbDocCategoryLabels) as KbDocCategory[]).map(
-                  (category) => (
-                    <CommandItem
-                      key={category}
-                      onSelect={() => onToggleCategory(category)}
-                      className="flex items-center justify-between"
-                    >
-                      {kbDocCategoryLabels[category]}
-                      {categoryFilters.includes(category) ? (
-                        <CheckIcon className="size-4" />
-                      ) : null}
-                    </CommandItem>
-                  ),
-                )}
-              </CommandGroup>
-            </CommandList>
-          </Command>
-        ) : (
-          <Command>
-            <FilterPanelHeader title="Sort by" onBack={closePanel} />
-            <CommandList>
-              <CommandGroup>
-                {(Object.keys(sortLabels) as DocSort[]).map((option) => (
-                  <CommandItem
-                    key={option}
-                    onSelect={() => {
-                      onSetSort(option);
-                      closePanel();
-                    }}
-                    className="flex items-center justify-between"
-                  >
-                    {sortLabels[option]}
-                    {sort === option ? <CheckIcon className="size-4" /> : null}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </CommandList>
-          </Command>
-        )}
-      </PopoverContent>
-    </Popover>
+    <FilterMenu
+      facets={facets}
+      activeCount={activeFilterCount}
+      onClear={onClearFilters}
+    />
   );
 }
 
@@ -349,7 +210,7 @@ function DocumentCard({
           onOpen(document);
         }
       }}
-      className="border-border/70 bg-card group flex cursor-pointer flex-col overflow-hidden rounded-xl border shadow-none transition-colors hover:border-zinc-300 dark:hover:border-white/16"
+      className="border-border/70 bg-card group flex cursor-pointer flex-col overflow-hidden rounded-xl border shadow-none transition-colors hover:border-foreground/20 dark:hover:border-white/16"
     >
       <div className="flex flex-1 flex-col gap-3 p-4">
         <div className="flex items-start justify-between gap-2">
@@ -620,14 +481,11 @@ export function DocumentationCenter() {
   const stats = getDocumentationStats();
 
   return (
-    <main
-      id="main-content"
-      className="bg-background flex min-h-0 flex-1 flex-col overflow-hidden"
-    >
-      <div className="bg-background shrink-0 border-b">
-        <div className="flex flex-col gap-2 px-4 py-3 sm:px-6 lg:min-h-14 lg:flex-row lg:items-center lg:justify-between lg:gap-4 lg:py-2">
-          <div className="min-w-0 flex-1">
-            <InputGroup className="h-9 w-full lg:max-w-sm">
+    <ModuleShell
+      toolbar={
+        <>
+          <ModuleToolbarSearch>
+            <InputGroup className="h-9 w-full">
               <InputGroupAddon>
                 <Search />
               </InputGroupAddon>
@@ -637,9 +495,9 @@ export function DocumentationCenter() {
                 onChange={(event) => setSearchQuery(event.target.value)}
               />
             </InputGroup>
-          </div>
+          </ModuleToolbarSearch>
 
-          <div className="flex min-w-0 flex-wrap items-center gap-2 lg:justify-end">
+          <ModuleToolbarActions>
             <DocFilterControl
               statusFilters={statusFilters}
               categoryFilters={categoryFilters}
@@ -668,50 +526,46 @@ export function DocumentationCenter() {
               <span className="hidden sm:inline">New document</span>
               <span className="sm:hidden">New</span>
             </Button>
-          </div>
-        </div>
-      </div>
+          </ModuleToolbarActions>
+        </>
+      }
+    >
+      <KbStatsStrip stats={stats} />
 
-      <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6">
-        <div className="mx-auto flex w-full flex-col gap-4">
-          <KbStatsStrip stats={stats} />
-
-          {pagedDocuments.length === 0 ? (
-            <EmptyState
-              icon={BookOpen}
-              title="No documents match"
-              description="Try clearing filters or searching a different code, tag, or owner."
-              action={
-                <Button variant="outline" size="sm" onClick={resetFilters}>
-                  Reset filters
-                </Button>
-              }
+      {pagedDocuments.length === 0 ? (
+        <EmptyState
+          icon={BookOpen}
+          title="No documents match"
+          description="Try clearing filters or searching a different code, tag, or owner."
+          action={
+            <Button variant="outline" size="sm" onClick={resetFilters}>
+              Reset filters
+            </Button>
+          }
+        />
+      ) : (
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          {pagedDocuments.map((document) => (
+            <DocumentCard
+              key={document.id}
+              document={document}
+              onOpen={openDocument}
+              onDownload={downloadDocument}
             />
-          ) : (
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-              {pagedDocuments.map((document) => (
-                <DocumentCard
-                  key={document.id}
-                  document={document}
-                  onOpen={openDocument}
-                  onDownload={downloadDocument}
-                />
-              ))}
-            </div>
-          )}
-
-          {visibleDocuments.length > 0 ? (
-            <ListPagination
-              page={safePage}
-              pageSize={pageSize}
-              total={visibleDocuments.length}
-              onPageChange={setPage}
-              onPageSizeChange={setPageSize}
-              pageSizeOptions={[12, 24, 48]}
-            />
-          ) : null}
+          ))}
         </div>
-      </div>
+      )}
+
+      {visibleDocuments.length > 0 ? (
+        <ListPagination
+          page={safePage}
+          pageSize={pageSize}
+          total={visibleDocuments.length}
+          onPageChange={setPage}
+          onPageSizeChange={setPageSize}
+          pageSizeOptions={[12, 24, 48]}
+        />
+      ) : null}
 
       <Dialog
         open={newDocOpen}
@@ -844,7 +698,7 @@ export function DocumentationCenter() {
                   <DocStatusBadge status={selected.status} />
                 </div>
                 <div className="space-y-1.5">
-                  <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+                  <p className="text-muted-foreground text-caption font-medium">
                     Owner
                   </p>
                   <OwnerCell
@@ -853,13 +707,13 @@ export function DocumentationCenter() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+                  <p className="text-muted-foreground text-caption font-medium">
                     Updated
                   </p>
                   <p className="text-sm">{selected.updatedLabel}</p>
                 </div>
                 <div className="space-y-1.5">
-                  <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+                  <p className="text-muted-foreground text-caption font-medium">
                     Related
                   </p>
                   <RelatedLinks links={selected.related} />
@@ -867,7 +721,7 @@ export function DocumentationCenter() {
 
                 {reading ? (
                   <div className="border-border/70 max-h-72 space-y-3 overflow-y-auto rounded-lg border p-3">
-                    <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+                    <p className="text-muted-foreground text-caption font-medium">
                       Document body
                     </p>
                     {documentBodyParagraphs(selected).map((paragraph) => (
@@ -907,6 +761,6 @@ export function DocumentationCenter() {
           ) : null}
         </SheetContent>
       </Sheet>
-    </main>
+    </ModuleShell>
   );
 }
