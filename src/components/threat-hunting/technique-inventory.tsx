@@ -87,7 +87,7 @@ export function TechniqueInventory({
         </p>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-auto">
+      <div className="relative min-h-0 flex-1 overflow-auto">
         {rows.length === 0 ? (
           <div className="text-muted-foreground grid h-40 place-items-center px-4 text-center text-sm">
             No techniques match the current filters.

@@ -241,7 +241,7 @@ export function ThreatAnalytics() {
             )}
           />
 
-          <div className="grid min-h-0 gap-4 lg:grid-cols-[minmax(0,1.55fr)_minmax(320px,1fr)]">
+          <div className="grid min-h-0 grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1.55fr)_minmax(320px,1fr)]">
             <div className="flex min-h-[420px] flex-col lg:min-h-[560px]">
               <ThreatRelationshipMap
                 selectedId={selectedGraphId}

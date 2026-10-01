@@ -62,7 +62,7 @@ export function OverviewSplit({
   return (
     <div
       className={cn(
-        "grid items-start gap-4",
+        "grid grid-cols-1 items-start gap-4",
         wide === "primary"
           ? "xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]"
           : "xl:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]",
@@ -100,7 +100,7 @@ export function PanelGrid({
   return (
     <div
       className={cn(
-        "grid items-start gap-4",
+        "grid grid-cols-1 items-start gap-4",
         colClass ?? "md:grid-cols-2 xl:grid-cols-3",
         className,
       )}

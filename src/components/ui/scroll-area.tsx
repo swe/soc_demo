@@ -23,6 +23,9 @@ const ScrollArea = React.forwardRef<
       data-slot="scroll-area-viewport"
       className={cn(
         "h-full w-full rounded-[inherit]",
+        // Radix wraps content in `display: table`, which grows to the widest
+        // child and never shrinks back; a vertical area must track its width.
+        orientation === "vertical" && "[&>div]:block!",
         orientation === "horizontal" && "overflow-x-auto!"
       )}
     >

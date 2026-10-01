@@ -124,7 +124,7 @@ export function SocPerformancePanel() {
         }
       />
 
-      <div className="border-border/70 mb-4 grid gap-3 border-b border-dashed pb-4 sm:grid-cols-2 sm:gap-0 lg:grid-cols-4">
+      <div className="border-border/70 mb-4 grid grid-cols-1 gap-3 border-b border-dashed pb-4 sm:grid-cols-2 sm:gap-0 lg:grid-cols-4">
         {metrics.map((metric, index) => (
           <div
             key={metric.key}

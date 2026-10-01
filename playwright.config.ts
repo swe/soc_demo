@@ -15,7 +15,14 @@ export default defineConfig({
     baseURL,
     trace: "retain-on-failure",
   },
+  testIgnore: /zoom\.spec\.ts/,
   projects: [
+    {
+      name: "zoom",
+      testIgnore: [],
+      testMatch: /zoom\.spec\.ts/,
+      use: { ...devices["Desktop Chrome"] },
+    },
     {
       name: "mobile",
       use: {

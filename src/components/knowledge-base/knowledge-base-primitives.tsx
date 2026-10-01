@@ -266,7 +266,7 @@ export function OwnerCell({
     return (
       <Link
         href={href}
-        className="hover:bg-muted/50 -mx-1 block cursor-pointer rounded-md px-1 py-0.5 transition-colors"
+        className="hover:bg-muted/50 -mx-1 block min-w-0 cursor-pointer rounded-md px-1 py-0.5 transition-colors"
         onClick={(event) => event.stopPropagation()}
       >
         {content}
