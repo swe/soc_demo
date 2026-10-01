@@ -320,12 +320,10 @@ function expandBasRuns(seeds: BasRun[], size = BAS_CATALOG_SIZE): BasRun[] {
 const basRunsSeed: BasRun[] = expandBasRuns(basRunsSeedCore);
 
 const statusTone: Record<BasRun["status"], string> = {
-  passed:
-    "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
-  partial:
-    "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300",
-  failed: "border-red-500/40 bg-red-500/10 text-red-700 dark:text-red-300",
-  running: "border-blue-500/40 bg-blue-500/10 text-blue-700 dark:text-blue-300",
+  passed: "border-success/40 bg-success/10 text-success-text",
+  partial: "border-warning/40 bg-warning/10 text-warning-text",
+  failed: "border-destructive/40 bg-destructive/10 text-destructive-text",
+  running: "border-info/40 bg-info/10 text-info-text",
 };
 
 function DriftSpark({ values, alert }: { values: number[]; alert: boolean }) {
@@ -344,7 +342,7 @@ function DriftSpark({ values, alert }: { values: number[]; alert: boolean }) {
             v > DRIFT_THRESHOLD
               ? "bg-destructive/80"
               : alert && i === values.length - 1
-                ? "bg-amber-500/80"
+                ? "bg-warning/80"
                 : "bg-foreground/25",
           )}
           style={{ height: `${Math.max(12, (v / max) * 100)}%` }}
@@ -543,12 +541,14 @@ export function PurpleTeamCenter() {
           <TableHeader>
             <TableRow>
               <TableHead>Campaign</TableHead>
-              <TableHead>Schedule</TableHead>
-              <TableHead>Techniques</TableHead>
-              <TableHead>Detections</TableHead>
-              <TableHead>Drift trend</TableHead>
+              <TableHead className="hidden lg:table-cell">Schedule</TableHead>
+              <TableHead className="hidden xl:table-cell">Techniques</TableHead>
+              <TableHead className="hidden md:table-cell">Detections</TableHead>
+              <TableHead className="hidden xl:table-cell">
+                Drift trend
+              </TableHead>
               <TableHead className="text-right">Drift</TableHead>
-              <TableHead>Status</TableHead>
+              <TableHead className="hidden sm:table-cell">Status</TableHead>
               <TableHead />
             </TableRow>
           </TableHeader>
@@ -573,7 +573,7 @@ export function PurpleTeamCenter() {
                         {run.id} · {run.lastRunLabel}
                       </p>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden lg:table-cell">
                       <Select
                         value={run.schedule}
                         onValueChange={(value) =>
@@ -591,7 +591,7 @@ export function PurpleTeamCenter() {
                         </SelectContent>
                       </Select>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden xl:table-cell">
                       <div className="flex flex-wrap gap-1">
                         {run.techniqueIds.map((tech) => (
                           <Badge
@@ -604,10 +604,10 @@ export function PurpleTeamCenter() {
                         ))}
                       </div>
                     </TableCell>
-                    <TableCell className="tabular-nums">
+                    <TableCell className="hidden md:table-cell tabular-nums">
                       {run.detectionsValidated}/{run.detectionsTotal}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden xl:table-cell">
                       <DriftSpark values={run.driftHistory} alert={over} />
                     </TableCell>
                     <TableCell className="text-right">
@@ -628,7 +628,7 @@ export function PurpleTeamCenter() {
                         </Badge>
                       ) : null}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden sm:table-cell">
                       <Badge
                         variant="outline"
                         className={cn("capitalize", statusTone[run.status])}

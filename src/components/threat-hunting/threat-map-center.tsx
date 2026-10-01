@@ -4,6 +4,7 @@ import { MapPin, Search } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
+import { SegmentedControl } from "@/components/soc/segmented-control";
 import {
   getThreatGeoStats,
   investigateHrefForEntity,
@@ -30,11 +31,22 @@ import {
 import { cn } from "@/lib/utils";
 
 const severityColor: Record<ThreatGeoEvent["severity"], string> = {
-  critical: "bg-red-600",
-  high: "bg-orange-500",
-  medium: "bg-amber-500",
-  low: "bg-blue-500",
+  critical: "bg-severity-critical",
+  high: "bg-severity-high",
+  medium: "bg-severity-medium",
+  low: "bg-severity-low",
 };
+
+const severityOptions = [
+  { value: "all", label: "All" },
+  { value: "critical", label: "Critical" },
+  { value: "high", label: "High" },
+  { value: "medium", label: "Medium" },
+  { value: "low", label: "Low" },
+] as const satisfies readonly {
+  value: ThreatGeoEvent["severity"] | "all";
+  label: string;
+}[];
 
 export function ThreatMapCenter() {
   const stats = getThreatGeoStats();
@@ -61,50 +73,41 @@ export function ThreatMapCenter() {
       id="main-content"
       className="bg-background flex min-h-0 flex-1 flex-col overflow-hidden"
     >
-      <div className="border-b px-4 py-3 sm:px-6">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex flex-wrap gap-1.5">
-            {(["all", "critical", "high", "medium", "low"] as const).map(
-              (value) => (
-                <Button
-                  key={value}
-                  size="sm"
-                  variant={severityFilter === value ? "default" : "outline"}
-                  className="h-7 capitalize"
-                  onClick={() => setSeverityFilter(value)}
-                >
-                  {value}
-                </Button>
-              ),
-            )}
-          </div>
-          <div className="flex flex-wrap gap-4 text-sm">
-            <div>
-              <p className="text-muted-foreground text-xs">Events</p>
-              <p className="font-semibold tabular-nums">{stats.total}</p>
+      <div className="bg-background border-separator px-gutter shrink-0 border-b py-2.5">
+        <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2">
+          <SegmentedControl
+            aria-label="Severity"
+            value={severityFilter}
+            onChange={setSeverityFilter}
+            options={severityOptions}
+          />
+          <dl className="no-scrollbar flex max-w-full gap-5 overflow-x-auto text-sm">
+            <div className="shrink-0">
+              <dt className="text-muted-foreground text-caption">Events</dt>
+              <dd className="font-semibold tabular-nums">{stats.total}</dd>
             </div>
-            <div>
-              <p className="text-muted-foreground text-xs">Critical</p>
-              <p className="font-semibold tabular-nums">{stats.critical}</p>
+            <div className="shrink-0">
+              <dt className="text-muted-foreground text-caption">Critical</dt>
+              <dd className="font-semibold tabular-nums">{stats.critical}</dd>
             </div>
-            <div>
-              <p className="text-muted-foreground text-xs">High</p>
-              <p className="font-semibold tabular-nums">{stats.high}</p>
+            <div className="shrink-0">
+              <dt className="text-muted-foreground text-caption">High</dt>
+              <dd className="font-semibold tabular-nums">{stats.high}</dd>
             </div>
-            <div>
-              <p className="text-muted-foreground text-xs">Regions</p>
-              <p className="font-semibold tabular-nums">{stats.regions}</p>
+            <div className="shrink-0">
+              <dt className="text-muted-foreground text-caption">Regions</dt>
+              <dd className="font-semibold tabular-nums">{stats.regions}</dd>
             </div>
-            <div>
-              <p className="text-muted-foreground text-xs">Entities</p>
-              <p className="font-semibold tabular-nums">{stats.entities}</p>
+            <div className="shrink-0">
+              <dt className="text-muted-foreground text-caption">Entities</dt>
+              <dd className="font-semibold tabular-nums">{stats.entities}</dd>
             </div>
-          </div>
+          </dl>
         </div>
       </div>
 
-      <div className="grid min-h-0 flex-1 lg:grid-cols-[1fr_320px]">
-        <div className="relative min-h-[420px] border-b lg:border-r lg:border-b-0">
+      <div className="grid min-h-0 flex-1 grid-cols-1 overflow-y-auto lg:grid-cols-[minmax(0,1fr)_320px] lg:overflow-hidden">
+        <div className="border-separator relative min-h-[360px] border-b sm:min-h-[420px] lg:border-r lg:border-b-0">
           <Map
             center={center}
             zoom={selected ? 3.2 : 1.4}
@@ -149,14 +152,14 @@ export function ThreatMapCenter() {
                 latitude={selected.latitude}
                 offset={18}
                 anchor="bottom"
-                className="bg-card max-w-xs rounded-lg border p-3 shadow-sm"
+                className="bg-card shadow-raised max-w-xs rounded-xl border p-3"
               >
                 <div className="space-y-1">
                   <p className="text-sm font-medium">{selected.title}</p>
                   <p className="text-muted-foreground text-xs">
                     {selected.locationLabel}
                   </p>
-                  <Badge variant="outline" className="capitalize">
+                  <Badge variant={selected.severity} className="capitalize">
                     {selected.severity}
                   </Badge>
                 </div>
@@ -173,11 +176,14 @@ export function ThreatMapCenter() {
           </Map>
         </div>
 
-        <aside className="overflow-y-auto p-4">
-          <h2 className="text-muted-foreground mb-3 text-xs font-medium tracking-wide uppercase">
-            Hotspots ({visibleEvents.length})
+        <aside className="bg-canvas p-gutter lg:overflow-y-auto lg:p-4">
+          <h2 className="text-callout mb-2 font-semibold">
+            Hotspots{" "}
+            <span className="text-muted-foreground font-normal tabular-nums">
+              {visibleEvents.length}
+            </span>
           </h2>
-          <ul className="space-y-2">
+          <ul className="bg-card shadow-card divide-separator divide-y overflow-hidden rounded-xl border">
             {visibleEvents.slice(0, 40).map((event) => (
               <li key={event.id}>
                 <button
@@ -186,22 +192,23 @@ export function ThreatMapCenter() {
                     setSelected(event);
                     setSheetOpen(true);
                   }}
+                  aria-current={selected?.id === event.id ? "true" : undefined}
                   className={cn(
-                    "hover:bg-accent/50 w-full rounded-lg border px-3 py-2 text-left transition-colors",
-                    selected?.id === event.id && "border-primary/40 bg-accent/30",
+                    "hover:bg-muted/60 focus-visible:bg-muted/60 w-full px-3 py-2.5 text-left transition-colors outline-none focus-visible:shadow-[inset_3px_0_0_var(--ring)]",
+                    selected?.id === event.id &&
+                      "bg-primary/5 shadow-[inset_3px_0_0_var(--primary)]",
                   )}
                 >
                   <div className="flex items-start gap-2">
                     <MapPin className="text-muted-foreground mt-0.5 size-3.5 shrink-0" />
                     <div className="min-w-0 space-y-1">
-                      <p className="truncate text-sm font-medium">{event.title}</p>
+                      <p className="truncate text-sm font-medium">
+                        {event.title}
+                      </p>
                       <p className="text-muted-foreground truncate text-xs">
                         {event.locationLabel} · {event.entities.length} entities
                       </p>
-                      <Badge
-                        variant="outline"
-                        className="capitalize text-xs"
-                      >
+                      <Badge variant={event.severity} className="capitalize">
                         {event.severity}
                       </Badge>
                     </div>
@@ -221,17 +228,26 @@ export function ThreatMapCenter() {
                 <SheetTitle>{selected.title}</SheetTitle>
                 <SheetDescription>{selected.locationLabel}</SheetDescription>
               </SheetHeader>
-              <div className="mt-6 space-y-4 px-1">
+              <div className="space-y-5">
                 <p className="text-muted-foreground text-sm leading-relaxed">
                   {selected.summary}
                 </p>
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div>
-                    <p className="text-muted-foreground text-xs">Severity</p>
-                    <p className="capitalize">{selected.severity}</p>
+                    <p className="text-muted-foreground text-caption">
+                      Severity
+                    </p>
+                    <Badge
+                      variant={selected.severity}
+                      className="mt-1 capitalize"
+                    >
+                      {selected.severity}
+                    </Badge>
                   </div>
                   <div>
-                    <p className="text-muted-foreground text-xs">Observed</p>
+                    <p className="text-muted-foreground text-caption">
+                      Observed
+                    </p>
                     <p className="font-mono text-xs">
                       {new Date(selected.observedAt).toLocaleString()}
                     </p>
@@ -240,9 +256,7 @@ export function ThreatMapCenter() {
 
                 {selected.entities.length > 0 ? (
                   <div className="space-y-2">
-                    <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
-                      Hunt entities
-                    </p>
+                    <p className="text-callout font-semibold">Hunt entities</p>
                     <div className="flex flex-wrap gap-1.5">
                       {selected.entities.map((entity) => (
                         <Button
@@ -308,7 +322,9 @@ export function ThreatMapCenter() {
                     </Link>
                   </Button>
                   <Button size="sm" variant="outline" asChild>
-                    <Link href="/threat-hunting/analytics">Analytics graph</Link>
+                    <Link href="/threat-hunting/analytics">
+                      Analytics graph
+                    </Link>
                   </Button>
                 </div>
               </div>

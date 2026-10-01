@@ -1,18 +1,26 @@
 "use client";
 
-import {
-  Filter,
-  Search,
-} from "lucide-react";
+import { Search } from "lucide-react";
 import * as React from "react";
 
-import { alertSeverities,type AlertSeverity } from "@/components/alerts/alerts-data";
-import { type SocStat,StatsStrip } from "@/components/soc/stats-strip";
+import {
+  alertSeverities,
+  type AlertSeverity,
+} from "@/components/alerts/alerts-data";
+import { FilterChip } from "@/components/soc/filter-chip";
+import {
+  ModuleShell,
+  ModuleToolbarActions,
+  ModuleToolbarSearch,
+} from "@/components/soc/module-shell";
+import { type SocStat, StatsStrip } from "@/components/soc/stats-strip";
+import { ToolbarToggle } from "@/components/soc/toolbar-toggle";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { cn } from "@/lib/utils";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group";
 
 import { MitreCoverageMap } from "./mitre-coverage-map";
 import { TechniqueInventory } from "./technique-inventory";
@@ -81,16 +89,19 @@ export function ThreatAnalytics() {
     setSheetOpen(true);
   }, []);
 
-  const openTechniqueDetail = React.useCallback((row: TechniqueInventoryRow) => {
-    setSelectedTechniqueId(row.id);
-    if (row.graphNodeId) {
-      setSelectedGraphId(row.graphNodeId);
-    }
-    const next = getTechniqueDetail(row.id);
-    if (!next) return;
-    setDetail(next);
-    setSheetOpen(true);
-  }, []);
+  const openTechniqueDetail = React.useCallback(
+    (row: TechniqueInventoryRow) => {
+      setSelectedTechniqueId(row.id);
+      if (row.graphNodeId) {
+        setSelectedGraphId(row.graphNodeId);
+      }
+      const next = getTechniqueDetail(row.id);
+      if (!next) return;
+      setDetail(next);
+      setSheetOpen(true);
+    },
+    [],
+  );
 
   const handleGraphSelect = React.useCallback(
     (id: string | null) => {
@@ -129,140 +140,120 @@ export function ThreatAnalytics() {
     });
   };
 
-  return (
-    <main
-      id="main-content"
-      className="flex min-h-0 flex-1 flex-col overflow-hidden"
-    >
-      <div className="bg-background shrink-0 border-b px-4 py-4 sm:px-6">
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-          <div className="relative min-w-0 flex-1 lg:max-w-md">
-            <Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
-            <Input
-              value={filters.query}
-              onChange={(event) =>
-                setFilters((current) => ({
-                  ...current,
-                  query: event.target.value,
-                }))
-              }
-              className="h-9 rounded-md pl-9"
-              placeholder="Search technique id, name, actor, or identity…"
-            />
-          </div>
+  const hasFilters =
+    filters.query ||
+    filters.severities.length > 0 ||
+    filters.criticalOnly ||
+    filters.trendingUpOnly;
 
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-muted-foreground inline-flex items-center gap-1.5 text-xs">
-              <Filter className="size-3.5" />
-              Severity
-            </span>
-            {alertSeverities.map((severity) => {
-              const active = filters.severities.includes(severity);
-              return (
-                <button
+  return (
+    <ModuleShell
+      toolbar={
+        <>
+          <ModuleToolbarSearch>
+            <InputGroup className="h-9 w-full">
+              <InputGroupAddon>
+                <Search />
+              </InputGroupAddon>
+              <InputGroupInput
+                value={filters.query}
+                onChange={(event) =>
+                  setFilters((current) => ({
+                    ...current,
+                    query: event.target.value,
+                  }))
+                }
+                aria-label="Search techniques"
+                placeholder="Search technique id, name, actor, or identity…"
+              />
+            </InputGroup>
+          </ModuleToolbarSearch>
+
+          <ModuleToolbarActions>
+            <div
+              role="group"
+              aria-label="Severity"
+              className="no-scrollbar flex max-w-full items-center gap-1.5 overflow-x-auto"
+            >
+              {alertSeverities.map((severity) => (
+                <FilterChip
                   key={severity}
-                  type="button"
+                  pressed={filters.severities.includes(severity)}
                   onClick={() => toggleSeverity(severity)}
-                  className={cn(
-                    "rounded-md border px-2 py-1 text-xs capitalize transition-colors",
-                    active
-                      ? "border-primary/40 bg-primary/10 text-foreground"
-                      : "text-muted-foreground hover:text-foreground",
-                  )}
+                  className="capitalize"
                 >
                   {severity}
-                </button>
-              );
-            })}
-          </div>
-
-          <div className="flex flex-wrap items-center gap-4 lg:ml-auto">
-            <p className="text-muted-foreground text-xs tabular-nums">
-              {dateRangeLabel}
-            </p>
-            <div className="flex items-center gap-2">
-              <Switch
-                id="critical-only"
-                checked={filters.criticalOnly}
-                onCheckedChange={(checked) =>
-                  setFilters((current) => ({
-                    ...current,
-                    criticalOnly: checked,
-                  }))
-                }
-              />
-              <Label htmlFor="critical-only" className="text-xs font-normal">
-                Critical only
-              </Label>
+                </FilterChip>
+              ))}
             </div>
-            <div className="flex items-center gap-2">
-              <Switch
-                id="trending-up"
-                checked={filters.trendingUpOnly}
-                onCheckedChange={(checked) =>
-                  setFilters((current) => ({
-                    ...current,
-                    trendingUpOnly: checked,
-                  }))
-                }
-              />
-              <Label htmlFor="trending-up" className="text-xs font-normal">
-                Trending up only
-              </Label>
-            </div>
-            {(filters.query ||
-              filters.severities.length > 0 ||
-              filters.criticalOnly ||
-              filters.trendingUpOnly) && (
+            <ToolbarToggle
+              id="critical-only"
+              checked={filters.criticalOnly}
+              onCheckedChange={(checked) =>
+                setFilters((current) => ({ ...current, criticalOnly: checked }))
+              }
+              label="Critical only"
+            />
+            <ToolbarToggle
+              id="trending-up"
+              checked={filters.trendingUpOnly}
+              onCheckedChange={(checked) =>
+                setFilters((current) => ({
+                  ...current,
+                  trendingUpOnly: checked,
+                }))
+              }
+              label="Trending up"
+            />
+            {hasFilters ? (
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-7 text-xs"
+                className="h-9"
                 onClick={() => setFilters(emptyThreatFilters)}
               >
                 Clear
               </Button>
-            )}
-          </div>
-        </div>
-      </div>
+            ) : null}
+          </ModuleToolbarActions>
+        </>
+      }
+    >
+      <p className="text-muted-foreground text-caption -mb-2 tabular-nums">
+        {dateRangeLabel}
+      </p>
+      <StatsStrip
+        className="border-b-0 pb-0"
+        stats={kpis.map(
+          (kpi): SocStat => ({
+            key: kpi.key,
+            title: kpi.title,
+            value: kpi.value,
+            context: kpi.context,
+          }),
+        )}
+      />
 
-      <div className="min-h-0 flex-1 overflow-auto p-4 sm:p-6">
-        <div className="flex flex-col gap-4">
-          <StatsStrip
-            className="border-b-0 pb-0"
-            stats={kpis.map(
-              (kpi): SocStat => ({
-                key: kpi.key,
-                title: kpi.title,
-                value: kpi.value,
-                context: kpi.context,
-              }),
-            )}
+      <div className="grid min-h-0 grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1.55fr)_minmax(320px,1fr)]">
+        <div className="flex min-h-[420px] flex-col lg:min-h-[560px]">
+          <ThreatRelationshipMap
+            selectedId={selectedGraphId}
+            onSelect={handleGraphSelect}
+            visibleNodeIds={visibleNodeIds}
           />
-
-          <div className="grid min-h-0 grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1.55fr)_minmax(320px,1fr)]">
-            <div className="flex min-h-[420px] flex-col lg:min-h-[560px]">
-              <ThreatRelationshipMap
-                selectedId={selectedGraphId}
-                onSelect={handleGraphSelect}
-                visibleNodeIds={visibleNodeIds}
-              />
-            </div>
-            <div className="flex min-h-[420px] flex-col lg:min-h-[560px]">
-              <TechniqueInventory
-                rows={filteredInventory}
-                selectedTechniqueId={selectedTechniqueId}
-                selectedGraphNodeId={selectedGraphId}
-                onSelect={handleInventorySelect}
-                onViewDetails={openTechniqueDetail}
-              />
-            </div>
-          </div>
-
-          <MitreCoverageMap />
+        </div>
+        <div className="flex min-h-[420px] flex-col lg:min-h-[560px]">
+          <TechniqueInventory
+            rows={filteredInventory}
+            selectedTechniqueId={selectedTechniqueId}
+            selectedGraphNodeId={selectedGraphId}
+            onSelect={handleInventorySelect}
+            onViewDetails={openTechniqueDetail}
+          />
         </div>
       </div>
+
+      <MitreCoverageMap />
 
       <ThreatDetailSheet
         detail={detail}
@@ -275,6 +266,6 @@ export function ThreatAnalytics() {
         }}
         onSelectNeighbor={(nodeId) => openNodeDetail(nodeId)}
       />
-    </main>
+    </ModuleShell>
   );
 }

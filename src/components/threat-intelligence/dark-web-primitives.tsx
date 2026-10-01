@@ -29,24 +29,8 @@ export const percentFormatter = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 1,
 });
 
-const severityTones: Record<ExposureSeverity, string> = {
-  critical:
-    "border-destructive/30 bg-destructive/10 text-destructive dark:text-red-400",
-  high: "border-orange-500/30 bg-orange-500/10 text-orange-700 dark:text-orange-400",
-  medium:
-    "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400",
-  low: "border-border bg-muted text-muted-foreground",
-};
-
 export function SeverityBadge({ severity }: { severity: ExposureSeverity }) {
-  return (
-    <Badge
-      variant="outline"
-      className={cn("rounded-full font-medium", severityTones[severity])}
-    >
-      {exposureSeverityLabels[severity]}
-    </Badge>
-  );
+  return <Badge variant={severity}>{exposureSeverityLabels[severity]}</Badge>;
 }
 
 const typeDetails: Record<
@@ -79,8 +63,8 @@ export function ExposureTypeBadge({ type }: { type: ExposureType }) {
     <Badge
       variant="outline"
       className={cn(
-        "gap-1 whitespace-nowrap rounded-full font-medium",
-        "border-border/70 bg-background",
+        "gap-1 whitespace-nowrap",
+        "border-border/70 bg-card",
         detail.className,
       )}
     >
@@ -95,23 +79,23 @@ const statusDetails: Record<
   { className: string; icon: LucideIcon }
 > = {
   new: {
-    className: "text-blue-600 dark:text-blue-400",
+    className: "text-info-text",
     icon: Siren,
   },
   investigating: {
-    className: "text-violet-600 dark:text-violet-400",
+    className: "text-violet-700 dark:text-violet-300",
     icon: CircleDashed,
   },
   remediated: {
-    className: "text-emerald-600 dark:text-emerald-400",
+    className: "text-success-text",
     icon: CircleCheck,
   },
   false_positive: {
-    className: "text-zinc-500",
+    className: "text-muted-foreground",
     icon: CircleSlash,
   },
   accepted_risk: {
-    className: "text-amber-600 dark:text-amber-400",
+    className: "text-warning-text",
     icon: ShieldAlert,
   },
 };
@@ -123,11 +107,7 @@ export function ExposureStatusBadge({ status }: { status: ExposureStatus }) {
   return (
     <Badge
       variant="outline"
-      className={cn(
-        "gap-1 rounded-full font-medium",
-        "border-border/70 bg-background",
-        detail.className,
-      )}
+      className={cn("border-border/70 bg-card", detail.className)}
     >
       <Icon className="size-3" />
       {exposureStatusLabels[status]}
@@ -136,20 +116,14 @@ export function ExposureStatusBadge({ status }: { status: ExposureStatus }) {
 }
 
 export function RiskScoreBadge({ score }: { score: number }) {
-  const tone =
-    score >= 80
-      ? "border-destructive/30 bg-destructive/10 text-destructive dark:text-red-400"
-      : score >= 55
-        ? "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400"
-        : "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400";
+  const variant =
+    score >= 80 ? "critical" : score >= 55 ? "warning" : "success";
 
   return (
     <Badge
-      variant="outline"
-      className={cn(
-        "min-w-8 justify-center rounded-md px-1.5 py-0 font-mono text-xs font-semibold tabular-nums",
-        tone,
-      )}
+      variant={variant}
+      className="min-w-8 justify-center rounded-md px-1.5 font-mono font-semibold"
+      aria-label={`Risk score ${score}`}
     >
       {score}
     </Badge>

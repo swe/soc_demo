@@ -71,7 +71,9 @@ function buildCoverage(): CoverageCell[] {
 function downloadNavigatorLayer(cells: CoverageCell[]) {
   const techniques = cells.map((cell) => ({
     techniqueID: cell.technique.id,
-    score: cell.gap ? 0 : Math.min(3, cell.detections + (cell.hunts > 0 ? 1 : 0)),
+    score: cell.gap
+      ? 0
+      : Math.min(3, cell.detections + (cell.hunts > 0 ? 1 : 0)),
     color: cell.gap ? "#ef4444" : cell.detections > 0 ? "#22c55e" : "#f59e0b",
     comment: `detections=${cell.detections}; hunts=${cell.hunts}; openIncidents=${cell.openIncidents}`,
   }));
@@ -168,7 +170,7 @@ export function MitreCoverageMap() {
                   className={cn(
                     "grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 rounded px-2 py-1.5 text-xs",
                     cell.gap
-                      ? "bg-red-500/10 text-red-800 dark:text-red-300"
+                      ? "bg-destructive/10 text-destructive-text"
                       : "bg-muted/40",
                   )}
                 >

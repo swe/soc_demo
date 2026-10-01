@@ -88,13 +88,11 @@ const statusDetails: Record<
   { className: string; icon: LucideIcon }
 > = {
   active: {
-    className:
-      "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
+    className: "border-success/30 bg-success/10 text-success-text",
     icon: CircleCheck,
   },
   under_review: {
-    className:
-      "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400",
+    className: "border-warning/30 bg-warning/10 text-warning-text",
     icon: CircleDashed,
   },
   expired: {
@@ -122,9 +120,9 @@ export function IndicatorStatusBadge({ status }: { status: IndicatorStatus }) {
 }
 
 const confidenceTones: Record<IndicatorConfidence, string> = {
-  high: "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
+  high: "border-success/30 bg-success/10 text-success-text",
   medium:
-    "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400",
+    "border-severity-medium/30 bg-severity-medium/10 text-severity-medium-text",
   low: "border-border bg-muted text-muted-foreground",
 };
 
@@ -145,9 +143,8 @@ export function ConfidenceBadge({
 
 const huntStatusTones: Record<HuntStatus, string> = {
   draft: "border-border bg-muted text-muted-foreground",
-  running: "border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-400",
-  closed:
-    "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
+  running: "border-info/30 bg-info/10 text-info-text",
+  closed: "border-success/30 bg-success/10 text-success-text",
 };
 
 export function HuntStatusBadge({ status }: { status: HuntStatus }) {
@@ -162,12 +159,9 @@ export function HuntStatusBadge({ status }: { status: HuntStatus }) {
 }
 
 const outcomeTones: Record<HuntOutcome, string> = {
-  confirmed:
-    "border-rose-500/30 bg-rose-500/10 text-rose-700 dark:text-rose-400",
-  not_found:
-    "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
-  inconclusive:
-    "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400",
+  confirmed: "border-destructive/30 bg-destructive/10 text-destructive-text",
+  not_found: "border-success/30 bg-success/10 text-success-text",
+  inconclusive: "border-warning/30 bg-warning/10 text-warning-text",
 };
 
 export function HuntOutcomeBadge({ outcome }: { outcome: HuntOutcome }) {
@@ -182,10 +176,8 @@ export function HuntOutcomeBadge({ outcome }: { outcome: HuntOutcome }) {
 }
 
 const feedStatusTones: Record<ThreatFeed["status"], string> = {
-  healthy:
-    "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
-  degraded:
-    "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400",
+  healthy: "border-success/30 bg-success/10 text-success-text",
+  degraded: "border-warning/30 bg-warning/10 text-warning-text",
   paused: "border-border bg-muted text-muted-foreground",
 };
 
@@ -201,8 +193,8 @@ export function FeedStatusBadge({ status }: { status: ThreatFeed["status"] }) {
 }
 
 const campaignStatusTones: Record<ThreatCampaign["status"], string> = {
-  active: "border-rose-500/30 bg-rose-500/10 text-rose-700 dark:text-rose-400",
-  monitoring: "border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-400",
+  active: "border-destructive/30 bg-destructive/10 text-destructive-text",
+  monitoring: "border-info/30 bg-info/10 text-info-text",
   concluded: "border-border bg-muted text-muted-foreground",
 };
 

@@ -98,7 +98,7 @@ export function DarkWebExposuresTable({
         <TableHeader>
           {hasSelection ? (
             <TableRow className="hover:bg-transparent">
-              <TableHead className="w-12 px-4">
+              <TableHead className="w-10 px-3 sm:w-12 sm:px-4">
                 <Checkbox
                   aria-label="Select all visible exposures"
                   checked={
@@ -138,7 +138,7 @@ export function DarkWebExposuresTable({
                     <Button
                       variant="outline"
                       size="sm"
-                      className="text-emerald-700 hover:text-emerald-700 h-8 dark:text-emerald-400"
+                      className="text-success-text hover:text-success-text h-8"
                       onClick={() => onBulkSetStatus("remediated")}
                     >
                       <CircleCheck className="size-3.5" />
@@ -166,7 +166,9 @@ export function DarkWebExposuresTable({
                 />
               </TableHead>
               <TableHead>Exposure</TableHead>
-              <TableHead className="w-[128px]">Type</TableHead>
+              <TableHead className="hidden w-[128px] sm:table-cell">
+                Type
+              </TableHead>
               <TableHead className="hidden w-[100px] md:table-cell">
                 Severity
               </TableHead>
@@ -177,7 +179,7 @@ export function DarkWebExposuresTable({
               <TableHead className="hidden w-[88px] sm:table-cell">
                 Seen
               </TableHead>
-              <TableHead className="w-[72px]">
+              <TableHead className="w-14 sm:w-[72px]">
                 <button
                   type="button"
                   className="hover:text-foreground inline-flex items-center gap-1"
@@ -191,7 +193,7 @@ export function DarkWebExposuresTable({
                   ) : null}
                 </button>
               </TableHead>
-              <TableHead className="w-12" />
+              <TableHead className="w-10 sm:w-12" />
             </TableRow>
           )}
         </TableHeader>
@@ -227,7 +229,7 @@ export function DarkWebExposuresTable({
                   onClick={() => onOpen(item.id)}
                 >
                   <TableCell
-                    className="px-4"
+                    className="px-3 sm:px-4"
                     onClick={(event) => event.stopPropagation()}
                   >
                     <Checkbox
@@ -238,19 +240,22 @@ export function DarkWebExposuresTable({
                   </TableCell>
                   <TableCell>
                     <div className="min-w-0 space-y-1">
-                      <p className="truncate text-sm font-medium">
+                      <p className="line-clamp-2 text-sm font-medium whitespace-normal sm:line-clamp-1">
                         {item.title}
                       </p>
                       <p className="text-muted-foreground truncate text-xs">
                         {item.principal ?? item.domain ?? item.id}
                         {item.privileged ? " · privileged" : ""}
                       </p>
-                      <div className="pt-0.5 md:hidden">
+                      <div className="flex flex-wrap gap-1 pt-0.5 md:hidden">
                         <SeverityBadge severity={item.severity} />
+                        <span className="sm:hidden">
+                          <ExposureTypeBadge type={item.type} />
+                        </span>
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="hidden sm:table-cell">
                     <ExposureTypeBadge type={item.type} />
                   </TableCell>
                   <TableCell className="hidden md:table-cell">

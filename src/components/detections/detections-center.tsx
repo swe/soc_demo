@@ -79,11 +79,12 @@ import { cn } from "@/lib/utils";
 
 function SeverityBadge({ severity }: { severity: DetectionRule["severity"] }) {
   const tones: Record<DetectionRule["severity"], string> = {
-    critical: "border-red-500/40 bg-red-500/10 text-red-700 dark:text-red-300",
-    high: "border-orange-500/40 bg-orange-500/10 text-orange-700 dark:text-orange-300",
+    critical:
+      "border-severity-critical/40 bg-severity-critical/10 text-severity-critical-text",
+    high: "border-severity-high/40 bg-severity-high/10 text-severity-high-text",
     medium:
-      "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300",
-    low: "border-blue-500/40 bg-blue-500/10 text-blue-700 dark:text-blue-300",
+      "border-severity-medium/40 bg-severity-medium/10 text-severity-medium-text",
+    low: "border-severity-low/40 bg-severity-low/10 text-severity-low-text",
   };
   return (
     <Badge variant="outline" className={cn("capitalize", tones[severity])}>
@@ -505,17 +506,27 @@ export function DetectionsCenter() {
           </ModuleTabsList>
 
           <TabsContent value="library" className="mt-4">
-            <div className="overflow-hidden rounded-lg border">
-              <Table>
+            <div className="bg-card shadow-card overflow-hidden rounded-xl border">
+              <Table className="max-md:table-fixed">
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Detection</TableHead>
-                    <TableHead>MITRE</TableHead>
-                    <TableHead>Severity</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Lineage</TableHead>
-                    <TableHead className="text-right">Alerts</TableHead>
-                    <TableHead>Owner</TableHead>
+                    <TableHead className="min-w-44">Detection</TableHead>
+                    <TableHead className="hidden lg:table-cell">
+                      MITRE
+                    </TableHead>
+                    <TableHead className="w-24">Severity</TableHead>
+                    <TableHead className="hidden sm:table-cell">
+                      Status
+                    </TableHead>
+                    <TableHead className="hidden xl:table-cell">
+                      Lineage
+                    </TableHead>
+                    <TableHead className="hidden md:table-cell text-right">
+                      Alerts
+                    </TableHead>
+                    <TableHead className="hidden xl:table-cell">
+                      Owner
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -540,23 +551,25 @@ export function DetectionsCenter() {
                             <p className="text-muted-foreground font-mono text-xs">
                               {rule.id}
                             </p>
-                            <p className="max-w-md truncate text-sm font-medium">
+                            <p className="line-clamp-2 max-w-md text-sm font-medium whitespace-normal md:line-clamp-1">
                               {rule.name}
                             </p>
                           </div>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="hidden lg:table-cell">
                           <div className="space-y-1">
                             <div className="flex flex-wrap gap-1">
-                              {rule.mitreTechniques.map((tech) => (
-                                <Badge
-                                  key={tech}
-                                  variant="outline"
-                                  className="font-mono text-xs"
-                                >
-                                  {tech}
-                                </Badge>
-                              ))}
+                              {Array.from(new Set(rule.mitreTechniques)).map(
+                                (tech) => (
+                                  <Badge
+                                    key={tech}
+                                    variant="outline"
+                                    className="font-mono text-xs"
+                                  >
+                                    {tech}
+                                  </Badge>
+                                ),
+                              )}
                             </div>
                             <p className="text-muted-foreground text-xs">
                               {rule.mitreTactic}
@@ -566,12 +579,12 @@ export function DetectionsCenter() {
                         <TableCell>
                           <SeverityBadge severity={rule.severity} />
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="hidden sm:table-cell">
                           <Badge variant="secondary">
                             {detectionStatusLabels[rule.status]}
                           </Badge>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="hidden xl:table-cell">
                           {rule.lineageSource ? (
                             <Badge
                               variant="outline"
@@ -585,10 +598,10 @@ export function DetectionsCenter() {
                             </span>
                           )}
                         </TableCell>
-                        <TableCell className="text-right tabular-nums">
+                        <TableCell className="hidden md:table-cell text-right tabular-nums">
                           {rule.alertCount}
                         </TableCell>
-                        <TableCell className="text-sm">
+                        <TableCell className="hidden xl:table-cell text-sm">
                           {rule.ownerName}
                         </TableCell>
                       </TableRow>

@@ -23,7 +23,7 @@ import {
 function TrendIcon({ trend }: { trend: ThreatTrend }) {
   if (trend === "up") {
     return (
-      <span className="inline-flex items-center gap-1 text-red-600 dark:text-red-400">
+      <span className="inline-flex items-center gap-1 text-destructive-text">
         <TrendingUp className="size-3.5" />
         <span className="sr-only">Trending up</span>
       </span>
@@ -31,7 +31,7 @@ function TrendIcon({ trend }: { trend: ThreatTrend }) {
   }
   if (trend === "down") {
     return (
-      <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+      <span className="inline-flex items-center gap-1 text-success-text">
         <TrendingDown className="size-3.5" />
         <span className="sr-only">Trending down</span>
       </span>
@@ -46,10 +46,10 @@ function TrendIcon({ trend }: { trend: ThreatTrend }) {
 }
 
 const severityBar: Record<string, string> = {
-  critical: "bg-red-500",
-  high: "bg-orange-500",
-  medium: "bg-amber-500",
-  low: "bg-blue-500",
+  critical: "bg-severity-critical",
+  high: "bg-severity-high",
+  medium: "bg-severity-medium",
+  low: "bg-severity-low",
 };
 
 export function TechniqueInventory({

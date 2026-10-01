@@ -100,7 +100,9 @@ export function DarkWebWatchlist({
           <TableHeader>
             <TableRow className="hover:bg-transparent">
               <TableHead>Value</TableHead>
-              <TableHead className="w-[100px]">Kind</TableHead>
+              <TableHead className="hidden sm:table-cell w-[100px]">
+                Kind
+              </TableHead>
               <TableHead className="hidden w-[110px] sm:table-cell">
                 Added
               </TableHead>
@@ -143,7 +145,7 @@ export function DarkWebWatchlist({
                       ) : null}
                     </div>
                   </TableCell>
-                  <TableCell className="text-sm">
+                  <TableCell className="hidden sm:table-cell text-sm">
                     {watchlistKindLabels[entry.kind]}
                   </TableCell>
                   <TableCell className="text-muted-foreground hidden text-sm sm:table-cell">
@@ -155,7 +157,7 @@ export function DarkWebWatchlist({
                       className={cn(
                         "text-xs font-medium capitalize",
                         entry.status === "active"
-                          ? "text-emerald-700 dark:text-emerald-400"
+                          ? "text-success-text"
                           : "text-muted-foreground",
                       )}
                     >

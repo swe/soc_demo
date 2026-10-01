@@ -30,13 +30,7 @@ import {
   threatRelationLabels,
 } from "./threat-analytics-data";
 
-function MetaRow({
-  label,
-  children,
-}: {
-  label: string;
-  children: ReactNode;
-}) {
+function MetaRow({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="flex items-start justify-between gap-3 text-sm">
       <span className="text-muted-foreground shrink-0">{label}</span>
@@ -129,16 +123,14 @@ export function ThreatDetailSheet({
                           <li key={`${neighbor.direction}-${neighbor.node.id}`}>
                             <button
                               type="button"
-                              onClick={() =>
-                                onSelectNeighbor(neighbor.node.id)
-                              }
+                              onClick={() => onSelectNeighbor(neighbor.node.id)}
                               className="hover:bg-muted/60 flex w-full items-start gap-2 rounded-md border px-2.5 py-2 text-left transition-colors"
                             >
                               <Icon
                                 className={cn(
                                   "mt-0.5 size-3.5 shrink-0",
                                   neighbor.direction === "out"
-                                    ? "text-sky-600 dark:text-sky-400"
+                                    ? "text-info-text"
                                     : "text-violet-600 dark:text-violet-400",
                                 )}
                               />
@@ -249,7 +241,7 @@ export function ThreatDetailSheet({
                         {detail.identity.privileged ? (
                           <Badge
                             variant="outline"
-                            className="rounded-full border-amber-500/40 text-amber-700 dark:text-amber-400"
+                            className="rounded-full border-warning/40 text-warning-text"
                           >
                             Privileged
                           </Badge>
@@ -347,7 +339,8 @@ export function ThreatDetailSheet({
                           buildInvestigateQueryForNode(node),
                         )}`}
                       >
-                        Investigate this {threatNodeKindLabels[node.kind].toLowerCase()}
+                        Investigate this{" "}
+                        {threatNodeKindLabels[node.kind].toLowerCase()}
                         <ExternalLink className="ml-1.5 size-3" />
                       </Link>
                     </Button>
@@ -430,7 +423,8 @@ export function ThreatDetailSheet({
                           buildInvestigateQueryForNode(node),
                         )}`}
                       >
-                        Investigate this {threatNodeKindLabels[node.kind].toLowerCase()}
+                        Investigate this{" "}
+                        {threatNodeKindLabels[node.kind].toLowerCase()}
                         <ExternalLink className="ml-1.5 size-3" />
                       </Link>
                     </Button>

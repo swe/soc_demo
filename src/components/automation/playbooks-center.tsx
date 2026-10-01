@@ -83,18 +83,17 @@ import {
 
 const severityTones: Record<KbProcedureSeverity, string> = {
   critical:
-    "border-destructive/30 bg-destructive/10 text-destructive dark:text-red-400",
-  high: "border-orange-500/30 bg-orange-500/10 text-orange-700 dark:text-orange-400",
+    "border-severity-critical/30 bg-severity-critical/10 text-severity-critical-text",
+  high: "border-severity-high/30 bg-severity-high/10 text-severity-high-text",
   medium:
-    "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400",
+    "border-severity-medium/30 bg-severity-medium/10 text-severity-medium-text",
   low: "border-border bg-muted text-muted-foreground",
 };
 
 const statusTones: Record<KbProcedureStatus, string> = {
-  approved:
-    "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
+  approved: "border-success/30 bg-success/10 text-success-text",
   draft: "border-border bg-muted text-muted-foreground",
-  "in-review": "border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-400",
+  "in-review": "border-info/30 bg-info/10 text-info-text",
   deprecated: "border-border bg-muted text-muted-foreground line-through",
 };
 

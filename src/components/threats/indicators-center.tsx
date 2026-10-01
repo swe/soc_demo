@@ -4,6 +4,7 @@ import {
   Crosshair,
   ExternalLink,
   Fingerprint,
+  ListFilter,
   Radar,
   Search,
 } from "lucide-react";
@@ -11,6 +12,7 @@ import Link from "next/link";
 import { useDeferredValue, useMemo, useState } from "react";
 
 import { ListPagination, paginateItems } from "@/components/list-pagination";
+import { FilterMenu } from "@/components/soc/filter-menu";
 import {
   ModuleShell,
   ModuleToolbarActions,
@@ -40,7 +42,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn } from "@/lib/utils";
 
 import { useThreatSession } from "./threat-session";
 import {
@@ -424,36 +425,38 @@ export function IndicatorsCenter({
                 }}
                 label="Active only"
               />
-              {indicatorTypes.map((type) => {
-                const active = typeFilters.includes(type);
-                return (
-                  <Button
-                    key={type}
-                    type="button"
-                    size="sm"
-                    variant={active ? "default" : "outline"}
-                    className={cn("h-8 rounded-md text-xs")}
-                    onClick={() => toggleType(type)}
-                  >
-                    {indicatorTypeLabels[type]}
-                  </Button>
-                );
-              })}
-              {indicatorStatuses.map((status) => {
-                const active = statusFilters.includes(status);
-                return (
-                  <Button
-                    key={status}
-                    type="button"
-                    size="sm"
-                    variant={active ? "default" : "outline"}
-                    className={cn("h-8 rounded-md text-xs")}
-                    onClick={() => toggleStatus(status)}
-                  >
-                    {indicatorStatusLabels[status]}
-                  </Button>
-                );
-              })}
+              <FilterMenu
+                facets={[
+                  {
+                    id: "type",
+                    label: "Type",
+                    icon: Fingerprint,
+                    options: indicatorTypes.map((value) => ({
+                      value,
+                      label: indicatorTypeLabels[value],
+                    })),
+                    selected: typeFilters,
+                    onToggle: (value) => toggleType(value as IndicatorType),
+                  },
+                  {
+                    id: "status",
+                    label: "Status",
+                    icon: ListFilter,
+                    options: indicatorStatuses.map((value) => ({
+                      value,
+                      label: indicatorStatusLabels[value],
+                    })),
+                    selected: statusFilters,
+                    onToggle: (value) => toggleStatus(value as IndicatorStatus),
+                  },
+                ]}
+                activeCount={typeFilters.length + statusFilters.length}
+                onClear={() => {
+                  setPage(1);
+                  setTypeFilters([]);
+                  setStatusFilters([]);
+                }}
+              />
             </ModuleToolbarActions>
           </>
         }
@@ -464,11 +467,17 @@ export function IndicatorsCenter({
           <Table className="table-fixed">
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[100px]">ID</TableHead>
-                <TableHead className="w-[90px]">Type</TableHead>
+                <TableHead className="hidden md:table-cell w-[100px]">
+                  ID
+                </TableHead>
+                <TableHead className="hidden sm:table-cell w-[90px]">
+                  Type
+                </TableHead>
                 <TableHead>Value</TableHead>
                 <TableHead className="w-[100px]">Severity</TableHead>
-                <TableHead className="w-[120px]">Status</TableHead>
+                <TableHead className="hidden lg:table-cell w-[120px]">
+                  Status
+                </TableHead>
                 <TableHead className="hidden w-[100px] lg:table-cell">
                   Confidence
                 </TableHead>
@@ -495,10 +504,10 @@ export function IndicatorsCenter({
                     data-state={selectedId === item.id ? "selected" : undefined}
                     onClick={() => setSelectedId(item.id)}
                   >
-                    <TableCell className="font-mono text-xs">
+                    <TableCell className="hidden md:table-cell font-mono text-xs">
                       {item.id}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden sm:table-cell">
                       <IndicatorTypeBadge type={item.type} />
                     </TableCell>
                     <TableCell>
@@ -514,7 +523,7 @@ export function IndicatorsCenter({
                     <TableCell>
                       <SeverityBadge severity={item.severity} />
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden lg:table-cell">
                       <IndicatorStatusBadge status={item.status} />
                     </TableCell>
                     <TableCell className="hidden lg:table-cell">

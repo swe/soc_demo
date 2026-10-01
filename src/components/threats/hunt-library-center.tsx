@@ -571,9 +571,11 @@ export function HuntLibraryCenter({
           <Table className="table-fixed">
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[100px]">ID</TableHead>
+                <TableHead className="hidden w-[100px] sm:table-cell">
+                  ID
+                </TableHead>
                 <TableHead>Hunt</TableHead>
-                <TableHead className="w-[100px]">Status</TableHead>
+                <TableHead className="w-28 sm:w-[100px]">Status</TableHead>
                 <TableHead className="hidden w-[100px] md:table-cell">
                   Severity
                 </TableHead>
@@ -603,12 +605,15 @@ export function HuntLibraryCenter({
                     data-state={selectedId === hunt.id ? "selected" : undefined}
                     onClick={() => setSelectedId(hunt.id)}
                   >
-                    <TableCell className="font-mono text-xs">
+                    <TableCell className="hidden font-mono text-xs sm:table-cell">
                       {hunt.id}
                     </TableCell>
                     <TableCell>
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-medium">
+                        <p className="text-muted-foreground font-mono text-xs sm:hidden">
+                          {hunt.id}
+                        </p>
+                        <p className="line-clamp-2 text-sm font-medium whitespace-normal sm:line-clamp-1">
                           {hunt.title}
                         </p>
                         <p className="text-muted-foreground line-clamp-1 text-xs">

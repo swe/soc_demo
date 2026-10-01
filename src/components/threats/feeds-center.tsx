@@ -23,9 +23,9 @@ function feedAgeTone(status: string, ageLabel: string) {
     ageLabel.includes("d ago") ||
     (ageLabel.includes("h ago") && !ageLabel.startsWith("1h"));
   if (status === "degraded" || stale) {
-    return "text-amber-700 dark:text-amber-400";
+    return "text-warning-text";
   }
-  return "text-emerald-700 dark:text-emerald-400";
+  return "text-success-text";
 }
 
 export function FeedsCenter() {

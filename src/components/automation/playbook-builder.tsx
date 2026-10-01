@@ -40,6 +40,7 @@ import {
   kbProcedureSeverityLabels,
   kbProcedureStatusLabels,
 } from "@/components/knowledge-base/knowledge-base-data";
+import { EmptyState } from "@/components/soc/state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -544,48 +545,54 @@ export function PlaybookBuilder() {
 
   if (!playbook) {
     return (
-      <div className="flex flex-1 flex-col items-center justify-center gap-3 p-8">
-        <p className="text-muted-foreground text-sm">
-          No playbook selected. Create one or choose from the list.
-        </p>
-        <div className="flex flex-wrap gap-2">
-          <Button
-            size="sm"
-            className="gap-1.5"
-            onClick={() => {
-              const created = createPlaybook({ title: "Untitled playbook" });
-              router.push(`/automation/builder?id=${created.id}`);
-            }}
-          >
-            <Plus className="size-3.5" />
-            Create playbook
-          </Button>
-          <Button asChild variant="outline" size="sm">
-            <Link href="/automation/playbooks">Back to playbooks</Link>
-          </Button>
-        </div>
-      </div>
+      <main
+        id="main-content"
+        className="bg-canvas flex flex-1 flex-col items-center justify-center"
+      >
+        <EmptyState
+          icon={Workflow}
+          title="No playbook selected"
+          description="Create one or choose from the list."
+          action={
+            <div className="flex flex-wrap justify-center gap-2">
+              <Button
+                size="sm"
+                className="gap-1.5"
+                onClick={() => {
+                  const created = createPlaybook({
+                    title: "Untitled playbook",
+                  });
+                  router.push(`/automation/builder?id=${created.id}`);
+                }}
+              >
+                <Plus className="size-3.5" />
+                Create playbook
+              </Button>
+              <Button asChild variant="outline" size="sm">
+                <Link href="/automation/playbooks">Back to playbooks</Link>
+              </Button>
+            </div>
+          }
+        />
+      </main>
     );
   }
 
   return (
-    <main
-      id="main-content"
-      className="flex min-h-[calc(100vh-3.5rem)] flex-1 flex-col"
-    >
-      <div className="flex flex-col gap-3 border-b p-4 md:flex-row md:items-center md:justify-between md:px-6">
+    <main id="main-content" className="flex min-h-0 flex-1 flex-col">
+      <div className="bg-background border-separator px-gutter flex shrink-0 flex-col gap-3 border-b py-3 md:flex-row md:items-center md:justify-between">
         <div className="min-w-0 space-y-1">
           <div className="flex flex-wrap items-center gap-2">
-            <h1 className="truncate text-lg font-semibold tracking-tight">
+            <h1 className="text-title-3 truncate font-semibold">
               {playbook.title}
             </h1>
-            <Badge variant="outline" className="font-mono text-xs">
+            <Badge variant="muted" className="font-mono">
               {playbook.code}
             </Badge>
-            <Badge variant="outline" className="rounded-full text-xs">
+            <Badge variant="outline">
               {kbProcedureStatusLabels[playbook.status]}
             </Badge>
-            <Badge variant="outline" className="rounded-full text-xs">
+            <Badge variant={playbook.severity}>
               {kbProcedureSeverityLabels[playbook.severity]}
             </Badge>
           </div>
@@ -595,14 +602,17 @@ export function PlaybookBuilder() {
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="grid grid-cols-[1fr_auto_auto] items-center gap-2 sm:flex sm:flex-wrap">
           <Select
             value={playbook.id}
             onValueChange={(id) => {
               router.push(`/automation/builder?id=${id}`);
             }}
           >
-            <SelectTrigger className="h-9 w-[220px]">
+            <SelectTrigger
+              className="h-9 w-full sm:w-[220px]"
+              aria-label="Playbook"
+            >
               <SelectValue placeholder="Select playbook" />
             </SelectTrigger>
             <SelectContent>
@@ -631,7 +641,12 @@ export function PlaybookBuilder() {
             <Play className="size-3.5" />
             Run
           </Button>
-          <Button asChild variant="ghost" size="sm" className="h-9">
+          <Button
+            asChild
+            variant="ghost"
+            size="sm"
+            className="hidden h-9 sm:inline-flex"
+          >
             <Link href="/automation/playbooks">Playbooks</Link>
           </Button>
         </div>

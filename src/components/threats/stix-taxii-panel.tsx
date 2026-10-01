@@ -12,10 +12,8 @@ import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 
 const statusTone: Record<TaxiiCollection["status"], string> = {
-  healthy:
-    "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
-  degraded:
-    "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300",
+  healthy: "border-success/40 bg-success/10 text-success-text",
+  degraded: "border-warning/40 bg-warning/10 text-warning-text",
   paused: "border-muted-foreground/30 bg-muted text-muted-foreground",
 };
 
@@ -57,9 +55,12 @@ export function StixTaxiiPanel() {
       await refresh();
       toast({
         title:
-          result.receipt.outcome === "ok" ? "TAXII sync complete" : "Sync failed",
+          result.receipt.outcome === "ok"
+            ? "TAXII sync complete"
+            : "Sync failed",
         description: `${result.receipt.message} · ${result.receipt.id}`,
-        variant: result.receipt.outcome === "failed" ? "destructive" : undefined,
+        variant:
+          result.receipt.outcome === "failed" ? "destructive" : undefined,
       });
       if (result.suggestInvestigateQuery) {
         setSuggest({

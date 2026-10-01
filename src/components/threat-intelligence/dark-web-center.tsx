@@ -1,22 +1,26 @@
 "use client";
 
 import {
-  CheckIcon,
-  ChevronRight,
   Download,
   EyeOff,
+  Globe,
   KeyRound,
   ListFilter,
-  MessageSquareWarning,
   Search,
   ShieldAlert,
-  Skull,
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 
 import { appendAuditLog } from "@/components/audit/audit-log-data";
 import { currentProfile } from "@/components/profile/profile-data";
+import { FilterChip } from "@/components/soc/filter-chip";
+import { type FilterFacet, FilterMenu } from "@/components/soc/filter-menu";
+import {
+  ModuleShell,
+  ModuleToolbarActions,
+  ModuleToolbarSearch,
+} from "@/components/soc/module-shell";
 import {
   ModuleTabsList,
   ModuleTabsTrigger,
@@ -26,26 +30,13 @@ import { type SocStat, StatsStrip } from "@/components/soc/stats-strip";
 import { ToolbarToggle } from "@/components/soc/toolbar-toggle";
 import { Button } from "@/components/ui/button";
 import {
-  Command,
-  CommandGroup,
-  CommandItem,
-  CommandList,
-  CommandSeparator,
-} from "@/components/ui/command";
-import {
   InputGroup,
   InputGroupAddon,
   InputGroupInput,
 } from "@/components/ui/input-group";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { Tabs } from "@/components/ui/tabs";
 import { downloadCsv } from "@/lib/download-csv";
 import { toast } from "@/lib/toast";
-import { cn } from "@/lib/utils";
 
 import {
   DarkWebBreachDetailSheet,
@@ -81,14 +72,6 @@ import {
 } from "./dark-web-url";
 import { DarkWebWatchlist } from "./dark-web-watchlist";
 
-type FilterPanel =
-  | "type"
-  | "severity"
-  | "status"
-  | "source"
-  | "domain"
-  | "sort";
-
 function DarkWebStatsStrip({
   exposures,
   watchlist,
@@ -109,28 +92,6 @@ function DarkWebStatsStrip({
   );
 
   return <StatsStrip stats={stats} />;
-}
-
-function FilterPanelHeader({
-  title,
-  onBack,
-}: {
-  title: string;
-  onBack: () => void;
-}) {
-  return (
-    <div className="flex items-center border-b p-2">
-      <Button
-        variant="ghost"
-        size="sm"
-        className="h-7 gap-1 px-2 text-xs"
-        onClick={onBack}
-      >
-        <ChevronRight className="size-3.5 rotate-180" />
-        {title}
-      </Button>
-    </div>
-  );
 }
 
 function ExposureFilterControl({
@@ -166,309 +127,75 @@ function ExposureFilterControl({
   onSetSort: (sort: ExposureSort) => void;
   onClearFilters: () => void;
 }) {
-  const [open, setOpen] = useState(false);
-  const [panel, setPanel] = useState<FilterPanel | null>(null);
-  const closePanel = () => setPanel(null);
+  const facets: FilterFacet[] = [
+    {
+      id: "type",
+      label: "Type",
+      icon: KeyRound,
+      options: exposureTypes.map((value) => ({
+        value,
+        label: exposureTypeLabels[value],
+      })),
+      selected: typeFilters,
+      onToggle: (value) => onToggleType(value as ExposureType),
+    },
+    {
+      id: "severity",
+      label: "Severity",
+      icon: ShieldAlert,
+      options: exposureSeverities.map((value) => ({
+        value,
+        label: exposureSeverityLabels[value],
+      })),
+      selected: severityFilters,
+      onToggle: (value) => onToggleSeverity(value as ExposureSeverity),
+    },
+    {
+      id: "status",
+      label: "Status",
+      icon: ListFilter,
+      options: exposureStatuses.map((value) => ({
+        value,
+        label: exposureStatusLabels[value],
+      })),
+      selected: statusFilters,
+      onToggle: (value) => onToggleStatus(value as ExposureStatus),
+    },
+    {
+      id: "source",
+      label: "Source",
+      icon: EyeOff,
+      options: darkWebSources.map((value) => ({ value, label: value })),
+      selected: sourceFilters,
+      onToggle: onToggleSource,
+    },
+    {
+      id: "domain",
+      label: "Domain",
+      icon: Globe,
+      options: domainOptions.map((value) => ({ value, label: value })),
+      selected: domainFilters,
+      onToggle: onToggleDomain,
+    },
+    {
+      id: "sort",
+      label: "Sort",
+      single: true,
+      hideCount: true,
+      options: (Object.keys(exposureSortLabels) as ExposureSort[]).map(
+        (value) => ({ value, label: exposureSortLabels[value] }),
+      ),
+      selected: [sort],
+      onToggle: (value) => onSetSort(value as ExposureSort),
+    },
+  ];
 
   return (
-    <Popover
-      open={open}
-      onOpenChange={(next) => {
-        setOpen(next);
-        if (!next) setPanel(null);
-      }}
-    >
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          className="relative h-9 gap-1.5 px-2.5"
-        >
-          <ListFilter className="size-3.5" />
-          Filter
-          {activeFilterCount > 0 ? (
-            <span className="bg-primary text-primary-foreground absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full text-xs font-semibold">
-              {activeFilterCount}
-            </span>
-          ) : null}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-64 p-0" align="end">
-        {panel === null ? (
-          <Command>
-            <CommandList>
-              <CommandGroup>
-                <CommandItem
-                  onSelect={() => setPanel("type")}
-                  className="flex items-center justify-between"
-                >
-                  <span className="flex items-center gap-2">
-                    <KeyRound className="size-4 text-zinc-500" />
-                    Type
-                  </span>
-                  <div className="flex items-center">
-                    {typeFilters.length > 0 ? (
-                      <span className="mr-1 text-xs text-zinc-500">
-                        {typeFilters.length}
-                      </span>
-                    ) : null}
-                    <ChevronRight className="size-4" />
-                  </div>
-                </CommandItem>
-                <CommandItem
-                  onSelect={() => setPanel("severity")}
-                  className="flex items-center justify-between"
-                >
-                  <span className="flex items-center gap-2">
-                    <ShieldAlert className="size-4 text-zinc-500" />
-                    Severity
-                  </span>
-                  <div className="flex items-center">
-                    {severityFilters.length > 0 ? (
-                      <span className="mr-1 text-xs text-zinc-500">
-                        {severityFilters.length}
-                      </span>
-                    ) : null}
-                    <ChevronRight className="size-4" />
-                  </div>
-                </CommandItem>
-                <CommandItem
-                  onSelect={() => setPanel("status")}
-                  className="flex items-center justify-between"
-                >
-                  <span className="flex items-center gap-2">
-                    <ListFilter className="size-4 text-zinc-500" />
-                    Status
-                  </span>
-                  <div className="flex items-center">
-                    {statusFilters.length > 0 ? (
-                      <span className="mr-1 text-xs text-zinc-500">
-                        {statusFilters.length}
-                      </span>
-                    ) : null}
-                    <ChevronRight className="size-4" />
-                  </div>
-                </CommandItem>
-                <CommandItem
-                  onSelect={() => setPanel("source")}
-                  className="flex items-center justify-between"
-                >
-                  <span className="flex items-center gap-2">
-                    <EyeOff className="size-4 text-zinc-500" />
-                    Source
-                  </span>
-                  <div className="flex items-center">
-                    {sourceFilters.length > 0 ? (
-                      <span className="mr-1 text-xs text-zinc-500">
-                        {sourceFilters.length}
-                      </span>
-                    ) : null}
-                    <ChevronRight className="size-4" />
-                  </div>
-                </CommandItem>
-                <CommandItem
-                  onSelect={() => setPanel("domain")}
-                  className="flex items-center justify-between"
-                >
-                  <span className="flex items-center gap-2">
-                    <MessageSquareWarning className="size-4 text-zinc-500" />
-                    Domain
-                  </span>
-                  <div className="flex items-center">
-                    {domainFilters.length > 0 ? (
-                      <span className="mr-1 text-xs text-zinc-500">
-                        {domainFilters.length}
-                      </span>
-                    ) : null}
-                    <ChevronRight className="size-4" />
-                  </div>
-                </CommandItem>
-                <CommandItem
-                  onSelect={() => setPanel("sort")}
-                  className="flex items-center justify-between"
-                >
-                  <span className="flex items-center gap-2">
-                    <Skull className="size-4 text-zinc-500" />
-                    Sort
-                  </span>
-                  <ChevronRight className="size-4" />
-                </CommandItem>
-              </CommandGroup>
-              {activeFilterCount > 0 ? (
-                <>
-                  <CommandSeparator />
-                  <CommandGroup>
-                    <CommandItem
-                      onSelect={() => {
-                        onClearFilters();
-                        setOpen(false);
-                      }}
-                      className="text-destructive"
-                    >
-                      Clear filters
-                    </CommandItem>
-                  </CommandGroup>
-                </>
-              ) : null}
-            </CommandList>
-          </Command>
-        ) : null}
-
-        {panel === "type" ? (
-          <div>
-            <FilterPanelHeader title="Type" onBack={closePanel} />
-            <Command>
-              <CommandList>
-                <CommandGroup>
-                  {exposureTypes.map((type) => {
-                    const checked = typeFilters.includes(type);
-                    return (
-                      <CommandItem
-                        key={type}
-                        onSelect={() => onToggleType(type)}
-                        className="justify-between"
-                      >
-                        {exposureTypeLabels[type]}
-                        {checked ? <CheckIcon className="size-4" /> : null}
-                      </CommandItem>
-                    );
-                  })}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </div>
-        ) : null}
-
-        {panel === "severity" ? (
-          <div>
-            <FilterPanelHeader title="Severity" onBack={closePanel} />
-            <Command>
-              <CommandList>
-                <CommandGroup>
-                  {exposureSeverities.map((severity) => {
-                    const checked = severityFilters.includes(severity);
-                    return (
-                      <CommandItem
-                        key={severity}
-                        onSelect={() => onToggleSeverity(severity)}
-                        className="justify-between"
-                      >
-                        {exposureSeverityLabels[severity]}
-                        {checked ? <CheckIcon className="size-4" /> : null}
-                      </CommandItem>
-                    );
-                  })}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </div>
-        ) : null}
-
-        {panel === "status" ? (
-          <div>
-            <FilterPanelHeader title="Status" onBack={closePanel} />
-            <Command>
-              <CommandList>
-                <CommandGroup>
-                  {exposureStatuses.map((status) => {
-                    const checked = statusFilters.includes(status);
-                    return (
-                      <CommandItem
-                        key={status}
-                        onSelect={() => onToggleStatus(status)}
-                        className="justify-between"
-                      >
-                        {exposureStatusLabels[status]}
-                        {checked ? <CheckIcon className="size-4" /> : null}
-                      </CommandItem>
-                    );
-                  })}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </div>
-        ) : null}
-
-        {panel === "source" ? (
-          <div>
-            <FilterPanelHeader title="Source" onBack={closePanel} />
-            <Command>
-              <CommandList>
-                <CommandGroup>
-                  {darkWebSources.map((source) => {
-                    const checked = sourceFilters.includes(source);
-                    return (
-                      <CommandItem
-                        key={source}
-                        onSelect={() => onToggleSource(source)}
-                        className="justify-between"
-                      >
-                        {source}
-                        {checked ? <CheckIcon className="size-4" /> : null}
-                      </CommandItem>
-                    );
-                  })}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </div>
-        ) : null}
-
-        {panel === "domain" ? (
-          <div>
-            <FilterPanelHeader title="Domain" onBack={closePanel} />
-            <Command>
-              <CommandList>
-                <CommandGroup>
-                  {domainOptions.map((domain) => {
-                    const checked = domainFilters.includes(domain);
-                    return (
-                      <CommandItem
-                        key={domain}
-                        onSelect={() => onToggleDomain(domain)}
-                        className="justify-between"
-                      >
-                        {domain}
-                        {checked ? <CheckIcon className="size-4" /> : null}
-                      </CommandItem>
-                    );
-                  })}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </div>
-        ) : null}
-
-        {panel === "sort" ? (
-          <div>
-            <FilterPanelHeader title="Sort" onBack={closePanel} />
-            <Command>
-              <CommandList>
-                <CommandGroup>
-                  {(Object.keys(exposureSortLabels) as ExposureSort[]).map(
-                    (option) => (
-                      <CommandItem
-                        key={option}
-                        onSelect={() => {
-                          onSetSort(option);
-                          closePanel();
-                        }}
-                        className="justify-between"
-                      >
-                        {exposureSortLabels[option]}
-                        {sort === option ? (
-                          <CheckIcon className="size-4" />
-                        ) : null}
-                      </CommandItem>
-                    ),
-                  )}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </div>
-        ) : null}
-      </PopoverContent>
-    </Popover>
+    <FilterMenu
+      facets={facets}
+      activeCount={activeFilterCount}
+      onClear={onClearFilters}
+    />
   );
 }
 
@@ -480,25 +207,20 @@ function TypeChipBar({
   onToggle: (type: ExposureType) => void;
 }) {
   return (
-    <div className="flex flex-wrap gap-2">
-      {exposureTypes.map((type) => {
-        const active = types.includes(type);
-        return (
-          <button
-            key={type}
-            type="button"
-            onClick={() => onToggle(type)}
-            className={cn(
-              "rounded-md border px-2.5 py-1 text-xs font-medium transition-colors",
-              active
-                ? "border-foreground bg-foreground text-background"
-                : "border-border bg-background text-muted-foreground hover:text-foreground",
-            )}
-          >
-            {exposureTypeLabels[type]}
-          </button>
-        );
-      })}
+    <div
+      role="group"
+      aria-label="Exposure type"
+      className="-mx-gutter px-gutter no-scrollbar flex gap-2 overflow-x-auto sm:mx-0 sm:flex-wrap sm:px-0"
+    >
+      {exposureTypes.map((type) => (
+        <FilterChip
+          key={type}
+          pressed={types.includes(type)}
+          onClick={() => onToggle(type)}
+        >
+          {exposureTypeLabels[type]}
+        </FilterChip>
+      ))}
     </div>
   );
 }
@@ -752,27 +474,25 @@ export function DarkWebCenter() {
   };
 
   return (
-    <main
-      id="main-content"
-      className="bg-background flex min-h-0 flex-1 flex-col overflow-hidden"
-    >
-      {tab === "exposures" ? (
-        <div className="bg-background shrink-0 border-b">
-          <div className="flex flex-col gap-2 px-4 py-3 sm:px-6 lg:min-h-14 lg:flex-row lg:items-center lg:justify-between lg:gap-4 lg:py-2">
-            <div className="min-w-0 flex-1">
-              <InputGroup className="h-9 w-full lg:max-w-sm">
+    <ModuleShell
+      toolbar={
+        tab === "exposures" ? (
+          <>
+            <ModuleToolbarSearch>
+              <InputGroup className="h-9 w-full">
                 <InputGroupAddon>
                   <Search />
                 </InputGroupAddon>
                 <InputGroupInput
                   value={searchQuery}
                   placeholder="Search principals, domains, sources…"
+                  aria-label="Search exposures"
                   onChange={(event) => setSearchQuery(event.target.value)}
                 />
               </InputGroup>
-            </div>
+            </ModuleToolbarSearch>
 
-            <div className="flex min-w-0 flex-wrap items-center gap-2 lg:justify-end">
+            <ModuleToolbarActions>
               <ToolbarToggle
                 id="open-only"
                 checked={openOnly}
@@ -819,6 +539,7 @@ export function DarkWebCenter() {
               <Button
                 size="sm"
                 className="h-9 gap-1.5"
+                aria-label="Export exposures as CSV"
                 onClick={() => {
                   const exportResult = queryExposures(exposures, {
                     page: 1,
@@ -873,104 +594,97 @@ export function DarkWebCenter() {
                 <Download className="size-3.5" />
                 <span className="hidden sm:inline">Export</span>
               </Button>
-            </div>
-          </div>
-        </div>
+            </ModuleToolbarActions>
+          </>
+        ) : undefined
+      }
+    >
+      {tab === "overview" ? (
+        <DarkWebStatsStrip exposures={exposures} watchlist={watchlist} />
       ) : null}
 
-      <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6">
-        <div className="mx-auto flex w-full flex-col gap-4">
-          {tab === "overview" ? (
-            <DarkWebStatsStrip exposures={exposures} watchlist={watchlist} />
-          ) : null}
+      <Tabs
+        value={tab}
+        onValueChange={(value) => setTab(value as DarkWebTab)}
+        className="flex flex-col gap-4"
+      >
+        <ModuleTabsList>
+          <ModuleTabsTrigger value="overview">Overview</ModuleTabsTrigger>
+          <ModuleTabsTrigger value="exposures">
+            Exposures
+            <TabCount>{queryResult.openCount.toLocaleString("en-US")}</TabCount>
+          </ModuleTabsTrigger>
+          <ModuleTabsTrigger value="breaches">
+            Breaches
+            <TabCount>{breaches.length}</TabCount>
+          </ModuleTabsTrigger>
+          <ModuleTabsTrigger value="watchlist">
+            Watchlist
+            <TabCount>{watchlist.length}</TabCount>
+          </ModuleTabsTrigger>
+        </ModuleTabsList>
 
-          <Tabs
-            value={tab}
-            onValueChange={(value) => setTab(value as DarkWebTab)}
-            className="flex flex-col gap-4"
-          >
-            <ModuleTabsList>
-              <ModuleTabsTrigger value="overview">Overview</ModuleTabsTrigger>
-              <ModuleTabsTrigger value="exposures">
-                Exposures
-                <TabCount>
-                  {queryResult.openCount.toLocaleString("en-US")}
-                </TabCount>
-              </ModuleTabsTrigger>
-              <ModuleTabsTrigger value="breaches">
-                Breaches
-                <TabCount>{breaches.length}</TabCount>
-              </ModuleTabsTrigger>
-              <ModuleTabsTrigger value="watchlist">
-                Watchlist
-                <TabCount>{watchlist.length}</TabCount>
-              </ModuleTabsTrigger>
-            </ModuleTabsList>
+        {tab === "overview" ? (
+          <DarkWebOverview
+            exposures={exposures}
+            onFilter={(target) => router.push(overviewFilterToHref(target))}
+            onOpenExposure={openExposure}
+          />
+        ) : null}
 
-            {tab === "overview" ? (
-              <DarkWebOverview
-                exposures={exposures}
-                onFilter={(target) => router.push(overviewFilterToHref(target))}
-                onOpenExposure={openExposure}
-              />
-            ) : null}
+        {tab === "exposures" ? (
+          <div className="space-y-3">
+            <TypeChipBar
+              types={typeFilters}
+              onToggle={(type) =>
+                setTypeFilters((current) => toggleInList(current, type))
+              }
+            />
+            <DarkWebExposuresTable
+              items={queryResult.items}
+              total={queryResult.total}
+              page={queryResult.page}
+              pageSize={pageSize}
+              sort={sort}
+              selectedIds={selectedIds}
+              activeFilterCount={activeFilterCount}
+              onPageChange={setPage}
+              onPageSizeChange={setPageSize}
+              onSortChange={setSort}
+              onToggleSelectAllPage={toggleSelectAllPage}
+              onToggleSelect={toggleSelect}
+              onClearSelection={() => setSelectedIds(new Set())}
+              onBulkSetStatus={bulkSetStatus}
+              onSetStatus={(id, status) => {
+                patchExposures([id], { status });
+                toast({
+                  title: "Status updated",
+                  description: `${id} → ${exposureStatusLabels[status]}`,
+                });
+              }}
+              onOpen={openExposure}
+              onClearFilters={resetFilters}
+            />
+          </div>
+        ) : null}
 
-            {tab === "exposures" ? (
-              <div className="space-y-3">
-                <TypeChipBar
-                  types={typeFilters}
-                  onToggle={(type) =>
-                    setTypeFilters((current) => toggleInList(current, type))
-                  }
-                />
-                <DarkWebExposuresTable
-                  items={queryResult.items}
-                  total={queryResult.total}
-                  page={queryResult.page}
-                  pageSize={pageSize}
-                  sort={sort}
-                  selectedIds={selectedIds}
-                  activeFilterCount={activeFilterCount}
-                  onPageChange={setPage}
-                  onPageSizeChange={setPageSize}
-                  onSortChange={setSort}
-                  onToggleSelectAllPage={toggleSelectAllPage}
-                  onToggleSelect={toggleSelect}
-                  onClearSelection={() => setSelectedIds(new Set())}
-                  onBulkSetStatus={bulkSetStatus}
-                  onSetStatus={(id, status) => {
-                    patchExposures([id], { status });
-                    toast({
-                      title: "Status updated",
-                      description: `${id} → ${exposureStatusLabels[status]}`,
-                    });
-                  }}
-                  onOpen={openExposure}
-                  onClearFilters={resetFilters}
-                />
-              </div>
-            ) : null}
+        {tab === "breaches" ? (
+          <DarkWebBreachesTable
+            breaches={breaches}
+            exposures={exposures}
+            onOpenBreach={openBreach}
+          />
+        ) : null}
 
-            {tab === "breaches" ? (
-              <DarkWebBreachesTable
-                breaches={breaches}
-                exposures={exposures}
-                onOpenBreach={openBreach}
-              />
-            ) : null}
-
-            {tab === "watchlist" ? (
-              <DarkWebWatchlist
-                watchlist={watchlist}
-                onAdd={addWatchlistEntry}
-                onRemove={removeWatchlistEntry}
-                onSetStatus={setWatchlistStatus}
-              />
-            ) : null}
-          </Tabs>
-        </div>
-      </div>
-
+        {tab === "watchlist" ? (
+          <DarkWebWatchlist
+            watchlist={watchlist}
+            onAdd={addWatchlistEntry}
+            onRemove={removeWatchlistEntry}
+            onSetStatus={setWatchlistStatus}
+          />
+        ) : null}
+      </Tabs>
       <DarkWebDetailSheet
         exposure={selectedExposure}
         open={Boolean(selectedExposure)}
@@ -990,6 +704,6 @@ export function DarkWebCenter() {
         }}
         onOpenExposure={openExposure}
       />
-    </main>
+    </ModuleShell>
   );
 }

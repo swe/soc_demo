@@ -77,10 +77,10 @@ const kindStyles: Record<
 };
 
 const severityDot: Record<string, string> = {
-  critical: "bg-red-500",
-  high: "bg-orange-500",
-  medium: "bg-amber-500",
-  low: "bg-blue-500",
+  critical: "bg-severity-critical",
+  high: "bg-severity-high",
+  medium: "bg-severity-medium",
+  low: "bg-severity-low",
 };
 
 type ThreatFlowNodeData = Record<string, unknown> & {
@@ -248,8 +248,7 @@ export function ThreatRelationshipMap({
   const edgesSource = React.useMemo(() => {
     if (!visibleNodeIds) return threatGraphEdges;
     return threatGraphEdges.filter(
-      (edge) =>
-        visibleNodeIds.has(edge.from) && visibleNodeIds.has(edge.to),
+      (edge) => visibleNodeIds.has(edge.from) && visibleNodeIds.has(edge.to),
     );
   }, [visibleNodeIds]);
 
@@ -354,99 +353,99 @@ export function ThreatRelationshipMap({
         />
       ) : null}
       <section
-      className={cn(
-        "bg-card flex min-h-0 flex-col border",
-        isFullscreen
-          ? "fixed inset-0 z-40 rounded-none"
-          : "h-full rounded-lg",
-      )}
-    >
-      <div className="flex items-center justify-between gap-3 border-b px-4 py-3">
-        <div className="min-w-0">
-          <h2 className="text-sm font-semibold">Threat relationship map</h2>
-        </div>
-        <div className="hidden min-w-0 lg:block">{flowLegend}</div>
-      </div>
-
-      <div className="border-b px-4 py-2 lg:hidden">{flowLegend}</div>
-
-      <div
         className={cn(
-          "bg-background relative flex-1 overflow-hidden",
+          "bg-card flex min-h-0 flex-col border",
           isFullscreen
-            ? "min-h-0"
-            : "min-h-[360px] sm:min-h-[480px] lg:min-h-[520px]",
+            ? "fixed inset-0 z-40 rounded-none"
+            : "h-full rounded-lg",
         )}
       >
-        {isMounted ? (
-          <ReactFlow
-            colorMode={flowColorMode}
-            nodes={nodes}
-            edges={edges}
-            nodeTypes={nodeTypes}
-            onInit={(instance) => {
-              flowRef.current = instance;
-            }}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onNodeClick={(_event, node) => onSelect(node.id)}
-            onPaneClick={() => onSelect(null)}
-            fitView
-            fitViewOptions={{ padding: 0.18 }}
-            minZoom={0.35}
-            maxZoom={1.6}
-            nodesConnectable={false}
-            nodesDraggable={false}
-            elementsSelectable
-            panOnDrag
-            proOptions={{ hideAttribution: true }}
-            className="!bg-background [&_.react-flow__controls-button]:!border-border [&_.react-flow__controls-button]:!bg-card [&_.react-flow__controls-button]:!text-foreground [&_.react-flow__attribution]:hidden [&_.react-flow__panel]:!m-3"
-          >
-            <Background color={backgroundDotColor} gap={24} size={1} />
-            <Controls
-              className="overflow-hidden rounded-[6px] border shadow-sm"
-              position="top-left"
-              showInteractive={false}
-            />
-          </ReactFlow>
-        ) : (
-          <div className="text-muted-foreground grid size-full place-items-center text-xs">
-            Loading relationship map…
+        <div className="flex items-center justify-between gap-3 border-b px-4 py-3">
+          <div className="min-w-0">
+            <h2 className="text-sm font-semibold">Threat relationship map</h2>
           </div>
-        )}
-      </div>
+          <div className="hidden min-w-0 lg:block">{flowLegend}</div>
+        </div>
 
-      <div className="text-muted-foreground flex flex-wrap items-center gap-x-4 gap-y-1.5 border-t px-4 py-2.5 text-xs">
-        <span className="flex items-center gap-2">
-          <span className="inline-block h-px w-6 border-t border-dashed border-zinc-500" />
-          Relation
-        </span>
-        <span className="flex items-center gap-2">
-          <span className="inline-block h-px w-6 border-t border-dashed border-red-500" />
-          Critical chain
-        </span>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="ml-auto h-7 shrink-0 gap-1.5 rounded-md text-xs"
-          onClick={() => setIsFullscreen((value) => !value)}
-          aria-pressed={isFullscreen}
-        >
-          {isFullscreen ? (
-            <>
-              <Minimize2 className="size-3.5" />
-              Exit
-            </>
-          ) : (
-            <>
-              <Maximize2 className="size-3.5" />
-              Full screen
-            </>
+        <div className="border-b px-4 py-2 lg:hidden">{flowLegend}</div>
+
+        <div
+          className={cn(
+            "bg-background relative flex-1 overflow-hidden",
+            isFullscreen
+              ? "min-h-0"
+              : "min-h-[360px] sm:min-h-[480px] lg:min-h-[520px]",
           )}
-        </Button>
-      </div>
-    </section>
+        >
+          {isMounted ? (
+            <ReactFlow
+              colorMode={flowColorMode}
+              nodes={nodes}
+              edges={edges}
+              nodeTypes={nodeTypes}
+              onInit={(instance) => {
+                flowRef.current = instance;
+              }}
+              onNodesChange={onNodesChange}
+              onEdgesChange={onEdgesChange}
+              onNodeClick={(_event, node) => onSelect(node.id)}
+              onPaneClick={() => onSelect(null)}
+              fitView
+              fitViewOptions={{ padding: 0.18 }}
+              minZoom={0.35}
+              maxZoom={1.6}
+              nodesConnectable={false}
+              nodesDraggable={false}
+              elementsSelectable
+              panOnDrag
+              proOptions={{ hideAttribution: true }}
+              className="!bg-background [&_.react-flow__controls-button]:!border-border [&_.react-flow__controls-button]:!bg-card [&_.react-flow__controls-button]:!text-foreground [&_.react-flow__attribution]:hidden [&_.react-flow__panel]:!m-3"
+            >
+              <Background color={backgroundDotColor} gap={24} size={1} />
+              <Controls
+                className="overflow-hidden rounded-[6px] border shadow-sm"
+                position="top-left"
+                showInteractive={false}
+              />
+            </ReactFlow>
+          ) : (
+            <div className="text-muted-foreground grid size-full place-items-center text-xs">
+              Loading relationship map…
+            </div>
+          )}
+        </div>
+
+        <div className="text-muted-foreground flex flex-wrap items-center gap-x-4 gap-y-1.5 border-t px-4 py-2.5 text-xs">
+          <span className="flex items-center gap-2">
+            <span className="inline-block h-px w-6 border-t border-dashed border-zinc-500" />
+            Relation
+          </span>
+          <span className="flex items-center gap-2">
+            <span className="inline-block h-px w-6 border-t border-dashed border-destructive" />
+            Critical chain
+          </span>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="ml-auto h-7 shrink-0 gap-1.5 rounded-md text-xs"
+            onClick={() => setIsFullscreen((value) => !value)}
+            aria-pressed={isFullscreen}
+          >
+            {isFullscreen ? (
+              <>
+                <Minimize2 className="size-3.5" />
+                Exit
+              </>
+            ) : (
+              <>
+                <Maximize2 className="size-3.5" />
+                Full screen
+              </>
+            )}
+          </Button>
+        </div>
+      </section>
     </>
   );
 }

@@ -52,10 +52,16 @@ export function DarkWebBreachesTable({
             <TableHead className="hidden w-[100px] sm:table-cell">
               Date
             </TableHead>
-            <TableHead className="w-[88px]">Records</TableHead>
+            <TableHead className="hidden sm:table-cell w-[88px]">
+              Records
+            </TableHead>
             <TableHead className="hidden md:table-cell">Data classes</TableHead>
-            <TableHead className="w-[88px]">Matched</TableHead>
-            <TableHead className="w-[72px]">Ours</TableHead>
+            <TableHead className="hidden md:table-cell w-[88px]">
+              Matched
+            </TableHead>
+            <TableHead className="hidden lg:table-cell w-[72px]">
+              Ours
+            </TableHead>
             <TableHead className="w-[100px]">Org impact</TableHead>
           </TableRow>
         </TableHeader>
@@ -81,7 +87,7 @@ export function DarkWebBreachesTable({
                 <TableCell className="text-muted-foreground hidden text-sm sm:table-cell">
                   {breach.dateLabel}
                 </TableCell>
-                <TableCell className="font-mono text-sm tabular-nums">
+                <TableCell className="hidden sm:table-cell font-mono text-sm tabular-nums">
                   {breach.records.toLocaleString("en-US")}
                 </TableCell>
                 <TableCell className="hidden md:table-cell">
@@ -97,19 +103,21 @@ export function DarkWebBreachesTable({
                     ))}
                   </div>
                 </TableCell>
-                <TableCell>
+                <TableCell className="hidden md:table-cell">
                   <span
                     className={cn(
                       "text-xs font-medium",
                       breach.matchedToWatchlist
-                        ? "text-emerald-700 dark:text-emerald-400"
+                        ? "text-success-text"
                         : "text-muted-foreground",
                     )}
                   >
                     {breach.matchedToWatchlist ? "Yes" : "No"}
                   </span>
                 </TableCell>
-                <TableCell className="tabular-nums">{ours}</TableCell>
+                <TableCell className="hidden lg:table-cell tabular-nums">
+                  {ours}
+                </TableCell>
                 <TableCell>
                   <SeverityBadge severity={breach.orgImpact} />
                 </TableCell>

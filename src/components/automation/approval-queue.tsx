@@ -6,11 +6,17 @@ import {
   Loader2,
   RefreshCw,
   RotateCcw,
+  ShieldCheck,
   X,
 } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
+import {
+  ModuleShell,
+  ModuleToolbarActions,
+} from "@/components/soc/module-shell";
+import { EmptyState, LoadingState } from "@/components/soc/state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -129,12 +135,9 @@ export function ApprovalQueue() {
   };
 
   return (
-    <main
-      id="main-content"
-      className="bg-background flex min-h-0 flex-1 flex-col overflow-hidden"
-    >
-      <div className="flex min-h-0 flex-1 flex-col">
-        <div className="flex shrink-0 justify-end border-b px-4 py-3 sm:px-6">
+    <ModuleShell
+      toolbar={
+        <ModuleToolbarActions className="lg:ml-auto">
           <Button
             variant="outline"
             size="sm"
@@ -145,165 +148,175 @@ export function ApprovalQueue() {
             <RefreshCw className={cn("size-3.5", loading && "animate-spin")} />
             Refresh
           </Button>
+        </ModuleToolbarActions>
+      }
+    >
+      {items.length === 0 ? (
+        <div className="bg-card shadow-card rounded-xl border">
+          {loading ? (
+            <LoadingState label="Loading approval queue…" />
+          ) : (
+            <EmptyState
+              icon={ShieldCheck}
+              title="No runs awaiting approval"
+              description="Start a playbook to enqueue one."
+            />
+          )}
         </div>
-        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 pb-6 sm:px-6">
-          <div className="bg-card shadow-card overflow-hidden rounded-xl border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Procedure</TableHead>
-                  <TableHead>Action</TableHead>
-                  <TableHead>Branches</TableHead>
-                  <TableHead>Case</TableHead>
-                  <TableHead>Requested</TableHead>
-                  <TableHead>SLA</TableHead>
-                  <TableHead className="text-right">Decide</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {loading && items.length === 0 ? (
-                  <TableRow>
-                    <TableCell
-                      colSpan={7}
-                      className="text-muted-foreground py-10 text-center"
-                    >
-                      <span className="inline-flex items-center gap-2 text-sm">
-                        <Loader2 className="size-4 animate-spin" />
-                        Loading approval queue…
+      ) : (
+        <div className="bg-card shadow-card overflow-hidden rounded-xl border">
+          <Table className="max-md:table-fixed">
+            <TableHeader>
+              <TableRow>
+                <TableHead className="min-w-44">Procedure</TableHead>
+                <TableHead className="hidden lg:table-cell">Action</TableHead>
+                <TableHead className="hidden 2xl:table-cell">
+                  Branches
+                </TableHead>
+                <TableHead className="hidden md:table-cell">Case</TableHead>
+                <TableHead className="hidden xl:table-cell">
+                  Requested
+                </TableHead>
+                <TableHead className="hidden sm:table-cell">SLA</TableHead>
+                <TableHead className="w-32 text-right sm:w-auto">
+                  Decide
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {items.map((item) => {
+                const sla = slaLabel(item.slaDeadlineAt);
+                const run = getPlaybookRun(item.runId);
+                const branchSummary =
+                  run?.branches
+                    .map((b) => `${b.label} (${b.status})`)
+                    .join(" · ") ?? "—";
+                const incidentHref = item.incidentId.startsWith(
+                  "pending-alert:",
+                )
+                  ? `/alerts/${item.incidentId.slice("pending-alert:".length)}`
+                  : `/incidents/${item.incidentId}`;
+                return (
+                  <TableRow key={item.id}>
+                    <TableCell>
+                      <p className="line-clamp-2 font-medium whitespace-normal md:line-clamp-1">
+                        {item.procedureTitle}
+                      </p>
+                      <p className="text-muted-foreground truncate font-mono text-xs">
+                        {item.runId}
+                      </p>
+                      <p className="text-muted-foreground truncate text-xs lg:hidden">
+                        {item.actionLabel}
+                      </p>
+                      {sla ? (
+                        <p
+                          className={cn(
+                            "text-xs sm:hidden",
+                            sla === "SLA breached"
+                              ? "text-destructive-text"
+                              : "text-muted-foreground",
+                          )}
+                        >
+                          {sla}
+                        </p>
+                      ) : null}
+                    </TableCell>
+                    <TableCell className="hidden lg:table-cell">
+                      <p className="text-sm">{item.actionLabel}</p>
+                      {item.actionId ? (
+                        <p className="text-muted-foreground font-mono text-xs">
+                          {item.actionId}
+                        </p>
+                      ) : null}
+                    </TableCell>
+                    <TableCell className="hidden 2xl:table-cell">
+                      <span className="text-muted-foreground inline-flex max-w-[180px] items-start gap-1 text-xs leading-snug">
+                        <GitBranch className="mt-0.5 size-3 shrink-0" />
+                        {branchSummary}
                       </span>
                     </TableCell>
-                  </TableRow>
-                ) : items.length === 0 ? (
-                  <TableRow>
-                    <TableCell
-                      colSpan={7}
-                      className="text-muted-foreground py-10 text-center text-sm"
-                    >
-                      No runs awaiting approval. Start a playbook to enqueue
-                      one.
+                    <TableCell className="hidden md:table-cell">
+                      <Link
+                        href={incidentHref}
+                        className="font-mono text-xs hover:underline"
+                      >
+                        {item.incidentId.startsWith("pending-alert:")
+                          ? item.incidentId.slice("pending-alert:".length)
+                          : item.incidentId}
+                      </Link>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground hidden text-xs tabular-nums xl:table-cell">
+                      {formatWhen(item.requestedAt)}
+                    </TableCell>
+                    <TableCell className="hidden sm:table-cell">
+                      {sla ? (
+                        <Badge
+                          variant="outline"
+                          className={cn(
+                            "rounded-full font-normal",
+                            sla === "SLA breached" &&
+                              "border-destructive/40 text-destructive-text",
+                          )}
+                        >
+                          {sla}
+                        </Badge>
+                      ) : (
+                        <span className="text-muted-foreground text-xs">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex justify-end gap-1">
+                        <Button
+                          size="sm"
+                          className="h-7 gap-1 px-2"
+                          disabled={busyId !== null}
+                          onClick={() => void approve(item)}
+                        >
+                          {busyId === `approve-${item.id}` ? (
+                            <Loader2 className="size-3 animate-spin" />
+                          ) : (
+                            <Check className="size-3" />
+                          )}
+                          <span className="max-md:sr-only">Approve</span>
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-7 gap-1 px-2"
+                          disabled={busyId !== null}
+                          onClick={() => void reject(item)}
+                        >
+                          {busyId === `reject-${item.id}` ? (
+                            <Loader2 className="size-3 animate-spin" />
+                          ) : (
+                            <X className="size-3" />
+                          )}
+                          <span className="max-md:sr-only">Reject</span>
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-7 gap-1 px-2"
+                          disabled={busyId !== null}
+                          onClick={() => void retry(item)}
+                          title="Retry failed upstream connector step"
+                        >
+                          {busyId === `retry-${item.id}` ? (
+                            <Loader2 className="size-3 animate-spin" />
+                          ) : (
+                            <RotateCcw className="size-3" />
+                          )}
+                          <span className="max-md:sr-only">Retry</span>
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
-                ) : (
-                  items.map((item) => {
-                    const sla = slaLabel(item.slaDeadlineAt);
-                    const run = getPlaybookRun(item.runId);
-                    const branchSummary =
-                      run?.branches
-                        .map((b) => `${b.label} (${b.status})`)
-                        .join(" · ") ?? "—";
-                    const incidentHref = item.incidentId.startsWith(
-                      "pending-alert:",
-                    )
-                      ? `/alerts/${item.incidentId.slice("pending-alert:".length)}`
-                      : `/incidents/${item.incidentId}`;
-                    return (
-                      <TableRow key={item.id}>
-                        <TableCell>
-                          <p className="font-medium">{item.procedureTitle}</p>
-                          <p className="text-muted-foreground font-mono text-xs">
-                            {item.runId}
-                          </p>
-                        </TableCell>
-                        <TableCell>
-                          <p className="text-sm">{item.actionLabel}</p>
-                          {item.actionId ? (
-                            <p className="text-muted-foreground font-mono text-xs">
-                              {item.actionId}
-                            </p>
-                          ) : null}
-                        </TableCell>
-                        <TableCell>
-                          <span className="text-muted-foreground inline-flex max-w-[180px] items-start gap-1 text-xs leading-snug">
-                            <GitBranch className="mt-0.5 size-3 shrink-0" />
-                            {branchSummary}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          <Link
-                            href={incidentHref}
-                            className="font-mono text-xs hover:underline"
-                          >
-                            {item.incidentId.startsWith("pending-alert:")
-                              ? item.incidentId.slice("pending-alert:".length)
-                              : item.incidentId}
-                          </Link>
-                        </TableCell>
-                        <TableCell className="text-muted-foreground text-xs tabular-nums">
-                          {formatWhen(item.requestedAt)}
-                        </TableCell>
-                        <TableCell>
-                          {sla ? (
-                            <Badge
-                              variant="outline"
-                              className={cn(
-                                "rounded-full font-normal",
-                                sla === "SLA breached" &&
-                                  "border-destructive/40 text-destructive",
-                              )}
-                            >
-                              {sla}
-                            </Badge>
-                          ) : (
-                            <span className="text-muted-foreground text-xs">
-                              —
-                            </span>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex justify-end gap-1.5">
-                            <Button
-                              size="sm"
-                              className="h-7 gap-1 px-2"
-                              disabled={busyId !== null}
-                              onClick={() => void approve(item)}
-                            >
-                              {busyId === `approve-${item.id}` ? (
-                                <Loader2 className="size-3 animate-spin" />
-                              ) : (
-                                <Check className="size-3" />
-                              )}
-                              Approve
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="h-7 gap-1 px-2"
-                              disabled={busyId !== null}
-                              onClick={() => void reject(item)}
-                            >
-                              {busyId === `reject-${item.id}` ? (
-                                <Loader2 className="size-3 animate-spin" />
-                              ) : (
-                                <X className="size-3" />
-                              )}
-                              Reject
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="h-7 gap-1 px-2"
-                              disabled={busyId !== null}
-                              onClick={() => void retry(item)}
-                              title="Retry failed upstream connector step"
-                            >
-                              {busyId === `retry-${item.id}` ? (
-                                <Loader2 className="size-3 animate-spin" />
-                              ) : (
-                                <RotateCcw className="size-3" />
-                              )}
-                              Retry
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })
-                )}
-              </TableBody>
-            </Table>
-          </div>
+                );
+              })}
+            </TableBody>
+          </Table>
         </div>
-      </div>
-    </main>
+      )}
+    </ModuleShell>
   );
 }
