@@ -1,23 +1,13 @@
 import "./globals.css";
 
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist_Mono } from "next/font/google";
 
 import { Toaster } from "@/components/ui/sonner";
 import { site } from "@/data/site";
 import { cn } from "@/lib/utils";
 
 import { Providers } from "./providers";
-
-const geistSansMain = Geist({
-  subsets: ["latin"],
-  variable: "--font-sans",
-});
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
@@ -73,15 +63,9 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={cn("font-sans", geistSansMain.variable)}
+      className={cn("font-sans", geistMono.variable)}
     >
-      <body
-        className={cn(
-          "group/body antialiased",
-          geistSans.variable,
-          geistMono.variable,
-        )}
-      >
+      <body className="group/body antialiased">
         <Providers>{children}</Providers>
         <Toaster />
       </body>

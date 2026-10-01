@@ -49,9 +49,6 @@ export const defaultPresets: Record<string, ThemePresetDefinition> = {
         "sidebar-accent-foreground": "#1e3a8a",
         "sidebar-border": "#e5e7eb",
         "sidebar-ring": "#3b82f6",
-        "font-sans": "Inter, sans-serif",
-        "font-serif": "Source Serif 4, serif",
-        "font-mono": "JetBrains Mono, monospace",
       },
       dark: {
         background: "#171717",

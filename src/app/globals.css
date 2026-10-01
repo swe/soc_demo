@@ -6,13 +6,22 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/*
+ * Design tokens.
+ * Palette values (primary, accents, priority, success, warning, chart) are the
+ * product palette and must not change. Everything below the palette block is
+ * derived from it or names a Tailwind shade the product already used.
+ */
 :root {
   --font-sans:
-    "Geist", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
-    "Segoe UI", sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+    -apple-system, BlinkMacSystemFont, system-ui, "Segoe UI Variable Text",
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji";
   --font-mono:
-    "Geist Mono", "SFMono-Regular", ui-monospace, SFMono-Regular, Menlo, Monaco,
-    Consolas, "Liberation Mono", "Courier New", monospace;
+    var(--font-geist-mono), ui-monospace, "SF Mono", SFMono-Regular, Menlo,
+    Monaco, Consolas, "Liberation Mono", monospace;
+
+  /* Palette */
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.21 0.02 266);
   --popover: oklch(1 0 0);
@@ -53,6 +62,60 @@
   --priority-4: oklch(0.556 0 0);
   --success: oklch(0.545 0.166 156.743);
   --warning: oklch(0.754 0.184 85.869);
+
+  /* Surfaces: grouped page canvas under raised cards */
+  --canvas: color-mix(in oklch, var(--muted) 85%, var(--background));
+  --separator: color-mix(in oklch, var(--border) 70%, transparent);
+
+  /* Severity fills (charts, dots, bars) and AA text shades (badges, labels) */
+  --severity-critical: oklch(0.577 0.245 27.325);
+  --severity-high: oklch(0.646 0.222 41.116);
+  --severity-medium: oklch(0.666 0.179 58.318);
+  --severity-low: oklch(0.546 0.245 262.881);
+  --severity-info: var(--priority-4);
+  --severity-critical-text: oklch(0.505 0.213 27.518);
+  --severity-high-text: oklch(0.553 0.195 38.402);
+  --severity-medium-text: oklch(0.555 0.163 48.998);
+  --severity-low-text: oklch(0.488 0.243 264.376);
+  --severity-info-text: oklch(0.439 0 0);
+
+  /* Status */
+  --info: oklch(0.546 0.245 262.881);
+  --info-text: oklch(0.488 0.243 264.376);
+  --success-text: oklch(0.508 0.118 165.612);
+  --warning-text: oklch(0.555 0.163 48.998);
+  --destructive-text: oklch(0.505 0.213 27.518);
+
+  /* Elevation: hairline-first, shadow only where a layer floats */
+  --elevation-card:
+    0 1px 2px oklch(0.21 0.02 266 / 0.04), 0 1px 1px oklch(0.21 0.02 266 / 0.02);
+  --elevation-raised:
+    0 1px 3px oklch(0.21 0.02 266 / 0.06),
+    0 8px 24px -6px oklch(0.21 0.02 266 / 0.14);
+  --elevation-overlay:
+    0 2px 6px oklch(0.21 0.02 266 / 0.06),
+    0 24px 56px -12px oklch(0.21 0.02 266 / 0.24);
+
+  /* Layout rhythm */
+  --gutter: 1rem;
+  --section-gap: 1.25rem;
+  --header-height: 3.5rem;
+  --tab-bar-height: 3.5rem;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --gutter: 1.5rem;
+    --section-gap: 1.5rem;
+    --header-height: 3.75rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  :root {
+    --gutter: 2rem;
+    --section-gap: 1.75rem;
+  }
 }
 
 .dark {
@@ -94,6 +157,31 @@
   --priority-4: oklch(0.708 0 0);
   --success: oklch(0.724 0.144 163.278);
   --warning: oklch(0.808 0.156 88.447);
+
+  --canvas: var(--background);
+  --separator: oklch(1 0 0 / 8%);
+
+  --severity-critical: oklch(0.704 0.191 22.216);
+  --severity-high: oklch(0.75 0.183 55.934);
+  --severity-medium: oklch(0.828 0.189 84.429);
+  --severity-low: oklch(0.707 0.165 254.624);
+  --severity-critical-text: oklch(0.808 0.114 19.571);
+  --severity-high-text: oklch(0.837 0.128 66.29);
+  --severity-medium-text: oklch(0.879 0.169 91.605);
+  --severity-low-text: oklch(0.809 0.105 251.813);
+  --severity-info-text: oklch(0.87 0 0);
+
+  --info: oklch(0.707 0.165 254.624);
+  --info-text: oklch(0.809 0.105 251.813);
+  --success-text: oklch(0.845 0.143 164.978);
+  --warning-text: oklch(0.879 0.169 91.605);
+  --destructive-text: oklch(0.808 0.114 19.571);
+
+  --elevation-card: inset 0 1px 0 oklch(1 0 0 / 0.04);
+  --elevation-raised:
+    inset 0 1px 0 oklch(1 0 0 / 0.06), 0 8px 24px -6px oklch(0 0 0 / 0.5);
+  --elevation-overlay:
+    inset 0 1px 0 oklch(1 0 0 / 0.06), 0 24px 56px -12px oklch(0 0 0 / 0.6);
 }
 
 @theme inline {
@@ -115,6 +203,7 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
+  --color-destructive-text: var(--destructive-text);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -123,10 +212,6 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -135,15 +220,100 @@
   --color-sidebar-primary: var(--sidebar-primary);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar: var(--sidebar);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
   --color-priority-1: var(--priority-1);
   --color-priority-2: var(--priority-2);
   --color-priority-3: var(--priority-3);
   --color-priority-4: var(--priority-4);
   --color-success: var(--success);
+  --color-success-text: var(--success-text);
   --color-warning: var(--warning);
+  --color-warning-text: var(--warning-text);
+  --color-info: var(--info);
+  --color-info-text: var(--info-text);
+  --color-canvas: var(--canvas);
+  --color-separator: var(--separator);
+  --color-severity-critical: var(--severity-critical);
+  --color-severity-high: var(--severity-high);
+  --color-severity-medium: var(--severity-medium);
+  --color-severity-low: var(--severity-low);
+  --color-severity-info: var(--severity-info);
+  --color-severity-critical-text: var(--severity-critical-text);
+  --color-severity-high-text: var(--severity-high-text);
+  --color-severity-medium-text: var(--severity-medium-text);
+  --color-severity-low-text: var(--severity-low-text);
+  --color-severity-info-text: var(--severity-info-text);
+
+  /* Concentric radii: inner radius = outer radius − padding */
+  --radius-xs: calc(var(--radius) * 0.5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 20px);
+
+  --shadow-card: var(--elevation-card);
+  --shadow-raised: var(--elevation-raised);
+  --shadow-overlay: var(--elevation-overlay);
+}
+
+/*
+ * Type scale. Tracking tightens as size grows and leading loosens as it
+ * shrinks; 12px is the floor. Stock sizes get the same treatment so existing
+ * classes inherit it.
+ */
+@theme {
+  --text-large-title: 1.75rem;
+  --text-large-title--line-height: 1.15;
+  --text-large-title--letter-spacing: -0.022em;
+  --text-large-title--font-weight: 700;
+  --text-title-1: 1.5rem;
+  --text-title-1--line-height: 1.2;
+  --text-title-1--letter-spacing: -0.02em;
+  --text-title-1--font-weight: 650;
+  --text-title-2: 1.25rem;
+  --text-title-2--line-height: 1.25;
+  --text-title-2--letter-spacing: -0.017em;
+  --text-title-2--font-weight: 600;
+  --text-title-3: 1.0625rem;
+  --text-title-3--line-height: 1.3;
+  --text-title-3--letter-spacing: -0.012em;
+  --text-title-3--font-weight: 600;
+  --text-headline: 0.9375rem;
+  --text-headline--line-height: 1.35;
+  --text-headline--letter-spacing: -0.009em;
+  --text-headline--font-weight: 600;
+  --text-body: 0.875rem;
+  --text-body--line-height: 1.45;
+  --text-body--letter-spacing: -0.006em;
+  --text-callout: 0.8125rem;
+  --text-callout--line-height: 1.4;
+  --text-callout--letter-spacing: -0.003em;
+  --text-footnote: 0.75rem;
+  --text-footnote--line-height: 1.35;
+  --text-footnote--letter-spacing: 0em;
+  --text-caption: 0.75rem;
+  --text-caption--line-height: 1.3;
+  --text-caption--letter-spacing: 0.01em;
+  --text-caption--font-weight: 500;
+  --text-metric: 1.75rem;
+  --text-metric--line-height: 1.05;
+  --text-metric--letter-spacing: -0.025em;
+  --text-metric--font-weight: 650;
+
+  --text-xs--letter-spacing: 0.005em;
+  --text-sm--letter-spacing: -0.006em;
+  --text-base--letter-spacing: -0.011em;
+  --text-lg--letter-spacing: -0.014em;
+  --text-xl--letter-spacing: -0.017em;
+  --text-2xl--letter-spacing: -0.02em;
+  --text-3xl--letter-spacing: -0.022em;
+  --text-4xl--letter-spacing: -0.024em;
+
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-sheet: cubic-bezier(0.32, 0.72, 0, 1);
+  --animate-duration-fast: 120ms;
 }
 
 @layer base {
@@ -161,8 +331,26 @@
     scrollbar-color: var(--border) transparent;
   }
 
+  html {
+    @apply font-sans;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
   body {
     @apply bg-background text-foreground font-sans;
+    text-rendering: optimizeLegibility;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  ::selection {
+    background-color: color-mix(in oklch, var(--primary) 22%, transparent);
+  }
+
+  /* Safety net for interactive elements without their own focus treatment. */
+  :where(a[href], button, [role="button"], [tabindex]:not([tabindex="-1"])):focus-visible {
+    outline: 2px solid color-mix(in oklch, var(--ring) 70%, transparent);
+    outline-offset: 2px;
   }
 
   button:not(:disabled),
@@ -185,11 +373,11 @@
   }
 
   .CollapsibleContent[data-state="open"] {
-    animation: slideDown 300ms ease-out;
+    animation: slideDown 240ms var(--ease-standard);
   }
 
   .CollapsibleContent[data-state="closed"] {
-    animation: slideUp 300ms ease-out;
+    animation: slideUp 200ms var(--ease-standard);
   }
 
   @keyframes slideDown {
@@ -212,19 +400,118 @@
     }
   }
 
-  html {
-    @apply font-sans;
-  }
   .maplibregl-popup-content {
     @apply rounded-none! bg-transparent! p-0! shadow-none!;
   }
   .maplibregl-popup-tip {
     @apply hidden!;
   }
+
+  [data-slot="chart"] {
+    touch-action: auto;
+  }
 }
 
-@utility faded-bottom {
-  @apply after:pointer-events-none after:absolute after:bottom-0 after:left-0 after:hidden after:h-32 after:w-full after:bg-[linear-gradient(180deg,_transparent_10%,_hsl(var(--background))_70%)] md:after:block;
+/* Reduced motion: keep fades, drop slides, zooms and press scaling. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    --tw-enter-scale: 1 !important;
+    --tw-exit-scale: 1 !important;
+    --tw-enter-translate-x: 0 !important;
+    --tw-enter-translate-y: 0 !important;
+    --tw-exit-translate-x: 0 !important;
+    --tw-exit-translate-y: 0 !important;
+    --tw-enter-rotate: 0 !important;
+    --tw-exit-rotate: 0 !important;
+    scroll-behavior: auto !important;
+  }
+
+  .CollapsibleContent[data-state="open"],
+  .CollapsibleContent[data-state="closed"] {
+    animation: none;
+  }
+}
+
+/* Horizontal page padding that scales with the viewport. */
+@utility px-gutter {
+  padding-inline: var(--gutter);
+}
+
+@utility -mx-gutter {
+  margin-inline: calc(var(--gutter) * -1);
+}
+
+@utility gap-section {
+  gap: var(--section-gap);
+}
+
+/* Translucent chrome (header, tab bar): content scrolls underneath. */
+@utility material-chrome {
+  background-color: color-mix(in oklch, var(--background) 78%, transparent);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+
+  @media (prefers-reduced-transparency: reduce) {
+    background-color: var(--background);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  @media (prefers-contrast: more) {
+    background-color: var(--background);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+/* Thicker floating material for menus, popovers and toasts. */
+@utility material-thick {
+  background-color: color-mix(in oklch, var(--popover) 90%, transparent);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  backdrop-filter: blur(24px) saturate(180%);
+
+  @media (prefers-reduced-transparency: reduce) {
+    background-color: var(--popover);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  @media (prefers-contrast: more) {
+    background-color: var(--popover);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+/* Instant press feedback on pointer-down. */
+@utility pressable {
+  transition-property: transform, color, background-color, border-color, box-shadow, opacity;
+  transition-duration: 120ms;
+  transition-timing-function: var(--ease-standard);
+
+  &:active:not(:disabled):not([aria-disabled="true"]) {
+    transform: scale(0.97);
+    transition-duration: 60ms;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &:active:not(:disabled) {
+      transform: none;
+    }
+  }
+}
+
+/* Fades content into the edge of a scroll container instead of a hard rule. */
+@utility scroll-fade-x {
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 0.75rem,
+    #000 calc(100% - 0.75rem),
+    transparent
+  );
 }
 
 @utility no-scrollbar {
@@ -237,10 +524,6 @@
 }
 
 @layer base {
-  [data-slot="chart"] {
-    touch-action: auto;
-  }
-
   /* Toggle Theme View Transitions */
   @keyframes theme-mask {
     0% {
@@ -270,5 +553,11 @@
   html.theme-transition::view-transition-new(root) {
     z-index: 2;
     animation: theme-mask 0.3s ease-out forwards;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html.theme-transition::view-transition-new(root) {
+      animation: none;
+    }
   }
 }

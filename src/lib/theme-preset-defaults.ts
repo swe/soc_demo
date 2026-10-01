@@ -1,31 +1,7 @@
 /**
  * Default shadcn/ui theme tokens used when merging color preset overrides.
+ * Typography is not part of a preset; fonts come from globals.css only.
  */
-
-// these are common between light and dark modes
-// we can assume that light mode's value will be used for dark mode as well
-export const COMMON_STYLES = [
-  "font-sans",
-  "font-serif",
-  "font-mono",
-  "radius",
-  "shadow-opacity",
-  "shadow-blur",
-  "shadow-spread",
-  "shadow-offset-x",
-  "shadow-offset-y",
-  "letter-spacing",
-  "spacing",
-];
-
-export const DEFAULT_FONT_SANS =
-  "ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji'";
-
-export const DEFAULT_FONT_SERIF =
-  'ui-serif, Georgia, Cambria, "Times New Roman", Times, serif';
-
-export const DEFAULT_FONT_MONO =
-  'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace';
 
 // Default light theme styles
 export const defaultLightThemeStyles = {
@@ -62,19 +38,6 @@ export const defaultLightThemeStyles = {
   "sidebar-accent-foreground": "oklch(0.36 0.12 277)",
   "sidebar-border": "oklch(0.928 0.01 265)",
   "sidebar-ring": "oklch(0.51 0.23 277)",
-  "font-sans": DEFAULT_FONT_SANS,
-  "font-serif": DEFAULT_FONT_SERIF,
-  "font-mono": DEFAULT_FONT_MONO,
-
-  "shadow-color": "oklch(0 0 0)",
-  "shadow-opacity": "0.1",
-  "shadow-blur": "3px",
-  "shadow-spread": "0px",
-  "shadow-offset-x": "0",
-  "shadow-offset-y": "1px",
-
-  "letter-spacing": "0em",
-  spacing: "0.25rem",
 };
 
 // Default dark theme styles
@@ -96,28 +59,21 @@ export const defaultDarkThemeStyles = {
   "accent-foreground": "oklch(0.93 0.03 277)",
   destructive: "oklch(0.704 0.191 22.216)",
   "destructive-foreground": "oklch(0.985 0 0)",
-  border: "oklch(0.28 0.02 266)", // in place of oklch(1 0 0 / 10%)
-  input: "oklch(0.34 0.02 266)", // in place of oklch(1 0 0 / 15%)
+  border: "oklch(0.28 0.02 266)",
+  input: "oklch(0.34 0.02 266)",
   ring: "oklch(0.62 0.2 278)",
   "chart-1": "oklch(0.68 0.18 277)",
   "chart-2": "oklch(0.62 0.22 285)",
   "chart-3": "oklch(0.72 0.15 270)",
   "chart-4": "oklch(0.55 0.22 279)",
   "chart-5": "oklch(0.5 0.2 283)",
-  // Actual has radius but not in Expected, keeping it as is
   radius: "0.75rem",
-  // Converting sidebar-related variables to match Actual format
   sidebar: "oklch(0.23 0.02 266)",
   "sidebar-foreground": "oklch(0.985 0 0)",
   "sidebar-primary": "oklch(0.62 0.2 278)",
   "sidebar-primary-foreground": "oklch(0.985 0 0)",
   "sidebar-accent": "oklch(0.32 0.05 277)",
   "sidebar-accent-foreground": "oklch(0.93 0.03 277)",
-  "sidebar-border": "oklch(0.28 0.02 266)", // in place of oklch(1 0 0 / 10%)
+  "sidebar-border": "oklch(0.28 0.02 266)",
   "sidebar-ring": "oklch(0.62 0.2 278)",
-
-  "shadow-color": "oklch(0 0 0)",
-
-  "letter-spacing": "0em",
-  spacing: "0.25rem",
 };
