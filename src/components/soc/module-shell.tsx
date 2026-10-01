@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
  * Canonical module page chrome (layers 2–3 under the app header).
  * - Optional toolbar (search left, filters/actions right) — layer 2, pinned
  * - Scroll body on the grouped canvas with StatsStrip + cards — layer 3
+ * The mobile tab bar sits in flow below this, so no bottom inset is needed.
  */
 export function ModuleShell({
   toolbar,
@@ -32,7 +33,7 @@ export function ModuleShell({
         </div>
       ) : null}
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
-        <div className="px-gutter mx-auto flex w-full max-w-[1600px] flex-col gap-4 pt-4 pb-[calc(var(--tab-bar-height,0px)+1.5rem)] sm:pt-5 md:gap-5">
+        <div className="px-gutter mx-auto flex w-full max-w-[1600px] flex-col gap-4 pt-4 pb-6 sm:pt-5 md:gap-5 xl:pb-8">
           {children}
         </div>
       </div>

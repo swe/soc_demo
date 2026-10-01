@@ -13,6 +13,7 @@ import {
   SidebarFooter,
   SidebarHeader,
   SidebarRail,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { sidebarData } from "@/data/sidebar-data";
 import { filterNavGroups } from "@/lib/soc-roles";
@@ -20,6 +21,7 @@ import { filterNavGroups } from "@/lib/soc-roles";
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { effectiveRole } = useSocRole();
   const { user } = useAuthSession();
+  const { isMobile } = useSidebar();
 
   const navGroups = useMemo(
     () => filterNavGroups(sidebarData.navGroups, effectiveRole),
@@ -34,6 +36,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     }),
     [user],
   );
+
+  // Phones navigate with the tab bar and the More sheet instead.
+  if (isMobile) return null;
 
   return (
     <div className="relative">

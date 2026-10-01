@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  IconArrowRightDashed,
-  IconDeviceLaptop,
-  IconMoon,
-  IconSun,
-} from "@tabler/icons-react";
+import { Laptop, Moon, Sun } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import * as React from "react";
@@ -20,11 +15,17 @@ import {
   CommandList,
   CommandSeparator,
 } from "@/components/ui/command";
-import { sidebarData } from "@/data/sidebar-data";
+import { navIcons, sidebarData } from "@/data/sidebar-data";
 import { filterNavGroups } from "@/lib/soc-roles";
 
 import { useSearch } from "./search-provider";
-import { ScrollArea } from "./ui/scroll-area";
+
+const quickOpen = [
+  { value: "Investigate query console", label: "Investigate", href: "/investigate", icon: navIcons.investigate },
+  { value: "Automation playbooks", label: "Playbooks", href: "/automation/playbooks", icon: navIcons.automation },
+  { value: "Playbook builder canvas", label: "Playbook builder", href: "/automation/builder", icon: navIcons.automation },
+  { value: "Cloud posture CSPM", label: "Cloud posture", href: "/cloud-posture", icon: navIcons.cloudPosture },
+];
 
 export function CommandMenu() {
   const router = useRouter();
@@ -32,8 +33,11 @@ export function CommandMenu() {
   const { open, setOpen } = useSearch();
   const { effectiveRole } = useSocRole();
 
-  const navGroups = React.useMemo(
-    () => filterNavGroups(sidebarData.navGroups, effectiveRole),
+  const items = React.useMemo(
+    () =>
+      filterNavGroups(sidebarData.navGroups, effectiveRole).flatMap(
+        (group) => group.items,
+      ),
     [effectiveRole],
   );
 
@@ -47,109 +51,67 @@ export function CommandMenu() {
 
   return (
     <CommandDialog modal open={open} onOpenChange={setOpen}>
-      <CommandInput placeholder="Type a command or search..." />
+      <CommandInput placeholder="Search pages and commands" />
       <CommandList>
-        <ScrollArea type="hover" className="h-72 pr-1">
-          <CommandEmpty>No results found.</CommandEmpty>
-          {navGroups.map((group, groupIndex) => (
-            <CommandGroup
-              key={group.title || `group-${groupIndex}`}
-              heading={group.title || undefined}
-            >
-              {group.items.map((navItem, i) => {
-                if (navItem.url)
-                  return (
-                    <CommandItem
-                      key={`${navItem.url}-${i}`}
-                      value={navItem.title}
-                      onSelect={() => {
-                        runCommand(() => router.push(navItem.url));
-                      }}
-                    >
-                      <div className="mr-2 flex h-4 w-4 items-center justify-center">
-                        <IconArrowRightDashed className="text-muted-foreground/80 size-2" />
-                      </div>
-                      {navItem.title}
-                    </CommandItem>
-                  );
-
-                return navItem.items?.map((subItem, i) => (
-                  <CommandItem
-                    key={`${subItem.url}-${i}`}
-                    value={subItem.title}
-                    onSelect={() => {
-                      runCommand(() => router.push(subItem.url));
-                    }}
-                  >
-                    <div className="mr-2 flex h-4 w-4 items-center justify-center">
-                      <IconArrowRightDashed className="text-muted-foreground/80 size-2" />
-                    </div>
-                    {subItem.title}
-                  </CommandItem>
-                ));
-              })}
+        <CommandEmpty>No results found.</CommandEmpty>
+        <CommandGroup heading="Pages">
+          {items.map((item) =>
+            item.url ? (
+              <CommandItem
+                key={item.url}
+                value={item.title}
+                onSelect={() => runCommand(() => router.push(item.url))}
+              >
+                {item.icon ? <item.icon aria-hidden /> : null}
+                {item.title}
+              </CommandItem>
+            ) : null,
+          )}
+        </CommandGroup>
+        {items.map((item) =>
+          item.items ? (
+            <CommandGroup key={item.title} heading={item.title}>
+              {item.items.map((subItem) => (
+                <CommandItem
+                  key={subItem.url}
+                  value={`${item.title} ${subItem.title}`}
+                  onSelect={() => runCommand(() => router.push(subItem.url))}
+                >
+                  {item.icon ? <item.icon aria-hidden /> : null}
+                  {subItem.title}
+                </CommandItem>
+              ))}
             </CommandGroup>
+          ) : null,
+        )}
+        <CommandSeparator />
+        <CommandGroup heading="Quick open">
+          {quickOpen.map((entry) => (
+            <CommandItem
+              key={entry.value}
+              value={entry.value}
+              onSelect={() => runCommand(() => router.push(entry.href))}
+            >
+              <entry.icon aria-hidden />
+              {entry.label}
+            </CommandItem>
           ))}
-          <CommandSeparator />
-          <CommandGroup heading="Quick open">
-            <CommandItem
-              value="Investigate query console"
-              onSelect={() => runCommand(() => router.push("/investigate"))}
-            >
-              <div className="mr-2 flex h-4 w-4 items-center justify-center">
-                <IconArrowRightDashed className="text-muted-foreground/80 size-2" />
-              </div>
-              Investigate
-            </CommandItem>
-            <CommandItem
-              value="Automation playbooks"
-              onSelect={() =>
-                runCommand(() => router.push("/automation/playbooks"))
-              }
-            >
-              <div className="mr-2 flex h-4 w-4 items-center justify-center">
-                <IconArrowRightDashed className="text-muted-foreground/80 size-2" />
-              </div>
-              Playbooks
-            </CommandItem>
-            <CommandItem
-              value="Playbook builder canvas"
-              onSelect={() =>
-                runCommand(() => router.push("/automation/builder"))
-              }
-            >
-              <div className="mr-2 flex h-4 w-4 items-center justify-center">
-                <IconArrowRightDashed className="text-muted-foreground/80 size-2" />
-              </div>
-              Playbook builder
-            </CommandItem>
-            <CommandItem
-              value="Cloud posture CSPM"
-              onSelect={() =>
-                runCommand(() => router.push("/cloud-posture"))
-              }
-            >
-              <div className="mr-2 flex h-4 w-4 items-center justify-center">
-                <IconArrowRightDashed className="text-muted-foreground/80 size-2" />
-              </div>
-              Cloud Posture
-            </CommandItem>
-          </CommandGroup>
-          <CommandSeparator />
-          <CommandGroup heading="Theme">
-            <CommandItem onSelect={() => runCommand(() => setTheme("light"))}>
-              <IconSun /> <span>Light</span>
-            </CommandItem>
-            <CommandItem onSelect={() => runCommand(() => setTheme("dark"))}>
-              <IconMoon className="scale-90" />
-              <span>Dark</span>
-            </CommandItem>
-            <CommandItem onSelect={() => runCommand(() => setTheme("system"))}>
-              <IconDeviceLaptop />
-              <span>System</span>
-            </CommandItem>
-          </CommandGroup>
-        </ScrollArea>
+        </CommandGroup>
+        <CommandSeparator />
+        <CommandGroup heading="Theme">
+          <CommandItem onSelect={() => runCommand(() => setTheme("light"))}>
+            <Sun aria-hidden />
+            <span>Light</span>
+          </CommandItem>
+          <CommandItem onSelect={() => runCommand(() => setTheme("dark"))}>
+            <Moon aria-hidden />
+            <span>Dark</span>
+          </CommandItem>
+          <CommandItem onSelect={() => runCommand(() => setTheme("system"))}>
+            <Laptop aria-hidden />
+            <span>System</span>
+          </CommandItem>
+        </CommandGroup>
       </CommandList>
     </CommandDialog>
   );

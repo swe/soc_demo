@@ -38,7 +38,7 @@ export function HeaderRoleSwitcher({ className }: { className?: string }) {
     >
       <SelectTrigger
         className={cn(
-          "border-border bg-background h-9 w-[min(100%,11rem)] shrink-0 text-sm sm:w-[15rem]",
+          "w-44 shrink-0 xl:w-56",
           !hydrated && "opacity-60",
           className,
         )}

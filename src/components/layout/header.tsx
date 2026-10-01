@@ -1,38 +1,26 @@
 "use client";
 
-import { Search } from "lucide-react";
+import { ChevronLeft, Search } from "lucide-react";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { createElement } from "react";
+import { createElement, Fragment } from "react";
 
+import { useSocRole } from "@/components/auth/soc-role-provider";
 import { HeaderRoleSwitcher } from "@/components/layout/header-role-switcher";
 import { HeaderUtilityActions } from "@/components/layout/header-utility-actions";
 import { useSearch } from "@/components/search-provider";
-import { Button } from "@/components/ui/button";
-import { SidebarTrigger } from "@/components/ui/sidebar";
 import {
-  type HeaderTitle,
-  iconFromPathname,
-  titleFromPathname,
-} from "@/data/route-chrome";
-
-function HeaderTitleContent({ title }: { title: HeaderTitle }) {
-  if (title.kind === "plain") {
-    return <span className="truncate">{title.label}</span>;
-  }
-
-  return (
-    <span className="flex min-w-0 items-center gap-2 truncate">
-      {title.segments.map((segment, index) => (
-        <span key={`${segment}-${index}`} className="contents">
-          {index > 0 ? (
-            <span className="text-muted-foreground font-normal">/</span>
-          ) : null}
-          <span className="truncate">{segment}</span>
-        </span>
-      ))}
-    </span>
-  );
-}
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
+import { Button } from "@/components/ui/button";
+import { Kbd } from "@/components/ui/kbd";
+import { SidebarTrigger } from "@/components/ui/sidebar";
+import { breadcrumbsFromPathname, type Crumb, iconFromPathname } from "@/data/route-chrome";
+import { canAccessPath } from "@/lib/soc-roles";
 
 interface HeaderProps {
   /** When omitted, derived from the URL. */
@@ -41,43 +29,88 @@ interface HeaderProps {
 
 export function Header({ title: titleProp }: HeaderProps) {
   const pathname = usePathname();
-  const title = titleProp
-    ? ({ kind: "plain", label: titleProp } as const)
-    : titleFromPathname(pathname);
+  const { effectiveRole } = useSocRole();
+  const { setOpen: setCommandOpen } = useSearch();
+
+  const crumbs: Crumb[] = (
+    titleProp ? [{ label: titleProp }] : breadcrumbsFromPathname(pathname)
+  ).map((crumb) =>
+    crumb.href && !canAccessPath(effectiveRole, crumb.href)
+      ? { label: crumb.label }
+      : crumb,
+  );
+  const current = crumbs[crumbs.length - 1];
+  const back = [...crumbs.slice(0, -1)].reverse().find((crumb) => crumb.href);
   const pageIcon = createElement(iconFromPathname(pathname), {
     className: "text-muted-foreground size-4 shrink-0",
     "aria-hidden": true,
   });
-  const searchAriaLabel = `Open command palette (${
-    title.kind === "plain" ? title.label : title.segments.join(" / ")
-  })`;
-  const { setOpen: setCommandOpen } = useSearch();
 
   return (
-    <header className="bg-background sticky top-0 z-20 grid w-full min-w-0 shrink-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 border-b px-4 py-4 sm:gap-3 sm:px-6">
-      <SidebarTrigger className="size-8 shrink-0" />
-      <div className="flex min-w-0 items-center gap-2">
-        {pageIcon}
-        <h1 className="truncate text-base font-medium">
-          <HeaderTitleContent title={title} />
-        </h1>
+    <header className="bg-background border-separator px-gutter relative z-20 flex h-(--header-height) w-full min-w-0 shrink-0 items-center gap-2 border-b md:gap-3">
+      <SidebarTrigger className="-ml-1.5 hidden shrink-0 md:inline-flex" />
+
+      {back?.href ? (
+        <Button
+          asChild
+          variant="ghost"
+          size="icon"
+          className="-ml-2 shrink-0 md:hidden"
+        >
+          <Link href={back.href} aria-label={`Back to ${back.label}`}>
+            <ChevronLeft className="size-5" />
+          </Link>
+        </Button>
+      ) : null}
+
+      <div className="flex min-w-0 flex-1 items-center gap-2">
+        <span className="hidden md:inline-flex">{pageIcon}</span>
+        <Breadcrumb className="min-w-0">
+          <BreadcrumbList className="flex-nowrap text-base md:text-sm">
+            {crumbs.map((crumb, index) => {
+              const isLast = index === crumbs.length - 1;
+              return (
+                <Fragment key={`${crumb.label}-${index}`}>
+                  {index > 0 ? (
+                    <BreadcrumbSeparator className="hidden md:block" />
+                  ) : null}
+                  <BreadcrumbItem
+                    className={isLast ? "min-w-0" : "hidden shrink-0 md:inline-flex"}
+                  >
+                    {isLast ? (
+                      <h1
+                        aria-current="page"
+                        className="text-foreground truncate font-semibold md:font-medium"
+                      >
+                        {current.label}
+                      </h1>
+                    ) : crumb.href ? (
+                      <BreadcrumbLink asChild>
+                        <Link href={crumb.href}>{crumb.label}</Link>
+                      </BreadcrumbLink>
+                    ) : (
+                      <span className="truncate">{crumb.label}</span>
+                    )}
+                  </BreadcrumbItem>
+                </Fragment>
+              );
+            })}
+          </BreadcrumbList>
+        </Breadcrumb>
       </div>
 
-      <div className="flex min-w-0 shrink-0 items-center gap-2">
-        <HeaderRoleSwitcher />
+      <div className="-mr-1.5 flex shrink-0 items-center gap-1 md:mr-0 md:gap-2">
+        <HeaderRoleSwitcher className="hidden md:flex" />
         <Button
           type="button"
-          variant="outline"
-          className="text-muted-foreground hover:text-foreground flex h-9 w-9 shrink-0 items-center justify-center gap-0 p-0 sm:w-auto sm:gap-2 sm:px-2.5"
+          variant="ghost"
+          className="text-muted-foreground hover:text-foreground size-9 gap-2 p-0 pointer-coarse:size-11 lg:w-auto lg:px-2.5 lg:pointer-coarse:w-auto"
           onClick={() => setCommandOpen(true)}
-          aria-label={searchAriaLabel}
+          aria-label={`Search and jump to (${crumbs.map((crumb) => crumb.label).join(" / ")})`}
           aria-keyshortcuts="Meta+K Control+K"
         >
-          <Search className="size-4 shrink-0" aria-hidden="true" />
-          <kbd className="bg-muted text-muted-foreground pointer-events-none hidden rounded-md border px-1.5 py-0.5 text-xs font-medium sm:inline-flex">
-            {"\u2318"}
-            {"\u00a0"}K
-          </kbd>
+          <Search aria-hidden="true" />
+          <Kbd className="hidden lg:inline-flex">⌘K</Kbd>
         </Button>
         <HeaderUtilityActions />
       </div>

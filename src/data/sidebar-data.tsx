@@ -1,21 +1,43 @@
 import {
-  IconAlertTriangle,
-  IconBook,
-  IconBug,
-  IconCertificate,
-  IconChartDots,
-  IconCloud,
-  IconDevices,
-  IconLayoutDashboard,
-  IconMail,
-  IconPlayerPlay,
-  IconSearch,
-  IconSettings,
-  IconUserCircle,
-  IconWorldWww,
-} from "@tabler/icons-react";
+  BookOpen,
+  Bug,
+  CircleUser,
+  ClipboardCheck,
+  Cloud,
+  Crosshair,
+  DatabaseZap,
+  Headset,
+  LayoutDashboard,
+  Mail,
+  MonitorSmartphone,
+  Radar,
+  ScanSearch,
+  Settings,
+  ShieldAlert,
+  Workflow,
+} from "lucide-react";
 
 import { type SidebarData } from "@/components/layout/types";
+
+/** Section icons shared by the sidebar, header and mobile navigation. */
+export const navIcons = {
+  overview: LayoutDashboard,
+  alertsIncidents: ShieldAlert,
+  mailbox: Mail,
+  investigate: ScanSearch,
+  assets: MonitorSmartphone,
+  cloudPosture: Cloud,
+  vulnerabilities: Bug,
+  dataSecurity: DatabaseZap,
+  threatHunting: Crosshair,
+  threatIntelligence: Radar,
+  automation: Workflow,
+  compliance: ClipboardCheck,
+  knowledgeBase: BookOpen,
+  administration: Settings,
+  onCall: Headset,
+  profile: CircleUser,
+} as const;
 
 export const sidebarData: SidebarData = {
   user: {
@@ -30,12 +52,12 @@ export const sidebarData: SidebarData = {
         {
           title: "Overview",
           url: "/overview",
-          icon: IconLayoutDashboard,
+          icon: navIcons.overview,
           id: "overview",
         },
         {
-          title: "Alerts & Incidents",
-          icon: IconAlertTriangle,
+          title: "Alerts & incidents",
+          icon: navIcons.alertsIncidents,
           id: "alerts-incidents",
           items: [
             { title: "Alerts", url: "/alerts", id: "alerts-incidents" },
@@ -45,18 +67,18 @@ export const sidebarData: SidebarData = {
         {
           title: "Mailbox security",
           url: "/email-security",
-          icon: IconMail,
+          icon: navIcons.mailbox,
           id: "phishing",
         },
         {
           title: "Investigate",
           url: "/investigate",
-          icon: IconSearch,
+          icon: navIcons.investigate,
           id: "investigate",
         },
         {
           title: "Assets",
-          icon: IconDevices,
+          icon: navIcons.assets,
           id: "assets",
           items: [
             { title: "Devices", url: "/assets/devices", id: "assets" },
@@ -64,14 +86,14 @@ export const sidebarData: SidebarData = {
           ],
         },
         {
-          title: "Cloud Posture",
+          title: "Cloud posture",
           url: "/cloud-posture",
-          icon: IconCloud,
+          icon: navIcons.cloudPosture,
           id: "cloud-posture",
         },
         {
           title: "Vulnerabilities",
-          icon: IconBug,
+          icon: navIcons.vulnerabilities,
           id: "vulnerabilities",
           items: [
             {
@@ -117,18 +139,18 @@ export const sidebarData: SidebarData = {
           ],
         },
         {
-          title: "Data Security",
+          title: "Data security",
           url: "/data-security",
-          icon: IconCertificate,
+          icon: navIcons.dataSecurity,
           id: "data-security",
         },
         {
-          title: "Threat Hunting",
-          icon: IconChartDots,
+          title: "Threat hunting",
+          icon: navIcons.threatHunting,
           id: "threat-hunting",
           items: [
             {
-              title: "Hunt Library",
+              title: "Hunt library",
               url: "/threat-hunting/hunts",
               id: "threat-hunting",
             },
@@ -138,25 +160,25 @@ export const sidebarData: SidebarData = {
               id: "threat-hunting",
             },
             {
-              title: "Threat Analytics",
+              title: "Threat analytics",
               url: "/threat-hunting/analytics",
               id: "threat-hunting",
             },
             {
-              title: "Threat Map",
+              title: "Threat map",
               url: "/threat-hunting/map",
               id: "threat-hunting",
             },
             {
-              title: "Purple Team / BAS",
+              title: "Purple team / BAS",
               url: "/purple-team",
               id: "threat-hunting",
             },
           ],
         },
         {
-          title: "Threat Intelligence",
-          icon: IconWorldWww,
+          title: "Threat intelligence",
+          icon: navIcons.threatIntelligence,
           id: "threat-intelligence",
           items: [
             {
@@ -165,22 +187,22 @@ export const sidebarData: SidebarData = {
               id: "threat-intelligence-indicators",
             },
             {
-              title: "Actors & Campaigns",
+              title: "Actors & campaigns",
               url: "/threat-intelligence/actors",
               id: "threat-intelligence-actors",
             },
             {
-              title: "Dark Web Monitoring",
+              title: "Dark web monitoring",
               url: "/threat-intelligence/dark-web",
               id: "threat-intelligence-dark-web",
             },
             {
-              title: "Attack Surface",
+              title: "Attack surface",
               url: "/threat-intelligence/attack-surface",
               id: "threat-intelligence-attack-surface",
             },
             {
-              title: "Threat Feeds",
+              title: "Threat feeds",
               url: "/threat-intelligence/feeds",
               id: "threat-intelligence-feeds",
             },
@@ -188,7 +210,7 @@ export const sidebarData: SidebarData = {
         },
         {
           title: "Automation",
-          icon: IconPlayerPlay,
+          icon: navIcons.automation,
           id: "automation",
           items: [
             {
@@ -211,12 +233,12 @@ export const sidebarData: SidebarData = {
         {
           title: "Compliance",
           url: "/compliance",
-          icon: IconCertificate,
+          icon: navIcons.compliance,
           id: "compliance",
         },
         {
-          title: "Knowledge Base",
-          icon: IconBook,
+          title: "Knowledge base",
+          icon: navIcons.knowledgeBase,
           id: "knowledge-base",
           items: [
             {
@@ -243,11 +265,11 @@ export const sidebarData: SidebarData = {
         },
         {
           title: "Administration",
-          icon: IconSettings,
+          icon: navIcons.administration,
           id: "administration",
           items: [
             {
-              title: "User Management",
+              title: "User management",
               url: "/administration/users",
               id: "administration-users",
             },
@@ -271,13 +293,13 @@ export const sidebarData: SidebarData = {
         {
           title: "On-call",
           url: "/on-call",
-          icon: IconAlertTriangle,
+          icon: navIcons.onCall,
           id: "on-call",
         },
         {
           title: "Profile",
           url: "/profile",
-          icon: IconUserCircle,
+          icon: navIcons.profile,
           id: "profile",
         },
       ],

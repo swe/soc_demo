@@ -100,7 +100,8 @@
   --gutter: 1rem;
   --section-gap: 1.25rem;
   --header-height: 3.5rem;
-  --tab-bar-height: 3.5rem;
+  /* In-flow on phones (never overlaps content); 0 once the sidebar takes over. */
+  --tab-bar-height: calc(3.25rem + env(safe-area-inset-bottom));
 }
 
 @media (min-width: 768px) {
@@ -108,6 +109,7 @@
     --gutter: 1.5rem;
     --section-gap: 1.5rem;
     --header-height: 3.75rem;
+    --tab-bar-height: 0px;
   }
 }
 

@@ -1,21 +1,31 @@
-import * as React from "react";
+import { useCallback, useSyncExternalStore } from "react";
 
-const MOBILE_BREAKPOINT = 768;
+/** Breakpoints shared with Tailwind: phone < md ≤ tablet < xl ≤ desktop. */
+export const MOBILE_MAX = 767.98;
+export const TABLET_MAX = 1279.98;
 
-export function useIsMobile() {
-  const [isMobile, setIsMobile] = React.useState<boolean | undefined>(
-    undefined,
+function useMatchMedia(query: string): boolean {
+  const subscribe = useCallback(
+    (onChange: () => void) => {
+      const mql = window.matchMedia(query);
+      mql.addEventListener("change", onChange);
+      return () => mql.removeEventListener("change", onChange);
+    },
+    [query],
   );
 
-  React.useEffect(() => {
-    const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`);
-    const onChange = () => {
-      setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
-    };
-    mql.addEventListener("change", onChange);
-    setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
-    return () => mql.removeEventListener("change", onChange);
-  }, []);
+  return useSyncExternalStore(
+    subscribe,
+    () => window.matchMedia(query).matches,
+    () => false,
+  );
+}
 
-  return !!isMobile;
+export function useIsMobile() {
+  return useMatchMedia(`(max-width: ${MOBILE_MAX}px)`);
+}
+
+/** Icon-rail range: wide enough for a sidebar, too narrow to keep it open. */
+export function useIsTablet() {
+  return useMatchMedia(`(min-width: 768px) and (max-width: ${TABLET_MAX}px)`);
 }

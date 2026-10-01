@@ -304,9 +304,9 @@ export function HeaderNotifications() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
-          variant="outline"
+          variant="ghost"
           size="icon"
-          className="relative size-9"
+          className="text-muted-foreground hover:text-foreground relative"
           aria-label={
             unreadCount
               ? `Notifications, ${unreadCount} unread`
