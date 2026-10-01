@@ -1,24 +1,27 @@
 "use client";
 
+import { Wrench } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
+
+import { ErrorPage } from "./error-page";
 
 export default function MaintenanceError() {
   return (
-    <div className="h-svh">
-      <div className="m-auto flex h-full w-full flex-col items-center justify-center gap-2">
-        <h1 className="text-[7rem] leading-tight font-bold">503</h1>
-        <span className="font-medium">Service unavailable</span>
-        <p className="text-muted-foreground text-center">
-          Heimdall is temporarily unavailable for maintenance.
-          <br />
-          Retry shortly or contact your administrator.
-        </p>
-        <div className="mt-6">
-          <Button variant="outline" onClick={() => window.location.reload()}>
-            Retry
-          </Button>
-        </div>
-      </div>
-    </div>
+    <ErrorPage
+      icon={Wrench}
+      code="503"
+      title="Service unavailable"
+      description="Heimdall is temporarily unavailable for maintenance. Retry shortly or contact your administrator."
+      actions={
+        <Button
+          variant="outline"
+          className="w-full sm:w-auto"
+          onClick={() => window.location.reload()}
+        >
+          Retry
+        </Button>
+      }
+    />
   );
 }

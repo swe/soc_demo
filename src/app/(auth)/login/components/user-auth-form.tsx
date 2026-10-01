@@ -86,12 +86,12 @@ export function UserAuthForm({
     <div className={cn("grid gap-6", className)} {...props}>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
-          <div className="grid gap-2">
+          <div className="grid gap-4">
             <FormField
               control={form.control}
               name="email"
               render={({ field }) => (
-                <FormItem className="space-y-1">
+                <FormItem className="space-y-1.5">
                   <FormLabel>Email</FormLabel>
                   <FormControl>
                     <Input placeholder="ava.reed@svalbard.ca" {...field} />
@@ -104,12 +104,12 @@ export function UserAuthForm({
               control={form.control}
               name="password"
               render={({ field }) => (
-                <FormItem className="space-y-1">
+                <FormItem className="space-y-1.5">
                   <div className="flex items-center justify-between">
                     <FormLabel>Password</FormLabel>
                     <Link
                       href="/forgot-password"
-                      className="text-muted-foreground text-sm font-medium hover:opacity-75"
+                      className="text-primary text-callout font-medium hover:underline"
                     >
                       Forgot password?
                     </Link>

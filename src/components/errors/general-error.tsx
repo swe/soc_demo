@@ -1,33 +1,34 @@
+import { TriangleAlert } from "lucide-react";
 import Link from "next/link";
 
 import { BackButton } from "@/components/back-button";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 
-interface Props extends React.HTMLAttributes<HTMLDivElement> {
+import { ErrorPage } from "./error-page";
+
+interface Props {
+  className?: string;
   minimal?: boolean;
 }
 
 export default function GeneralError({ className, minimal = false }: Props) {
   return (
-    <div className={cn("h-svh w-full", className)}>
-      <div className="m-auto flex h-full w-full flex-col items-center justify-center gap-2">
-        {!minimal && (
-          <h1 className="text-[7rem] leading-tight font-bold">500</h1>
-        )}
-        <span className="font-medium">Something went wrong</span>
-        <p className="text-muted-foreground text-center">
-          An unexpected error occurred. Try again or return to the console.
-        </p>
-        {!minimal && (
-          <div className="mt-6 flex gap-4">
-            <BackButton />
-            <Button asChild>
-              <Link href="/">Back to Home</Link>
+    <ErrorPage
+      className={className}
+      icon={TriangleAlert}
+      code={minimal ? undefined : "500"}
+      title="Something went wrong"
+      description="An unexpected error occurred. Try again or return to the console."
+      actions={
+        minimal ? undefined : (
+          <>
+            <BackButton className="w-full sm:w-auto" />
+            <Button asChild className="w-full sm:w-auto">
+              <Link href="/">Back to home</Link>
             </Button>
-          </div>
-        )}
-      </div>
-    </div>
+          </>
+        )
+      }
+    />
   );
 }

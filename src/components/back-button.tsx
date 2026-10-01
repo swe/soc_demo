@@ -6,7 +6,7 @@ import { Button, type ButtonProps } from "./ui/button";
 
 export function BackButton({
   variant = "outline",
-  children = "Go Back",
+  children = "Go back",
   ...props
 }: ButtonProps) {
   const router = useRouter();

@@ -1,6 +1,6 @@
 "use client";
 
-import { IconCheck, IconCopy } from "@tabler/icons-react";
+import { Check, Copy } from "lucide-react";
 import { useState } from "react";
 
 import { Button, ButtonProps } from "@/components/ui/button";
@@ -41,11 +41,7 @@ export function CopyButton({ text, className, ...rest }: Props) {
             aria-label={isCopied ? "Copied" : "Copy to clipboard"}
             {...rest}
           >
-            {isCopied ? (
-              <IconCheck strokeWidth={1.5} className="m-auto" />
-            ) : (
-              <IconCopy strokeWidth={1.5} className="m-auto" />
-            )}
+            {isCopied ? <Check aria-hidden /> : <Copy aria-hidden />}
           </Button>
         </TooltipTrigger>
         <TooltipContent>

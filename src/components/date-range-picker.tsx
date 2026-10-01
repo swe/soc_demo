@@ -5,7 +5,7 @@ import {
   ChevronDownIcon,
   ChevronUpIcon,
 } from "@radix-ui/react-icons";
-import { IconCalendar } from "@tabler/icons-react";
+import { CalendarDays } from "lucide-react";
 import React, {
   type FC,
   JSX,
@@ -355,7 +355,7 @@ export const DateRangePicker: FC<DateRangePickerProps> & {
       <PopoverTrigger asChild>
         <div className="flex items-center">
           <div className="rounded-l-md border border-r-0 px-2 py-[0.5rem]">
-            <IconCalendar size={18} />
+            <CalendarDays className="size-4" aria-hidden />
           </div>
           <Button className="rounded-l-none px-3" variant="outline">
             <div className="text-right">

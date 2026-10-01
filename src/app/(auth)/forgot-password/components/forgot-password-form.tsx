@@ -52,12 +52,12 @@ export function ForgotPasswordForm({
     <div className={cn("grid gap-6", className)} {...props}>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
-          <div className="grid gap-2">
+          <div className="grid gap-4">
             <FormField
               control={form.control}
               name="email"
               render={({ field }) => (
-                <FormItem className="space-y-1">
+                <FormItem className="space-y-1.5">
                   <FormLabel>Email</FormLabel>
                   <FormControl>
                     <Input placeholder="you@svalbard.ca" {...field} />

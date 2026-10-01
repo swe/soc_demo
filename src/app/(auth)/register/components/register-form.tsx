@@ -72,12 +72,12 @@ export function RegisterForm({
     <div className={cn("grid gap-6", className)} {...props}>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
-          <div className="grid gap-2">
+          <div className="grid gap-4">
             <FormField
               control={form.control}
               name="email"
               render={({ field }) => (
-                <FormItem className="space-y-1">
+                <FormItem className="space-y-1.5">
                   <FormLabel>Email</FormLabel>
                   <FormControl>
                     <Input placeholder="you@svalbard.ca" {...field} />
@@ -90,7 +90,7 @@ export function RegisterForm({
               control={form.control}
               name="password"
               render={({ field }) => (
-                <FormItem className="space-y-1">
+                <FormItem className="space-y-1.5">
                   <FormLabel>Password</FormLabel>
                   <FormControl>
                     <PasswordInput placeholder="********" {...field} />
@@ -103,8 +103,8 @@ export function RegisterForm({
               control={form.control}
               name="confirmPassword"
               render={({ field }) => (
-                <FormItem className="space-y-1">
-                  <FormLabel>Confirm Password</FormLabel>
+                <FormItem className="space-y-1.5">
+                  <FormLabel>Confirm password</FormLabel>
                   <FormControl>
                     <PasswordInput placeholder="********" {...field} />
                   </FormControl>

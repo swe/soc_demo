@@ -6,38 +6,38 @@ import { RegisterForm } from "./components/register-form";
 
 export default function RegisterPage() {
   return (
-    <Card className="p-6">
-      <div className="mb-2 flex flex-col space-y-2 text-left">
-        <h1 className="text-lg font-semibold tracking-tight">
+    <Card className="flex flex-col gap-6 rounded-2xl p-6 sm:p-8">
+      <div className="flex flex-col gap-1">
+        <h1 className="text-title-2 font-semibold tracking-tight">
           Create an account
         </h1>
-        <p className="text-muted-foreground text-sm">
-          Enter your email and password to create an account. <br />
-          Already have an account?{" "}
+        <p className="text-muted-foreground text-callout">
+          Enter your email and password to create an account. Already have an
+          account?{" "}
           <Link
             href="/login"
-            className="hover:text-primary underline underline-offset-4"
+            className="text-primary font-medium hover:underline"
           >
-            Log In
+            Sign in
           </Link>
         </p>
       </div>
       <RegisterForm />
-      <p className="text-muted-foreground mt-4 px-8 text-center text-sm">
+      <p className="text-muted-foreground text-footnote text-center text-balance">
         By creating an account, you agree to our{" "}
-        <a
+        <Link
           href="/terms"
-          className="hover:text-primary underline underline-offset-4"
+          className="hover:text-foreground underline underline-offset-4"
         >
           Terms of Service
-        </a>{" "}
+        </Link>{" "}
         and{" "}
-        <a
+        <Link
           href="/privacy"
-          className="hover:text-primary underline underline-offset-4"
+          className="hover:text-foreground underline underline-offset-4"
         >
           Privacy Policy
-        </a>
+        </Link>
         .
       </p>
     </Card>

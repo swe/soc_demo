@@ -47,6 +47,23 @@ test("clickable table rows open from the keyboard", async ({ page }) => {
   await expect(page).toHaveURL(/\/incidents\/INC-\d+/);
 });
 
+test("password field reveals and hides its value", async ({ page }) => {
+  await page.goto("/login");
+  const password = page.getByLabel("Password", { exact: true });
+  await expect(password).toHaveAttribute("type", "password");
+  await page.getByRole("button", { name: "Show password" }).click();
+  await expect(password).toHaveAttribute("type", "text");
+  await page.getByRole("button", { name: "Hide password" }).click();
+  await expect(password).toHaveAttribute("type", "password");
+});
+
+test("unknown URLs render the styled not-found page", async ({ page }) => {
+  await page.goto("/definitely-missing");
+  await expect(
+    page.getByRole("heading", { name: "Page not found" }),
+  ).toBeVisible();
+});
+
 test("filled buttons keep white text alongside type-scale sizes", async ({
   page,
 }) => {
