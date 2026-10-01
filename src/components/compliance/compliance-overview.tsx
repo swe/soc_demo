@@ -23,6 +23,11 @@ import {
   YAxis,
 } from "recharts";
 
+import {
+  OverviewSplit,
+  Panel,
+  PanelHeading,
+} from "@/components/soc/panel";
 import { Button } from "@/components/ui/button";
 import {
   type ChartConfig,
@@ -36,11 +41,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import {
-  OverviewSplit,
-  Panel,
-  PanelHeading,
-} from "@/components/soc/panel";
 import { cn } from "@/lib/utils";
 
 import {

@@ -5,6 +5,12 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import {
+  type DataSecurityFinding,
+  type DataSecurityPolicy,
+  type ExfilTimelineEvent,
+  type SaaSAppInventoryItem,
+} from "@/components/data-security/data-security-data";
+import {
   DEFAULT_PAGE_SIZE,
   ListPagination,
   paginateItems,
@@ -21,7 +27,6 @@ import {
   InputGroupAddon,
   InputGroupInput,
 } from "@/components/ui/input-group";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
   TableBody,
@@ -30,12 +35,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  type DataSecurityFinding,
-  type DataSecurityPolicy,
-  type ExfilTimelineEvent,
-  type SaaSAppInventoryItem,
-} from "@/components/data-security/data-security-data";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { dataSecurityApi } from "@/lib/mock-api/data-security";
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";

@@ -22,14 +22,14 @@ import {
   useState,
 } from "react";
 
-import { buildInvestigateHref } from "@/components/investigate/investigate-data";
-import { RunPlaybookControl } from "@/components/playbooks/run-playbook-control";
 import { tabTriggerClassName } from "@/components/alerts/alerts-primitives";
+import { buildInvestigateHref } from "@/components/investigate/investigate-data";
 import {
   buildPhishingHref,
   parsePhishingSearchParams,
   type PhishingTab,
 } from "@/components/phishing/phishing-url";
+import { RunPlaybookControl } from "@/components/playbooks/run-playbook-control";
 import {
   ModuleShell,
   ModuleToolbarActions,
@@ -52,7 +52,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Sheet,
   SheetContent,
@@ -68,16 +67,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   PHISH_CAMPAIGNS,
   PHISH_SOURCES,
   phishingApi,
-  summarizePhishCampaigns,
   type PhishMessage,
   type PhishMessageStatus,
   type PhishRemediationAction,
   type PhishSource,
   type PhishVerdict,
+  summarizePhishCampaigns,
 } from "@/lib/mock-api/phishing";
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";

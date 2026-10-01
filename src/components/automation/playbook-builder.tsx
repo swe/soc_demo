@@ -556,7 +556,10 @@ export function PlaybookBuilder() {
   }
 
   return (
-    <div className="flex min-h-[calc(100vh-3.5rem)] flex-1 flex-col">
+    <main
+      id="main-content"
+      className="flex min-h-[calc(100vh-3.5rem)] flex-1 flex-col"
+    >
       <div className="flex flex-col gap-3 border-b p-4 md:flex-row md:items-center md:justify-between md:px-6">
         <div className="min-w-0 space-y-1">
           <div className="flex flex-wrap items-center gap-2">
@@ -626,6 +629,6 @@ export function PlaybookBuilder() {
       <ReactFlowProvider>
         <BuilderCanvas key={playbook.id} playbook={playbook} onDirty={onDirty} />
       </ReactFlowProvider>
-    </div>
+    </main>
   );
 }

@@ -49,7 +49,6 @@ import {
 import {
   type DarkWebExposure,
   darkWebSources,
-  EXPOSURE_CATALOG_SIZE,
   exposureSeverities,
   type ExposureSeverity,
   exposureSeverityLabels,

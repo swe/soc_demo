@@ -112,12 +112,6 @@ const sortLabels: Record<TrainingSort, string> = {
   "enrolled-desc": "Most enrolled",
 };
 
-const levelCodePrefix: Record<KbTrainingLevel, string> = {
-  foundation: "SEC",
-  intermediate: "OPS",
-  advanced: "IR",
-};
-
 function FilterPanelHeader({
   title,
   onBack,

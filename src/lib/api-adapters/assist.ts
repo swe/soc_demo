@@ -29,13 +29,13 @@ import { runMockQuery } from "@/components/investigate/investigate-data";
 import { getApprovedPlaybooks } from "@/components/playbooks/playbooks-session";
 import {
   getIndicatorById,
-  threatIndicators,
   type Indicator,
+  threatIndicators,
 } from "@/components/threats/threat-shared-data";
 import {
   actionCatalog,
-  getActionCatalogEntry,
   type ActionCatalogEntry,
+  getActionCatalogEntry,
 } from "@/lib/mock-api/action-catalog";
 import { correlationApi } from "@/lib/mock-api/correlation";
 import { DISRUPTION_CONNECTORS } from "@/lib/mock-api/incidents";

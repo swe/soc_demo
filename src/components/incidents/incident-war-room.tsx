@@ -4,8 +4,8 @@ import { ArrowRightLeft, AtSign, Send } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import {
-  administrationUsers,
   type AdministrationUser,
+  administrationUsers,
 } from "@/components/administration/users-data";
 import { appendAuditLog } from "@/components/audit/audit-log-data";
 import { currentProfile } from "@/components/profile/profile-data";

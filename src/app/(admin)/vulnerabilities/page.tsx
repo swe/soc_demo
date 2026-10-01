@@ -1,6 +1,6 @@
 import { Suspense } from "react";
-import { ModulePageSkeleton } from "@/components/soc/module-page-skeleton";
 
+import { ModulePageSkeleton } from "@/components/soc/module-page-skeleton";
 import { VulnerabilitiesCenter } from "@/components/vulnerabilities/vulnerabilities-center";
 
 export default function VulnerabilitiesPage() {

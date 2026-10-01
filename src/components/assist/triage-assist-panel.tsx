@@ -497,7 +497,7 @@ export function TriageAssistPanel({
 }: TriageAssistPanelProps) {
   const [open, setOpen] = useState(false);
   const [running, setRunning] = useState(false);
-  const [mode, setMode] = useState<AssistMode>("heuristic");
+  const [_mode, setMode] = useState<AssistMode>("heuristic");
   const [investigate, setInvestigate] = useState<AssistInvestigatePlan | null>(
     null,
   );

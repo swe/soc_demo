@@ -918,7 +918,7 @@ function IdentitiesTable({
   onToggleAll,
   onClearSelection,
   onDisable,
-  onRequireMfa,
+  onRequireMfa: _onRequireMfa,
   onResetMfa,
   onForceLogout,
   onBulkRequireMfa,

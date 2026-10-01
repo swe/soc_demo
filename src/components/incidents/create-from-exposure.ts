@@ -3,8 +3,8 @@ import { currentAnalystId } from "@/components/alerts/alerts-data";
 import type { CloudFinding } from "@/components/cloud-posture/cloud-posture-data";
 import type { DataSecurityFinding } from "@/components/data-security/data-security-data";
 import type { Vulnerability } from "@/components/vulnerabilities/vulnerabilities-data";
-import type { PhishMessage } from "@/lib/mock-api/phishing";
 import { incidentsApi } from "@/lib/mock-api/incidents";
+import type { PhishMessage } from "@/lib/mock-api/phishing";
 
 import type { SocIncident } from "./incidents-data";
 

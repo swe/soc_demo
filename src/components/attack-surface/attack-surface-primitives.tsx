@@ -5,8 +5,8 @@ import { cn } from "@/lib/utils";
 
 import {
   type AssetCriticality,
-  type AssetEnvironment,
   assetCriticalityLabels,
+  type AssetEnvironment,
   assetEnvironmentLabels,
 } from "./attack-surface-data";
 

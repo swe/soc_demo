@@ -71,13 +71,13 @@ function DateInput({ value, onChange }: Props) {
       }
     };
 
-  const initialDate = useRef<DateParts>(date);
+  const [lastValidDate, setLastValidDate] = React.useState<DateParts>(date);
 
   const handleBlur =
     (field: keyof DateParts) =>
     (e: React.FocusEvent<HTMLInputElement>): void => {
       if (!e.target.value) {
-        setDate(initialDate.current);
+        setDate(lastValidDate);
         return;
       }
 
@@ -85,10 +85,9 @@ function DateInput({ value, onChange }: Props) {
       const isValid = validateDate(field, newValue);
 
       if (!isValid) {
-        setDate(initialDate.current);
+        setDate(lastValidDate);
       } else {
-        // If the new value is valid, update the initial value
-        initialDate.current = { ...date, [field]: newValue };
+        setLastValidDate({ ...date, [field]: newValue });
       }
     };
 

@@ -5,8 +5,8 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 
 import {
-  ListPagination,
   DEFAULT_PAGE_SIZE,
+  ListPagination,
   paginateItems,
 } from "@/components/list-pagination";
 import {

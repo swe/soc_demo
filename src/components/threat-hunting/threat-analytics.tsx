@@ -130,7 +130,10 @@ export function ThreatAnalytics() {
   };
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+    <main
+      id="main-content"
+      className="flex min-h-0 flex-1 flex-col overflow-hidden"
+    >
       <div className="bg-background shrink-0 border-b px-4 py-4 sm:px-6">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
           <div className="relative min-w-0 flex-1 lg:max-w-md">
@@ -272,6 +275,6 @@ export function ThreatAnalytics() {
         }}
         onSelectNeighbor={(nodeId) => openNodeDetail(nodeId)}
       />
-    </div>
+    </main>
   );
 }

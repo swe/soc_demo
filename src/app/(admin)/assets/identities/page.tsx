@@ -1,7 +1,7 @@
 import { Suspense } from "react";
-import { ModulePageSkeleton } from "@/components/soc/module-page-skeleton";
 
 import { AssetsIdentityList } from "@/components/assets/identity-list";
+import { ModulePageSkeleton } from "@/components/soc/module-page-skeleton";
 
 export default function AssetsIdentitiesPage() {
   return (

@@ -51,7 +51,6 @@ import {
   type FindingSort,
   findingSortLabels,
   formatCompact,
-  VULN_CATALOG_SIZE,
   vulnerabilities,
   type Vulnerability,
   vulnSeverities,

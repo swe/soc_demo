@@ -1,6 +1,6 @@
 import { Suspense } from "react";
-import { ModulePageSkeleton } from "@/components/soc/module-page-skeleton";
 
+import { ModulePageSkeleton } from "@/components/soc/module-page-skeleton";
 import { ActorsCenter } from "@/components/threats/actors-center";
 
 export default async function ThreatIntelligenceActorsPage({

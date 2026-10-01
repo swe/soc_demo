@@ -1,7 +1,8 @@
 import type { SocAlert } from "@/components/alerts/alerts-data";
+import { getAlertFromSession } from "@/components/alerts/alerts-session";
+import { buildAttackStory } from "@/components/incidents/attack-story";
+import type { SocIncident } from "@/components/incidents/incidents-data";
 import {
-  containTargetType,
-  resolveContainActionKind,
   assistInvestigate,
   type AssistInvestigateInput,
   type AssistInvestigatePlan,
@@ -9,10 +10,9 @@ import {
   assistTriage,
   type AssistTriageInput,
   type AssistTriageResult,
+  containTargetType,
+  resolveContainActionKind,
 } from "@/lib/api-adapters/assist";
-import { buildAttackStory } from "@/components/incidents/attack-story";
-import type { SocIncident } from "@/components/incidents/incidents-data";
-import { getAlertFromSession } from "@/components/alerts/alerts-session";
 
 import { alertsApi } from "./alerts";
 import { mockDelay } from "./delay";

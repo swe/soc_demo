@@ -34,6 +34,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { downloadCsv } from "@/lib/download-csv";
@@ -73,13 +80,6 @@ import {
   parseAssignedScope,
   parseIncidentsListSearchParams,
 } from "./incidents-url";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 type FilterPanel = "priority" | "phase" | "source" | "sort";
 

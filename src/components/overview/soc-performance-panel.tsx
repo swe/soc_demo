@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useSyncExternalStore } from "react";
 import { Info } from "lucide-react";
+import { useMemo, useSyncExternalStore } from "react";
 
 import {
   getAlertSessionSnapshot,

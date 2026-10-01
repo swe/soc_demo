@@ -36,8 +36,8 @@ import {
   kbProcedureStatusLabels,
 } from "@/components/knowledge-base/knowledge-base-data";
 import {
-  ListPagination,
   DEFAULT_PAGE_SIZE,
+  ListPagination,
   paginateItems,
 } from "@/components/list-pagination";
 import {
@@ -68,6 +68,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { actionCatalog } from "@/lib/mock-api/action-catalog";
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 
@@ -79,7 +80,6 @@ import {
   type PlaybookNodeType,
   playbookNodeTypeLabels,
 } from "./playbooks-data";
-import { actionCatalog } from "@/lib/mock-api/action-catalog";
 
 const mutedControlClassName =
   "border-border bg-background text-foreground hover:bg-accent hover:text-accent-foreground";

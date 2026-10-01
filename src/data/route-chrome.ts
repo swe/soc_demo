@@ -1,4 +1,3 @@
-import type { ElementType } from "react";
 import {
   IconAlertTriangle,
   IconBook,
@@ -15,6 +14,7 @@ import {
   IconUserCircle,
   IconWorldWww,
 } from "@tabler/icons-react";
+import type { ElementType } from "react";
 
 export type HeaderTitle =
   | { kind: "plain"; label: string }

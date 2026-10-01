@@ -1,6 +1,6 @@
 import { Suspense } from "react";
-import { ModulePageSkeleton } from "@/components/soc/module-page-skeleton";
 
+import { ModulePageSkeleton } from "@/components/soc/module-page-skeleton";
 import { DarkWebCenter } from "@/components/threat-intelligence/dark-web-center";
 import { DarkWebSessionProvider } from "@/components/threat-intelligence/dark-web-session";
 

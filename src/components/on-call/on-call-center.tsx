@@ -24,8 +24,8 @@ import {
   subscribeIncidentsSession,
 } from "@/components/incidents/incidents-session";
 import {
-  ListPagination,
   DEFAULT_PAGE_SIZE,
+  ListPagination,
   paginateItems,
 } from "@/components/list-pagination";
 import { currentProfile } from "@/components/profile/profile-data";

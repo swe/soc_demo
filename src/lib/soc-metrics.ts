@@ -1,7 +1,7 @@
 import {
   administrationTeams,
-  administrationUsers,
   type AdministrationUser,
+  administrationUsers,
 } from "@/components/administration/users-data";
 import type { SocAlert } from "@/components/alerts/alerts-data";
 import type { SocIncident } from "@/components/incidents/incidents-data";

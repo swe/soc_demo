@@ -1,10 +1,10 @@
 import {
-  type AlertStat,
   alertSeverities,
   type AlertSeverity,
   type AlertSort,
   alertSourceCategories,
   type AlertSourceCategory,
+  type AlertStat,
   type AlertStatus,
   alertStatuses,
   currentAnalystId,

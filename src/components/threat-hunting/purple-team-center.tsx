@@ -35,8 +35,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { makeReceipt } from "@/lib/mock-api/types";
 import { auditFromReceipt } from "@/lib/mock-api/audit";
+import { makeReceipt } from "@/lib/mock-api/types";
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 

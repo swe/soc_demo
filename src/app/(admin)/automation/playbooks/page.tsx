@@ -1,7 +1,7 @@
 import { Suspense } from "react";
-import { ModulePageSkeleton } from "@/components/soc/module-page-skeleton";
 
 import { PlaybooksCenter } from "@/components/automation/playbooks-center";
+import { ModulePageSkeleton } from "@/components/soc/module-page-skeleton";
 
 export default function AutomationPlaybooksPage() {
   return (
