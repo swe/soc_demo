@@ -73,7 +73,7 @@ const kindMeta: Record<
   incident: {
     label: "Incident",
     icon: ShieldAlert,
-    className: "bg-destructive/10 text-destructive dark:text-red-400",
+    className: "bg-destructive/10 text-destructive-text",
   },
   vulnerability: {
     label: "Vuln",
@@ -90,15 +90,6 @@ const kindMeta: Record<
     icon: Crosshair,
     className: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
   },
-};
-
-const severityClass: Record<AlertSeverity, string> = {
-  critical:
-    "border-destructive/30 bg-destructive/10 text-destructive dark:text-red-400",
-  high: "border-orange-500/30 bg-orange-500/10 text-orange-700 dark:text-orange-400",
-  medium:
-    "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400",
-  low: "border-border bg-muted text-muted-foreground",
 };
 
 function ageToTimeLabel(ageMinutes: number): string {
@@ -160,7 +151,9 @@ function buildNotificationsForRole(role: SocJobRole): HeaderNotification[] {
         ? socIncidents.filter((i) => {
             if (!openIncidentStatuses.includes(i.status)) return false;
             const sla = getIncidentSlaState(i);
-            return sla === "at-risk" || sla === "breached" || i.priority === "P1";
+            return (
+              sla === "at-risk" || sla === "breached" || i.priority === "P1"
+            );
           })
         : socIncidents.filter(
             (i) =>
@@ -190,10 +183,13 @@ function buildNotificationsForRole(role: SocJobRole): HeaderNotification[] {
   if (canVulns) {
     const vulnPool =
       role === "c_level" || role === "ciso"
-        ? vulnerabilities.filter((v) => v.exploitable && v.severity === "critical")
+        ? vulnerabilities.filter(
+            (v) => v.exploitable && v.severity === "critical",
+          )
         : role === "analyst_t3"
           ? vulnerabilities.filter(
-              (v) => v.zeroDay || (v.exploitable && v.linkedIncidentIds.length > 0),
+              (v) =>
+                v.zeroDay || (v.exploitable && v.linkedIncidentIds.length > 0),
             )
           : vulnerabilities.filter(
               (v) =>
@@ -216,7 +212,10 @@ function buildNotificationsForRole(role: SocJobRole): HeaderNotification[] {
     }
   }
 
-  if (canIntel && (role === "ciso" || role === "analyst_t3" || role === "soc_manager")) {
+  if (
+    canIntel &&
+    (role === "ciso" || role === "analyst_t3" || role === "soc_manager")
+  ) {
     items.push({
       id: "intel-indicators",
       kind: "intel",
@@ -263,9 +262,7 @@ function buildNotificationsForRole(role: SocJobRole): HeaderNotification[] {
   }
 
   // Prefer unread / newer first; keep a tight list.
-  return items
-    .sort((a, b) => Number(a.read) - Number(b.read))
-    .slice(0, 8);
+  return items.sort((a, b) => Number(a.read) - Number(b.read)).slice(0, 8);
 }
 
 export function HeaderNotifications() {
@@ -399,11 +396,8 @@ export function HeaderNotifications() {
                         </Badge>
                         {n.severity ? (
                           <Badge
-                            variant="outline"
-                            className={cn(
-                              "h-5 rounded-full px-1.5 text-xs font-medium capitalize",
-                              severityClass[n.severity],
-                            )}
+                            variant={n.severity}
+                            className="h-5 rounded-full px-1.5 text-xs font-medium capitalize"
                           >
                             {n.severity}
                           </Badge>

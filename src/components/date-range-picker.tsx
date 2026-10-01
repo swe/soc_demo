@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  CheckIcon,
-  ChevronDownIcon,
-  ChevronUpIcon,
-} from "@radix-ui/react-icons";
-import { CalendarDays } from "lucide-react";
+import { CalendarDays, Check, ChevronDown, ChevronUp } from "lucide-react";
 import React, {
   type FC,
   JSX,
@@ -318,7 +313,7 @@ export const DateRangePicker: FC<DateRangePickerProps> & {
     >
       <>
         <span className={cn("pr-2 opacity-0", isSelected && "opacity-70")}>
-          <CheckIcon width={18} height={18} />
+          <Check className="size-4" aria-hidden />
         </span>
         {label}
       </>
@@ -377,9 +372,9 @@ export const DateRangePicker: FC<DateRangePickerProps> & {
             </div>
             <div className="pl-1 opacity-60">
               {isOpen ? (
-                <ChevronUpIcon width={20} />
+                <ChevronUp className="size-4" aria-hidden />
               ) : (
-                <ChevronDownIcon width={20} />
+                <ChevronDown className="size-4" aria-hidden />
               )}
             </div>
           </Button>

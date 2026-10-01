@@ -46,6 +46,25 @@ export default defineConfig({
         viewport: { width: 1440, height: 900 },
       },
     },
+    {
+      name: "mobile-dark",
+      testMatch: /routes\.spec\.ts/,
+      use: {
+        ...devices["iPhone 13"],
+        defaultBrowserType: "chromium",
+        viewport: { width: 390, height: 844 },
+        colorScheme: "dark",
+      },
+    },
+    {
+      name: "desktop-dark",
+      testMatch: /routes\.spec\.ts/,
+      use: {
+        ...devices["Desktop Chrome"],
+        viewport: { width: 1440, height: 900 },
+        colorScheme: "dark",
+      },
+    },
   ],
   webServer: process.env.E2E_BASE_URL
     ? undefined

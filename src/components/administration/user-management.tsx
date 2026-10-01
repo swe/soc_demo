@@ -1439,11 +1439,11 @@ export function AdministrationUserManagement() {
       >
         <ModuleTabsList>
           <ModuleTabsTrigger value="members">
-            Team Members
+            Team members
             <TabCount>{administrationUsers.length}</TabCount>
           </ModuleTabsTrigger>
           <ModuleTabsTrigger value="pending">
-            Pending Invitations
+            Pending invitations
             <TabCount>{administrationInvitations.length}</TabCount>
           </ModuleTabsTrigger>
         </ModuleTabsList>

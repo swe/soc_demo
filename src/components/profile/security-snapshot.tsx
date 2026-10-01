@@ -16,7 +16,7 @@ export function SecuritySnapshot({ profile }: { profile: CurrentProfile }) {
 
   return (
     <ProfileSection
-      title="Security Snapshot"
+      title="Security snapshot"
       description="A quick checklist of the strongest protections for your account."
       action={
         <div className="text-right">

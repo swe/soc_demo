@@ -46,18 +46,20 @@ function StepList({ run }: { run: PlaybookRun }) {
           <span className="text-muted-foreground font-mono">{index + 1}.</span>
           <div className="min-w-0 flex-1">
             <p className="font-medium">{step.label}</p>
-            <p className="text-muted-foreground capitalize">{step.status.replaceAll("_", " ")}</p>
+            <p className="text-muted-foreground capitalize">
+              {step.status.replaceAll("_", " ")}
+            </p>
           </div>
           <Badge
             variant="outline"
             className={cn(
               "shrink-0 rounded-full font-normal capitalize",
               step.status === "succeeded" &&
-                "border-emerald-500/40 text-emerald-700 dark:text-emerald-400",
+                "border-success/40 text-success-text",
               step.status === "awaiting_approval" &&
-                "border-amber-500/40 text-amber-700 dark:text-amber-400",
+                "border-warning/40 text-warning-text",
               step.status === "rejected" &&
-                "border-destructive/40 text-destructive",
+                "border-destructive/40 text-destructive-text",
             )}
           >
             {step.status.replaceAll("_", " ")}
@@ -211,7 +213,11 @@ export function RunPlaybookControl({
           type="button"
           size="sm"
           variant={compact ? "outline" : "default"}
-          className={cn("gap-1.5", !compact && "w-full", compact && "h-8 text-xs")}
+          className={cn(
+            "gap-1.5",
+            !compact && "w-full",
+            compact && "h-8 text-xs",
+          )}
         >
           <Play className="size-3.5" />
           Run playbook
@@ -258,7 +264,11 @@ export function RunPlaybookControl({
 
         <DialogFooter className="gap-2 sm:justify-between">
           {!activeRun ? (
-            <Button type="button" onClick={startRun} disabled={busy || !selectedId}>
+            <Button
+              type="button"
+              onClick={startRun}
+              disabled={busy || !selectedId}
+            >
               Start run
             </Button>
           ) : activeRun.status === "awaiting_approval" ? (
@@ -284,7 +294,11 @@ export function RunPlaybookControl({
               </Button>
             </div>
           ) : (
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setOpen(false)}
+            >
               Close
             </Button>
           )}
@@ -301,8 +315,8 @@ export function RunPlaybookControl({
         SOAR
       </h2>
       <p className="text-muted-foreground mb-3 text-sm">
-        Start an approved playbook — approve the containment step to complete the
-        run.
+        Start an approved playbook — approve the containment step to complete
+        the run.
       </p>
       {dialog}
     </section>

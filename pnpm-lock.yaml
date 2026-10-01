@@ -128,18 +128,12 @@ importers:
       '@hookform/resolvers':
         specifier: ^5.2.2
         version: 5.4.0(react-hook-form@7.72.0(react@19.2.4))
-      '@radix-ui/react-icons':
-        specifier: ^1.3.2
-        version: 1.3.2(react@19.2.4)
       '@radix-ui/react-slot':
         specifier: 1.2.3
         version: 1.2.3(@types/react@19.2.14)(react@19.2.4)
       '@radix-ui/react-visually-hidden':
         specifier: ^1.2.4
         version: 1.2.8(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
-      '@tabler/icons-react':
-        specifier: ^3.41.1
-        version: 3.45.0(react@19.2.4)
       '@tailwindcss/typography':
         specifier: ^0.5.19
         version: 0.5.20(tailwindcss@4.2.2)
@@ -185,9 +179,6 @@ importers:
       dotted-map:
         specifier: 3.1.0
         version: 3.1.0
-      framer-motion:
-        specifier: 12.38.0
-        version: 12.38.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       frimousse:
         specifier: 0.3.0
         version: 0.3.0(react@19.2.4)(typescript@5.9.3)
@@ -197,9 +188,6 @@ importers:
       maplibre-gl:
         specifier: 5.21.1
         version: 5.21.1
-      motion:
-        specifier: 12.23.24
-        version: 12.23.24(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       next:
         specifier: 16.1.6
         version: 16.1.6(@babel/core@7.29.7(supports-color@7.2.0))(@playwright/test@1.63.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -1245,11 +1233,6 @@ packages:
       '@types/react-dom':
         optional: true
 
-  '@radix-ui/react-icons@1.3.2':
-    resolution: {integrity: sha512-fyQIhGDhzfc9pK2kH6Pl9c4BDJGfMkPqkyIgYDthyNYoNg3wVhoJMMh19WS4Up/1KMPFVpNsT2q3WmXn2N1m6g==}
-    peerDependencies:
-      react: ^16.x || ^17.x || ^18.x || ^19.0.0 || ^19.0.0-rc
-
   '@radix-ui/react-id@1.1.1':
     resolution: {integrity: sha512-kGkGegYIdQsOb4XjsfM97rXsiHaBwco+hFI66oO4s9LU+PLAC5oJ7khdOVFxkhsmlbpUqDAvXw11CluXP+jkHg==}
     peerDependencies:
@@ -1841,14 +1824,6 @@ packages:
   '@tabby_ai/hijri-converter@1.0.5':
     resolution: {integrity: sha512-r5bClKrcIusDoo049dSL8CawnHR6mRdDwhlQuIgZRNty68q0x8k3Lf1BtPAMxRf/GgnHBnIO4ujd3+GQdLWzxQ==}
     engines: {node: '>=16.0.0'}
-
-  '@tabler/icons-react@3.45.0':
-    resolution: {integrity: sha512-t/AuKs7ALMDDTY+B9IvfZnlO0mbLlP/lJxP/HnGC49QkM8mCsTN38kYyxjXxgrb1+TeK53ioVBJqIV7n/eysXQ==}
-    peerDependencies:
-      react: '>= 16'
-
-  '@tabler/icons@3.45.0':
-    resolution: {integrity: sha512-jiATwV8+zGYLTZ7gMLGivCic+KtsMZXcDmufIG8umlLxoHhI6902hGYIEt0Oa9Y9SXblNzUlrisHm5jOFMxOQA==}
 
   '@tailwindcss/node@4.2.2':
     resolution: {integrity: sha512-pXS+wJ2gZpVXqFaUEjojq7jzMpTGf8rU6ipJz5ovJV6PUGmlJ+jvIwGrzdHdQ80Sg+wmQxUFuoW1UAAwHNEdFA==}
@@ -3254,20 +3229,6 @@ packages:
     resolution: {integrity: sha512-buRG0fpBtRHSTCOASe6hD258tEubFoRLb4ZNA6NxMVHNw2gOcwHo9wyablzMzOA5z9xA9L1KNjk/Nt6MT9aYow==}
     engines: {node: '>= 0.6'}
 
-  framer-motion@12.38.0:
-    resolution: {integrity: sha512-rFYkY/pigbcswl1XQSb7q424kSTQ8q6eAC+YUsSKooHQYuLdzdHjrt6uxUC+PRAO++q5IS7+TamgIw1AphxR+g==}
-    peerDependencies:
-      '@emotion/is-prop-valid': '*'
-      react: ^18.0.0 || ^19.0.0
-      react-dom: ^18.0.0 || ^19.0.0
-    peerDependenciesMeta:
-      '@emotion/is-prop-valid':
-        optional: true
-      react:
-        optional: true
-      react-dom:
-        optional: true
-
   fresh@2.0.0:
     resolution: {integrity: sha512-Rx/WycZ60HOaqLKAi6cHRKKI7zxWbJ31MhntmtwMoaTeF7XFH9hhBp8vITaMidfljRQ6eYWCKkaTK+ykVJHP2A==}
     engines: {node: '>= 0.8'}
@@ -3933,26 +3894,6 @@ packages:
 
   minimist@1.2.8:
     resolution: {integrity: sha512-2yyAR8qBkN3YuheJanUpWC5U3bb5osDywNB8RzDVlDwDHbocAJveqqj1u8+SVD7jkWT4yvsHCpWqqWqAxb0zCA==}
-
-  motion-dom@12.42.2:
-    resolution: {integrity: sha512-5gIMWLp/PycBtJRJWRgjxke5n8dlvkSn2DrYW+tr3XcqAZY1xZh6BJyooJXCM8wdfM7wfMjkBJNLge1CKPUIRA==}
-
-  motion-utils@12.39.0:
-    resolution: {integrity: sha512-8nadJAJjTtqRkmRF36FoJTrywK9nnFmnPwnSMyxaOCU7GDjN9RTMJIxx9De8ErM+vpPhMccr/6fo5WciyQLnMQ==}
-
-  motion@12.23.24:
-    resolution: {integrity: sha512-Rc5E7oe2YZ72N//S3QXGzbnXgqNrTESv8KKxABR20q2FLch9gHLo0JLyYo2hZ238bZ9Gx6cWhj9VO0IgwbMjCw==}
-    peerDependencies:
-      '@emotion/is-prop-valid': '*'
-      react: ^18.0.0 || ^19.0.0
-      react-dom: ^18.0.0 || ^19.0.0
-    peerDependenciesMeta:
-      '@emotion/is-prop-valid':
-        optional: true
-      react:
-        optional: true
-      react-dom:
-        optional: true
 
   ms@2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
@@ -6086,10 +6027,6 @@ snapshots:
       '@types/react': 19.2.14
       '@types/react-dom': 19.2.3(@types/react@19.2.14)
 
-  '@radix-ui/react-icons@1.3.2(react@19.2.4)':
-    dependencies:
-      react: 19.2.4
-
   '@radix-ui/react-id@1.1.1(@types/react@19.2.14)(react@19.2.4)':
     dependencies:
       '@radix-ui/react-use-layout-effect': 1.1.1(@types/react@19.2.14)(react@19.2.4)
@@ -6702,13 +6639,6 @@ snapshots:
       tslib: 2.8.1
 
   '@tabby_ai/hijri-converter@1.0.5': {}
-
-  '@tabler/icons-react@3.45.0(react@19.2.4)':
-    dependencies:
-      '@tabler/icons': 3.45.0
-      react: 19.2.4
-
-  '@tabler/icons@3.45.0': {}
 
   '@tailwindcss/node@4.2.2':
     dependencies:
@@ -8292,15 +8222,6 @@ snapshots:
 
   forwarded@0.2.0: {}
 
-  framer-motion@12.38.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4):
-    dependencies:
-      motion-dom: 12.42.2
-      motion-utils: 12.39.0
-      tslib: 2.8.1
-    optionalDependencies:
-      react: 19.2.4
-      react-dom: 19.2.4(react@19.2.4)
-
   fresh@2.0.0: {}
 
   frimousse@0.3.0(react@19.2.4)(typescript@5.9.3):
@@ -8884,20 +8805,6 @@ snapshots:
       brace-expansion: 1.1.16
 
   minimist@1.2.8: {}
-
-  motion-dom@12.42.2:
-    dependencies:
-      motion-utils: 12.39.0
-
-  motion-utils@12.39.0: {}
-
-  motion@12.23.24(react-dom@19.2.4(react@19.2.4))(react@19.2.4):
-    dependencies:
-      framer-motion: 12.38.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
-      tslib: 2.8.1
-    optionalDependencies:
-      react: 19.2.4
-      react-dom: 19.2.4(react@19.2.4)
 
   ms@2.1.3: {}
 

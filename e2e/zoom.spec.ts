@@ -8,26 +8,42 @@ import { adminRoutes, detailRoutes, publicRoutes } from "./routes";
  * every width a user can reach by zooming must fit. Widths cover 100–400% zoom
  * on 1280/1440/1920 screens, down to the 320px WCAG reflow minimum.
  */
-const widths = [1920, 1440, 1280, 1152, 1024, 960, 853, 768, 720, 640, 576, 480, 427, 360, 320];
+const widths = [
+  1920, 1440, 1280, 1152, 1024, 960, 853, 768, 720, 640, 576, 480, 427, 360,
+  320,
+];
 
 const reportOnly = process.env.E2E_LAYOUT === "report";
 
 async function sweep(page: Page, route: string) {
   const failures: string[] = [];
   for (const width of widths) {
-    await page.setViewportSize({ width, height: Math.max(480, Math.round(width * 0.625)) });
+    await page.setViewportSize({
+      width,
+      height: Math.max(480, Math.round(width * 0.625)),
+    });
     await page.evaluate(
-      () => new Promise((resolve) => setTimeout(() => requestAnimationFrame(resolve), 350)),
+      () =>
+        new Promise((resolve) =>
+          setTimeout(() => requestAnimationFrame(resolve), 350),
+        ),
     );
-    const problems = [...(await findOverflow(page)), ...(await findClipped(page))];
+    const problems = [
+      ...(await findOverflow(page)),
+      ...(await findClipped(page)),
+    ];
     if (problems.length > 0) {
       failures.push(`@${width}px\n  ${problems.join("\n  ")}`);
     }
   }
   if (failures.length > 0) {
-    test.info().annotations.push({ type: "zoom", description: `${route}\n${failures.join("\n")}` });
+    test.info().annotations.push({
+      type: "zoom",
+      description: `${route}\n${failures.join("\n")}`,
+    });
   }
-  if (!reportOnly) expect(failures, `content does not fit on ${route}`).toEqual([]);
+  if (!reportOnly)
+    expect(failures, `content does not fit on ${route}`).toEqual([]);
 }
 
 test.describe("zoom sweep — public", () => {
@@ -60,16 +76,85 @@ test.describe("zoom sweep — admin", () => {
       await waitForPage(page);
       const hrefs = await page
         .locator("a[href]")
-        .evaluateAll((anchors) => anchors.map((a) => a.getAttribute("href") ?? ""));
+        .evaluateAll((anchors) =>
+          anchors.map((a) => a.getAttribute("href") ?? ""),
+        );
       const href = hrefs.find((value) => link.test(value));
       if (href) {
         await page.goto(href);
       } else {
-        await page.locator("[data-row-link], tbody tr").filter({ visible: true }).first().click();
+        await page
+          .locator("[data-row-link], tbody tr")
+          .filter({ visible: true })
+          .first()
+          .click();
       }
-      await expect.poll(() => link.test(new URL(page.url()).pathname)).toBe(true);
+      await expect
+        .poll(() => link.test(new URL(page.url()).pathname))
+        .toBe(true);
       await waitForPage(page);
       await sweep(page, `detail:${from}`);
+    });
+  }
+});
+
+/** Overlays and secondary tabs are swept in their open state. */
+test.describe("zoom sweep — interactive states", () => {
+  test.beforeEach(async ({ page }) => {
+    await signIn(page);
+  });
+
+  const states: {
+    name: string;
+    route: string;
+    open: (page: Page) => Promise<void>;
+  }[] = [
+    {
+      name: "alerts filter menu",
+      route: "/alerts/list",
+      open: (page) => page.getByRole("button", { name: /^Filter/ }).click(),
+    },
+    {
+      name: "invite users dialog",
+      route: "/administration/users",
+      open: (page) =>
+        page.getByRole("button", { name: "Invite users" }).click(),
+    },
+    {
+      name: "pending invitations tab",
+      route: "/administration/users",
+      open: (page) =>
+        page.getByRole("tab", { name: /Pending invitations/i }).click(),
+    },
+    {
+      name: "enterprise API keys tab",
+      route: "/administration/enterprise",
+      open: (page) => page.getByRole("tab", { name: /API keys/ }).click(),
+    },
+    {
+      name: "integrations catalogue tab",
+      route: "/administration/integrations",
+      open: (page) =>
+        page.getByRole("tab", { name: /All integrations/ }).click(),
+    },
+    {
+      name: "notifications",
+      route: "/overview",
+      open: (page) =>
+        page
+          .getByRole("button", { name: /notifications/i })
+          .first()
+          .click(),
+    },
+  ];
+
+  for (const { name, route, open } of states) {
+    test(name, async ({ page }) => {
+      await page.goto(route);
+      await waitForPage(page);
+      await open(page);
+      await page.waitForTimeout(300);
+      await sweep(page, `${route} (${name})`);
     });
   }
 });

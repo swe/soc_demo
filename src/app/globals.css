@@ -98,7 +98,6 @@
 
   /* Layout rhythm */
   --gutter: 1rem;
-  --section-gap: 1.25rem;
   --header-height: 3.5rem;
   /* In-flow on phones (never overlaps content); 0 once the sidebar takes over. */
   --tab-bar-height: calc(3.25rem + env(safe-area-inset-bottom));
@@ -107,7 +106,6 @@
 @media (min-width: 768px) {
   :root {
     --gutter: 1.5rem;
-    --section-gap: 1.5rem;
     --header-height: 3.75rem;
     --tab-bar-height: 0px;
   }
@@ -116,7 +114,6 @@
 @media (min-width: 1280px) {
   :root {
     --gutter: 2rem;
-    --section-gap: 1.75rem;
   }
 }
 
@@ -350,7 +347,12 @@
   }
 
   /* Safety net for interactive elements without their own focus treatment. */
-  :where(a[href], button, [role="button"], [tabindex]:not([tabindex="-1"])):focus-visible {
+  :where(
+    a[href],
+    button,
+    [role="button"],
+    [tabindex]:not([tabindex="-1"])
+  ):focus-visible {
     outline: 2px solid color-mix(in oklch, var(--ring) 70%, transparent);
     outline-offset: 2px;
   }
@@ -445,10 +447,6 @@
   margin-inline: calc(var(--gutter) * -1);
 }
 
-@utility gap-section {
-  gap: var(--section-gap);
-}
-
 /* Translucent chrome (header, tab bar): content scrolls underneath. */
 @utility material-chrome {
   background-color: color-mix(in oklch, var(--background) 78%, transparent);
@@ -489,7 +487,8 @@
 
 /* Instant press feedback on pointer-down. */
 @utility pressable {
-  transition-property: transform, color, background-color, border-color, box-shadow, opacity;
+  transition-property:
+    transform, color, background-color, border-color, box-shadow, opacity;
   transition-duration: 120ms;
   transition-timing-function: var(--ease-standard);
 
@@ -505,17 +504,6 @@
   }
 }
 
-/* Fades content into the edge of a scroll container instead of a hard rule. */
-@utility scroll-fade-x {
-  mask-image: linear-gradient(
-    to right,
-    transparent,
-    #000 0.75rem,
-    #000 calc(100% - 0.75rem),
-    transparent
-  );
-}
-
 @utility no-scrollbar {
   &::-webkit-scrollbar {
     display: none;
@@ -523,43 +511,4 @@
 
   -ms-overflow-style: none;
   scrollbar-width: none;
-}
-
-@layer base {
-  /* Toggle Theme View Transitions */
-  @keyframes theme-mask {
-    0% {
-      clip-path: polygon(
-        var(--x, 50%) var(--y, 50%),
-        var(--x, 50%) var(--y, 50%),
-        var(--x, 50%) var(--y, 50%),
-        var(--x, 50%) var(--y, 50%)
-      );
-    }
-
-    100% {
-      clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
-    }
-  }
-
-  html.theme-transition::view-transition-old(root),
-  html.theme-transition::view-transition-new(root) {
-    animation: none;
-    mix-blend-mode: normal;
-  }
-
-  html.theme-transition::view-transition-old(root) {
-    z-index: 1;
-  }
-
-  html.theme-transition::view-transition-new(root) {
-    z-index: 2;
-    animation: theme-mask 0.3s ease-out forwards;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    html.theme-transition::view-transition-new(root) {
-      animation: none;
-    }
-  }
 }
