@@ -1,34 +1,24 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import {
-  Area,
-  AreaChart,
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
-  Pie,
-  PieChart,
-  XAxis,
-  YAxis,
-} from "recharts";
 
+import { CategoryBarChart } from "@/components/soc/charts/category-bar-chart";
+import { ChartCard } from "@/components/soc/charts/chart-card";
+import {
+  severityChartConfig,
+  severityColor,
+} from "@/components/soc/charts/chart-palette";
+import { DonutBreakdown } from "@/components/soc/charts/donut-breakdown";
+import { RankedBarList } from "@/components/soc/charts/ranked-bar-list";
+import { TrendAreaChart } from "@/components/soc/charts/trend-area-chart";
 import {
   OverviewSplit,
   Panel,
   PanelGrid,
   PanelHeading,
+  PanelLink,
 } from "@/components/soc/panel";
 import { SegmentedControl } from "@/components/soc/segmented-control";
-import {
-  type ChartConfig,
-  ChartContainer,
-  ChartLegend,
-  ChartLegendContent,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart";
 
 import {
   type DarkWebExposure,
@@ -42,138 +32,47 @@ import {
   getTopAffectedDomains,
   getTypeBreakdown,
 } from "./dark-web-data";
-import {
-  SeverityBadge,
-} from "./dark-web-primitives";
+import { SeverityBadge } from "./dark-web-primitives";
 import { type OverviewFilterTarget } from "./dark-web-url";
 import { EasmCorrelationPanel } from "./easm-correlation-panel";
 
-const severityChartConfig = {
-  critical: {
-    label: "Critical",
-    theme: { light: "#dc2626", dark: "#f87171" },
-  },
-  high: {
-    label: "High",
-    theme: { light: "#ea580c", dark: "#fb923c" },
-  },
-  medium: {
-    label: "Medium",
-    theme: { light: "#d97706", dark: "#fbbf24" },
-  },
-  low: {
-    label: "Low",
-    theme: { light: "#2563eb", dark: "#60a5fa" },
-  },
-} satisfies ChartConfig;
-
-const severityDonutConfig = {
-  critical: { label: "Critical", color: "#dc2626" },
-  high: { label: "High", color: "#ea580c" },
-  medium: { label: "Medium", color: "#d97706" },
-  low: { label: "Low", color: "#2563eb" },
-} satisfies ChartConfig;
-
-const typeChartConfig = {
-  count: { label: "Exposures", color: "var(--primary)" },
-} satisfies ChartConfig;
-
-const typeBarColors: Record<string, string> = {
+/** Exposure categories, not severities — so they sit outside the severity ramp. */
+const typeColors: Record<string, string> = {
   credential: "#0284c7",
   stealer: "#7c3aed",
   mention: "#d97706",
   ransomware: "#e11d48",
 };
 
-const severityBarColors: Record<string, string> = {
-  critical: "#dc2626",
-  high: "#ea580c",
-  medium: "#d97706",
-  low: "#2563eb",
-};
-
-function OverviewRangeControl({
-  value,
-  onChange,
-}: {
-  value: DarkWebOverviewRange;
-  onChange: (range: DarkWebOverviewRange) => void;
-}) {
-  return (
-    <SegmentedControl
-      aria-label="Time range"
-      value={value}
-      onChange={onChange}
-      options={darkWebOverviewRanges.map((range) => ({
-        value: range,
-        label: darkWebOverviewRangeLabels[range],
-      }))}
-    />
-  );
-}
+const exposureSeries = [
+  { key: "low" },
+  { key: "medium" },
+  { key: "high" },
+  { key: "critical" },
+] as const;
 
 function ExposuresOverTimeCard({ range }: { range: DarkWebOverviewRange }) {
   const data = useMemo(() => getExposuresOverTime(range), [range]);
-  const xInterval = range === "30d" ? 3 : range === "14d" ? 1 : 0;
+  const latest = data[data.length - 1];
+  const latestTotal = latest
+    ? latest.critical + latest.high + latest.medium + latest.low
+    : 0;
 
   return (
-    <Panel>
-      <PanelHeading title="Exposures over time" />
-      <ChartContainer config={severityChartConfig} className="h-[220px] w-full">
-        <AreaChart data={data} margin={{ left: 0, right: 8, top: 8 }}>
-          <CartesianGrid vertical={false} strokeDasharray="3 3" />
-          <XAxis
-            dataKey="day"
-            tickLine={false}
-            axisLine={false}
-            interval={xInterval}
-            tickMargin={8}
-            fontSize={11}
-          />
-          <YAxis
-            tickLine={false}
-            axisLine={false}
-            width={28}
-            allowDecimals={false}
-            fontSize={11}
-          />
-          <ChartTooltip content={<ChartTooltipContent />} />
-          <ChartLegend content={<ChartLegendContent />} />
-          <Area
-            type="monotone"
-            dataKey="critical"
-            stackId="a"
-            stroke="var(--color-critical)"
-            fill="var(--color-critical)"
-            fillOpacity={0.7}
-          />
-          <Area
-            type="monotone"
-            dataKey="high"
-            stackId="a"
-            stroke="var(--color-high)"
-            fill="var(--color-high)"
-            fillOpacity={0.7}
-          />
-          <Area
-            type="monotone"
-            dataKey="medium"
-            stackId="a"
-            stroke="var(--color-medium)"
-            fill="var(--color-medium)"
-            fillOpacity={0.7}
-          />
-          <Area
-            type="monotone"
-            dataKey="low"
-            stackId="a"
-            stroke="var(--color-low)"
-            fill="var(--color-low)"
-            fillOpacity={0.7}
-          />
-        </AreaChart>
-      </ChartContainer>
-    </Panel>
+    <ChartCard
+      title="Exposures over time"
+      description="New exposures per day by severity"
+      metric={{ value: latestTotal, label: "latest day" }}
+      size="lg"
+      status={data.length ? "ready" : "empty"}
+    >
+      <TrendAreaChart
+        data={data}
+        xKey="day"
+        series={exposureSeries}
+        config={severityChartConfig}
+      />
+    </ChartCard>
   );
 }
 
@@ -185,53 +84,26 @@ function TypeBreakdownCard({
   onFilter: (target: OverviewFilterTarget) => void;
 }) {
   const data = useMemo(() => getTypeBreakdown(exposures), [exposures]);
+  const total = data.reduce((sum, row) => sum + row.count, 0);
 
   return (
-    <Panel>
-      <PanelHeading title="By type" />
-      <ChartContainer config={typeChartConfig} className="h-[220px] w-full">
-        <BarChart
-          data={data}
-          layout="vertical"
-          margin={{ left: 4, right: 12, top: 4, bottom: 4 }}
-        >
-          <CartesianGrid horizontal={false} strokeDasharray="3 3" />
-          <XAxis type="number" allowDecimals={false} hide />
-          <YAxis
-            type="category"
-            dataKey="label"
-            width={88}
-            tickLine={false}
-            axisLine={false}
-            fontSize={11}
-          />
-          <ChartTooltip content={<ChartTooltipContent hideLabel />} />
-          <Bar
-            dataKey="count"
-            radius={4}
-            cursor="pointer"
-            onClick={(entry) => {
-              const type = (entry as { type?: string }).type;
-              if (
-                type === "credential" ||
-                type === "stealer" ||
-                type === "mention" ||
-                type === "ransomware"
-              ) {
-                onFilter({ type: "exposureType", exposureType: type });
-              }
-            }}
-          >
-            {data.map((row) => (
-              <Cell
-                key={row.type}
-                fill={typeBarColors[row.type] ?? "var(--primary)"}
-              />
-            ))}
-          </Bar>
-        </BarChart>
-      </ChartContainer>
-    </Panel>
+    <ChartCard
+      title="By type"
+      description="Exposure categories in range"
+      size="lg"
+      status={total ? "ready" : "empty"}
+    >
+      <CategoryBarChart
+        data={data}
+        categoryKey="label"
+        label="Exposures"
+        orientation="horizontal"
+        colorFor={(row) => typeColors[row.type] ?? "var(--primary)"}
+        onSelect={(row) =>
+          onFilter({ type: "exposureType", exposureType: row.type })
+        }
+      />
+    </ChartCard>
   );
 }
 
@@ -243,42 +115,29 @@ function SeverityDonutCard({
   onFilter: (target: OverviewFilterTarget) => void;
 }) {
   const data = useMemo(() => getSeverityBreakdown(exposures), [exposures]);
+  const items = data.map((row) => ({
+    key: row.severity,
+    label: row.label,
+    value: row.count,
+    color: severityColor[row.severity],
+  }));
+  const total = items.reduce((sum, item) => sum + item.value, 0);
 
   return (
-    <Panel>
-      <PanelHeading title="Severity" />
-      <ChartContainer
-        config={severityDonutConfig}
-        className="mx-auto h-[200px] w-full max-w-[240px]"
-      >
-        <PieChart>
-          <ChartTooltip content={<ChartTooltipContent hideLabel />} />
-          <Pie
-            data={data}
-            dataKey="count"
-            nameKey="severity"
-            innerRadius={48}
-            outerRadius={72}
-            strokeWidth={2}
-            cursor="pointer"
-            onClick={(_, index) => {
-              const row = data[index];
-              if (row) {
-                onFilter({ type: "severity", severity: row.severity });
-              }
-            }}
-          >
-            {data.map((row) => (
-              <Cell
-                key={row.severity}
-                fill={severityBarColors[row.severity]}
-              />
-            ))}
-          </Pie>
-          <ChartLegend content={<ChartLegendContent nameKey="severity" />} />
-        </PieChart>
-      </ChartContainer>
-    </Panel>
+    <ChartCard
+      title="Severity"
+      description="Share of exposures in range"
+      status={total ? "ready" : "empty"}
+    >
+      <DonutBreakdown
+        items={items}
+        totalLabel="exposures"
+        onSelect={(key) => {
+          const row = data.find((entry) => entry.severity === key);
+          if (row) onFilter({ type: "severity", severity: row.severity });
+        }}
+      />
+    </ChartCard>
   );
 }
 
@@ -293,26 +152,19 @@ function TopDomainsCard({
 
   return (
     <Panel>
-      <PanelHeading title="Top affected domains" />
-      <ul className="space-y-2">
-        {data.map((row) => (
-          <li key={row.domain}>
-            <button
-              type="button"
-              onClick={() => onFilter({ type: "domain", domain: row.domain })}
-              className="hover:bg-muted/60 flex w-full items-center justify-between gap-3 rounded-md border px-3 py-2 text-left text-sm transition-colors"
-            >
-              <span className="truncate font-medium">{row.domain}</span>
-              <span className="text-muted-foreground tabular-nums">
-                {row.count}
-              </span>
-            </button>
-          </li>
-        ))}
-        {data.length === 0 ? (
-          <li className="text-muted-foreground text-sm">No domain matches.</li>
-        ) : null}
-      </ul>
+      <PanelHeading
+        title="Top affected domains"
+        description="Most exposed corporate domains"
+      />
+      <RankedBarList
+        items={data.map((row) => ({
+          key: row.domain,
+          label: row.domain,
+          value: row.count,
+        }))}
+        emptyLabel="No domain matches."
+        onSelect={(domain) => onFilter({ type: "domain", domain })}
+      />
     </Panel>
   );
 }
@@ -332,23 +184,20 @@ function RecentCriticalCard({
     <Panel>
       <PanelHeading
         title="Recent critical"
+        description="Open critical exposures"
         action={
-          <button
-            type="button"
-            className="text-muted-foreground hover:text-foreground text-xs font-medium"
-            onClick={() => onFilter({ type: "openCritical" })}
-          >
+          <PanelLink onClick={() => onFilter({ type: "openCritical" })}>
             View all
-          </button>
+          </PanelLink>
         }
       />
-      <ul className="divide-border/70 divide-y">
+      <ul className="divide-separator -mx-2 divide-y">
         {items.map((item) => (
           <li key={item.id}>
             <button
               type="button"
               onClick={() => onOpenExposure(item.id)}
-              className="hover:bg-muted/40 flex w-full items-start gap-3 py-2.5 text-left transition-colors"
+              className="pressable hover:bg-accent/60 flex w-full items-start gap-3 rounded-md px-2 py-2.5 text-left"
             >
               <div className="min-w-0 flex-1 space-y-1">
                 <p className="truncate text-sm font-medium">{item.title}</p>
@@ -389,14 +238,20 @@ export function DarkWebOverview({
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-end">
-        <OverviewRangeControl value={range} onChange={setRange} />
+        <SegmentedControl
+          aria-label="Time range"
+          value={range}
+          onChange={setRange}
+          options={darkWebOverviewRanges.map((value) => ({
+            value,
+            label: darkWebOverviewRangeLabels[value],
+          }))}
+        />
       </div>
 
       <OverviewSplit
         primary={<ExposuresOverTimeCard range={range} />}
-        secondary={
-          <TypeBreakdownCard exposures={ranged} onFilter={onFilter} />
-        }
+        secondary={<TypeBreakdownCard exposures={ranged} onFilter={onFilter} />}
       />
       <PanelGrid columns={3}>
         <SeverityDonutCard exposures={ranged} onFilter={onFilter} />

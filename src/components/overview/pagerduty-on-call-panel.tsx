@@ -70,7 +70,7 @@ export function PagerDutyOnCallPanel() {
         }
       />
       <div className="grid gap-3 sm:grid-cols-3">
-        <div className="rounded-md border px-3 py-2">
+        <div className="bg-muted/50 min-w-0 rounded-lg px-3 py-2.5">
           <p className="text-muted-foreground text-xs">Primary</p>
           <p className="text-sm font-medium">{schedule.primary.name}</p>
           <p className="text-muted-foreground text-xs">
@@ -78,7 +78,7 @@ export function PagerDutyOnCallPanel() {
             {schedule.primary.title ? ` · ${schedule.primary.title}` : ""}
           </p>
         </div>
-        <div className="rounded-md border px-3 py-2">
+        <div className="bg-muted/50 min-w-0 rounded-lg px-3 py-2.5">
           <p className="text-muted-foreground text-xs">Secondary</p>
           <p className="text-sm font-medium">{schedule.secondary.name}</p>
           <p className="text-muted-foreground text-xs">
@@ -86,7 +86,7 @@ export function PagerDutyOnCallPanel() {
             {schedule.secondary.title ? ` · ${schedule.secondary.title}` : ""}
           </p>
         </div>
-        <div className="rounded-md border px-3 py-2">
+        <div className="bg-muted/50 min-w-0 rounded-lg px-3 py-2.5">
           <p className="text-muted-foreground mb-1 flex items-center gap-1.5 text-xs">
             <Bell className="size-3.5" />
             Last escalation
@@ -94,7 +94,7 @@ export function PagerDutyOnCallPanel() {
           <p className="text-xs leading-relaxed">
             {schedule.lastEscalation ?? "No pages yet this shift"}
           </p>
-          <Badge variant="secondary" className="mt-2">
+          <Badge variant="muted" className="mt-2">
             {schedule.openPages} open pages
           </Badge>
         </div>

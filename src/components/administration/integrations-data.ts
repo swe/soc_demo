@@ -1925,12 +1925,12 @@ export const healthBucketLabels: Record<HealthBucket, string> = {
 };
 
 export const healthBucketColors: Record<HealthBucket, string> = {
-  healthy: "#16a34a",
-  degraded: "#d97706",
-  failed: "#dc2626",
-  pending: "#2563eb",
-  paused: "#71717a",
-  available: "#a1a1aa",
+  healthy: "var(--success)",
+  degraded: "var(--warning)",
+  failed: "var(--destructive)",
+  pending: "var(--info)",
+  paused: "var(--muted-foreground)",
+  available: "color-mix(in oklch, var(--muted-foreground) 45%, transparent)",
 };
 
 export function getHealthBucket(integration: Integration): HealthBucket {

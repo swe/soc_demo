@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, Bug, ClipboardCheck,Cloud } from "lucide-react";
+import { Bug, ChevronRight, ClipboardCheck, Cloud } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useSyncExternalStore } from "react";
 
@@ -12,8 +12,8 @@ import {
   getComplianceSessionSnapshot,
   subscribeComplianceSession,
 } from "@/components/compliance/compliance-session";
+import { Panel, PanelHeading, PanelLink } from "@/components/soc/panel";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { vulnerabilities } from "@/components/vulnerabilities/vulnerabilities-data";
 import { cn } from "@/lib/utils";
 
@@ -25,25 +25,21 @@ export type RiskQueueItem = {
   href: string;
 };
 
+type SourceTone = "critical" | "info" | "warning";
+
 const sourceMeta: Record<
   RiskQueueItem["source"],
-  { label: string; icon: typeof Bug; tone: string }
+  { label: string; icon: typeof Bug; tone: SourceTone }
 > = {
-  vuln: {
-    label: "CVE",
-    icon: Bug,
-    tone: "border-rose-500/30 bg-rose-500/10 text-rose-700 dark:text-rose-300",
-  },
-  cspm: {
-    label: "CSPM",
-    icon: Cloud,
-    tone: "border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300",
-  },
-  compliance: {
-    label: "GRC",
-    icon: ClipboardCheck,
-    tone: "border-amber-500/30 bg-amber-500/10 text-amber-800 dark:text-amber-300",
-  },
+  vuln: { label: "CVE", icon: Bug, tone: "critical" },
+  cspm: { label: "CSPM", icon: Cloud, tone: "info" },
+  compliance: { label: "GRC", icon: ClipboardCheck, tone: "warning" },
+};
+
+const sourceIconClass: Record<SourceTone, string> = {
+  critical: "bg-severity-critical/12 text-severity-critical-text",
+  info: "bg-info/12 text-info-text",
+  warning: "bg-warning/16 text-warning-text",
 };
 
 const openComplianceStatuses = new Set([
@@ -134,35 +130,24 @@ export function UnifiedRiskQueue({
   }, [cloudSnap, complianceSnap]);
 
   return (
-    <section className={cn("bg-card rounded-lg border", className)}>
-      <div className="flex flex-wrap items-start justify-between gap-2 border-b px-3 py-2.5 sm:px-4">
-        <div className="min-w-0">
-          <h3 className="text-sm font-medium leading-tight">
-            Unified risk queue
-          </h3>
-          <p className="text-muted-foreground text-xs">
-            Open critical items across vulnerabilities, cloud posture, and
-            compliance
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-1.5">
-          <Badge variant="secondary" className="tabular-nums">
-            {counts.total}
-          </Badge>
-          <Badge variant="outline" className="tabular-nums text-xs">
-            {counts.vuln} CVE
-          </Badge>
-          <Badge variant="outline" className="tabular-nums text-xs">
-            {counts.cspm} CSPM
-          </Badge>
-          <Badge variant="outline" className="tabular-nums text-xs">
-            {counts.compliance} GRC
-          </Badge>
-        </div>
-      </div>
-      <ul className="divide-border max-h-[360px] divide-y overflow-y-auto">
+    <Panel className={cn("flex flex-col", className)}>
+      <PanelHeading
+        title="Unified risk queue"
+        description="Open critical items across vulnerabilities, cloud posture, and compliance"
+        action={
+          <>
+            <Badge variant="muted">{counts.total} total</Badge>
+            <Badge variant={sourceMeta.vuln.tone}>{counts.vuln} CVE</Badge>
+            <Badge variant={sourceMeta.cspm.tone}>{counts.cspm} CSPM</Badge>
+            <Badge variant={sourceMeta.compliance.tone}>
+              {counts.compliance} GRC
+            </Badge>
+          </>
+        }
+      />
+      <ul className="divide-separator -mx-2 max-h-[360px] divide-y overflow-y-auto">
         {items.length === 0 ? (
-          <li className="text-muted-foreground px-3 py-6 text-center text-sm">
+          <li className="text-muted-foreground py-6 text-center text-sm">
             No open critical risk items.
           </li>
         ) : (
@@ -173,35 +158,25 @@ export function UnifiedRiskQueue({
               <li key={item.id}>
                 <Link
                   href={item.href}
-                  className="hover:bg-muted/40 flex items-start gap-3 px-3 py-2.5 transition-colors sm:px-4"
+                  className="pressable hover:bg-accent/60 flex items-center gap-3 rounded-md px-2 py-2.5"
                 >
                   <span
                     className={cn(
-                      "mt-0.5 inline-flex size-7 shrink-0 items-center justify-center rounded-md border",
-                      meta.tone,
+                      "inline-flex size-8 shrink-0 items-center justify-center rounded-lg",
+                      sourceIconClass[meta.tone],
                     )}
                   >
-                    <Icon className="size-3.5" aria-hidden="true" />
+                    <Icon className="size-4" aria-hidden />
                   </span>
                   <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <p className="truncate text-sm font-medium">
-                        {item.title}
-                      </p>
-                      <Badge
-                        variant="outline"
-                        className="rounded-full px-1.5 py-0 text-xs font-normal"
-                      >
-                        {meta.label}
-                      </Badge>
-                    </div>
+                    <p className="truncate text-sm font-medium">{item.title}</p>
                     <p className="text-muted-foreground truncate text-xs">
-                      {item.meta}
+                      {meta.label} · {item.meta}
                     </p>
                   </div>
-                  <ArrowRight
-                    className="text-muted-foreground mt-1 size-3.5 shrink-0"
-                    aria-hidden="true"
+                  <ChevronRight
+                    className="text-muted-foreground/70 size-4 shrink-0"
+                    aria-hidden
                   />
                 </Link>
               </li>
@@ -209,19 +184,13 @@ export function UnifiedRiskQueue({
           })
         )}
       </ul>
-      <div className="flex flex-wrap gap-2 border-t px-3 py-2 sm:px-4">
-        <Button variant="ghost" size="sm" className="h-7 text-xs" asChild>
-          <Link href="/vulnerabilities/findings?severity=critical">
-            Vulns
-          </Link>
-        </Button>
-        <Button variant="ghost" size="sm" className="h-7 text-xs" asChild>
-          <Link href="/cloud-posture?severity=critical">CSPM</Link>
-        </Button>
-        <Button variant="ghost" size="sm" className="h-7 text-xs" asChild>
-          <Link href="/compliance">Compliance</Link>
-        </Button>
+      <div className="border-separator mt-3 flex flex-wrap gap-x-5 border-t pt-3">
+        <PanelLink href="/vulnerabilities/findings?severity=critical">
+          Vulnerabilities
+        </PanelLink>
+        <PanelLink href="/cloud-posture?severity=critical">Cloud posture</PanelLink>
+        <PanelLink href="/compliance">Compliance</PanelLink>
       </div>
-    </section>
+    </Panel>
   );
 }

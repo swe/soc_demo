@@ -1,24 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useId, useMemo } from "react";
-import {
-  Area,
-  AreaChart,
-  CartesianGrid,
-  XAxis,
-  YAxis,
-} from "recharts";
+import { useMemo } from "react";
 
-import { PanelGrid } from "@/components/soc/panel";
+import { ChartCard } from "@/components/soc/charts/chart-card";
 import {
-  type ChartConfig,
-  ChartContainer,
-  ChartLegend,
-  ChartLegendContent,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart";
+  formatCompact as formatChartValue,
+  severityChartConfig,
+} from "@/components/soc/charts/chart-palette";
+import { TrendAreaChart } from "@/components/soc/charts/trend-area-chart";
+import { PanelGrid, PanelLink } from "@/components/soc/panel";
 import {
   Table,
   TableBody,
@@ -57,29 +48,12 @@ import {
   buildWorkHref,
 } from "./vulnerabilities-url";
 
-const compactNumber = new Intl.NumberFormat("en-US", {
-  notation: "compact",
-  maximumFractionDigits: 1,
-});
-
-const severityChartConfig = {
-  critical: {
-    label: "Critical",
-    color: "#dc2626",
-  },
-  high: {
-    label: "High",
-    color: "#ea580c",
-  },
-  medium: {
-    label: "Medium",
-    color: "#d97706",
-  },
-  low: {
-    label: "Low",
-    color: "#2563eb",
-  },
-} satisfies ChartConfig;
+const findingsSeries = [
+  { key: "low" },
+  { key: "medium" },
+  { key: "high" },
+  { key: "critical" },
+] as const;
 
 function FindingsOverTimeCard() {
   const data = useMemo(() => getVulnerabilitiesOverTime("endpoint", 14), []);
@@ -87,111 +61,22 @@ function FindingsOverTimeCard() {
   const latestTotal = latest
     ? latest.critical + latest.high + latest.medium + latest.low
     : 0;
-  const gradientId = useId().replace(/:/g, "");
 
   return (
-    <Panel className="flex min-h-0 flex-col">
-      <PanelHeading
-        title="Findings over time"
-        description="Endpoint estate · stacked daily totals by severity"
-        action={
-          <div className="text-right">
-            <p className="text-2xl leading-none font-semibold tabular-nums">
-              {compactNumber.format(latestTotal)}
-            </p>
-            <p className="text-muted-foreground mt-1 text-xs">
-              latest day
-            </p>
-          </div>
-        }
-      />
-      <ChartContainer
+    <ChartCard
+      title="Findings over time"
+      description="Endpoint estate · stacked daily totals by severity"
+      metric={{ value: formatChartValue(latestTotal), label: "latest day" }}
+      size="lg"
+      status={data.length ? "ready" : "empty"}
+    >
+      <TrendAreaChart
+        data={data}
+        xKey="day"
+        series={findingsSeries}
         config={severityChartConfig}
-        className="aspect-auto h-[220px] min-h-[220px] w-full"
-      >
-        <AreaChart
-          accessibilityLayer
-          data={data}
-          margin={{ top: 8, right: 8, left: 4, bottom: 0 }}
-        >
-          <defs>
-            {(["low", "medium", "high", "critical"] as const).map((key) => (
-              <linearGradient
-                key={key}
-                id={`${gradientId}-sev-${key}`}
-                x1="0"
-                y1="0"
-                x2="0"
-                y2="1"
-              >
-                <stop
-                  offset="0%"
-                  stopColor={`var(--color-${key})`}
-                  stopOpacity={0.55}
-                />
-                <stop
-                  offset="100%"
-                  stopColor={`var(--color-${key})`}
-                  stopOpacity={0.12}
-                />
-              </linearGradient>
-            ))}
-          </defs>
-          <CartesianGrid vertical={false} strokeDasharray="3 3" />
-          <XAxis
-            dataKey="day"
-            tickLine={false}
-            axisLine={false}
-            tickMargin={8}
-            minTickGap={24}
-          />
-          <YAxis
-            tickLine={false}
-            axisLine={false}
-            width={40}
-            tickFormatter={(v) => compactNumber.format(Number(v))}
-          />
-          <ChartTooltip content={<ChartTooltipContent />} />
-          <ChartLegend content={<ChartLegendContent />} />
-          <Area
-            type="monotone"
-            dataKey="low"
-            stackId="sev"
-            stroke="var(--color-low)"
-            fill={`url(#${gradientId}-sev-low)`}
-            strokeWidth={1.5}
-            isAnimationActive={false}
-          />
-          <Area
-            type="monotone"
-            dataKey="medium"
-            stackId="sev"
-            stroke="var(--color-medium)"
-            fill={`url(#${gradientId}-sev-medium)`}
-            strokeWidth={1.5}
-            isAnimationActive={false}
-          />
-          <Area
-            type="monotone"
-            dataKey="high"
-            stackId="sev"
-            stroke="var(--color-high)"
-            fill={`url(#${gradientId}-sev-high)`}
-            strokeWidth={1.5}
-            isAnimationActive={false}
-          />
-          <Area
-            type="monotone"
-            dataKey="critical"
-            stackId="sev"
-            stroke="var(--color-critical)"
-            fill={`url(#${gradientId}-sev-critical)`}
-            strokeWidth={1.5}
-            isAnimationActive={false}
-          />
-        </AreaChart>
-      </ChartContainer>
-    </Panel>
+      />
+    </ChartCard>
   );
 }
 
@@ -208,7 +93,7 @@ function RiskNarrativePanel({
         title="Risk narrative"
         description="Board-attention items · backlog aging"
       />
-      <ul className="divide-border/60 divide-y">
+      <ul className="divide-separator divide-y">
         {items.map((item) => (
           <li
             key={item.id}
@@ -232,7 +117,7 @@ function RiskNarrativePanel({
           </li>
         ))}
       </ul>
-      <p className="text-muted-foreground mt-4 border-t pt-3 text-xs leading-relaxed">
+      <p className="text-muted-foreground border-separator mt-4 border-t pt-3 text-xs leading-relaxed">
         Backlog:{" "}
         <Link
           href={buildWorkHref({
@@ -305,12 +190,9 @@ export function VulnerabilitiesOverview() {
           title="Top priority findings"
           description="Highest SOC priority open CVEs"
           action={
-            <Link
-              href={buildFindingsHref({ sort: "priority-desc" })}
-              className="text-muted-foreground hover:text-foreground text-xs"
-            >
+            <PanelLink href={buildFindingsHref({ sort: "priority-desc" })}>
               View all
-            </Link>
+            </PanelLink>
           }
         />
         <div className="overflow-hidden rounded-md border">
@@ -352,15 +234,12 @@ export function VulnerabilitiesOverview() {
           title="Exploitation activity"
           description="Findings with linked detection alerts"
           action={
-            <Link
-              href={buildFindingsHref({ withAlertsOnly: true })}
-              className="text-muted-foreground hover:text-foreground text-xs"
-            >
+            <PanelLink href={buildFindingsHref({ withAlertsOnly: true })}>
               View all
-            </Link>
+            </PanelLink>
           }
         />
-        <ul className="divide-border/60 divide-y">
+        <ul className="divide-separator divide-y">
           {exploitation.map((v) => (
             <li key={v.id} className="space-y-1.5 py-2.5 first:pt-0 last:pb-0">
               <div className="flex items-start justify-between gap-2">
@@ -399,19 +278,18 @@ export function VulnerabilitiesOverview() {
           title="Asset blast radius"
           description="Devices with the most high-priority findings"
           action={
-            <Link
+            <PanelLink
               href={buildExposureHref(
                 persona === "ciso"
                   ? { internetFacingOnly: true, highCriticalityOnly: true }
                   : {},
               )}
-              className="text-muted-foreground hover:text-foreground text-xs"
             >
               Exposure
-            </Link>
+            </PanelLink>
           }
         />
-        <ul className="divide-border/60 divide-y">
+        <ul className="divide-separator divide-y">
           {blastRadius.map((d) => (
             <li
               key={d.deviceId}
@@ -441,15 +319,10 @@ export function VulnerabilitiesOverview() {
           title="Open work items"
           description="Remediation and mitigation queue"
           action={
-            <Link
-              href={buildWorkHref()}
-              className="text-muted-foreground hover:text-foreground text-xs"
-            >
-              Work queue
-            </Link>
+            <PanelLink href={buildWorkHref()}>Work queue</PanelLink>
           }
         />
-        <ul className="divide-border/60 divide-y">
+        <ul className="divide-separator divide-y">
           {workItems.map((item) => (
             <li
               key={item.id}
@@ -485,12 +358,9 @@ export function VulnerabilitiesOverview() {
           Patch SLAs and exception evidence live in compliance when GRC needs
           them — not a daily SOC surface.
         </p>
-        <Link
-          href="/compliance"
-          className="text-primary mt-4 inline-flex text-sm font-medium hover:underline"
-        >
-          Open compliance
-        </Link>
+        <div className="mt-4">
+          <PanelLink href="/compliance">Open compliance</PanelLink>
+        </div>
       </Panel>
     ),
     activity: (
@@ -499,7 +369,7 @@ export function VulnerabilitiesOverview() {
           title="Recent activity"
           description="Vulnerability events across the estate"
         />
-        <ul className="divide-border/60 divide-y">
+        <ul className="divide-separator divide-y">
           {recentEvents.map((event) => (
             <li
               key={event.id}

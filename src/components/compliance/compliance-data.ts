@@ -585,11 +585,11 @@ export const controlStatusLabels: Record<ControlStatus, string> = {
 };
 
 export const controlStatusColors: Record<ControlStatus, string> = {
-  pass: "#22c55e",
-  attention: "#f59e0b",
-  fail: "#ef4444",
-  pending: "#3b82f6",
-  "not-applicable": "#71717a",
+  pass: "var(--success)",
+  attention: "var(--warning)",
+  fail: "var(--destructive)",
+  pending: "var(--info)",
+  "not-applicable": "var(--muted-foreground)",
 };
 
 export const controlAutomationLabels: Record<ControlAutomation, string> = {

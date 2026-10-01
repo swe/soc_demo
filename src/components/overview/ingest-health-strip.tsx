@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
+import { Panel, PanelHeading } from "@/components/soc/panel";
 import { Badge } from "@/components/ui/badge";
 import {
   getIngestHealthSummary,
@@ -16,11 +17,11 @@ import { cn } from "@/lib/utils";
 function healthTone(health: SourceHealth) {
   switch (health) {
     case "healthy":
-      return "bg-emerald-500";
+      return "bg-success";
     case "degraded":
-      return "bg-amber-500";
+      return "bg-warning";
     case "failed":
-      return "bg-red-500";
+      return "bg-destructive";
     case "paused":
       return "bg-muted-foreground/40";
   }
@@ -38,7 +39,7 @@ function Spark({ values }: { values: number[] }) {
       {values.map((v, i) => (
         <span
           key={i}
-          className="bg-foreground/25 w-1 rounded-sm"
+          className="bg-primary/35 w-1 rounded-sm"
           style={{ height: `${Math.max(12, (v / max) * 100)}%` }}
         />
       ))}
@@ -66,16 +67,14 @@ function SourceChip({
   return (
     <Link
       href={`/administration/integrations?source=${source.id}`}
-      className={cn(
-        "border-border/70 bg-background hover:bg-muted/50 flex min-w-[148px] flex-col gap-1.5 rounded-lg border px-3 py-2 transition-colors",
-      )}
+      className="bg-muted/50 pressable hover:bg-accent flex min-w-40 shrink-0 snap-start flex-col gap-2 rounded-lg px-3 py-2.5"
     >
       <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-1.5">
+        <div className="flex min-w-0 items-center gap-1.5">
           <span
-            className={cn("size-1.5 shrink-0 rounded-full", healthTone(source.health))}
+            className={cn("size-2 shrink-0 rounded-full", healthTone(source.health))}
           />
-          <span className="text-xs font-medium">{source.shortName}</span>
+          <span className="truncate text-sm font-medium">{source.shortName}</span>
         </div>
         <span className="text-muted-foreground text-xs tabular-nums">
           {ageLabel}
@@ -116,49 +115,33 @@ export function IngestHealthStrip({
   ).length;
 
   return (
-    <section
-      className={cn(
-        "bg-card overflow-hidden rounded-xl border",
-        className,
-      )}
-    >
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b px-3 py-2.5 sm:px-4">
-        <div className="min-w-0">
-          <h3 className="text-sm font-medium leading-tight">
-            Unified ingest
-          </h3>
-          {!compact ? (
-            <p className="text-muted-foreground mt-0.5 text-xs">
-              Splunk, Sentinel, Defender, and more — normalized into one queue
-            </p>
-          ) : null}
-        </div>
-        <div className="flex flex-wrap items-center gap-1.5">
-          <Badge variant="secondary" className="tabular-nums">
-            {formatEps(summary.totalEps)} EPS
-          </Badge>
-          <Badge variant="outline" className="tabular-nums">
-            {summary.healthy}/{summary.connected} healthy
-          </Badge>
-          <Badge variant="outline" className="tabular-nums">
-            {crossSource} core sources
-          </Badge>
-          {summary.degraded > 0 ? (
-            <Badge
-              variant="outline"
-              className="border-amber-500/40 bg-amber-500/10 text-amber-800 dark:text-amber-200"
-            >
-              {summary.degraded} degraded
+    <Panel className={className}>
+      <PanelHeading
+        title="Unified ingest"
+        description={
+          compact
+            ? undefined
+            : "Splunk, Sentinel, Defender, and more — normalized into one queue"
+        }
+        action={
+          <>
+            <Badge variant="muted">{formatEps(summary.totalEps)} EPS</Badge>
+            <Badge variant="success">
+              {summary.healthy}/{summary.connected} healthy
             </Badge>
-          ) : null}
-        </div>
-      </div>
-      <div className="flex gap-2 overflow-x-auto px-3 py-3 sm:px-4">
+            <Badge variant="muted">{crossSource} core sources</Badge>
+            {summary.degraded > 0 ? (
+              <Badge variant="warning">{summary.degraded} degraded</Badge>
+            ) : null}
+          </>
+        }
+      />
+      <div className="relative -mx-4 flex snap-x scroll-px-4 gap-2 overflow-x-auto px-4 pb-1 sm:-mx-5 sm:scroll-px-5 sm:px-5">
         {telemetrySources.map((source) => (
           <SourceChip key={source.id} source={source} ageBump={ageBump} />
         ))}
       </div>
-    </section>
+    </Panel>
   );
 }
 

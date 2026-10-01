@@ -205,18 +205,18 @@ function StatusCell({ integration }: { integration: Integration }) {
       icon: integration.health === "degraded" ? AlertTriangle : CheckCircle2,
       className:
         integration.health === "degraded"
-          ? "text-amber-600 dark:text-amber-400"
-          : "text-green-600 dark:text-green-400",
+          ? "text-warning-text"
+          : "text-success-text",
     },
     error: {
       label: "Error",
       icon: XCircle,
-      className: "text-destructive dark:text-red-400",
+      className: "text-destructive-text",
     },
     pending: {
       label: "Validating",
       icon: Clock3,
-      className: "text-blue-600 dark:text-blue-400",
+      className: "text-info-text",
     },
     paused: {
       label: "Paused",
@@ -550,7 +550,7 @@ function IntegrationsTable({
                         {integration.name}
                       </span>
                       {isIntegrationIssue(integration) ? (
-                        <AlertTriangle className="size-3.5 shrink-0 text-amber-600 dark:text-amber-400" />
+                        <AlertTriangle className="text-warning-text size-3.5 shrink-0" />
                       ) : null}
                     </div>
                     <p className="text-muted-foreground truncate text-xs">
@@ -676,14 +676,14 @@ function activityDotClass(kind: ConnectorActivity["kind"]) {
     case "error":
       return "border-destructive bg-destructive";
     case "health":
-      return "border-amber-500 bg-amber-500";
+      return "border-warning bg-warning";
     case "pause":
       return "border-muted-foreground bg-muted-foreground";
     case "connect":
     case "credential":
-      return "border-blue-500 bg-blue-500";
+      return "border-info bg-info";
     default:
-      return "border-green-600 bg-green-600";
+      return "border-success bg-success";
   }
 }
 
@@ -757,7 +757,7 @@ function IntegrationDetailSheet({
                 integration.status === "error" ||
                   integration.health === "failed"
                   ? "border-destructive/30 bg-destructive/5"
-                  : "border-amber-500/30 bg-amber-500/5",
+                  : "border-warning/30 bg-warning/5",
               )}
             >
               <div className="flex items-start gap-2">
@@ -767,7 +767,7 @@ function IntegrationDetailSheet({
                     integration.status === "error" ||
                       integration.health === "failed"
                       ? "text-destructive"
-                      : "text-amber-600 dark:text-amber-400",
+                      : "text-warning-text",
                   )}
                 />
                 <div className="min-w-0">

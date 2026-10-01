@@ -30,6 +30,11 @@ import {
   socIncidents,
 } from "@/components/incidents/incidents-data";
 import {
+  priorityColor,
+  severityColor,
+  statusColor,
+} from "@/components/soc/charts/chart-palette";
+import {
   getFindingOverviewStats,
   vulnerabilities,
 } from "@/components/vulnerabilities/vulnerabilities-data";
@@ -97,18 +102,21 @@ export type RoleOverviewModel = {
 };
 
 const SEV_COLORS = {
-  critical: "#dc2626",
-  high: "#ea580c",
-  medium: "#d97706",
-  low: "#2563eb",
+  critical: severityColor.critical,
+  high: severityColor.high,
+  medium: severityColor.medium,
+  low: severityColor.low,
 } as const;
 
 const PRI_COLORS = {
-  p1: "#dc2626",
-  p2: "#ea580c",
-  p3: "#d97706",
-  p4: "#2563eb",
+  p1: priorityColor.P1,
+  p2: priorityColor.P2,
+  p3: priorityColor.P3,
+  p4: priorityColor.P4,
 } as const;
+
+/** Workflow stage with no status token of its own. */
+const INVESTIGATING_COLOR = "#7c3aed";
 
 function takeAlerts(
   alerts: readonly SocAlert[],
@@ -187,7 +195,12 @@ function statusBreakdown(alerts: readonly SocAlert[]): OverviewBreakdown {
   const rows = getStatusBreakdown(alerts).filter((r) =>
     ["new", "triaging", "investigating", "escalated"].includes(r.status),
   );
-  const palette = ["#2563eb", "#d97706", "#7c3aed", "#dc2626"];
+  const palette = [
+    statusColor.info,
+    statusColor.warning,
+    INVESTIGATING_COLOR,
+    statusColor.destructive,
+  ];
   return {
     title: "Open alert pipeline",
     items: rows.map((row, i) => ({
@@ -224,12 +237,12 @@ function incidentPriorityBreakdown(
 }
 
 function frameworkBreakdown(): OverviewBreakdown {
-  const statusColor: Record<string, string> = {
-    certified: "#16a34a",
-    "in-audit": "#2563eb",
-    remediation: "#ea580c",
-    monitoring: "#7c3aed",
-    "gap-analysis": "#dc2626",
+  const frameworkStatusColor: Record<string, string> = {
+    certified: statusColor.success,
+    "in-audit": statusColor.info,
+    remediation: severityColor.high,
+    monitoring: INVESTIGATING_COLOR,
+    "gap-analysis": statusColor.destructive,
   };
   const byStatus = new Map<string, number>();
   for (const f of complianceFrameworks) {
@@ -241,7 +254,7 @@ function frameworkBreakdown(): OverviewBreakdown {
       key: status,
       label: status.replace(/-/g, " "),
       value,
-      color: statusColor[status] ?? "#71717a",
+      color: frameworkStatusColor[status] ?? statusColor.neutral,
     })),
   };
 }

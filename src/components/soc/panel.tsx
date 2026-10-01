@@ -1,5 +1,8 @@
 "use client";
 
+import { ChevronRight } from "lucide-react";
+import Link from "next/link";
+
 import { cn } from "@/lib/utils";
 
 export function Panel({
@@ -46,6 +49,39 @@ export function PanelHeading({
   );
 }
 
+const panelLinkClassName =
+  "text-primary text-callout inline-flex items-center gap-0.5 rounded-sm font-medium hover:underline underline-offset-4 pointer-coarse:min-h-11";
+
+/** "View all"-style action in a panel heading: a link, or a button when `onClick` is set. */
+export function PanelLink({
+  href,
+  onClick,
+  children,
+}: {
+  href?: string;
+  onClick?: () => void;
+  children: React.ReactNode;
+}) {
+  const content = (
+    <>
+      {children}
+      <ChevronRight className="size-3.5" aria-hidden />
+    </>
+  );
+  if (href) {
+    return (
+      <Link href={href} className={panelLinkClassName}>
+        {content}
+      </Link>
+    );
+  }
+  return (
+    <button type="button" onClick={onClick} className={panelLinkClassName}>
+      {content}
+    </button>
+  );
+}
+
 /** Two-up overview row: primary chart + secondary panel. */
 export function OverviewSplit({
   primary,
@@ -62,15 +98,15 @@ export function OverviewSplit({
   return (
     <div
       className={cn(
-        "grid grid-cols-1 items-start gap-4",
+        "grid grid-cols-1 gap-4",
         wide === "primary"
           ? "xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]"
           : "xl:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]",
         className,
       )}
     >
-      <div className="min-w-0 self-start">{primary}</div>
-      <div className="min-w-0 self-start">{secondary}</div>
+      <div className="min-w-0 [&>*]:h-full">{primary}</div>
+      <div className="min-w-0 [&>*]:h-full">{secondary}</div>
     </div>
   );
 }
@@ -100,7 +136,7 @@ export function PanelGrid({
   return (
     <div
       className={cn(
-        "grid grid-cols-1 items-start gap-4",
+        "grid grid-cols-1 gap-4",
         colClass ?? "md:grid-cols-2 xl:grid-cols-3",
         className,
       )}

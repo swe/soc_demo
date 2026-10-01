@@ -11,27 +11,28 @@ import {
   ScrollText,
   Wrench,
 } from "lucide-react";
-import Link from "next/link";
-import {
-  Area,
-  AreaChart,
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Line,
-  XAxis,
-  YAxis,
-} from "recharts";
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
+import { ChartCard } from "@/components/soc/charts/chart-card";
+import {
+  chartMargin,
+  gridProps,
+  xAxisProps,
+  yAxisProps,
+} from "@/components/soc/charts/chart-palette";
+import { TrendAreaChart } from "@/components/soc/charts/trend-area-chart";
 import {
   OverviewSplit,
   Panel,
   PanelHeading,
+  PanelLink,
 } from "@/components/soc/panel";
 import { Button } from "@/components/ui/button";
 import {
   type ChartConfig,
   ChartContainer,
+  ChartLegend,
+  ChartLegendContent,
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
@@ -80,19 +81,20 @@ import { useComplianceSession } from "./compliance-session";
 
 const scoreChartConfig = {
   score: { label: "Compliance score", color: "var(--primary)" },
-  target: {
-    label: "Target",
-    theme: { light: "#a1a1aa", dark: "#71717a" },
-  },
+  target: { label: "Target", color: "var(--muted-foreground)" },
 } satisfies ChartConfig;
+
+const scoreSeries = [{ key: "score" }, { key: "target", dashed: true }] as const;
 
 const evidenceChartConfig = {
   collected: { label: "Collected", color: "var(--primary)" },
   expired: {
     label: "Expired",
-    theme: { light: "#fca5a5", dark: "#7f1d1d" },
+    color: "color-mix(in oklch, var(--destructive) 55%, transparent)",
   },
 } satisfies ChartConfig;
+
+const formatPercent = (value: unknown) => `${value}%`;
 
 function ScoreTrendCard({ controls }: { controls: ComplianceControl[] }) {
   const score = getOverallScore(controls);
@@ -100,86 +102,21 @@ function ScoreTrendCard({ controls }: { controls: ComplianceControl[] }) {
   const axisFloor = Math.max(0, Math.floor((lowest - 5) / 10) * 10);
 
   return (
-    <Panel className="flex flex-col">
-      <PanelHeading
-        title="Score trend"
-        description={`Target ${complianceScoreTarget}% by Q4`}
-        action={
-          <p className="text-2xl leading-none font-semibold tabular-nums">
-            {score}%
-          </p>
-        }
-      />
-      <ChartContainer
+    <ChartCard
+      title="Score trend"
+      description={`Target ${complianceScoreTarget}% by Q4`}
+      metric={{ value: `${score}%`, label: "current" }}
+    >
+      <TrendAreaChart
+        data={complianceScoreTrend}
+        xKey="month"
+        series={scoreSeries}
         config={scoreChartConfig}
-        className="[aspect-ratio:auto] h-[180px] w-full"
-      >
-        <AreaChart
-          accessibilityLayer
-          data={complianceScoreTrend}
-          margin={{ top: 8, right: 8, left: -16, bottom: 0 }}
-        >
-          <defs>
-            <linearGradient
-              id="complianceScoreFill"
-              x1="0"
-              y1="0"
-              x2="0"
-              y2="1"
-            >
-              <stop
-                offset="0%"
-                stopColor="var(--color-score)"
-                stopOpacity={0.28}
-              />
-              <stop
-                offset="100%"
-                stopColor="var(--color-score)"
-                stopOpacity={0.04}
-              />
-            </linearGradient>
-          </defs>
-          <CartesianGrid strokeDasharray="3 3" vertical={false} />
-          <XAxis
-            dataKey="month"
-            axisLine={false}
-            tickLine={false}
-            tick={{ fontSize: 10 }}
-            dy={8}
-          />
-          <YAxis
-            axisLine={false}
-            tickLine={false}
-            tick={{ fontSize: 10 }}
-            tickFormatter={(value) => `${value}%`}
-            width={44}
-            domain={[axisFloor, 100]}
-          />
-          <ChartTooltip
-            content={<ChartTooltipContent indicator="dashed" />}
-            cursor={{ stroke: "var(--color-score)", strokeOpacity: 0.2 }}
-          />
-          <Area
-            type="monotone"
-            dataKey="score"
-            stroke="var(--color-score)"
-            strokeWidth={2}
-            fill="url(#complianceScoreFill)"
-            activeDot={{ r: 4, strokeWidth: 0 }}
-            isAnimationActive={false}
-          />
-          <Line
-            type="monotone"
-            dataKey="target"
-            stroke="var(--color-target)"
-            strokeWidth={2}
-            strokeDasharray="3 3"
-            dot={false}
-            isAnimationActive={false}
-          />
-        </AreaChart>
-      </ChartContainer>
-    </Panel>
+        stacked={false}
+        yDomain={[axisFloor, 100]}
+        yTickFormatter={formatPercent}
+      />
+    </ChartCard>
   );
 }
 
@@ -258,15 +195,11 @@ function matrixCellClass(
   worst: ControlStatus | null,
 ) {
   if (readiness === null) return "bg-muted/40 text-muted-foreground/40";
-  if (worst === "fail")
-    return "bg-destructive/15 text-destructive dark:text-red-300";
-  if (worst === "pending")
-    return "bg-blue-500/15 text-blue-700 dark:text-blue-300";
-  if (readiness >= 90)
-    return "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300";
-  if (readiness >= 70)
-    return "bg-amber-500/15 text-amber-700 dark:text-amber-300";
-  return "bg-orange-500/15 text-orange-700 dark:text-orange-300";
+  if (worst === "fail") return "bg-destructive/15 text-destructive-text";
+  if (worst === "pending") return "bg-info/15 text-info-text";
+  if (readiness >= 90) return "bg-success/15 text-success-text";
+  if (readiness >= 70) return "bg-warning/15 text-warning-text";
+  return "bg-severity-high/15 text-severity-high-text";
 }
 
 const domainShortLabels: Record<string, string> = {
@@ -298,14 +231,7 @@ function CoverageMatrixCard({
         title="Coverage matrix"
         description="Control-domain readiness for each framework, computed from the live control set."
         action={
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-8 text-xs shadow-none"
-            onClick={onOpenControls}
-          >
-            Open controls
-          </Button>
+          <PanelLink onClick={onOpenControls}>Open controls</PanelLink>
         }
       />
       <div className="overflow-x-auto">
@@ -399,14 +325,14 @@ function CoverageMatrixCard({
       </div>
       <div className="text-muted-foreground mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs">
         <span className="inline-flex items-center gap-1.5">
-          <span className="size-2.5 rounded-sm bg-emerald-500/40" />≥ 90%
+          <span className="size-2.5 rounded-sm bg-success/40" />≥ 90%
         </span>
         <span className="inline-flex items-center gap-1.5">
-          <span className="size-2.5 rounded-sm bg-amber-500/40" />
+          <span className="size-2.5 rounded-sm bg-warning/40" />
           70–89%
         </span>
         <span className="inline-flex items-center gap-1.5">
-          <span className="size-2.5 rounded-sm bg-orange-500/40" />
+          <span className="size-2.5 rounded-sm bg-severity-high/40" />
           &lt; 70%
         </span>
         <span className="inline-flex items-center gap-1.5">
@@ -414,7 +340,7 @@ function CoverageMatrixCard({
           Has failing
         </span>
         <span className="inline-flex items-center gap-1.5">
-          <span className="size-2.5 rounded-sm bg-blue-500/40" />
+          <span className="size-2.5 rounded-sm bg-info/40" />
           Not tested
         </span>
       </div>
@@ -534,7 +460,7 @@ function ActiveAuditCard() {
 
       <AuditLifecycleStepper audit={audit} />
 
-      <div className="border-border/60 mt-4 grid gap-4 border-t pt-4 sm:grid-cols-3">
+      <div className="border-separator mt-4 grid gap-4 border-t pt-4 sm:grid-cols-3">
         <div>
           <p className="text-muted-foreground text-xs">Auditor requests</p>
           <p className="mt-1 text-sm font-medium tabular-nums">
@@ -585,17 +511,10 @@ function FrameworkReadinessCard({
       <PanelHeading
         title="Framework readiness"
         action={
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-8 text-xs shadow-none"
-            onClick={onOpenFrameworks}
-          >
-            View all
-          </Button>
+          <PanelLink onClick={onOpenFrameworks}>View all</PanelLink>
         }
       />
-      <ul className="divide-border/60 divide-y">
+      <ul className="divide-separator divide-y">
         {rows.map(({ framework, rollup }) => (
           <li
             key={framework.id}
@@ -639,50 +558,44 @@ function FrameworkReadinessCard({
 
 function EvidenceTrendCard() {
   return (
-    <Panel className="flex flex-col">
-      <PanelHeading
-        title="Evidence freshness"
-        description="Artifacts collected versus lapsed each month."
-      />
+    <ChartCard
+      title="Evidence freshness"
+      description="Artifacts collected versus lapsed each month."
+    >
       <ChartContainer
         config={evidenceChartConfig}
-        className="[aspect-ratio:auto] h-[168px] w-full"
+        className="aspect-auto h-full w-full"
       >
         <BarChart
           accessibilityLayer
           data={evidenceFreshnessTrend}
-          margin={{ top: 8, right: 8, left: -20, bottom: 0 }}
+          margin={chartMargin}
         >
-          <CartesianGrid strokeDasharray="3 3" vertical={false} />
-          <XAxis
-            dataKey="month"
-            axisLine={false}
-            tickLine={false}
-            tick={{ fontSize: 10 }}
-            dy={8}
+          <CartesianGrid {...gridProps} />
+          <XAxis dataKey="month" {...xAxisProps} />
+          <YAxis {...yAxisProps} />
+          <ChartTooltip
+            cursor={{ fill: "var(--muted)", opacity: 0.6 }}
+            content={<ChartTooltipContent />}
           />
-          <YAxis
-            axisLine={false}
-            tickLine={false}
-            tick={{ fontSize: 10 }}
-            width={40}
-          />
-          <ChartTooltip content={<ChartTooltipContent indicator="dashed" />} />
+          <ChartLegend content={<ChartLegendContent />} />
           <Bar
             dataKey="collected"
             fill="var(--color-collected)"
             radius={[4, 4, 0, 0]}
+            maxBarSize={24}
             isAnimationActive={false}
           />
           <Bar
             dataKey="expired"
             fill="var(--color-expired)"
             radius={[4, 4, 0, 0]}
+            maxBarSize={24}
             isAnimationActive={false}
           />
         </BarChart>
       </ChartContainer>
-    </Panel>
+    </ChartCard>
   );
 }
 
@@ -708,7 +621,7 @@ function UpcomingDeadlinesCard() {
                 framework.daysToMilestone <= 14
                   ? "text-destructive"
                   : framework.daysToMilestone <= 45
-                    ? "text-amber-600 dark:text-amber-400"
+                    ? "text-warning-text"
                     : "text-muted-foreground",
               )}
             />
@@ -752,14 +665,7 @@ function EvidenceAtRiskCard({
       <PanelHeading
         title="Evidence at risk"
         action={
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-7 px-2 text-xs"
-            onClick={onOpenEvidence}
-          >
-            Open
-          </Button>
+          <PanelLink onClick={onOpenEvidence}>Open</PanelLink>
         }
       />
       <ul className="space-y-3">
@@ -797,14 +703,7 @@ function TopRisksCard({
       <PanelHeading
         title="Highest-risk controls"
         action={
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-7 px-2 text-xs"
-            onClick={onOpenControls}
-          >
-            Open
-          </Button>
+          <PanelLink onClick={onOpenControls}>Open</PanelLink>
         }
       />
       <ul className="space-y-3">
@@ -844,9 +743,9 @@ export function ComplianceActivityTimeline({ limit }: { limit?: number }) {
               event.tone === "negative"
                 ? "bg-destructive"
                 : event.tone === "warning"
-                  ? "bg-amber-500"
+                  ? "bg-warning"
                   : event.tone === "positive"
-                    ? "bg-emerald-500"
+                    ? "bg-success"
                     : "bg-muted-foreground/40",
             )}
           />
@@ -873,12 +772,7 @@ function ActivityCard() {
       <PanelHeading
         title="Compliance activity"
         action={
-          <Link
-            href="/knowledge-base/reports"
-            className="text-muted-foreground hover:text-foreground text-xs"
-          >
-            Audit log
-          </Link>
+          <PanelLink href="/knowledge-base/reports">Audit log</PanelLink>
         }
       />
       <ComplianceActivityTimeline limit={7} />

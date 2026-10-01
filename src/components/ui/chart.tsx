@@ -91,7 +91,7 @@ const ChartContainer = React.forwardRef<
         data-chart={chartId}
         ref={setRefs}
         className={cn(
-          "[&_.recharts-cartesian-axis-tick_text]:fill-muted-foreground [&_.recharts-cartesian-grid_line[stroke='#ccc']]:stroke-border/50 [&_.recharts-curve.recharts-tooltip-cursor]:stroke-border [&_.recharts-polar-grid_[stroke='#ccc']]:stroke-border [&_.recharts-radial-bar-background-sector]:fill-muted [&_.recharts-rectangle.recharts-tooltip-cursor]:fill-muted [&_.recharts-reference-line_[stroke='#ccc']]:stroke-border flex min-h-0 min-w-0 aspect-video justify-center text-xs [&_.recharts-dot[stroke='#fff']]:stroke-transparent [&_.recharts-layer]:outline-hidden [&_.recharts-sector]:outline-hidden [&_.recharts-sector[stroke='#fff']]:stroke-transparent [&_.recharts-surface]:outline-hidden",
+          "[&_.recharts-cartesian-axis-tick_text]:fill-muted-foreground [&_.recharts-cartesian-grid_line[stroke='#ccc']]:stroke-separator [&_.recharts-curve.recharts-tooltip-cursor]:stroke-border [&_.recharts-polar-grid_[stroke='#ccc']]:stroke-border [&_.recharts-radial-bar-background-sector]:fill-muted [&_.recharts-rectangle.recharts-tooltip-cursor]:fill-muted [&_.recharts-reference-line_[stroke='#ccc']]:stroke-border flex min-h-0 min-w-0 aspect-video justify-center text-xs [&_.recharts-dot[stroke='#fff']]:stroke-transparent [&_.recharts-layer]:outline-hidden [&_.recharts-sector]:outline-hidden [&_.recharts-sector[stroke='#fff']]:stroke-transparent [&_.recharts-surface]:outline-hidden",
           className
         )}
         {...props}
@@ -237,7 +237,7 @@ const ChartTooltipContent = React.forwardRef<
       <div
         ref={ref}
         className={cn(
-          "border-border/50 bg-background grid min-w-[8rem] items-start gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs shadow-xl",
+          "material-thick border-border/60 shadow-overlay grid min-w-36 items-start gap-1.5 rounded-lg border px-3 py-2 text-xs",
           className
         )}
       >
@@ -296,8 +296,8 @@ const ChartTooltipContent = React.forwardRef<
                           {itemConfig?.label || item.name}
                         </span>
                       </div>
-                      {item.value && (
-                        <span className="text-foreground font-mono font-medium tabular-nums">
+                      {item.value !== undefined && item.value !== null && (
+                        <span className="text-foreground font-medium tabular-nums">
                           {item.value.toLocaleString()}
                         </span>
                       )}
@@ -337,16 +337,24 @@ const ChartLegendContent = React.forwardRef<
       return null
     }
 
+    // Recharts orders legend items by name; follow the config's order instead.
+    const order = Object.keys(config)
+    const items = [...payload].sort(
+      (a, b) =>
+        order.indexOf(`${nameKey || a.dataKey || "value"}`) -
+        order.indexOf(`${nameKey || b.dataKey || "value"}`)
+    )
+
     return (
       <div
         ref={ref}
         className={cn(
-          "flex items-center justify-center gap-4",
+          "text-muted-foreground flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5",
           verticalAlign === "top" ? "pb-3" : "pt-3",
           className
         )}
       >
-        {payload.map((item) => {
+        {items.map((item) => {
           const key = `${nameKey || item.dataKey || "value"}`
           const itemConfig = getPayloadConfigFromPayload(config, item, key)
 
@@ -361,7 +369,7 @@ const ChartLegendContent = React.forwardRef<
                 <itemConfig.icon />
               ) : (
                 <div
-                  className="h-2 w-2 shrink-0 rounded-[2px]"
+                  className="size-2 shrink-0 rounded-full"
                   style={{
                     backgroundColor: item.color,
                   }}

@@ -9,17 +9,20 @@ import {
   Link2,
   XCircle,
 } from "lucide-react";
-import {
-  Area,
-  AreaChart,
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
-  XAxis,
-  YAxis,
-} from "recharts";
+import { useMemo } from "react";
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
+import { CategoryBarChart } from "@/components/soc/charts/category-bar-chart";
+import { ChartCard } from "@/components/soc/charts/chart-card";
+import {
+  chartMargin,
+  compactNumber,
+  gridProps,
+  xAxisProps,
+  yAxisProps,
+} from "@/components/soc/charts/chart-palette";
+import { DonutBreakdown } from "@/components/soc/charts/donut-breakdown";
+import { TrendAreaChart } from "@/components/soc/charts/trend-area-chart";
 import {
   OverviewSplit,
   Panel,
@@ -73,7 +76,7 @@ function IngestPipelinePanel() {
               <span
                 className={cn(
                   "size-1.5 rounded-full",
-                  stage.status === "healthy" ? "bg-emerald-500" : "bg-amber-500",
+                  stage.status === "healthy" ? "bg-success" : "bg-warning",
                 )}
               />
             </div>
@@ -122,49 +125,28 @@ function IngestPipelinePanel() {
   );
 }
 
-const compactNumber = new Intl.NumberFormat("en-US", {
-  notation: "compact",
-  maximumFractionDigits: 1,
-});
-
+/** Source categories, not statuses — each keeps its own hue. */
 const volumeChartConfig = {
-  cloud: {
-    label: "Cloud",
-    theme: { light: "#f59e0b", dark: "#fbbf24" },
-  },
-  siem: {
-    label: "SIEM",
-    theme: { light: "#6366f1", dark: "#818cf8" },
-  },
-  identity: {
-    label: "Identity",
-    theme: { light: "#0ea5e9", dark: "#38bdf8" },
-  },
-  network: {
-    label: "Network",
-    theme: { light: "#10b981", dark: "#34d399" },
-  },
-  other: {
-    label: "Other",
-    theme: { light: "#a1a1aa", dark: "#71717a" },
-  },
+  cloud: { label: "Cloud", theme: { light: "#f59e0b", dark: "#fbbf24" } },
+  siem: { label: "SIEM", theme: { light: "#6366f1", dark: "#818cf8" } },
+  identity: { label: "Identity", theme: { light: "#0ea5e9", dark: "#38bdf8" } },
+  network: { label: "Network", theme: { light: "#10b981", dark: "#34d399" } },
+  other: { label: "Other", color: "var(--muted-foreground)" },
 } satisfies ChartConfig;
+
+const volumeSeries = [
+  { key: "cloud" },
+  { key: "siem" },
+  { key: "identity" },
+  { key: "network" },
+  { key: "other" },
+] as const;
 
 const coverageChartConfig = {
-  connected: {
-    label: "Connected",
-    color: "var(--primary)",
-  },
+  connected: { label: "Connected", color: "var(--primary)" },
   available: {
     label: "Available",
-    theme: { light: "#d4d4d8", dark: "#3f3f46" },
-  },
-} satisfies ChartConfig;
-
-const topSourcesChartConfig = {
-  events: {
-    label: "Events / day",
-    color: "var(--primary)",
+    color: "color-mix(in oklch, var(--muted-foreground) 30%, transparent)",
   },
 } satisfies ChartConfig;
 
@@ -207,144 +189,39 @@ function OverviewKpis({ integrations }: { integrations: Integration[] }) {
 }
 
 function IngestionVolumeCard() {
-  const latest = ingestionVolumeTrend[ingestionVolumeTrend.length - 1];
-  const currentK =
-    (latest?.cloud ?? 0) +
-    (latest?.siem ?? 0) +
-    (latest?.identity ?? 0) +
-    (latest?.network ?? 0) +
-    (latest?.other ?? 0);
+  // The trend is stored in thousands of events; chart in whole events.
+  const data = useMemo(
+    () =>
+      ingestionVolumeTrend.map((point) => ({
+        hour: point.hour,
+        cloud: point.cloud * 1000,
+        siem: point.siem * 1000,
+        identity: point.identity * 1000,
+        network: point.network * 1000,
+        other: point.other * 1000,
+      })),
+    [],
+  );
+  const latest = data[data.length - 1];
+  const current = latest
+    ? latest.cloud + latest.siem + latest.identity + latest.network + latest.other
+    : 0;
 
   return (
-    <Panel className="flex flex-col">
-      <PanelHeading
-        title="Ingestion volume"
-        action={
-          <div className="text-right">
-            <p className="text-2xl leading-none font-semibold tabular-nums">
-              {compactNumber.format(currentK * 1000)}
-            </p>
-            <p className="text-muted-foreground mt-1 text-xs">
-              current hour
-            </p>
-          </div>
-        }
-      />
-      <ChartContainer
+    <ChartCard
+      title="Ingestion volume"
+      description="Events per hour by source category"
+      metric={{ value: compactNumber.format(current), label: "current hour" }}
+      size="lg"
+      status={data.length ? "ready" : "empty"}
+    >
+      <TrendAreaChart
+        data={data}
+        xKey="hour"
+        series={volumeSeries}
         config={volumeChartConfig}
-        className="[aspect-ratio:auto] h-[220px] w-full"
-      >
-        <AreaChart
-          accessibilityLayer
-          data={ingestionVolumeTrend}
-          margin={{ top: 8, right: 8, left: -12, bottom: 0 }}
-        >
-          <defs>
-            {(["cloud", "siem", "identity", "network", "other"] as const).map(
-              (key) => (
-                <linearGradient
-                  key={key}
-                  id={`ingest-${key}`}
-                  x1="0"
-                  y1="0"
-                  x2="0"
-                  y2="1"
-                >
-                  <stop
-                    offset="0%"
-                    stopColor={`var(--color-${key})`}
-                    stopOpacity={0.35}
-                  />
-                  <stop
-                    offset="100%"
-                    stopColor={`var(--color-${key})`}
-                    stopOpacity={0.04}
-                  />
-                </linearGradient>
-              ),
-            )}
-          </defs>
-          <CartesianGrid strokeDasharray="3 3" vertical={false} />
-          <XAxis
-            dataKey="hour"
-            axisLine={false}
-            tickLine={false}
-            tick={{ fontSize: 10 }}
-            dy={8}
-          />
-          <YAxis
-            axisLine={false}
-            tickLine={false}
-            tick={{ fontSize: 10 }}
-            width={40}
-            tickFormatter={(value) => `${value}k`}
-          />
-          <ChartTooltip
-            content={
-              <ChartTooltipContent
-                indicator="dot"
-                formatter={(value, name) => (
-                  <div className="flex w-full items-center justify-between gap-6">
-                    <span className="text-muted-foreground capitalize">
-                      {String(name)}
-                    </span>
-                    <span className="font-mono tabular-nums">
-                      {compactNumber.format(Number(value) * 1000)}
-                    </span>
-                  </div>
-                )}
-              />
-            }
-          />
-          <ChartLegend content={<ChartLegendContent />} />
-          <Area
-            type="monotone"
-            dataKey="cloud"
-            stackId="ingest"
-            stroke="var(--color-cloud)"
-            fill="url(#ingest-cloud)"
-            strokeWidth={1.5}
-            isAnimationActive={false}
-          />
-          <Area
-            type="monotone"
-            dataKey="siem"
-            stackId="ingest"
-            stroke="var(--color-siem)"
-            fill="url(#ingest-siem)"
-            strokeWidth={1.5}
-            isAnimationActive={false}
-          />
-          <Area
-            type="monotone"
-            dataKey="identity"
-            stackId="ingest"
-            stroke="var(--color-identity)"
-            fill="url(#ingest-identity)"
-            strokeWidth={1.5}
-            isAnimationActive={false}
-          />
-          <Area
-            type="monotone"
-            dataKey="network"
-            stackId="ingest"
-            stroke="var(--color-network)"
-            fill="url(#ingest-network)"
-            strokeWidth={1.5}
-            isAnimationActive={false}
-          />
-          <Area
-            type="monotone"
-            dataKey="other"
-            stackId="ingest"
-            stroke="var(--color-other)"
-            fill="url(#ingest-other)"
-            strokeWidth={1.5}
-            isAnimationActive={false}
-          />
-        </AreaChart>
-      </ChartContainer>
-    </Panel>
+      />
+    </ChartCard>
   );
 }
 
@@ -356,54 +233,22 @@ function HealthMixCard({
   onSelectFailed: () => void;
 }) {
   const breakdown = getHealthBreakdown(integrations);
-  const total = integrations.length || 1;
-  const active = breakdown.filter((item) => item.value > 0);
 
   return (
-    <Panel>
-      <PanelHeading title="Connection health" />
-      <div className="flex h-3 overflow-hidden rounded-full">
-        {active.map((segment) => (
-          <button
-            key={segment.key}
-            type="button"
-            title={`${segment.label}: ${segment.value}`}
-            className="h-full transition-opacity hover:opacity-80"
-            style={{
-              width: `${(segment.value / total) * 100}%`,
-              backgroundColor: segment.color,
-            }}
-            onClick={() => {
-              if (segment.key === "failed" || segment.key === "degraded") {
-                onSelectFailed();
-              }
-            }}
-          />
-        ))}
-      </div>
-      <ul className="mt-4 space-y-2.5">
-        {breakdown.map((segment) => (
-          <li
-            key={segment.key}
-            className="flex items-center justify-between text-sm"
-          >
-            <span className="flex items-center gap-2">
-              <span
-                className="size-2 rounded-full"
-                style={{ backgroundColor: segment.color }}
-              />
-              {segment.label}
-            </span>
-            <span className="font-mono text-xs tabular-nums">
-              {segment.value}
-              <span className="text-muted-foreground ml-1.5">
-                ({Math.round((segment.value / total) * 100)}%)
-              </span>
-            </span>
-          </li>
-        ))}
-      </ul>
-    </Panel>
+    <ChartCard
+      title="Connection health"
+      description="Degraded and failed open the attention queue"
+      size="lg"
+      status={integrations.length ? "ready" : "empty"}
+    >
+      <DonutBreakdown
+        items={breakdown.filter((segment) => segment.value > 0)}
+        totalLabel="sources"
+        onSelect={(key) => {
+          if (key === "failed" || key === "degraded") onSelectFailed();
+        }}
+      />
+    </ChartCard>
   );
 }
 
@@ -417,42 +262,35 @@ function CategoryCoverageCard({
   );
 
   return (
-    <Panel className="flex flex-col">
-      <PanelHeading title="Coverage by category" />
+    <ChartCard
+      title="Coverage by category"
+      description="Connected versus available connectors"
+      size="lg"
+      status={coverage.length ? "ready" : "empty"}
+    >
       <ChartContainer
         config={coverageChartConfig}
-        className="[aspect-ratio:auto] h-[220px] w-full"
+        className="aspect-auto h-full w-full"
       >
-        <BarChart
-          accessibilityLayer
-          data={coverage}
-          margin={{ top: 8, right: 8, left: -16, bottom: 0 }}
-        >
-          <CartesianGrid strokeDasharray="3 3" vertical={false} />
+        <BarChart accessibilityLayer data={coverage} margin={chartMargin}>
+          <CartesianGrid {...gridProps} />
           <XAxis
             dataKey="shortLabel"
-            axisLine={false}
-            tickLine={false}
-            tick={{ fontSize: 10 }}
-            interval={0}
-            angle={-20}
-            textAnchor="end"
-            height={48}
+            {...xAxisProps}
+            minTickGap={4}
+            interval="preserveStartEnd"
           />
-          <YAxis
-            allowDecimals={false}
-            axisLine={false}
-            tickLine={false}
-            tick={{ fontSize: 10 }}
-            width={28}
+          <YAxis {...yAxisProps} />
+          <ChartTooltip
+            cursor={{ fill: "var(--muted)", opacity: 0.6 }}
+            content={<ChartTooltipContent />}
           />
-          <ChartTooltip content={<ChartTooltipContent indicator="dashed" />} />
           <ChartLegend content={<ChartLegendContent />} />
           <Bar
             dataKey="connected"
             stackId="coverage"
             fill="var(--color-connected)"
-            radius={[0, 0, 0, 0]}
+            maxBarSize={40}
             isAnimationActive={false}
           />
           <Bar
@@ -460,11 +298,12 @@ function CategoryCoverageCard({
             stackId="coverage"
             fill="var(--color-available)"
             radius={[4, 4, 0, 0]}
+            maxBarSize={40}
             isAnimationActive={false}
           />
         </BarChart>
       </ChartContainer>
-    </Panel>
+    </ChartCard>
   );
 }
 
@@ -482,96 +321,59 @@ function TopSourcesCard({
     events: item.eventsPerDay ?? 0,
     fill:
       item.health === "failed" || item.status === "error"
-        ? "#dc2626"
+        ? "var(--destructive)"
         : item.health === "degraded"
-          ? "#d97706"
-          : "var(--color-events)",
+          ? "var(--warning)"
+          : "var(--primary)",
   }));
 
   return (
-    <Panel className="flex flex-col">
-      <PanelHeading title="Top sources by volume" />
-      <ChartContainer
-        config={topSourcesChartConfig}
-        className="[aspect-ratio:auto] h-[220px] w-full"
-      >
-        <BarChart
-          accessibilityLayer
-          data={chartData}
-          layout="vertical"
-          margin={{ top: 4, right: 16, left: 8, bottom: 0 }}
-        >
-          <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-          <XAxis
-            type="number"
-            axisLine={false}
-            tickLine={false}
-            tick={{ fontSize: 10 }}
-            tickFormatter={(value) => compactNumber.format(value)}
-          />
-          <YAxis
-            type="category"
-            dataKey="name"
-            axisLine={false}
-            tickLine={false}
-            tick={{ fontSize: 11 }}
-            width={108}
-          />
-          <ChartTooltip
-            content={
-              <ChartTooltipContent
-                indicator="line"
-                formatter={(value) => (
-                  <span className="font-mono tabular-nums">
-                    {compactNumber.format(Number(value))} events / day
-                  </span>
-                )}
-              />
-            }
-          />
-          <Bar
-            dataKey="events"
-            radius={[0, 4, 4, 0]}
-            isAnimationActive={false}
-            cursor="pointer"
-            onClick={(entry) => {
-              const match = integrations.find(
-                (item) => item.id === (entry as { id?: string }).id,
-              );
-              if (match) onSelect(match);
-            }}
-          >
-            {chartData.map((entry) => (
-              <Cell key={entry.id} fill={entry.fill} />
-            ))}
-          </Bar>
-        </BarChart>
-      </ChartContainer>
-      <div className="mt-2 flex flex-wrap gap-2">
-        {top.slice(0, 4).map((item) => {
-          const Icon = vendorMeta[item.vendorKey].icon;
-          return (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => onSelect(item)}
-              className="hover:bg-accent inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs transition-colors"
-            >
-              <Icon
-                className="size-3"
-                style={{
-                  color:
-                    vendorMeta[item.vendorKey].color === "currentColor"
-                      ? undefined
-                      : vendorMeta[item.vendorKey].color,
-                }}
-              />
-              {item.name}
-            </button>
-          );
-        })}
-      </div>
-    </Panel>
+    <ChartCard
+      title="Top sources by volume"
+      description="Events per day · warning and failed sources tinted"
+      size="lg"
+      status={chartData.length ? "ready" : "empty"}
+      footer={
+        <div className="flex flex-wrap gap-2">
+          {top.slice(0, 4).map((item) => {
+            const Icon = vendorMeta[item.vendorKey].icon;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => onSelect(item)}
+                className="pressable hover:bg-accent pointer-coarse:min-h-11 inline-flex min-h-8 items-center gap-1.5 rounded-md border px-2.5 text-xs"
+              >
+                <Icon
+                  className="size-3.5"
+                  style={{
+                    color:
+                      vendorMeta[item.vendorKey].color === "currentColor"
+                        ? undefined
+                        : vendorMeta[item.vendorKey].color,
+                  }}
+                />
+                {item.name}
+              </button>
+            );
+          })}
+        </div>
+      }
+    >
+      <CategoryBarChart
+        data={chartData}
+        categoryKey="name"
+        valueKey="events"
+        label="Events / day"
+        orientation="horizontal"
+        categoryWidth={112}
+        colorFor={(row) => row.fill}
+        onSelect={(row) => {
+          const match = integrations.find((item) => item.id === row.id);
+          if (match) onSelect(match);
+        }}
+      />
+    </ChartCard>
   );
 }
 
@@ -595,17 +397,16 @@ function activityIcon(kind: ConnectorActivity["kind"]) {
 function activityTone(kind: ConnectorActivity["kind"]) {
   switch (kind) {
     case "error":
-      return "text-destructive dark:text-red-400";
+      return "text-destructive-text";
     case "health":
-      return "text-amber-600 dark:text-amber-400";
+      return "text-warning-text";
     case "pause":
       return "text-muted-foreground";
     case "credential":
-      return "text-blue-600 dark:text-blue-400";
     case "connect":
-      return "text-blue-600 dark:text-blue-400";
+      return "text-info-text";
     default:
-      return "text-green-600 dark:text-green-400";
+      return "text-success-text";
   }
 }
 
@@ -621,7 +422,7 @@ function ActivityFeed({
   return (
     <Panel className="flex flex-col">
       <PanelHeading title="Connector activity" />
-      <ul className="space-y-0 divide-y">
+      <ul className="divide-separator -mx-2 divide-y">
         {activity.slice(0, 8).map((event) => {
           const Icon = activityIcon(event.kind);
           const integration = integrations.find(
@@ -631,7 +432,7 @@ function ActivityFeed({
             <li key={event.id}>
               <button
                 type="button"
-                className="hover:bg-muted/40 flex w-full items-start gap-3 px-1 py-3 text-left transition-colors"
+                className="pressable hover:bg-accent/60 flex w-full items-start gap-3 rounded-md px-2 py-3 text-left disabled:pointer-events-none"
                 onClick={() => {
                   if (integration) onSelect(integration);
                 }}
@@ -692,7 +493,7 @@ function AttentionPanel({
       />
       {issues.length === 0 ? (
         <div className="text-muted-foreground flex min-h-28 items-center gap-2 text-sm">
-          <CheckCircle2 className="size-4 text-green-600 dark:text-green-400" />
+          <CheckCircle2 className="text-success-text size-4" />
           All connected sources are within SLA.
         </div>
       ) : (
@@ -704,7 +505,7 @@ function AttentionPanel({
                 <button
                   type="button"
                   onClick={() => onSelect(item)}
-                  className="hover:bg-muted/40 flex w-full items-start gap-3 rounded-lg border p-3 text-left transition-colors"
+                  className="pressable hover:bg-accent/60 flex w-full items-start gap-3 rounded-lg border p-3 text-left"
                 >
                   <div
                     className={cn(
@@ -730,9 +531,9 @@ function AttentionPanel({
                       {item.status === "error" || item.health === "failed" ? (
                         <XCircle className="size-3.5 shrink-0 text-destructive" />
                       ) : item.status === "pending" ? (
-                        <Clock3 className="size-3.5 shrink-0 text-blue-600 dark:text-blue-400" />
+                        <Clock3 className="text-info-text size-3.5 shrink-0" />
                       ) : (
-                        <AlertTriangle className="size-3.5 shrink-0 text-amber-600 dark:text-amber-400" />
+                        <AlertTriangle className="text-warning-text size-3.5 shrink-0" />
                       )}
                     </div>
                     <p className="text-muted-foreground mt-0.5 line-clamp-2 text-xs leading-5">
