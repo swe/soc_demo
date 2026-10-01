@@ -3,7 +3,7 @@
 import { ChevronLeft, Search } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { createElement, Fragment } from "react";
+import { Fragment } from "react";
 
 import { useSocRole } from "@/components/auth/soc-role-provider";
 import { HeaderRoleSwitcher } from "@/components/layout/header-role-switcher";
@@ -19,7 +19,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Kbd } from "@/components/ui/kbd";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { breadcrumbsFromPathname, type Crumb, iconFromPathname } from "@/data/route-chrome";
+import { breadcrumbsFromPathname, type Crumb } from "@/data/route-chrome";
 import { canAccessPath } from "@/lib/soc-roles";
 
 interface HeaderProps {
@@ -41,10 +41,6 @@ export function Header({ title: titleProp }: HeaderProps) {
   );
   const current = crumbs[crumbs.length - 1];
   const back = [...crumbs.slice(0, -1)].reverse().find((crumb) => crumb.href);
-  const pageIcon = createElement(iconFromPathname(pathname), {
-    className: "text-muted-foreground size-4 shrink-0",
-    "aria-hidden": true,
-  });
 
   return (
     <header className="bg-background border-separator px-gutter relative z-20 flex h-(--header-height) w-full min-w-0 shrink-0 items-center gap-2 border-b md:gap-3">
@@ -64,7 +60,6 @@ export function Header({ title: titleProp }: HeaderProps) {
       ) : null}
 
       <div className="flex min-w-0 flex-1 items-center gap-2">
-        <span className="hidden md:inline-flex">{pageIcon}</span>
         <Breadcrumb className="min-w-0">
           <BreadcrumbList className="flex-nowrap text-base md:text-sm">
             {crumbs.map((crumb, index) => {
@@ -75,7 +70,9 @@ export function Header({ title: titleProp }: HeaderProps) {
                     <BreadcrumbSeparator className="hidden md:block" />
                   ) : null}
                   <BreadcrumbItem
-                    className={isLast ? "min-w-0" : "hidden shrink-0 md:inline-flex"}
+                    className={
+                      isLast ? "min-w-0" : "hidden shrink-0 md:inline-flex"
+                    }
                   >
                     {isLast ? (
                       <h1

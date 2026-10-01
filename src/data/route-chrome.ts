@@ -1,12 +1,7 @@
-import type { ElementType } from "react";
-
-import { navIcons } from "@/data/sidebar-data";
-
 export type Crumb = { label: string; href?: string };
 
 type Section = {
   label: string;
-  icon: ElementType;
   /** Landing page for the section crumb; omitted when the section is one page. */
   href?: string;
   /** Label of the page served at the section root, when it is not the landing. */
@@ -18,44 +13,38 @@ type Section = {
 };
 
 const sections: Record<string, Section> = {
-  overview: { label: "Overview", icon: navIcons.overview },
+  overview: { label: "Overview" },
   alerts: {
     label: "Alerts",
-    icon: navIcons.alertsIncidents,
     href: "/alerts/overview",
     pages: { overview: "Overview", list: "All alerts", assigned: "Assigned" },
     detail: (id) => id.toUpperCase(),
   },
   incidents: {
     label: "Incidents",
-    icon: navIcons.alertsIncidents,
     href: "/incidents/overview",
     pages: { overview: "Overview", list: "Active cases", assigned: "Assigned" },
     detail: (id) => id.toUpperCase(),
   },
-  "email-security": { label: "Mailbox security", icon: navIcons.mailbox },
-  phishing: { label: "Mailbox security", icon: navIcons.mailbox },
+  "email-security": { label: "Mailbox security" },
+  phishing: { label: "Mailbox security" },
   investigate: {
     label: "Investigate",
-    icon: navIcons.investigate,
     href: "/investigate",
     pages: { saved: "Saved" },
   },
   assets: {
     label: "Assets",
-    icon: navIcons.assets,
     href: "/assets/devices",
     pages: { devices: "Devices", identities: "Identities" },
   },
   "cloud-posture": {
     label: "Cloud posture",
-    icon: navIcons.cloudPosture,
     href: "/cloud-posture",
     pages: { findings: "Findings" },
   },
   vulnerabilities: {
     label: "Vulnerabilities",
-    icon: navIcons.vulnerabilities,
     href: "/vulnerabilities",
     rootLabel: "Overview",
     pages: {
@@ -69,10 +58,9 @@ const sections: Record<string, Section> = {
       "event-timeline": "Event timeline",
     },
   },
-  "data-security": { label: "Data security", icon: navIcons.dataSecurity },
+  "data-security": { label: "Data security" },
   "threat-hunting": {
     label: "Threat hunting",
-    icon: navIcons.threatHunting,
     href: "/threat-hunting/hunts",
     pages: {
       hunts: "Hunt library",
@@ -83,12 +71,10 @@ const sections: Record<string, Section> = {
   },
   "purple-team": {
     label: "Purple team / BAS",
-    icon: navIcons.threatHunting,
     parent: { label: "Threat hunting", href: "/threat-hunting/hunts" },
   },
   "threat-intelligence": {
     label: "Threat intelligence",
-    icon: navIcons.threatIntelligence,
     href: "/threat-intelligence",
     rootLabel: "Indicators",
     pages: {
@@ -100,14 +86,16 @@ const sections: Record<string, Section> = {
   },
   automation: {
     label: "Automation",
-    icon: navIcons.automation,
     href: "/automation/playbooks",
-    pages: { playbooks: "Playbooks", builder: "Builder", approvals: "Approvals" },
+    pages: {
+      playbooks: "Playbooks",
+      builder: "Builder",
+      approvals: "Approvals",
+    },
   },
-  compliance: { label: "Compliance", icon: navIcons.compliance },
+  compliance: { label: "Compliance" },
   "knowledge-base": {
     label: "Knowledge base",
-    icon: navIcons.knowledgeBase,
     href: "/knowledge-base/documentation",
     pages: {
       documentation: "Documentation",
@@ -118,7 +106,6 @@ const sections: Record<string, Section> = {
   },
   administration: {
     label: "Administration",
-    icon: navIcons.administration,
     href: "/administration/users",
     pages: {
       users: "User management",
@@ -128,10 +115,9 @@ const sections: Record<string, Section> = {
     },
     detail: () => "Profile",
   },
-  "on-call": { label: "On-call", icon: navIcons.onCall },
+  "on-call": { label: "On-call" },
   profile: {
     label: "Profile",
-    icon: navIcons.profile,
     href: "/profile",
     pages: {
       preferences: "Preferences",
@@ -144,12 +130,6 @@ const sections: Record<string, Section> = {
 function humanizeSegment(value: string) {
   const words = value.split("-").filter(Boolean).join(" ");
   return words.charAt(0).toUpperCase() + words.slice(1);
-}
-
-/** Page icon for the app header (aligned with the sidebar). */
-export function iconFromPathname(pathname: string): ElementType {
-  const root = pathname.split("/").filter(Boolean)[0] ?? "";
-  return sections[root]?.icon ?? navIcons.overview;
 }
 
 /**

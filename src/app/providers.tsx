@@ -6,7 +6,6 @@ import { useEffect, useState } from "react";
 import { AuthSessionProvider } from "@/components/auth/auth-session";
 import { SocRoleProvider } from "@/components/auth/soc-role-provider";
 import SearchProvider from "@/components/search-provider";
-import { ThemePresetBootstrap } from "@/components/theme-preset-bootstrap";
 import { ThemeProvider } from "@/components/theme-provider";
 
 interface Props {
@@ -34,7 +33,6 @@ export function Providers({ children }: Props) {
       enableSystem
       disableTransitionOnChange
     >
-      <ThemePresetBootstrap />
       <NuqsAdapter>
         <AuthSessionProvider>
           <SocRoleProvider>

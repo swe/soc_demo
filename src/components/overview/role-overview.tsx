@@ -2,13 +2,8 @@
 
 import { ArrowDownRight, ArrowUpRight, ChevronRight } from "lucide-react";
 import Link from "next/link";
-import {
-  useEffect,
-  useMemo,
-  useState,
-  useSyncExternalStore,
-} from "react";
-import { Area, AreaChart } from "recharts";
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { Area, AreaChart, YAxis } from "recharts";
 
 import { getAlertsOverTime } from "@/components/alerts/alerts-data";
 import {
@@ -81,11 +76,20 @@ function Sparkline({ data, healthy }: { data: number[]; healthy: boolean }) {
     },
   } satisfies ChartConfig;
   const chartData = data.map((v, i) => ({ i, v }));
+  // Padding the domain keeps the lowest point off the floor so the stroke is never clipped.
+  const min = Math.min(...data);
+  const max = Math.max(...data);
+  const pad = (max - min || 1) * 0.2;
 
   return (
     <ChartContainer config={config} className="aspect-auto h-8 w-full">
-      <AreaChart data={chartData} margin={{ top: 2, right: 0, bottom: 0, left: 0 }}>
+      <AreaChart
+        data={chartData}
+        margin={{ top: 2, right: 1, bottom: 2, left: 1 }}
+      >
+        <YAxis hide domain={[min - pad, max + pad]} />
         <Area
+          baseValue="dataMin"
           dataKey="v"
           type="monotone"
           stroke="var(--color-v)"
@@ -130,7 +134,9 @@ function KpiTile({ kpi }: { kpi: OverviewKpi }) {
           </span>
         ) : null}
       </div>
-      <p className="text-muted-foreground mt-1 truncate text-xs">{kpi.context}</p>
+      <p className="text-muted-foreground mt-1 truncate text-xs">
+        {kpi.context}
+      </p>
       <div className="mt-auto pt-3" aria-hidden>
         <Sparkline data={kpi.spark} healthy={healthy} />
       </div>
@@ -203,7 +209,9 @@ function TrendChart({
 
   if (kind === "incidents") {
     const latest = incidentData[incidentData.length - 1];
-    const latestTotal = latest ? latest.p1 + latest.p2 + latest.p3 + latest.p4 : 0;
+    const latestTotal = latest
+      ? latest.p1 + latest.p2 + latest.p3 + latest.p4
+      : 0;
     return (
       <ChartCard
         title={title}
@@ -420,7 +428,9 @@ export function RoleOverview() {
         actions={
           <>
             {pulseItems.length > 0 ? (
-              <Badge variant="critical">{pulseItems.length} live critical</Badge>
+              <Badge variant="critical">
+                {pulseItems.length} live critical
+              </Badge>
             ) : null}
             {hydrated && effectiveRole === "c_level" ? (
               <Button
@@ -498,7 +508,10 @@ export function RoleOverview() {
           <PanelHeading title="Insights" />
           <ul className="divide-separator divide-y">
             {model.insights.map((insight) => (
-              <li key={insight.title} className="space-y-1 py-3 first:pt-0 last:pb-0">
+              <li
+                key={insight.title}
+                className="space-y-1 py-3 first:pt-0 last:pb-0"
+              >
                 <p className="text-sm font-medium">{insight.title}</p>
                 <p className="text-muted-foreground text-callout">
                   {insight.body}
@@ -540,7 +553,9 @@ export function RoleOverview() {
         <Panel>
           <PanelHeading
             title="Recent activity"
-            action={<PanelLink href="/administration/audit">Audit log</PanelLink>}
+            action={
+              <PanelLink href="/administration/audit">Audit log</PanelLink>
+            }
           />
           <ul className="divide-separator divide-y">
             {auditEntries.slice(0, 5).map((entry) => (

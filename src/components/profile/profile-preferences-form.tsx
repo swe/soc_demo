@@ -12,7 +12,12 @@ import {
 } from "@/components/profile/profile-data";
 import { ProfileSection } from "@/components/profile/profile-section";
 import { Button } from "@/components/ui/button";
-import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field";
+import {
+  Field,
+  FieldDescription,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
@@ -29,44 +34,25 @@ import {
   COMPANY_LOGO_MAX_BYTES,
   readFileAsDataUrl,
 } from "@/lib/company-logo";
-import {
-  type AllowedThemePresetId,
-  applyThemePresetToDocument,
-  getPresetLabel,
-  listPresetIdsSorted,
-  persistThemePresetId,
-  readStoredThemePresetId,
-} from "@/lib/theme-preset-apply";
 import { toast } from "@/lib/toast";
 
 const LANGUAGE_STORAGE_KEY = "profile-language";
 const TIMEZONE_STORAGE_KEY = "profile-timezone";
 
-const styleOptions: {
-  value: AllowedThemePresetId;
-  description: string;
-}[] = [
-  {
-    value: "default",
-    description: "The standard console look and density.",
-  },
-  {
-    value: "modern-minimal",
-    description: "A cleaner, more compact visual style.",
-  },
-];
-
 export function ProfilePreferencesForm() {
   const { theme, setTheme } = useTheme();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { logoSrc, mounted: logoMounted, setLogo, clearLogo } = useCompanyLogo();
+  const {
+    logoSrc,
+    mounted: logoMounted,
+    setLogo,
+    clearLogo,
+  } = useCompanyLogo();
   const [mounted, setMounted] = useState(false);
   const [language, setLanguage] = useState<ProfileLanguage>(
     currentProfile.language,
   );
   const [timezone, setTimezone] = useState(currentProfile.timezone);
-  const [stylePreset, setStylePreset] =
-    useState<AllowedThemePresetId>("default");
 
   useEffect(() => {
     setMounted(true);
@@ -79,7 +65,6 @@ export function ProfilePreferencesForm() {
     if (storedTimezone) {
       setTimezone(storedTimezone);
     }
-    setStylePreset(readStoredThemePresetId());
   }, []);
 
   const handleSave = (event: React.FormEvent) => {
@@ -89,21 +74,6 @@ export function ProfilePreferencesForm() {
     toast({
       title: "Preferences saved",
       description: "Language and timezone preferences were updated.",
-    });
-  };
-
-  const handleStyleChange = (value: string) => {
-    const presetId = listPresetIdsSorted().includes(
-      value as AllowedThemePresetId,
-    )
-      ? (value as AllowedThemePresetId)
-      : "default";
-    setStylePreset(presetId);
-    persistThemePresetId(presetId);
-    applyThemePresetToDocument(presetId);
-    toast({
-      title: "Style updated",
-      description: `Appearance style set to ${getPresetLabel(presetId)}.`,
     });
   };
 
@@ -309,44 +279,11 @@ export function ProfilePreferencesForm() {
                 className="mt-0.5"
               />
               <div className="grid gap-0.5">
-                <Label htmlFor={`theme-${option.value}`} className="font-medium">
-                  {option.label}
-                </Label>
-                <p className="text-muted-foreground text-sm">
-                  {option.description}
-                </p>
-              </div>
-            </div>
-          ))}
-        </RadioGroup>
-      </ProfileSection>
-
-      <ProfileSection
-        title="Style"
-        description="Choose the console visual style. Applies immediately."
-      >
-        <RadioGroup
-          value={mounted ? stylePreset : "default"}
-          onValueChange={handleStyleChange}
-          className="gap-3"
-          disabled={!mounted}
-        >
-          {styleOptions.map((option) => (
-            <div
-              key={option.value}
-              className="hover:bg-muted/40 flex items-start gap-3 rounded-md border p-3"
-            >
-              <RadioGroupItem
-                value={option.value}
-                id={`style-${option.value}`}
-                className="mt-0.5"
-              />
-              <div className="grid gap-0.5">
                 <Label
-                  htmlFor={`style-${option.value}`}
+                  htmlFor={`theme-${option.value}`}
                   className="font-medium"
                 >
-                  {getPresetLabel(option.value)}
+                  {option.label}
                 </Label>
                 <p className="text-muted-foreground text-sm">
                   {option.description}
