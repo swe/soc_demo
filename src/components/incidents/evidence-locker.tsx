@@ -24,9 +24,6 @@ import { Button } from "@/components/ui/button";
 import { vulnerabilities } from "@/components/vulnerabilities/vulnerabilities-data";
 import { responseApi } from "@/lib/mock-api/response";
 import { toast } from "@/lib/toast";
-import { cn } from "@/lib/utils";
-
-import { mutedControlClassName } from "./incidents-primitives";
 
 export type EvidenceKind =
   | "pcap"
@@ -146,7 +143,8 @@ const baseCatalog: Omit<EvidenceItem, "attachedAt">[] = [
     id: "ev-timeline-01",
     kind: "timeline-export",
     title: "Host timeline export",
-    detail: "Normalized process / network / auth timeline for case reconstruction.",
+    detail:
+      "Normalized process / network / auth timeline for case reconstruction.",
     sizeLabel: "2.4 MB",
     sourceLabel: "Forensics",
   },
@@ -230,9 +228,7 @@ function getSnapshot() {
 
 function seedForIncident(incidentId: string): string[] {
   const catalog = buildModuleCatalog();
-  const n = incidentId
-    .split("")
-    .reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
+  const n = incidentId.split("").reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
   const count = 1 + (n % 3);
   return catalog.slice(0, count).map((item) => item.id);
 }
@@ -265,9 +261,9 @@ export function EvidenceLocker({ incidentId }: { incidentId: string }) {
   const snapshot = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
   const attachedIds = snapshot.get(incidentId) ?? seedForIncident(incidentId);
   const catalog = useMemo(() => buildModuleCatalog(), []);
-  const [busy, setBusy] = useState<
-    "collect" | "timeline" | "sandbox" | null
-  >(null);
+  const [busy, setBusy] = useState<"collect" | "timeline" | "sandbox" | null>(
+    null,
+  );
 
   const attached = useMemo(() => {
     const at = "2026-07-28T14:00:00.000Z";
@@ -384,7 +380,7 @@ export function EvidenceLocker({ incidentId }: { incidentId: string }) {
             <Button
               size="sm"
               variant="outline"
-              className={cn("gap-1.5", mutedControlClassName)}
+              className="gap-1.5"
               disabled={busy !== null}
               onClick={() => void remoteCollect()}
             >
@@ -394,7 +390,7 @@ export function EvidenceLocker({ incidentId }: { incidentId: string }) {
             <Button
               size="sm"
               variant="outline"
-              className={cn("gap-1.5", mutedControlClassName)}
+              className="gap-1.5"
               disabled={busy !== null}
               onClick={() => void exportTimeline()}
             >
@@ -404,7 +400,7 @@ export function EvidenceLocker({ incidentId }: { incidentId: string }) {
             <Button
               size="sm"
               variant="outline"
-              className={cn("gap-1.5", mutedControlClassName)}
+              className="gap-1.5"
               disabled={busy !== null}
               onClick={() => void attachSandboxVerdict()}
             >
@@ -464,7 +460,7 @@ export function EvidenceLocker({ incidentId }: { incidentId: string }) {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="text-destructive hover:text-destructive h-8 shrink-0 gap-1.5"
+                    className="text-destructive-text hover:text-destructive-text h-8 shrink-0 gap-1.5"
                     onClick={() => onRemove(item.id)}
                   >
                     <Trash2 className="size-3.5" />
@@ -502,7 +498,7 @@ export function EvidenceLocker({ incidentId }: { incidentId: string }) {
                   <Button
                     variant="outline"
                     size="sm"
-                    className={cn("h-8 shrink-0 gap-1.5", mutedControlClassName)}
+                    className="h-8 shrink-0 gap-1.5"
                     onClick={() => onAttach(item.id)}
                   >
                     <Paperclip className="size-3.5" />

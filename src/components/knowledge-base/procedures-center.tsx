@@ -14,7 +14,13 @@ import {
   Siren,
 } from "lucide-react";
 import Link from "next/link";
-import { useDeferredValue, useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import {
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+} from "react";
 
 import { useIncidentsSession } from "@/components/incidents/incidents-session";
 import { ListPagination, paginateItems } from "@/components/list-pagination";
@@ -96,7 +102,6 @@ import {
 import {
   EmptyState,
   KbStatsStrip,
-  mutedControlClassName,
   OwnerCell,
   ProcedureSeverityBadge,
   ProcedureStatusBadge,
@@ -217,7 +222,7 @@ function ProcedureFilterControl({
         <Button
           variant="outline"
           size="sm"
-          className={cn("relative h-9 gap-1.5 px-2.5", mutedControlClassName)}
+          className="relative h-9 gap-1.5 px-2.5"
         >
           <ListFilter className="size-3.5" />
           Filter
@@ -287,7 +292,9 @@ function ProcedureFilterControl({
             <CommandList>
               <CommandGroup>
                 {(
-                  Object.keys(kbProcedureSeverityLabels) as KbProcedureSeverity[]
+                  Object.keys(
+                    kbProcedureSeverityLabels,
+                  ) as KbProcedureSeverity[]
                 ).map((severity) => (
                   <CommandItem
                     key={severity}
@@ -361,9 +368,9 @@ export function ProceduresCenter() {
   const procedures = useMemo(() => Array.from(store.values()), [store]);
   const { getIncident, patchIncidents } = useIncidentsSession();
   const [searchQuery, setSearchQuery] = useState("");
-  const [severityFilters, setSeverityFilters] = useState<
-    KbProcedureSeverity[]
-  >([]);
+  const [severityFilters, setSeverityFilters] = useState<KbProcedureSeverity[]>(
+    [],
+  );
   const [statusFilters, setStatusFilters] = useState<KbProcedureStatus[]>([]);
   const [sort, setSort] = useState<ProcedureSort>("severity");
   const [page, setPage] = useState(1);
@@ -373,8 +380,7 @@ export function ProceduresCenter() {
   const [runOpen, setRunOpen] = useState(false);
   const [runTarget, setRunTarget] = useState<KbProcedure | null>(null);
   const [newTitle, setNewTitle] = useState("");
-  const [newSeverity, setNewSeverity] =
-    useState<KbProcedureSeverity>("medium");
+  const [newSeverity, setNewSeverity] = useState<KbProcedureSeverity>("medium");
   const deferredSearchQuery = useDeferredValue(searchQuery);
 
   const activeFilterCount =
@@ -592,12 +598,7 @@ export function ProceduresCenter() {
               onSetSort={setSort}
               onClearFilters={resetFilters}
             />
-            <Button
-              variant="outline"
-              size="sm"
-              className={cn("h-9 gap-1.5", mutedControlClassName)}
-              asChild
-            >
+            <Button variant="outline" size="sm" className="h-9 gap-1.5" asChild>
               <Link href="/incidents/list">
                 <Siren className="size-3.5" />
                 <span className="hidden sm:inline">Open incidents</span>
@@ -633,7 +634,7 @@ export function ProceduresCenter() {
               }
             />
           ) : (
-            <div className="bg-card overflow-hidden rounded-lg border">
+            <div className="bg-card shadow-card overflow-hidden rounded-xl border">
               <Table>
                 <TableHeader>
                   <TableRow className="hover:bg-transparent">
@@ -676,9 +677,7 @@ export function ProceduresCenter() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <ProcedureSeverityBadge
-                          severity={procedure.severity}
-                        />
+                        <ProcedureSeverityBadge severity={procedure.severity} />
                       </TableCell>
                       <TableCell>
                         <ProcedureStatusBadge status={procedure.status} />
@@ -691,18 +690,16 @@ export function ProceduresCenter() {
                       </TableCell>
                       <TableCell className="hidden lg:table-cell">
                         <div className="flex flex-wrap gap-1">
-                          {procedure.linkedIncidentIds
-                            .slice(0, 2)
-                            .map((id) => (
-                              <Link
-                                key={id}
-                                href={`/incidents/${id}`}
-                                onClick={(event) => event.stopPropagation()}
-                                className={chipLinkClassName}
-                              >
-                                {id}
-                              </Link>
-                            ))}
+                          {procedure.linkedIncidentIds.slice(0, 2).map((id) => (
+                            <Link
+                              key={id}
+                              href={`/incidents/${id}`}
+                              onClick={(event) => event.stopPropagation()}
+                              className={chipLinkClassName}
+                            >
+                              {id}
+                            </Link>
+                          ))}
                           {procedure.linkedAlertIds.slice(0, 1).map((id) => (
                             <Link
                               key={id}
@@ -892,7 +889,6 @@ export function ProceduresCenter() {
                 variant="outline"
                 className={cn(
                   "h-auto justify-start gap-2 px-3 py-2 font-mono text-sm",
-                  mutedControlClassName,
                 )}
                 asChild
               >
@@ -905,11 +901,7 @@ export function ProceduresCenter() {
                 </Link>
               </Button>
             ))}
-            <Button
-              variant="ghost"
-              className="justify-start"
-              asChild
-            >
+            <Button variant="ghost" className="justify-start" asChild>
               <Link
                 href="/incidents/list"
                 onClick={() => {
@@ -969,9 +961,7 @@ export function ProceduresCenter() {
                   </div>
                   <div>
                     <p className="text-muted-foreground text-xs">MITRE</p>
-                    <p className="font-medium">
-                      {selected.mitreTactic ?? "—"}
-                    </p>
+                    <p className="font-medium">{selected.mitreTactic ?? "—"}</p>
                   </div>
                 </div>
                 <div className="space-y-1.5">
@@ -989,7 +979,9 @@ export function ProceduresCenter() {
                   </p>
                   <div className="flex flex-wrap gap-1.5">
                     {selected.linkedIncidentIds.length === 0 ? (
-                      <span className="text-muted-foreground text-sm">None</span>
+                      <span className="text-muted-foreground text-sm">
+                        None
+                      </span>
                     ) : (
                       selected.linkedIncidentIds.map((id) => (
                         <Link
@@ -1009,7 +1001,9 @@ export function ProceduresCenter() {
                   </p>
                   <div className="flex flex-wrap gap-1.5">
                     {selected.linkedAlertIds.length === 0 ? (
-                      <span className="text-muted-foreground text-sm">None</span>
+                      <span className="text-muted-foreground text-sm">
+                        None
+                      </span>
                     ) : (
                       selected.linkedAlertIds.map((id) => (
                         <Link
@@ -1039,12 +1033,7 @@ export function ProceduresCenter() {
                     <Play className="size-3.5" />
                     Run against incident
                   </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className={mutedControlClassName}
-                    asChild
-                  >
+                  <Button variant="outline" size="sm" asChild>
                     <Link href="/incidents/list">View cases</Link>
                   </Button>
                 </div>

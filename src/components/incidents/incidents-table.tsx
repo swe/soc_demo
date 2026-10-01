@@ -44,7 +44,6 @@ import {
 import {
   AssigneeCell,
   IncidentStatusBadge,
-  mutedControlClassName,
   PriorityBadge,
   SlaBadge,
 } from "./incidents-primitives";
@@ -105,20 +104,17 @@ export function IncidentsTable({
   const selectedVisibleCount = items.filter((incident) =>
     selectedIds.has(incident.id),
   ).length;
-  const allSelected =
-    items.length > 0 && selectedVisibleCount === items.length;
+  const allSelected = items.length > 0 && selectedVisibleCount === items.length;
   const partiallySelected =
     selectedVisibleCount > 0 && selectedVisibleCount < items.length;
   const hasSelection = selectedVisibleCount > 0;
 
   const togglePrioritySort = () => {
-    onSortChange(
-      sort === "severity-desc" ? "severity-asc" : "severity-desc",
-    );
+    onSortChange(sort === "severity-desc" ? "severity-asc" : "severity-desc");
   };
 
   return (
-    <div className="bg-card overflow-hidden rounded-lg border">
+    <div className="bg-card shadow-card overflow-hidden rounded-xl border">
       <Table className="table-fixed">
         <TableHeader>
           {hasSelection ? (
@@ -145,7 +141,7 @@ export function IncidentsTable({
                     <Button
                       variant="outline"
                       size="sm"
-                      className={cn("h-8", mutedControlClassName)}
+                      className="h-8"
                       onClick={onBulkAssignToMe}
                     >
                       <UserRound className="size-3.5" />
@@ -154,7 +150,7 @@ export function IncidentsTable({
                     <Button
                       variant="outline"
                       size="sm"
-                      className={cn("h-8", mutedControlClassName)}
+                      className="h-8"
                       onClick={onBulkContain}
                     >
                       <Shield className="size-3.5" />
@@ -163,7 +159,7 @@ export function IncidentsTable({
                     <Button
                       variant="outline"
                       size="sm"
-                      className={cn("h-8", mutedControlClassName)}
+                      className="h-8"
                       onClick={onBulkResolve}
                     >
                       Resolve
@@ -171,7 +167,7 @@ export function IncidentsTable({
                     <Button
                       variant="outline"
                       size="sm"
-                      className="text-destructive hover:text-destructive h-8"
+                      className="text-destructive-text hover:text-destructive-text h-8"
                       onClick={onBulkClose}
                     >
                       Close
@@ -198,7 +194,7 @@ export function IncidentsTable({
                 />
               </TableHead>
               <TableHead>Case</TableHead>
-              <TableHead className="w-[64px]">
+              <TableHead className="hidden w-[64px] sm:table-cell">
                 <button
                   type="button"
                   onClick={togglePrioritySort}
@@ -212,7 +208,9 @@ export function IncidentsTable({
                   ) : null}
                 </button>
               </TableHead>
-              <TableHead className="w-[18%] hidden lg:table-cell">SLA</TableHead>
+              <TableHead className="w-[18%] hidden lg:table-cell">
+                SLA
+              </TableHead>
               <TableHead className="w-[20%] hidden sm:table-cell">
                 Impact
               </TableHead>
@@ -281,11 +279,20 @@ export function IncidentsTable({
                   </TableCell>
                   <TableCell className="align-top">
                     <div className="min-w-0 space-y-1.5 py-0.5">
-                      <div className="flex flex-wrap items-center gap-2">
+                      <p className="line-clamp-2 font-medium sm:line-clamp-1">
+                        {incident.title}
+                      </p>
+                      <div className="flex flex-wrap items-center gap-1.5">
                         <IncidentStatusBadge status={incident.status} />
-                        <p className="min-w-0 truncate font-medium">
-                          {incident.title}
-                        </p>
+                        <span className="sm:hidden">
+                          <PriorityBadge priority={incident.priority} />
+                        </span>
+                        <span className="lg:hidden">
+                          <SlaBadge
+                            state={slaState}
+                            label={getIncidentSlaRemainingLabel(incident)}
+                          />
+                        </span>
                       </div>
                       <p className="text-muted-foreground truncate text-xs">
                         <span className="font-mono">{incident.id}</span>
@@ -301,17 +308,13 @@ export function IncidentsTable({
                             : incident.primarySourceName}
                         </span>
                         <span className="mx-1.5">·</span>
-                        <span className="tabular-nums">{incident.ageLabel}</span>
+                        <span className="tabular-nums">
+                          {incident.ageLabel}
+                        </span>
                       </p>
-                      <div className="flex flex-wrap gap-2 lg:hidden">
-                        <SlaBadge
-                          state={slaState}
-                          label={getIncidentSlaRemainingLabel(incident)}
-                        />
-                      </div>
                     </div>
                   </TableCell>
-                  <TableCell className="align-top">
+                  <TableCell className="hidden align-top sm:table-cell">
                     <div className="py-0.5">
                       <PriorityBadge priority={incident.priority} />
                     </div>

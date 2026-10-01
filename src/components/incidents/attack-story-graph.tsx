@@ -52,17 +52,17 @@ const kindStyles: Record<
   user: {
     accent: "border-l-emerald-500",
     icon: UserRound,
-    wash: "bg-emerald-500/5",
+    wash: "bg-success/5",
   },
   host: {
     accent: "border-l-sky-500",
     icon: HardDrive,
-    wash: "bg-sky-500/5",
+    wash: "bg-info/5",
   },
   ip: {
     accent: "border-l-amber-500",
     icon: Network,
-    wash: "bg-amber-500/5",
+    wash: "bg-warning/5",
   },
   cloud: {
     accent: "border-l-violet-500",
@@ -77,12 +77,12 @@ const kindStyles: Record<
   technique: {
     accent: "border-l-orange-500",
     icon: Shield,
-    wash: "bg-orange-500/5",
+    wash: "bg-severity-high/5",
   },
   alert: {
     accent: "border-l-rose-500",
     icon: AlertTriangle,
-    wash: "bg-rose-500/5",
+    wash: "bg-destructive/5",
   },
 };
 
@@ -277,17 +277,12 @@ export function AttackStoryGraph({ story }: { story: AttackStory }) {
   return (
     <>
       {isFullscreen ? (
-        <div
-          className="hidden h-[420px] sm:block sm:h-[480px]"
-          aria-hidden
-        />
+        <div className="hidden h-[420px] sm:block sm:h-[480px]" aria-hidden />
       ) : null}
       <div
         className={cn(
           "bg-card relative overflow-hidden rounded-lg border",
-          isFullscreen
-            ? "fixed inset-3 z-50"
-            : "h-[420px] w-full sm:h-[480px]",
+          isFullscreen ? "fixed inset-3 z-50" : "h-[420px] w-full sm:h-[480px]",
         )}
       >
         <div className="absolute top-2 right-2 z-10 flex gap-1">

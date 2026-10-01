@@ -66,7 +66,6 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { toast } from "@/lib/toast";
-import { cn } from "@/lib/utils";
 
 import { downloadTextFile } from "./download-text-file";
 import {
@@ -83,7 +82,6 @@ import {
   DocStatusBadge,
   EmptyState,
   KbStatsStrip,
-  mutedControlClassName,
   OwnerCell,
   RelatedLinks,
 } from "./knowledge-base-primitives";
@@ -196,7 +194,7 @@ function DocFilterControl({
         <Button
           variant="outline"
           size="sm"
-          className={cn("relative h-9 gap-1.5 px-2.5", mutedControlClassName)}
+          className="relative h-9 gap-1.5 px-2.5"
         >
           <ListFilter className="size-3.5" />
           Filter
@@ -448,8 +446,7 @@ export function DocumentationCenter() {
   const [newDocOpen, setNewDocOpen] = useState(false);
   const [uploadOpen, setUploadOpen] = useState(false);
   const [newTitle, setNewTitle] = useState("");
-  const [newCategory, setNewCategory] =
-    useState<KbDocCategory>("operations");
+  const [newCategory, setNewCategory] = useState<KbDocCategory>("operations");
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const deferredSearchQuery = useDeferredValue(searchQuery);
 
@@ -656,7 +653,7 @@ export function DocumentationCenter() {
             <Button
               variant="outline"
               size="sm"
-              className={cn("h-9 gap-1.5", mutedControlClassName)}
+              className="h-9 gap-1.5"
               onClick={() => setUploadOpen(true)}
             >
               <Upload className="size-3.5" />
@@ -874,10 +871,7 @@ export function DocumentationCenter() {
                       Document body
                     </p>
                     {documentBodyParagraphs(selected).map((paragraph) => (
-                      <p
-                        key={paragraph}
-                        className="text-sm leading-relaxed"
-                      >
+                      <p key={paragraph} className="text-sm leading-relaxed">
                         {paragraph}
                       </p>
                     ))}
@@ -902,7 +896,7 @@ export function DocumentationCenter() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className={cn("gap-1.5", mutedControlClassName)}
+                    className="gap-1.5"
                     onClick={() => downloadDocument(selected)}
                   >
                     Download

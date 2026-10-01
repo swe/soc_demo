@@ -81,9 +81,6 @@ import {
   playbookNodeTypeLabels,
 } from "./playbooks-data";
 
-const mutedControlClassName =
-  "border-border bg-background text-foreground hover:bg-accent hover:text-accent-foreground";
-
 const severityTones: Record<KbProcedureSeverity, string> = {
   critical:
     "border-destructive/30 bg-destructive/10 text-destructive dark:text-red-400",
@@ -97,8 +94,7 @@ const statusTones: Record<KbProcedureStatus, string> = {
   approved:
     "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
   draft: "border-border bg-muted text-muted-foreground",
-  "in-review":
-    "border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-400",
+  "in-review": "border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-400",
   deprecated: "border-border bg-muted text-muted-foreground line-through",
 };
 
@@ -294,23 +290,13 @@ function PlaybookDetailSheet({
                   <Play className="size-3.5" />
                   Run
                 </Button>
-                <Button
-                  asChild
-                  variant="outline"
-                  size="sm"
-                  className={cn("gap-1.5", mutedControlClassName)}
-                >
+                <Button asChild variant="outline" size="sm" className="gap-1.5">
                   <Link href={`/automation/builder?id=${playbook.id}`}>
                     <Workflow className="size-3.5" />
                     Open in builder
                   </Link>
                 </Button>
-                <Button
-                  asChild
-                  variant="outline"
-                  size="sm"
-                  className={cn("gap-1.5", mutedControlClassName)}
-                >
+                <Button asChild variant="outline" size="sm" className="gap-1.5">
                   <Link
                     href={`/knowledge-base/procedures?id=${encodeURIComponent(playbook.id)}`}
                   >
@@ -396,12 +382,7 @@ export function PlaybooksCenter() {
                 <Plus className="size-3.5" />
                 Create playbook
               </Button>
-              <Button
-                asChild
-                size="sm"
-                variant="outline"
-                className={cn("h-9", mutedControlClassName)}
-              >
+              <Button asChild size="sm" variant="outline" className="h-9">
                 <Link href="/automation/builder">
                   <Workflow className="size-3.5" />
                   Open builder
@@ -444,119 +425,119 @@ export function PlaybooksCenter() {
           }
         />
 
-      <div className="overflow-hidden rounded-lg border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Playbook</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="hidden sm:table-cell">Severity</TableHead>
-              <TableHead className="hidden md:table-cell">Steps</TableHead>
-              <TableHead className="hidden lg:table-cell">Last run</TableHead>
-              <TableHead className="hidden lg:table-cell">Runs</TableHead>
-              <TableHead className="w-[1%] text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {paged.length === 0 ? (
+        <div className="overflow-hidden rounded-lg border">
+          <Table>
+            <TableHeader>
               <TableRow>
-                <TableCell
-                  colSpan={7}
-                  className="text-muted-foreground h-24 text-center text-sm"
-                >
-                  No playbooks match.
-                </TableCell>
+                <TableHead>Playbook</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="hidden sm:table-cell">Severity</TableHead>
+                <TableHead className="hidden md:table-cell">Steps</TableHead>
+                <TableHead className="hidden lg:table-cell">Last run</TableHead>
+                <TableHead className="hidden lg:table-cell">Runs</TableHead>
+                <TableHead className="w-[1%] text-right">Actions</TableHead>
               </TableRow>
-            ) : (
-              paged.map((pb) => (
-                <TableRow
-                  key={pb.id}
-                  className="cursor-pointer"
-                  onClick={() => setActiveId(pb.id)}
-                >
-                  <TableCell>
-                    <div className="min-w-0">
-                      <p className="truncate font-medium">{pb.title}</p>
-                      <p className="text-muted-foreground font-mono text-xs">
-                        {pb.code}
-                        {pb.mitreTactic ? ` · ${pb.mitreTactic}` : ""}
-                      </p>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant="outline"
-                      className={cn(
-                        "rounded-full font-medium",
-                        statusTones[pb.status],
-                      )}
-                    >
-                      {kbProcedureStatusLabels[pb.status]}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="hidden sm:table-cell">
-                    <Badge
-                      variant="outline"
-                      className={cn(
-                        "rounded-full font-medium",
-                        severityTones[pb.severity],
-                      )}
-                    >
-                      {kbProcedureSeverityLabels[pb.severity]}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="hidden tabular-nums md:table-cell">
-                    {pb.steps}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground hidden text-sm lg:table-cell">
-                    {pb.lastRunLabel}
-                  </TableCell>
-                  <TableCell className="hidden tabular-nums lg:table-cell">
-                    {pb.runCount}
-                  </TableCell>
+            </TableHeader>
+            <TableBody>
+              {paged.length === 0 ? (
+                <TableRow>
                   <TableCell
-                    className="text-right"
-                    onClick={(e) => e.stopPropagation()}
+                    colSpan={7}
+                    className="text-muted-foreground h-24 text-center text-sm"
                   >
-                    <div className="flex justify-end gap-1">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-8 gap-1 px-2"
-                        onClick={() => handleRun(pb.id)}
-                        disabled={pb.status === "deprecated"}
-                      >
-                        <Play className="size-3.5" />
-                        Run
-                      </Button>
-                      <Button
-                        asChild
-                        size="sm"
-                        variant="ghost"
-                        className="h-8 px-2"
-                      >
-                        <Link href={`/automation/builder?id=${pb.id}`}>
-                          Builder
-                        </Link>
-                      </Button>
-                    </div>
+                    No playbooks match.
                   </TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-        <ListPagination
-          page={page}
-          pageSize={pageSize}
-          total={filtered.length}
-          onPageChange={setPage}
-          onPageSizeChange={(size) => {
-            setPageSize(size);
-            setPage(1);
-          }}
-        />
-      </div>
+              ) : (
+                paged.map((pb) => (
+                  <TableRow
+                    key={pb.id}
+                    className="cursor-pointer"
+                    onClick={() => setActiveId(pb.id)}
+                  >
+                    <TableCell>
+                      <div className="min-w-0">
+                        <p className="truncate font-medium">{pb.title}</p>
+                        <p className="text-muted-foreground font-mono text-xs">
+                          {pb.code}
+                          {pb.mitreTactic ? ` · ${pb.mitreTactic}` : ""}
+                        </p>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant="outline"
+                        className={cn(
+                          "rounded-full font-medium",
+                          statusTones[pb.status],
+                        )}
+                      >
+                        {kbProcedureStatusLabels[pb.status]}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="hidden sm:table-cell">
+                      <Badge
+                        variant="outline"
+                        className={cn(
+                          "rounded-full font-medium",
+                          severityTones[pb.severity],
+                        )}
+                      >
+                        {kbProcedureSeverityLabels[pb.severity]}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="hidden tabular-nums md:table-cell">
+                      {pb.steps}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground hidden text-sm lg:table-cell">
+                      {pb.lastRunLabel}
+                    </TableCell>
+                    <TableCell className="hidden tabular-nums lg:table-cell">
+                      {pb.runCount}
+                    </TableCell>
+                    <TableCell
+                      className="text-right"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <div className="flex justify-end gap-1">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-8 gap-1 px-2"
+                          onClick={() => handleRun(pb.id)}
+                          disabled={pb.status === "deprecated"}
+                        >
+                          <Play className="size-3.5" />
+                          Run
+                        </Button>
+                        <Button
+                          asChild
+                          size="sm"
+                          variant="ghost"
+                          className="h-8 px-2"
+                        >
+                          <Link href={`/automation/builder?id=${pb.id}`}>
+                            Builder
+                          </Link>
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+          <ListPagination
+            page={page}
+            pageSize={pageSize}
+            total={filtered.length}
+            onPageChange={setPage}
+            onPageSizeChange={(size) => {
+              setPageSize(size);
+              setPage(1);
+            }}
+          />
+        </div>
       </ModuleShell>
 
       <PlaybookDetailSheet

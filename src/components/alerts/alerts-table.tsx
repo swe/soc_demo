@@ -32,10 +32,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  formatRelativeAgeCompact,
-  nextAgeTick,
-} from "@/lib/relative-time";
+import { formatRelativeAgeCompact, nextAgeTick } from "@/lib/relative-time";
 import { cn } from "@/lib/utils";
 
 import {
@@ -48,7 +45,6 @@ import {
 } from "./alerts-data";
 import {
   AssigneeCell,
-  mutedControlClassName,
   RiskScoreBadge,
   SeverityBadge,
   SourceBadge,
@@ -117,8 +113,7 @@ export function AlertsTable({
   const selectedVisibleCount = items.filter((alert) =>
     selectedIds.has(alert.id),
   ).length;
-  const allSelected =
-    items.length > 0 && selectedVisibleCount === items.length;
+  const allSelected = items.length > 0 && selectedVisibleCount === items.length;
   const partiallySelected =
     selectedVisibleCount > 0 && selectedVisibleCount < items.length;
   const hasSelection = selectedVisibleCount > 0;
@@ -128,7 +123,7 @@ export function AlertsTable({
   };
 
   return (
-    <div className="bg-card overflow-hidden rounded-lg border">
+    <div className="bg-card shadow-card overflow-hidden rounded-xl border">
       <Table className="table-fixed">
         <TableHeader>
           {hasSelection ? (
@@ -155,7 +150,7 @@ export function AlertsTable({
                     <Button
                       variant="outline"
                       size="sm"
-                      className={cn("h-8", mutedControlClassName)}
+                      className="h-8"
                       onClick={onBulkAssignToMe}
                     >
                       <UserRound className="size-3.5" />
@@ -164,7 +159,7 @@ export function AlertsTable({
                     <Button
                       variant="outline"
                       size="sm"
-                      className={cn("h-8", mutedControlClassName)}
+                      className="h-8"
                       onClick={onBulkEscalate}
                     >
                       <ShieldAlert className="size-3.5" />
@@ -173,7 +168,7 @@ export function AlertsTable({
                     <Button
                       variant="outline"
                       size="sm"
-                      className={cn("h-8", mutedControlClassName)}
+                      className="h-8"
                       onClick={onBulkFalsePositive}
                     >
                       <CircleX className="size-3.5" />
@@ -182,7 +177,7 @@ export function AlertsTable({
                     <Button
                       variant="outline"
                       size="sm"
-                      className="text-destructive hover:text-destructive h-8"
+                      className="text-destructive-text hover:text-destructive-text h-8"
                       onClick={onBulkClose}
                     >
                       Close
@@ -209,7 +204,7 @@ export function AlertsTable({
                 />
               </TableHead>
               <TableHead>Alert</TableHead>
-              <TableHead className="w-[72px]">
+              <TableHead className="hidden w-[72px] sm:table-cell">
                 <button
                   type="button"
                   onClick={toggleRiskSort}
@@ -238,7 +233,7 @@ export function AlertsTable({
             <TableRow className="hover:bg-transparent">
               <TableCell colSpan={COLUMN_COUNT} className="h-40">
                 <div className="text-muted-foreground flex flex-col items-center justify-center gap-2 text-center">
-                  <Siren className="size-8 opacity-40" />
+                  <Siren className="size-8 opacity-40" aria-hidden />
                   <p className="text-foreground text-sm font-medium">
                     No alerts match
                   </p>
@@ -262,8 +257,7 @@ export function AlertsTable({
             items.map((alert) => {
               const isSelected = selectedIds.has(alert.id);
               const isCriticalOpen =
-                (alert.severity === "critical" ||
-                  alert.severity === "high") &&
+                (alert.severity === "critical" || alert.severity === "high") &&
                 (alert.status === "new" || alert.status === "triaging");
               const device = getLinkedDevice(alert.deviceId);
               const identity = getLinkedIdentity(alert.identityId);
@@ -290,16 +284,19 @@ export function AlertsTable({
                   </TableCell>
                   <TableCell className="align-top">
                     <div className="min-w-0 space-y-1.5 py-0.5">
-                      <div className="flex flex-wrap items-center gap-2">
+                      <p className="line-clamp-2 font-medium sm:line-clamp-1">
+                        {alert.title}
+                      </p>
+                      <div className="flex flex-wrap items-center gap-1.5">
                         <SeverityBadge severity={alert.severity} />
                         <StatusBadge status={alert.status} />
                         <SourceBadge
                           sourceName={alert.sourceName}
                           sourceCategory={alert.sourceCategory}
                         />
-                        <p className="min-w-0 truncate font-medium">
-                          {alert.title}
-                        </p>
+                        <span className="sm:hidden">
+                          <RiskScoreBadge score={alert.riskScore} />
+                        </span>
                       </div>
                       <p className="text-muted-foreground truncate text-xs">
                         <span className="font-mono">{alert.id}</span>
@@ -313,9 +310,7 @@ export function AlertsTable({
                         <span className="tabular-nums">
                           {formatRelativeAgeCompact(alert.createdAt)}
                         </span>
-                        <span className="text-muted-foreground/80 mx-1.5">
-                          ·
-                        </span>
+                        <span className="mx-1.5">·</span>
                         <span className="tabular-nums">
                           conf {alert.confidence}%
                         </span>
@@ -325,7 +320,7 @@ export function AlertsTable({
                           {alertEntityTypeLabels[alert.entityType]} ·{" "}
                           {alert.entityName}
                         </span>
-                        {device ? (
+                        {device && device.hostname !== alert.entityName ? (
                           <Link
                             href={`/assets/devices?id=${device.id}`}
                             className="text-foreground hover:underline"
@@ -337,7 +332,7 @@ export function AlertsTable({
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell className="align-top">
+                  <TableCell className="hidden align-top sm:table-cell">
                     <div className="py-0.5">
                       <RiskScoreBadge score={alert.riskScore} />
                     </div>
@@ -411,9 +406,7 @@ export function AlertsTable({
                           Assign to me
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          onSelect={() => onEscalate(alert.id)}
-                        >
+                        <DropdownMenuItem onSelect={() => onEscalate(alert.id)}>
                           Escalate
                         </DropdownMenuItem>
                         <DropdownMenuItem

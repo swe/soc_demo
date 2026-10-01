@@ -35,7 +35,7 @@ export function AttackSurfaceTable({
   onOpen: (id: string) => void;
 }) {
   return (
-    <div className="bg-card overflow-hidden rounded-lg border">
+    <div className="bg-card shadow-card overflow-hidden rounded-xl border">
       <Table className="table-fixed">
         <TableHeader>
           <TableRow className="hover:bg-transparent">
@@ -79,7 +79,9 @@ export function AttackSurfaceTable({
                       </p>
                     </div>
                   </TableCell>
-                  <TableCell className="font-mono text-xs">{asset.ip}</TableCell>
+                  <TableCell className="font-mono text-xs">
+                    {asset.ip}
+                  </TableCell>
                   <TableCell className="text-xs tabular-nums">
                     {asset.ports.join(", ")}
                   </TableCell>

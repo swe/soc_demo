@@ -1,5 +1,5 @@
-import * as React from "react"
-import { cn } from "@/lib/utils"
+import * as React from "react";
+import { cn } from "@/lib/utils";
 
 const Table = React.forwardRef<
   HTMLTableElement,
@@ -7,7 +7,10 @@ const Table = React.forwardRef<
 >(({ className, containerClassName, ...props }, ref) => (
   <div
     data-slot="table-container"
-    className={cn("relative w-full overflow-x-auto overscroll-x-contain", containerClassName)}
+    className={cn(
+      "relative w-full overflow-x-auto overscroll-x-contain",
+      containerClassName,
+    )}
   >
     <table
       ref={ref}
@@ -15,8 +18,8 @@ const Table = React.forwardRef<
       {...props}
     />
   </div>
-))
-Table.displayName = "Table"
+));
+Table.displayName = "Table";
 
 const TableHeader = React.forwardRef<
   HTMLTableSectionElement,
@@ -24,11 +27,14 @@ const TableHeader = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <thead
     ref={ref}
-    className={cn("[&_tr]:border-separator [&_tr]:border-b [&_tr]:hover:bg-transparent", className)}
+    className={cn(
+      "[&_tr]:border-separator [&_tr]:border-b [&_tr]:hover:bg-transparent",
+      className,
+    )}
     {...props}
   />
-))
-TableHeader.displayName = "TableHeader"
+));
+TableHeader.displayName = "TableHeader";
 
 const TableBody = React.forwardRef<
   HTMLTableSectionElement,
@@ -39,8 +45,8 @@ const TableBody = React.forwardRef<
     className={cn("[&_tr:last-child]:border-0", className)}
     {...props}
   />
-))
-TableBody.displayName = "TableBody"
+));
+TableBody.displayName = "TableBody";
 
 const TableFooter = React.forwardRef<
   HTMLTableSectionElement,
@@ -50,27 +56,48 @@ const TableFooter = React.forwardRef<
     ref={ref}
     className={cn(
       "bg-muted/50 border-t font-medium last:[&>tr]:border-b-0",
-      className
+      className,
     )}
     {...props}
   />
-))
-TableFooter.displayName = "TableFooter"
+));
+TableFooter.displayName = "TableFooter";
 
 const TableRow = React.forwardRef<
   HTMLTableRowElement,
   React.HTMLAttributes<HTMLTableRowElement>
->(({ className, ...props }, ref) => (
-  <tr
-    ref={ref}
-    className={cn(
-      "group/row border-separator hover:bg-muted/60 data-[state=selected]:bg-accent/60 border-b transition-colors duration-100",
-      className
-    )}
-    {...props}
-  />
-))
-TableRow.displayName = "TableRow"
+>(({ className, onClick, onKeyDown, tabIndex, ...props }, ref) => {
+  // Clickable rows must also work from the keyboard; the row keeps its table
+  // semantics and activates on Enter/Space when it, not a child control, has focus.
+  const interactive = Boolean(onClick);
+  return (
+    <tr
+      ref={ref}
+      tabIndex={tabIndex ?? (interactive ? 0 : undefined)}
+      onClick={onClick}
+      onKeyDown={(event) => {
+        onKeyDown?.(event);
+        if (
+          interactive &&
+          !event.defaultPrevented &&
+          event.target === event.currentTarget &&
+          (event.key === "Enter" || event.key === " ")
+        ) {
+          event.preventDefault();
+          onClick?.(event as unknown as React.MouseEvent<HTMLTableRowElement>);
+        }
+      }}
+      className={cn(
+        "group/row border-separator hover:bg-muted/60 data-[state=selected]:bg-accent/60 border-b transition-colors duration-100",
+        interactive &&
+          "focus-visible:bg-muted/60 cursor-pointer outline-none focus-visible:shadow-[inset_3px_0_0_var(--ring)]",
+        className,
+      )}
+      {...props}
+    />
+  );
+});
+TableRow.displayName = "TableRow";
 
 const TableHead = React.forwardRef<
   HTMLTableCellElement,
@@ -80,12 +107,12 @@ const TableHead = React.forwardRef<
     ref={ref}
     className={cn(
       "text-muted-foreground h-9 px-3 text-left align-middle text-xs font-medium whitespace-nowrap first:pl-4 last:pr-4 [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
-      className
+      className,
     )}
     {...props}
   />
-))
-TableHead.displayName = "TableHead"
+));
+TableHead.displayName = "TableHead";
 
 const TableCell = React.forwardRef<
   HTMLTableCellElement,
@@ -95,12 +122,12 @@ const TableCell = React.forwardRef<
     ref={ref}
     className={cn(
       "px-3 py-2.5 align-middle first:pl-4 last:pr-4 [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
-      className
+      className,
     )}
     {...props}
   />
-))
-TableCell.displayName = "TableCell"
+));
+TableCell.displayName = "TableCell";
 
 const TableCaption = React.forwardRef<
   HTMLTableCaptionElement,
@@ -111,8 +138,8 @@ const TableCaption = React.forwardRef<
     className={cn("text-muted-foreground mt-4 text-sm", className)}
     {...props}
   />
-))
-TableCaption.displayName = "TableCaption"
+));
+TableCaption.displayName = "TableCaption";
 
 export {
   Table,
@@ -123,4 +150,4 @@ export {
   TableRow,
   TableCell,
   TableCaption,
-}
+};

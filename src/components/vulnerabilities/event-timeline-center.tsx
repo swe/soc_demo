@@ -29,10 +29,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import {
-  vulnEvents,
-  type VulnEventType,
-} from "./vulnerabilities-data";
+import { vulnEvents, type VulnEventType } from "./vulnerabilities-data";
 
 const eventTypeLabels: Record<VulnEventType, string> = {
   "new-cves": "New CVEs",
@@ -121,71 +118,73 @@ export function EventTimelineCenter() {
     >
       <StatsStrip stats={stats} />
 
-        <div className="bg-card overflow-hidden rounded-lg border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>When</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Summary</TableHead>
-                <TableHead className="text-right">Devices</TableHead>
-                <TableHead>CVEs</TableHead>
+      <div className="bg-card shadow-card overflow-hidden rounded-xl border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>When</TableHead>
+              <TableHead className="hidden sm:table-cell">Type</TableHead>
+              <TableHead>Summary</TableHead>
+              <TableHead className="hidden md:table-cell text-right">
+                Devices
+              </TableHead>
+              <TableHead className="hidden lg:table-cell">CVEs</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {rows.map((item) => (
+              <TableRow key={item.id}>
+                <TableCell className="text-muted-foreground text-xs whitespace-nowrap">
+                  {item.dateLabel}
+                </TableCell>
+                <TableCell className="hidden sm:table-cell">
+                  <Badge variant="outline" className="whitespace-nowrap">
+                    {eventTypeLabels[item.type]}
+                  </Badge>
+                </TableCell>
+                <TableCell className="max-w-md text-sm">
+                  {item.summary}
+                </TableCell>
+                <TableCell className="hidden md:table-cell text-right tabular-nums">
+                  {item.impactedDevices}
+                  <span className="text-muted-foreground text-xs">
+                    {" "}
+                    ({item.impactedPercent}%)
+                  </span>
+                </TableCell>
+                <TableCell className="hidden lg:table-cell">
+                  <div className="flex flex-wrap gap-1">
+                    {item.relatedCveIds.slice(0, 3).map((cve) => (
+                      <Link
+                        key={cve}
+                        href={`/vulnerabilities/findings?q=${encodeURIComponent(cve)}`}
+                        className="text-xs font-mono hover:underline"
+                      >
+                        {cve}
+                      </Link>
+                    ))}
+                    {item.relatedCveIds.length > 3 ? (
+                      <span className="text-muted-foreground text-xs">
+                        +{item.relatedCveIds.length - 3}
+                      </span>
+                    ) : null}
+                  </div>
+                </TableCell>
               </TableRow>
-            </TableHeader>
-            <TableBody>
-              {rows.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell className="text-muted-foreground text-xs whitespace-nowrap">
-                    {item.dateLabel}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className="whitespace-nowrap">
-                      {eventTypeLabels[item.type]}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="max-w-md text-sm">
-                    {item.summary}
-                  </TableCell>
-                  <TableCell className="text-right tabular-nums">
-                    {item.impactedDevices}
-                    <span className="text-muted-foreground text-xs">
-                      {" "}
-                      ({item.impactedPercent}%)
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-wrap gap-1">
-                      {item.relatedCveIds.slice(0, 3).map((cve) => (
-                        <Link
-                          key={cve}
-                          href={`/vulnerabilities/findings?q=${encodeURIComponent(cve)}`}
-                          className="text-xs font-mono hover:underline"
-                        >
-                          {cve}
-                        </Link>
-                      ))}
-                      {item.relatedCveIds.length > 3 ? (
-                        <span className="text-muted-foreground text-xs">
-                          +{item.relatedCveIds.length - 3}
-                        </span>
-                      ) : null}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-          <ListPagination
-            page={page}
-            pageSize={pageSize}
-            total={filtered.length}
-            onPageChange={setPage}
-            onPageSizeChange={(size) => {
-              setPageSize(size);
-              setPage(1);
-            }}
-          />
-        </div>
+            ))}
+          </TableBody>
+        </Table>
+        <ListPagination
+          page={page}
+          pageSize={pageSize}
+          total={filtered.length}
+          onPageChange={setPage}
+          onPageSizeChange={(size) => {
+            setPageSize(size);
+            setPage(1);
+          }}
+        />
+      </div>
     </ModuleShell>
   );
 }

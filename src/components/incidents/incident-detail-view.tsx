@@ -63,7 +63,6 @@ import {
 import {
   AssigneeCell,
   IncidentStatusBadge,
-  mutedControlClassName,
   PriorityBadge,
   SlaBadge,
 } from "./incidents-primitives";
@@ -233,12 +232,11 @@ export function IncidentDetailView({ incidentId }: { incidentId: string }) {
             <TriageAssistPanel
               incident={incident}
               onApplyNotes={(draft) => setNotes(draft)}
-              triggerClassName={mutedControlClassName}
             />
             <Button
               variant="outline"
               size="sm"
-              className={cn("h-9", mutedControlClassName)}
+              className="h-9"
               onClick={() =>
                 save(
                   {
@@ -255,7 +253,7 @@ export function IncidentDetailView({ incidentId }: { incidentId: string }) {
             <Button
               variant="outline"
               size="sm"
-              className={cn("h-9", mutedControlClassName)}
+              className="h-9"
               onClick={() => save({ status: "contained" }, "Marked contained")}
             >
               <Shield className="size-3.5" />
@@ -264,7 +262,7 @@ export function IncidentDetailView({ incidentId }: { incidentId: string }) {
             <Button
               variant="outline"
               size="sm"
-              className="text-destructive hover:text-destructive h-9"
+              className="text-destructive-text hover:text-destructive-text h-9"
               onClick={() => save({ status: "resolved" }, "Case resolved")}
             >
               Resolve
@@ -310,7 +308,7 @@ export function IncidentDetailView({ incidentId }: { incidentId: string }) {
                           className="flex items-start gap-2.5"
                         >
                           {done ? (
-                            <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-emerald-600" />
+                            <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-success-text" />
                           ) : (
                             <Circle className="text-muted-foreground mt-0.5 size-4 shrink-0" />
                           )}
@@ -560,8 +558,7 @@ export function IncidentDetailView({ incidentId }: { incidentId: string }) {
                           setAssigneeId(value);
                           save(
                             {
-                              assigneeId:
-                                value === "unassigned" ? null : value,
+                              assigneeId: value === "unassigned" ? null : value,
                             },
                             "Responder updated",
                           );

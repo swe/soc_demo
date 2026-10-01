@@ -7,6 +7,17 @@ import { useDeferredValue, useEffect, useMemo, useState } from "react";
 
 import { administrationUsers } from "@/components/administration/users-data";
 import { ListPagination, paginateItems } from "@/components/list-pagination";
+import {
+  ModuleShell,
+  ModuleToolbarActions,
+  ModuleToolbarSearch,
+} from "@/components/soc/module-shell";
+import {
+  ModuleTabsList,
+  ModuleTabsTrigger,
+  TabCount,
+} from "@/components/soc/module-tabs";
+import { ToolbarToggle } from "@/components/soc/toolbar-toggle";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -30,7 +41,6 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { Switch } from "@/components/ui/switch";
 import {
   Table,
   TableBody,
@@ -39,7 +49,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs } from "@/components/ui/tabs";
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 
@@ -59,11 +69,9 @@ import {
   useVulnPersona,
 } from "./vulnerabilities-persona";
 import {
-  mutedControlClassName,
   RecommendationStatusBadge,
   RemediationStatusBadge,
   SheetDetailRow,
-  tabTriggerClassName,
 } from "./vulnerabilities-primitives";
 import { useVulnSession } from "./vulnerabilities-session";
 import {
@@ -84,7 +92,7 @@ function KindBadge({ kind }: { kind: VulnWorkItem["kind"] }) {
       className={cn(
         "rounded-full font-medium capitalize",
         kind === "remediation"
-          ? "border-blue-500/30 bg-blue-500/10 text-blue-700 dark:text-blue-400"
+          ? "border-info/30 bg-info/10 text-info-text"
           : "border-violet-500/30 bg-violet-500/10 text-violet-700 dark:text-violet-400",
       )}
     >
@@ -95,9 +103,7 @@ function KindBadge({ kind }: { kind: VulnWorkItem["kind"] }) {
 
 function StatusCell({ item }: { item: VulnWorkItem }) {
   if (item.kind === "remediation") {
-    return (
-      <RemediationStatusBadge status={item.status as RemediationStatus} />
-    );
+    return <RemediationStatusBadge status={item.status as RemediationStatus} />;
   }
   return (
     <RecommendationStatusBadge
@@ -145,7 +151,7 @@ function WorkDetailSheet({
 
   const recommendation =
     item?.kind === "recommendation"
-      ? recommendations.find((r) => r.id === item.id) ?? null
+      ? (recommendations.find((r) => r.id === item.id) ?? null)
       : null;
 
   return (
@@ -285,7 +291,7 @@ function WorkDetailSheet({
                         key={status}
                         variant="outline"
                         size="sm"
-                        className={cn("h-8", mutedControlClassName)}
+                        className="h-8"
                         onClick={() => {
                           updateRemediationStatus(item.id, status);
                           toast({
@@ -445,14 +451,11 @@ export function WorkCenter() {
   };
 
   return (
-    <main
-      id="main-content"
-      className="bg-background flex min-h-0 flex-1 flex-col overflow-hidden"
-    >
-      <div className="bg-background shrink-0 border-b">
-        <div className="flex flex-col gap-2 px-4 py-3 sm:px-6 lg:min-h-14 lg:flex-row lg:items-center lg:justify-between lg:gap-4 lg:py-2">
-          <div className="min-w-0 flex-1">
-            <InputGroup className="h-9 w-full lg:max-w-sm">
+    <ModuleShell
+      toolbar={
+        <>
+          <ModuleToolbarSearch>
+            <InputGroup className="h-9 w-full">
               <InputGroupAddon>
                 <Search />
               </InputGroupAddon>
@@ -462,16 +465,14 @@ export function WorkCenter() {
                 onChange={(event) => setSearchQuery(event.target.value)}
               />
             </InputGroup>
-          </div>
-          <div className="flex min-w-0 flex-wrap items-center gap-2 lg:justify-end">
-            <label className="border-border bg-background hover:bg-accent flex h-9 cursor-pointer items-center gap-2 rounded-md border px-2.5 text-sm">
-              <Switch
-                checked={mineOnly}
-                onCheckedChange={setMineOnly}
-                aria-label="My queue only"
-              />
-              <span className="whitespace-nowrap">My queue</span>
-            </label>
+          </ModuleToolbarSearch>
+          <ModuleToolbarActions>
+            <ToolbarToggle
+              checked={mineOnly}
+              onCheckedChange={setMineOnly}
+              aria-label="My queue only"
+              label="My queue"
+            />
             <div className="flex flex-wrap gap-1">
               {remediationStatuses.map((status) => {
                 const active = statusFilters.includes(status);
@@ -481,10 +482,7 @@ export function WorkCenter() {
                     type="button"
                     variant={active ? "default" : "outline"}
                     size="sm"
-                    className={cn(
-                      "h-8 px-2 text-xs capitalize",
-                      !active && mutedControlClassName,
-                    )}
+                    className={cn("h-8 px-2 text-xs capitalize")}
                     onClick={() => toggleStatus(status)}
                   >
                     {remediationStatusLabels[status]}
@@ -492,140 +490,126 @@ export function WorkCenter() {
                 );
               })}
             </div>
-          </div>
-        </div>
-      </div>
+          </ModuleToolbarActions>
+        </>
+      }
+    >
+      <Tabs
+        value={kind}
+        onValueChange={(value) => setKind(value as WorkListFilters["kind"])}
+        className="flex flex-col gap-4"
+      >
+        <ModuleTabsList>
+          <ModuleTabsTrigger value="all">
+            All
+            <TabCount>{queue.length}</TabCount>
+          </ModuleTabsTrigger>
+          <ModuleTabsTrigger value="remediation">
+            Remediations
+          </ModuleTabsTrigger>
+          <ModuleTabsTrigger value="recommendation">
+            Recommendations
+          </ModuleTabsTrigger>
+        </ModuleTabsList>
 
-      <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6">
-        <div className="mx-auto flex w-full flex-col gap-4">
-          <Tabs
-            value={kind}
-            onValueChange={(value) =>
-              setKind(value as WorkListFilters["kind"])
-            }
-            className="flex flex-col gap-4"
-          >
-            <div className="overflow-x-auto border-b">
-              <TabsList className="inline-flex h-auto min-w-max justify-start gap-7 rounded-none bg-transparent p-0 sm:gap-8">
-                <TabsTrigger value="all" className={tabTriggerClassName}>
-                  All
-                  <span className="bg-muted text-muted-foreground rounded-md px-1.5 py-0.5 text-xs">
-                    {queue.length}
-                  </span>
-                </TabsTrigger>
-                <TabsTrigger
-                  value="remediation"
-                  className={tabTriggerClassName}
+        <div className="bg-card shadow-card overflow-hidden rounded-xl border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="hidden sm:table-cell">Kind</TableHead>
+                <TableHead>Title</TableHead>
+                <TableHead className="hidden md:table-cell">Ticket</TableHead>
+                <TableHead className="hidden lg:table-cell">Owner</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="hidden lg:table-cell">
+                  Devices remaining
+                </TableHead>
+                <TableHead className="hidden xl:table-cell">
+                  Linked alerts
+                </TableHead>
+                <TableHead className="hidden md:table-cell">Impact</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {pageItems.map((item) => (
+                <TableRow
+                  key={item.id}
+                  className="cursor-pointer"
+                  onClick={() => setSelectedId(item.id)}
                 >
-                  Remediations
-                </TabsTrigger>
-                <TabsTrigger
-                  value="recommendation"
-                  className={tabTriggerClassName}
-                >
-                  Recommendations
-                </TabsTrigger>
-              </TabsList>
-            </div>
-
-            <div className="bg-card overflow-hidden rounded-lg border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Kind</TableHead>
-                    <TableHead>Title</TableHead>
-                    <TableHead>Ticket</TableHead>
-                    <TableHead>Owner</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Devices remaining</TableHead>
-                    <TableHead>Linked alerts</TableHead>
-                    <TableHead>Impact</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {pageItems.map((item) => (
-                    <TableRow
-                      key={item.id}
-                      className="cursor-pointer"
-                      onClick={() => setSelectedId(item.id)}
-                    >
-                      <TableCell>
-                        <KindBadge kind={item.kind} />
-                      </TableCell>
-                      <TableCell className="max-w-[280px]">
-                        <span className="line-clamp-2 text-sm font-medium">
-                          {item.title}
-                        </span>
-                      </TableCell>
-                      <TableCell className="font-mono text-xs">
-                        {item.ticketRef ?? (
-                          <span className="text-muted-foreground">—</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <OwnerLabel ownerId={item.ownerId} />
-                      </TableCell>
-                      <TableCell>
-                        <StatusCell item={item} />
-                      </TableCell>
-                      <TableCell className="tabular-nums">
-                        {item.devicesRemaining != null
-                          ? formatCompact(item.devicesRemaining)
-                          : "—"}
-                      </TableCell>
-                      <TableCell
-                        className="tabular-nums"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        {item.linkedAlertIds.length === 0 ? (
-                          <span className="text-muted-foreground text-xs">
-                            —
-                          </span>
-                        ) : (
-                          <div className="flex flex-wrap gap-1">
-                            {item.linkedAlertIds.map((id) => (
-                              <Link
-                                key={id}
-                                href={`/alerts/${id}`}
-                                className="text-primary font-mono text-xs hover:underline"
-                              >
-                                {id}
-                              </Link>
-                            ))}
-                          </div>
-                        )}
-                      </TableCell>
-                      <TableCell className="tabular-nums">
-                        {item.impactScore.toFixed(1)}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  {pageItems.length === 0 ? (
-                    <TableRow>
-                      <TableCell
-                        colSpan={8}
-                        className="text-muted-foreground h-24 text-center"
-                      >
-                        No work items match these filters.
-                      </TableCell>
-                    </TableRow>
-                  ) : null}
-                </TableBody>
-              </Table>
-              <ListPagination
-                page={safePage}
-                pageSize={pageSize}
-                total={filtered.length}
-                onPageChange={setPage}
-                onPageSizeChange={(size) => {
-                  setPageSize(size);
-                  setPage(1);
-                }}
-              />
-            </div>
-          </Tabs>
+                  <TableCell className="hidden sm:table-cell">
+                    <KindBadge kind={item.kind} />
+                  </TableCell>
+                  <TableCell className="max-w-[280px]">
+                    <span className="line-clamp-2 text-sm font-medium">
+                      {item.title}
+                    </span>
+                  </TableCell>
+                  <TableCell className="hidden md:table-cell font-mono text-xs">
+                    {item.ticketRef ?? (
+                      <span className="text-muted-foreground">—</span>
+                    )}
+                  </TableCell>
+                  <TableCell className="hidden lg:table-cell">
+                    <OwnerLabel ownerId={item.ownerId} />
+                  </TableCell>
+                  <TableCell>
+                    <StatusCell item={item} />
+                  </TableCell>
+                  <TableCell className="hidden lg:table-cell tabular-nums">
+                    {item.devicesRemaining != null
+                      ? formatCompact(item.devicesRemaining)
+                      : "—"}
+                  </TableCell>
+                  <TableCell
+                    className="hidden xl:table-cell tabular-nums"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {item.linkedAlertIds.length === 0 ? (
+                      <span className="text-muted-foreground text-xs">—</span>
+                    ) : (
+                      <div className="flex flex-wrap gap-1">
+                        {item.linkedAlertIds.map((id) => (
+                          <Link
+                            key={id}
+                            href={`/alerts/${id}`}
+                            className="text-primary font-mono text-xs hover:underline"
+                          >
+                            {id}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </TableCell>
+                  <TableCell className="hidden md:table-cell tabular-nums">
+                    {item.impactScore.toFixed(1)}
+                  </TableCell>
+                </TableRow>
+              ))}
+              {pageItems.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={8}
+                    className="text-muted-foreground h-24 text-center"
+                  >
+                    No work items match these filters.
+                  </TableCell>
+                </TableRow>
+              ) : null}
+            </TableBody>
+          </Table>
+          <ListPagination
+            page={safePage}
+            pageSize={pageSize}
+            total={filtered.length}
+            onPageChange={setPage}
+            onPageSizeChange={(size) => {
+              setPageSize(size);
+              setPage(1);
+            }}
+          />
         </div>
-      </div>
+      </Tabs>
 
       <WorkDetailSheet
         item={selected}
@@ -633,6 +617,6 @@ export function WorkCenter() {
           if (!open) setSelectedId(null);
         }}
       />
-    </main>
+    </ModuleShell>
   );
 }

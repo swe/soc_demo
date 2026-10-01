@@ -29,6 +29,12 @@ import { ConnectIntegrationDialog } from "@/components/administration/connect-in
 import { IntegrationsOverview } from "@/components/administration/integrations-overview";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { ListPagination, paginateItems } from "@/components/list-pagination";
+import {
+  ModuleTabsList,
+  ModuleTabsTrigger,
+  TabCount,
+} from "@/components/soc/module-tabs";
+import { ToolbarToggle } from "@/components/soc/toolbar-toggle";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -70,7 +76,6 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { Switch } from "@/components/ui/switch";
 import {
   Table,
   TableBody,
@@ -79,7 +84,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs } from "@/components/ui/tabs";
 import { integrationsApi, receiptToneLabel } from "@/lib/mock-api";
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
@@ -111,12 +116,6 @@ type IntegrationSort = "name-asc" | "name-desc" | "events-desc" | "sync";
 const sparklineConfig = {
   volume: { label: "Events", color: "var(--primary)" },
 } satisfies ChartConfig;
-
-const mutedControlClassName =
-  "border-border bg-background text-foreground hover:bg-accent hover:text-accent-foreground";
-
-const tabTriggerClassName =
-  "data-[state=active]:border-foreground shrink-0 gap-2 rounded-none border-b-2 border-transparent px-0 pb-3 text-sm shadow-none data-[state=active]:bg-transparent data-[state=active]:shadow-none sm:pb-4";
 
 const compactNumber = new Intl.NumberFormat("en-US", {
   notation: "compact",
@@ -277,11 +276,7 @@ function IntegrationFilterControl({
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          className={cn("h-9 gap-1.5", mutedControlClassName)}
-        >
+        <Button variant="outline" size="sm" className="h-9 gap-1.5">
           <ListFilter className="size-3.5" />
           Filter
           {count > 0 ? (
@@ -408,7 +403,7 @@ function EmptyState({ onReset }: { onReset: () => void }) {
       <Button
         variant="outline"
         size="sm"
-        className={cn("mt-4 h-8", mutedControlClassName)}
+        className="mt-4 h-8"
         onClick={onReset}
       >
         Reset filters
@@ -450,7 +445,7 @@ function IntegrationsTable({
   );
 
   return (
-    <div className="bg-card overflow-hidden rounded-lg border">
+    <div className="bg-card shadow-card overflow-hidden rounded-xl border">
       <Table>
         <TableHeader>
           {selectedIds.length > 0 ? (
@@ -1355,10 +1350,7 @@ export function IntegrationsManagement() {
         description: (
           <span className="inline-flex flex-col gap-1">
             <span>{receipt.message}</span>
-            <Badge
-              variant="secondary"
-              className="w-fit rounded-full text-xs"
-            >
+            <Badge variant="secondary" className="w-fit rounded-full text-xs">
               {receiptToneLabel(receipt.outcome)}
             </Badge>
           </span>
@@ -1428,17 +1420,15 @@ export function IntegrationsManagement() {
           </div>
 
           <div className="flex min-w-0 flex-wrap items-center gap-2 lg:justify-end">
-            <label className="border-border bg-background hover:bg-accent flex h-9 cursor-pointer items-center gap-2 rounded-md border px-2.5 text-sm">
-              <Switch
-                checked={issuesOnly}
-                onCheckedChange={(checked) => {
-                  setIssuesOnly(checked);
-                  if (checked) setActiveTab("attention");
-                }}
-                aria-label="Show integrations with issues only"
-              />
-              <span className="whitespace-nowrap">Issues only</span>
-            </label>
+            <ToolbarToggle
+              checked={issuesOnly}
+              onCheckedChange={(checked) => {
+                setIssuesOnly(checked);
+                if (checked) setActiveTab("attention");
+              }}
+              aria-label="Show integrations with issues only"
+              label="Issues only"
+            />
 
             <IntegrationFilterControl
               categoryFilters={categoryFilters}
@@ -1498,32 +1488,24 @@ export function IntegrationsManagement() {
             }}
             className="flex flex-col gap-4"
           >
-            <div className="overflow-x-auto border-b">
-              <TabsList className="inline-flex h-auto min-w-max justify-start gap-7 rounded-none bg-transparent p-0 sm:gap-8">
-                {(
-                  [
-                    ["overview", "Overview"],
-                    ["all", "All integrations"],
-                    ["connected", "Connected"],
-                    ["available", "Available"],
-                    ["attention", "Needs attention"],
-                  ] as const
-                ).map(([value, label]) => (
-                  <TabsTrigger
-                    key={value}
-                    value={value}
-                    className={tabTriggerClassName}
-                  >
-                    {label}
-                    {value !== "overview" ? (
-                      <span className="bg-muted text-muted-foreground rounded-md px-1.5 py-0.5 text-xs">
-                        {tabCounts[value]}
-                      </span>
-                    ) : null}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-            </div>
+            <ModuleTabsList>
+              {(
+                [
+                  ["overview", "Overview"],
+                  ["all", "All integrations"],
+                  ["connected", "Connected"],
+                  ["available", "Available"],
+                  ["attention", "Needs attention"],
+                ] as const
+              ).map(([value, label]) => (
+                <ModuleTabsTrigger key={value} value={value}>
+                  {label}
+                  {value !== "overview" ? (
+                    <TabCount>{tabCounts[value]}</TabCount>
+                  ) : null}
+                </ModuleTabsTrigger>
+              ))}
+            </ModuleTabsList>
           </Tabs>
 
           {activeTab === "overview" ? (

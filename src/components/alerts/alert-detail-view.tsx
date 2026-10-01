@@ -30,7 +30,6 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/lib/toast";
-import { cn } from "@/lib/utils";
 
 import {
   alertEntityTypeLabels,
@@ -47,7 +46,6 @@ import {
 } from "./alerts-data";
 import {
   AssigneeCell,
-  mutedControlClassName,
   RiskScoreBadge,
   SeverityBadge,
   SourceBadge,
@@ -201,17 +199,15 @@ export function AlertDetailView({ alertId }: { alertId: string }) {
             <TriageAssistPanel
               alert={alert}
               onApplyNotes={(draft) => setNotes(draft)}
-              triggerClassName={mutedControlClassName}
             />
             <AssistChat
               alert={alert}
               onApplyNotes={(draft) => setNotes(draft)}
-              triggerClassName={mutedControlClassName}
             />
             <Button
               variant="outline"
               size="sm"
-              className={cn("h-9", mutedControlClassName)}
+              className="h-9"
               onClick={() =>
                 save(
                   {
@@ -228,7 +224,7 @@ export function AlertDetailView({ alertId }: { alertId: string }) {
             <Button
               variant="outline"
               size="sm"
-              className={cn("h-9", mutedControlClassName)}
+              className="h-9"
               onClick={escalate}
             >
               <ShieldAlert className="size-3.5" />
@@ -237,7 +233,7 @@ export function AlertDetailView({ alertId }: { alertId: string }) {
             <Button
               variant="outline"
               size="sm"
-              className="text-destructive hover:text-destructive h-9"
+              className="text-destructive-text hover:text-destructive-text h-9"
               onClick={() => save({ status: "closed" }, "Alert closed")}
             >
               Close
@@ -326,7 +322,9 @@ export function AlertDetailView({ alertId }: { alertId: string }) {
                     <HardDrive className="size-4" />
                   </div>
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-medium">{device.name}</p>
+                    <p className="truncate text-sm font-medium">
+                      {device.name}
+                    </p>
                     <p className="text-muted-foreground truncate font-mono text-xs">
                       {device.hostname}
                     </p>
@@ -417,7 +415,9 @@ export function AlertDetailView({ alertId }: { alertId: string }) {
               </div>
               <div className="flex justify-between gap-3">
                 <span className="text-muted-foreground">Age</span>
-                <span className="font-medium tabular-nums">{alert.ageLabel}</span>
+                <span className="font-medium tabular-nums">
+                  {alert.ageLabel}
+                </span>
               </div>
               <div className="flex items-center justify-between gap-3">
                 <span className="text-muted-foreground">Assignee</span>
@@ -491,9 +491,7 @@ export function AlertDetailView({ alertId }: { alertId: string }) {
                         assigneeId === "unassigned" ? null : assigneeId,
                       notes: notes.trim() ? notes : undefined,
                     },
-                    notes.trim()
-                      ? "Triage saved with notes"
-                      : "Triage saved",
+                    notes.trim() ? "Triage saved with notes" : "Triage saved",
                   );
                 }}
               >
@@ -501,7 +499,7 @@ export function AlertDetailView({ alertId }: { alertId: string }) {
               </Button>
               <Button
                 variant="outline"
-                className={cn("w-full", mutedControlClassName)}
+                className="w-full"
                 onClick={() =>
                   save({ status: "false-positive" }, "Marked false positive")
                 }

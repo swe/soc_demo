@@ -27,7 +27,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn } from "@/lib/utils";
 
 import {
   type DarkWebExposure,
@@ -36,7 +35,6 @@ import {
 } from "./dark-web-data";
 import {
   ExposureTypeBadge,
-  mutedControlClassName,
   RiskScoreBadge,
   SeverityBadge,
 } from "./dark-web-primitives";
@@ -85,8 +83,7 @@ export function DarkWebExposuresTable({
   const selectedVisibleCount = items.filter((item) =>
     selectedIds.has(item.id),
   ).length;
-  const allSelected =
-    items.length > 0 && selectedVisibleCount === items.length;
+  const allSelected = items.length > 0 && selectedVisibleCount === items.length;
   const partiallySelected =
     selectedVisibleCount > 0 && selectedVisibleCount < items.length;
   const hasSelection = selectedVisibleCount > 0;
@@ -96,7 +93,7 @@ export function DarkWebExposuresTable({
   };
 
   return (
-    <div className="bg-card overflow-hidden rounded-lg border">
+    <div className="bg-card shadow-card overflow-hidden rounded-xl border">
       <Table className="table-fixed">
         <TableHeader>
           {hasSelection ? (
@@ -123,7 +120,7 @@ export function DarkWebExposuresTable({
                     <Button
                       variant="outline"
                       size="sm"
-                      className={cn("h-8", mutedControlClassName)}
+                      className="h-8"
                       onClick={() => onBulkSetStatus("investigating")}
                     >
                       <ShieldAlert className="size-3.5" />
@@ -132,7 +129,7 @@ export function DarkWebExposuresTable({
                     <Button
                       variant="outline"
                       size="sm"
-                      className={cn("h-8", mutedControlClassName)}
+                      className="h-8"
                       onClick={() => onBulkSetStatus("false_positive")}
                     >
                       <CircleX className="size-3.5" />
@@ -211,7 +208,6 @@ export function DarkWebExposuresTable({
                     <Button
                       variant="outline"
                       size="sm"
-                      className={mutedControlClassName}
                       onClick={onClearFilters}
                     >
                       Clear filters
@@ -302,9 +298,7 @@ export function DarkWebExposuresTable({
                           Mark remediated
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          onClick={() =>
-                            onSetStatus(item.id, "false_positive")
-                          }
+                          onClick={() => onSetStatus(item.id, "false_positive")}
                         >
                           False positive
                         </DropdownMenuItem>

@@ -29,7 +29,12 @@ import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { getSessionCloudFindings } from "@/components/cloud-posture/cloud-posture-session";
 import { GrcAuditorPacksPanel } from "@/components/compliance/grc-auditor-packs-panel";
 import { ListPagination, paginateItems } from "@/components/list-pagination";
-import { type SocStat,StatsStrip } from "@/components/soc/stats-strip";
+import {
+  ModuleTabsList,
+  ModuleTabsTrigger,
+  TabCount,
+} from "@/components/soc/module-tabs";
+import { type SocStat, StatsStrip } from "@/components/soc/stats-strip";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -79,7 +84,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import {
   Tooltip,
   TooltipContent,
@@ -127,7 +132,6 @@ import {
   EvidenceBadge,
   FrameworkChips,
   FrameworkStatusBadge,
-  mutedControlClassName,
   OwnerCell,
   Panel,
   PanelHeading,
@@ -135,7 +139,6 @@ import {
   ProgressTrack,
   RiskBadge,
   SeverityBadge,
-  tabTriggerClassName,
 } from "./compliance-primitives";
 import { useComplianceSession } from "./compliance-session";
 
@@ -330,7 +333,7 @@ function ControlFilterControl({
         <Button
           variant="outline"
           size="sm"
-          className={cn("relative h-9 gap-1.5 px-2.5", mutedControlClassName)}
+          className="relative h-9 gap-1.5 px-2.5"
         >
           <ListFilter className="size-3.5" />
           Filter
@@ -605,7 +608,7 @@ function FrameworkCard({
         <Button
           variant="outline"
           size="sm"
-          className={cn("h-8 gap-1.5 text-xs", mutedControlClassName)}
+          className="h-8 gap-1.5 text-xs"
           onClick={() => onViewControls(framework.id)}
         >
           Controls
@@ -884,7 +887,7 @@ function ControlDetailSheet({
               <Button
                 variant="outline"
                 size="sm"
-                className={cn("h-8 gap-1.5", mutedControlClassName)}
+                className="h-8 gap-1.5"
                 onClick={() =>
                   toast({
                     title: "Evidence request sent",
@@ -940,7 +943,7 @@ function ControlsTable({
   const hasSelection = selectedVisibleCount > 0;
 
   return (
-    <div className="bg-card overflow-hidden rounded-lg border">
+    <div className="bg-card shadow-card overflow-hidden rounded-xl border">
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
@@ -968,7 +971,7 @@ function ControlsTable({
                       <Button
                         variant="outline"
                         size="sm"
-                        className={cn("h-8", mutedControlClassName)}
+                        className="h-8"
                         onClick={onBulkRetest}
                       >
                         <RefreshCw className="size-3.5" />
@@ -977,7 +980,7 @@ function ControlsTable({
                       <Button
                         variant="outline"
                         size="sm"
-                        className={cn("h-8", mutedControlClassName)}
+                        className="h-8"
                         onClick={onBulkRequestEvidence}
                       >
                         <Upload className="size-3.5" />
@@ -986,7 +989,7 @@ function ControlsTable({
                       <Button
                         variant="outline"
                         size="sm"
-                        className={cn("h-8", mutedControlClassName)}
+                        className="h-8"
                         onClick={onBulkExport}
                       >
                         <Download className="size-3.5" />
@@ -1161,7 +1164,7 @@ function EvidenceTable({
   }
 
   return (
-    <div className="bg-card overflow-hidden rounded-lg border">
+    <div className="bg-card shadow-card overflow-hidden rounded-xl border">
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
@@ -1317,7 +1320,7 @@ function FindingsTable({
   }
 
   return (
-    <div className="bg-card overflow-hidden rounded-lg border">
+    <div className="bg-card shadow-card overflow-hidden rounded-xl border">
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
@@ -1407,9 +1410,7 @@ function FindingsTable({
                     {finding.dueLabel}
                   </span>
                   {finding.overdue ? (
-                    <p className="text-destructive mt-0.5 text-xs">
-                      Overdue
-                    </p>
+                    <p className="text-destructive mt-0.5 text-xs">Overdue</p>
                   ) : null}
                 </TableCell>
               </TableRow>
@@ -1476,7 +1477,7 @@ function AuditsPanel({
                 <Button
                   variant="outline"
                   size="sm"
-                  className={cn("h-8 gap-1.5 text-xs", mutedControlClassName)}
+                  className="h-8 gap-1.5 text-xs"
                   onClick={() =>
                     toast({
                       title: "Status shared",
@@ -1555,7 +1556,7 @@ function AuditsPanel({
                   <Button
                     variant="outline"
                     size="sm"
-                    className={cn("h-8 gap-1.5 text-xs", mutedControlClassName)}
+                    className="h-8 gap-1.5 text-xs"
                     onClick={() =>
                       toast({
                         title: "Report download ready",
@@ -1804,9 +1805,7 @@ export function ComplianceCenter() {
                 setFrameworkFilter(value as FrameworkId | "all")
               }
             >
-              <SelectTrigger
-                className={cn("h-9 w-[190px]", mutedControlClassName)}
-              >
+              <SelectTrigger className="h-9 w-[190px]">
                 <SelectValue placeholder="Framework scope" />
               </SelectTrigger>
               <SelectContent>
@@ -1863,43 +1862,29 @@ export function ComplianceCenter() {
             onValueChange={(value) => setActiveTab(value as ComplianceTab)}
             className="flex flex-col gap-4"
           >
-            <div className="overflow-x-auto border-b">
-              <TabsList className="inline-flex h-auto min-w-max justify-start gap-7 rounded-none bg-transparent p-0 sm:gap-8">
-                <TabsTrigger value="overview" className={tabTriggerClassName}>
-                  Overview
-                </TabsTrigger>
-                <TabsTrigger value="frameworks" className={tabTriggerClassName}>
-                  Frameworks
-                  <span className="bg-muted text-muted-foreground rounded-md px-1.5 py-0.5 text-xs">
-                    {tabCounts.frameworks}
-                  </span>
-                </TabsTrigger>
-                <TabsTrigger value="controls" className={tabTriggerClassName}>
-                  Controls
-                  <span className="bg-muted text-muted-foreground rounded-md px-1.5 py-0.5 text-xs">
-                    {tabCounts.controls}
-                  </span>
-                </TabsTrigger>
-                <TabsTrigger value="evidence" className={tabTriggerClassName}>
-                  Evidence
-                  <span className="bg-muted text-muted-foreground rounded-md px-1.5 py-0.5 text-xs">
-                    {tabCounts.evidence}
-                  </span>
-                </TabsTrigger>
-                <TabsTrigger value="findings" className={tabTriggerClassName}>
-                  Findings
-                  <span className="bg-muted text-muted-foreground rounded-md px-1.5 py-0.5 text-xs">
-                    {tabCounts.findings}
-                  </span>
-                </TabsTrigger>
-                <TabsTrigger value="audits" className={tabTriggerClassName}>
-                  Audits
-                  <span className="bg-muted text-muted-foreground rounded-md px-1.5 py-0.5 text-xs">
-                    {tabCounts.audits}
-                  </span>
-                </TabsTrigger>
-              </TabsList>
-            </div>
+            <ModuleTabsList>
+              <ModuleTabsTrigger value="overview">Overview</ModuleTabsTrigger>
+              <ModuleTabsTrigger value="frameworks">
+                Frameworks
+                <TabCount>{tabCounts.frameworks}</TabCount>
+              </ModuleTabsTrigger>
+              <ModuleTabsTrigger value="controls">
+                Controls
+                <TabCount>{tabCounts.controls}</TabCount>
+              </ModuleTabsTrigger>
+              <ModuleTabsTrigger value="evidence">
+                Evidence
+                <TabCount>{tabCounts.evidence}</TabCount>
+              </ModuleTabsTrigger>
+              <ModuleTabsTrigger value="findings">
+                Findings
+                <TabCount>{tabCounts.findings}</TabCount>
+              </ModuleTabsTrigger>
+              <ModuleTabsTrigger value="audits">
+                Audits
+                <TabCount>{tabCounts.audits}</TabCount>
+              </ModuleTabsTrigger>
+            </ModuleTabsList>
 
             <TabsContent value="overview" className="mt-0">
               <ComplianceOverview
@@ -1941,7 +1926,7 @@ export function ComplianceCenter() {
                     <Button
                       variant="outline"
                       size="sm"
-                      className={cn("h-8", mutedControlClassName)}
+                      className="h-8"
                       onClick={resetFilters}
                     >
                       Reset filters
@@ -2011,7 +1996,7 @@ export function ComplianceCenter() {
                       <Button
                         variant="outline"
                         size="sm"
-                        className={cn("h-8", mutedControlClassName)}
+                        className="h-8"
                         onClick={resetFilters}
                       >
                         Reset filters
@@ -2069,7 +2054,9 @@ export function ComplianceCenter() {
                         className="border-border/70 rounded-lg border px-3 py-2.5"
                       >
                         <div className="flex items-start justify-between gap-2">
-                          <p className="text-sm font-medium">{collector.name}</p>
+                          <p className="text-sm font-medium">
+                            {collector.name}
+                          </p>
                           <Badge
                             variant="outline"
                             className="rounded-full text-xs capitalize"

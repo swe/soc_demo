@@ -30,7 +30,6 @@ import {
 } from "./dark-web-data";
 import {
   ExposureTypeBadge,
-  mutedControlClassName,
   SeverityBadge,
   SheetDetailRow,
 } from "./dark-web-primitives";
@@ -45,12 +44,14 @@ export function DarkWebBreachesTable({
   onOpenBreach: (id: string) => void;
 }) {
   return (
-    <div className="bg-card overflow-hidden rounded-lg border">
+    <div className="bg-card shadow-card overflow-hidden rounded-xl border">
       <Table>
         <TableHeader>
           <TableRow className="hover:bg-transparent">
             <TableHead>Breach</TableHead>
-            <TableHead className="hidden w-[100px] sm:table-cell">Date</TableHead>
+            <TableHead className="hidden w-[100px] sm:table-cell">
+              Date
+            </TableHead>
             <TableHead className="w-[88px]">Records</TableHead>
             <TableHead className="hidden md:table-cell">Data classes</TableHead>
             <TableHead className="w-[88px]">Matched</TableHead>
@@ -69,7 +70,9 @@ export function DarkWebBreachesTable({
               >
                 <TableCell>
                   <div className="min-w-0 space-y-0.5">
-                    <p className="truncate text-sm font-medium">{breach.name}</p>
+                    <p className="truncate text-sm font-medium">
+                      {breach.name}
+                    </p>
                     <p className="text-muted-foreground truncate text-xs">
                       {breach.source}
                     </p>
@@ -227,7 +230,7 @@ export function DarkWebBreachDetailSheet({
                   <Button
                     variant="outline"
                     size="sm"
-                    className={cn("mt-1 gap-1", mutedControlClassName)}
+                    className="mt-1 gap-1"
                     onClick={() => {
                       if (ours[0]) onOpenExposure(ours[0].id);
                     }}

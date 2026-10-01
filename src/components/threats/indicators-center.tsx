@@ -17,6 +17,7 @@ import {
   ModuleToolbarSearch,
 } from "@/components/soc/module-shell";
 import { StatsStrip } from "@/components/soc/stats-strip";
+import { ToolbarToggle } from "@/components/soc/toolbar-toggle";
 import { Button } from "@/components/ui/button";
 import {
   InputGroup,
@@ -31,7 +32,6 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { Switch } from "@/components/ui/switch";
 import {
   Table,
   TableBody,
@@ -62,7 +62,6 @@ import {
   ConfidenceBadge,
   IndicatorStatusBadge,
   IndicatorTypeBadge,
-  mutedControlClassName,
   SeverityBadge,
   SheetDetailRow,
 } from "./threat-shared-primitives";
@@ -292,7 +291,7 @@ function IndicatorDetailSheet({
                 asChild
                 variant="outline"
                 size="sm"
-                className={cn("justify-start", mutedControlClassName)}
+                className="justify-start"
               >
                 <Link
                   href={`/threat-intelligence/dark-web?tab=exposures&exposure=${indicator.darkWebExposureIds[0]}`}
@@ -315,11 +314,9 @@ function IndicatorDetailSheet({
                 asChild
                 variant="outline"
                 size="sm"
-                className={cn("justify-start", mutedControlClassName)}
+                className="justify-start"
               >
-                <Link
-                  href={`/threat-hunting/hunts?indicator=${indicator.id}`}
-                >
+                <Link href={`/threat-hunting/hunts?indicator=${indicator.id}`}>
                   <Crosshair className="mr-1.5 size-3.5" />
                   Start hunt from indicator
                 </Link>
@@ -329,7 +326,7 @@ function IndicatorDetailSheet({
                   asChild
                   variant="outline"
                   size="sm"
-                  className={cn("justify-start", mutedControlClassName)}
+                  className="justify-start"
                 >
                   <Link href="/threat-hunting/analytics">
                     View related techniques
@@ -378,8 +375,7 @@ export function IndicatorsCenter({
     [filtered, page, pageSize],
   );
 
-  const selected =
-    indicators.find((item) => item.id === selectedId) ?? null;
+  const selected = indicators.find((item) => item.id === selectedId) ?? null;
 
   const toggleType = (type: IndicatorType) => {
     setPage(1);
@@ -401,153 +397,149 @@ export function IndicatorsCenter({
 
   return (
     <>
-    <ModuleShell
-      toolbar={
-        <>
-          <ModuleToolbarSearch>
-            <InputGroup className="h-9 w-full lg:max-w-sm">
-              <InputGroupAddon>
-                <Search className="size-4" />
-              </InputGroupAddon>
-              <InputGroupInput
-                placeholder="Search value, ID, tag, technique…"
-                value={query}
-                onChange={(event) => {
-                  setPage(1);
-                  setQuery(event.target.value);
-                }}
-              />
-            </InputGroup>
-          </ModuleToolbarSearch>
-          <ModuleToolbarActions>
-            <label className="border-border bg-background hover:bg-accent flex h-9 cursor-pointer items-center gap-2 rounded-md border px-2.5 text-sm">
-              <Switch
+      <ModuleShell
+        toolbar={
+          <>
+            <ModuleToolbarSearch>
+              <InputGroup className="h-9 w-full lg:max-w-sm">
+                <InputGroupAddon>
+                  <Search className="size-4" />
+                </InputGroupAddon>
+                <InputGroupInput
+                  placeholder="Search value, ID, tag, technique…"
+                  value={query}
+                  onChange={(event) => {
+                    setPage(1);
+                    setQuery(event.target.value);
+                  }}
+                />
+              </InputGroup>
+            </ModuleToolbarSearch>
+            <ModuleToolbarActions>
+              <ToolbarToggle
                 checked={activeOnly}
                 onCheckedChange={(checked) => {
                   setPage(1);
                   setActiveOnly(checked);
                 }}
+                label="Active only"
               />
-              <span>Active only</span>
-            </label>
-            {indicatorTypes.map((type) => {
-              const active = typeFilters.includes(type);
-              return (
-                <Button
-                  key={type}
-                  type="button"
-                  size="sm"
-                  variant={active ? "default" : "outline"}
-                  className={cn(
-                    "h-8 rounded-md text-xs",
-                    !active && mutedControlClassName,
-                  )}
-                  onClick={() => toggleType(type)}
-                >
-                  {indicatorTypeLabels[type]}
-                </Button>
-              );
-            })}
-            {indicatorStatuses.map((status) => {
-              const active = statusFilters.includes(status);
-              return (
-                <Button
-                  key={status}
-                  type="button"
-                  size="sm"
-                  variant={active ? "default" : "outline"}
-                  className={cn(
-                    "h-8 rounded-md text-xs",
-                    !active && mutedControlClassName,
-                  )}
-                  onClick={() => toggleStatus(status)}
-                >
-                  {indicatorStatusLabels[status]}
-                </Button>
-              );
-            })}
-          </ModuleToolbarActions>
-        </>
-      }
-    >
-      <IndicatorsStatsStrip indicators={indicators} />
+              {indicatorTypes.map((type) => {
+                const active = typeFilters.includes(type);
+                return (
+                  <Button
+                    key={type}
+                    type="button"
+                    size="sm"
+                    variant={active ? "default" : "outline"}
+                    className={cn("h-8 rounded-md text-xs")}
+                    onClick={() => toggleType(type)}
+                  >
+                    {indicatorTypeLabels[type]}
+                  </Button>
+                );
+              })}
+              {indicatorStatuses.map((status) => {
+                const active = statusFilters.includes(status);
+                return (
+                  <Button
+                    key={status}
+                    type="button"
+                    size="sm"
+                    variant={active ? "default" : "outline"}
+                    className={cn("h-8 rounded-md text-xs")}
+                    onClick={() => toggleStatus(status)}
+                  >
+                    {indicatorStatusLabels[status]}
+                  </Button>
+                );
+              })}
+            </ModuleToolbarActions>
+          </>
+        }
+      >
+        <IndicatorsStatsStrip indicators={indicators} />
 
-      <div className="bg-card overflow-hidden rounded-lg border">
-        <Table className="table-fixed">
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[100px]">ID</TableHead>
-              <TableHead className="w-[90px]">Type</TableHead>
-              <TableHead>Value</TableHead>
-              <TableHead className="w-[100px]">Severity</TableHead>
-              <TableHead className="w-[120px]">Status</TableHead>
-              <TableHead className="hidden w-[100px] lg:table-cell">
-                Confidence
-              </TableHead>
-              <TableHead className="hidden w-[110px] xl:table-cell">
-                Last seen
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {pageItems.length === 0 ? (
+        <div className="bg-card shadow-card overflow-hidden rounded-xl border">
+          <Table className="table-fixed">
+            <TableHeader>
               <TableRow>
-                <TableCell
-                  colSpan={7}
-                  className="text-muted-foreground h-24 text-center"
-                >
-                  No indicators match the current filters.
-                </TableCell>
+                <TableHead className="w-[100px]">ID</TableHead>
+                <TableHead className="w-[90px]">Type</TableHead>
+                <TableHead>Value</TableHead>
+                <TableHead className="w-[100px]">Severity</TableHead>
+                <TableHead className="w-[120px]">Status</TableHead>
+                <TableHead className="hidden w-[100px] lg:table-cell">
+                  Confidence
+                </TableHead>
+                <TableHead className="hidden w-[110px] xl:table-cell">
+                  Last seen
+                </TableHead>
               </TableRow>
-            ) : (
-              pageItems.map((item) => (
-                <TableRow
-                  key={item.id}
-                  className="hover:bg-muted/40 cursor-pointer"
-                  data-state={selectedId === item.id ? "selected" : undefined}
-                  onClick={() => setSelectedId(item.id)}
-                >
-                  <TableCell className="font-mono text-xs">{item.id}</TableCell>
-                  <TableCell>
-                    <IndicatorTypeBadge type={item.type} />
-                  </TableCell>
-                  <TableCell>
-                    <div className="min-w-0">
-                      <p className="truncate font-mono text-xs">{item.value}</p>
-                      <p className="text-muted-foreground truncate text-xs">
-                        {item.title}
-                      </p>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <SeverityBadge severity={item.severity} />
-                  </TableCell>
-                  <TableCell>
-                    <IndicatorStatusBadge status={item.status} />
-                  </TableCell>
-                  <TableCell className="hidden lg:table-cell">
-                    <ConfidenceBadge confidence={item.confidence} />
-                  </TableCell>
-                  <TableCell className="text-muted-foreground hidden text-xs xl:table-cell">
-                    {item.lastSeenLabel}
+            </TableHeader>
+            <TableBody>
+              {pageItems.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={7}
+                    className="text-muted-foreground h-24 text-center"
+                  >
+                    No indicators match the current filters.
                   </TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-        <ListPagination
-          page={page}
-          pageSize={pageSize}
-          total={filtered.length}
-          onPageChange={setPage}
-          onPageSizeChange={(size) => {
-            setPage(1);
-            setPageSize(size);
-          }}
-        />
-      </div>
-    </ModuleShell>
+              ) : (
+                pageItems.map((item) => (
+                  <TableRow
+                    key={item.id}
+                    className="hover:bg-muted/40 cursor-pointer"
+                    data-state={selectedId === item.id ? "selected" : undefined}
+                    onClick={() => setSelectedId(item.id)}
+                  >
+                    <TableCell className="font-mono text-xs">
+                      {item.id}
+                    </TableCell>
+                    <TableCell>
+                      <IndicatorTypeBadge type={item.type} />
+                    </TableCell>
+                    <TableCell>
+                      <div className="min-w-0">
+                        <p className="truncate font-mono text-xs">
+                          {item.value}
+                        </p>
+                        <p className="text-muted-foreground truncate text-xs">
+                          {item.title}
+                        </p>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <SeverityBadge severity={item.severity} />
+                    </TableCell>
+                    <TableCell>
+                      <IndicatorStatusBadge status={item.status} />
+                    </TableCell>
+                    <TableCell className="hidden lg:table-cell">
+                      <ConfidenceBadge confidence={item.confidence} />
+                    </TableCell>
+                    <TableCell className="text-muted-foreground hidden text-xs xl:table-cell">
+                      {item.lastSeenLabel}
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+          <ListPagination
+            page={page}
+            pageSize={pageSize}
+            total={filtered.length}
+            onPageChange={setPage}
+            onPageSizeChange={(size) => {
+              setPage(1);
+              setPageSize(size);
+            }}
+          />
+        </div>
+      </ModuleShell>
 
       <IndicatorDetailSheet
         indicator={selected}

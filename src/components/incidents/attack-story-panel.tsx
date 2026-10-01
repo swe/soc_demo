@@ -240,7 +240,8 @@ export function AttackStoryPanel({
               First{" "}
               {firstActivity ? new Date(firstActivity).toLocaleString() : "—"}
               {" · "}
-              Last {lastActivity ? new Date(lastActivity).toLocaleString() : "—"}
+              Last{" "}
+              {lastActivity ? new Date(lastActivity).toLocaleString() : "—"}
             </p>
           </div>
           <ul className="space-y-2">
@@ -306,7 +307,7 @@ export function AttackStoryPanel({
 
         <section className="bg-card space-y-3 rounded-lg border p-4">
           <div className="flex items-start gap-2">
-            <ShieldAlert className="text-destructive mt-0.5 size-4 shrink-0" />
+            <ShieldAlert className="text-destructive-text mt-0.5 size-4 shrink-0" />
             <div className="min-w-0">
               <h2 className="text-sm font-medium">Attack disruption</h2>
               <p className="text-muted-foreground mt-1 text-xs leading-relaxed">
@@ -320,9 +321,9 @@ export function AttackStoryPanel({
             className={cn(
               "rounded-full font-normal capitalize",
               story.disruption.status === "executed" &&
-                "border-emerald-500/40 text-emerald-700 dark:text-emerald-400",
+                "border-success/40 text-success-text",
               story.disruption.status === "recommended" &&
-                "border-orange-500/40 text-orange-700 dark:text-orange-400",
+                "border-severity-high/40 text-severity-high-text",
             )}
           >
             {story.disruption.status === "executed"
@@ -365,9 +366,7 @@ export function AttackStoryPanel({
                     variant="outline"
                     size="sm"
                     className="h-8 w-full justify-start text-xs"
-                    disabled={
-                      running || story.disruption.status === "executed"
-                    }
+                    disabled={running || story.disruption.status === "executed"}
                     onClick={() => runDisruption([action])}
                   >
                     {action.label}

@@ -17,7 +17,13 @@ import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 
 import { appendAuditLog } from "@/components/audit/audit-log-data";
 import { currentProfile } from "@/components/profile/profile-data";
-import { type SocStat,StatsStrip } from "@/components/soc/stats-strip";
+import {
+  ModuleTabsList,
+  ModuleTabsTrigger,
+  TabCount,
+} from "@/components/soc/module-tabs";
+import { type SocStat, StatsStrip } from "@/components/soc/stats-strip";
+import { ToolbarToggle } from "@/components/soc/toolbar-toggle";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -36,8 +42,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Switch } from "@/components/ui/switch";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs } from "@/components/ui/tabs";
 import { downloadCsv } from "@/lib/download-csv";
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
@@ -66,10 +71,6 @@ import {
 import { DarkWebDetailSheet } from "./dark-web-detail-sheet";
 import { DarkWebExposuresTable } from "./dark-web-exposures-table";
 import { DarkWebOverview } from "./dark-web-overview";
-import {
-  mutedControlClassName,
-  tabTriggerClassName,
-} from "./dark-web-primitives";
 import { queryExposures } from "./dark-web-query";
 import { useDarkWebSession } from "./dark-web-session";
 import {
@@ -181,7 +182,7 @@ function ExposureFilterControl({
         <Button
           variant="outline"
           size="sm"
-          className={cn("relative h-9 gap-1.5 px-2.5", mutedControlClassName)}
+          className="relative h-9 gap-1.5 px-2.5"
         >
           <ListFilter className="size-3.5" />
           Filter
@@ -772,22 +773,18 @@ export function DarkWebCenter() {
             </div>
 
             <div className="flex min-w-0 flex-wrap items-center gap-2 lg:justify-end">
-              <label className="border-border bg-background hover:bg-accent flex h-9 cursor-pointer items-center gap-2 rounded-md border px-2.5 text-sm">
-                <Switch
-                  id="open-only"
-                  checked={openOnly}
-                  onCheckedChange={setOpenOnly}
-                />
-                <span>Open only</span>
-              </label>
-              <label className="border-border bg-background hover:bg-accent flex h-9 cursor-pointer items-center gap-2 rounded-md border px-2.5 text-sm">
-                <Switch
-                  id="privileged-only"
-                  checked={privilegedOnly}
-                  onCheckedChange={setPrivilegedOnly}
-                />
-                <span>Privileged</span>
-              </label>
+              <ToolbarToggle
+                id="open-only"
+                checked={openOnly}
+                onCheckedChange={setOpenOnly}
+                label="Open only"
+              />
+              <ToolbarToggle
+                id="privileged-only"
+                checked={privilegedOnly}
+                onCheckedChange={setPrivilegedOnly}
+                label="Privileged"
+              />
 
               <ExposureFilterControl
                 typeFilters={typeFilters}
@@ -892,31 +889,23 @@ export function DarkWebCenter() {
             onValueChange={(value) => setTab(value as DarkWebTab)}
             className="flex flex-col gap-4"
           >
-            <div className="overflow-x-auto border-b">
-              <TabsList className="inline-flex h-auto min-w-max justify-start gap-7 rounded-none bg-transparent p-0 sm:gap-8">
-                <TabsTrigger value="overview" className={tabTriggerClassName}>
-                  Overview
-                </TabsTrigger>
-                <TabsTrigger value="exposures" className={tabTriggerClassName}>
-                  Exposures
-                  <span className="bg-muted text-muted-foreground rounded-md px-1.5 py-0.5 text-xs">
-                    {queryResult.openCount.toLocaleString("en-US")}
-                  </span>
-                </TabsTrigger>
-                <TabsTrigger value="breaches" className={tabTriggerClassName}>
-                  Breaches
-                  <span className="bg-muted text-muted-foreground rounded-md px-1.5 py-0.5 text-xs">
-                    {breaches.length}
-                  </span>
-                </TabsTrigger>
-                <TabsTrigger value="watchlist" className={tabTriggerClassName}>
-                  Watchlist
-                  <span className="bg-muted text-muted-foreground rounded-md px-1.5 py-0.5 text-xs">
-                    {watchlist.length}
-                  </span>
-                </TabsTrigger>
-              </TabsList>
-            </div>
+            <ModuleTabsList>
+              <ModuleTabsTrigger value="overview">Overview</ModuleTabsTrigger>
+              <ModuleTabsTrigger value="exposures">
+                Exposures
+                <TabCount>
+                  {queryResult.openCount.toLocaleString("en-US")}
+                </TabCount>
+              </ModuleTabsTrigger>
+              <ModuleTabsTrigger value="breaches">
+                Breaches
+                <TabCount>{breaches.length}</TabCount>
+              </ModuleTabsTrigger>
+              <ModuleTabsTrigger value="watchlist">
+                Watchlist
+                <TabCount>{watchlist.length}</TabCount>
+              </ModuleTabsTrigger>
+            </ModuleTabsList>
 
             {tab === "overview" ? (
               <DarkWebOverview

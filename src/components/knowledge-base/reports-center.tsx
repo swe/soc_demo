@@ -77,7 +77,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { toast } from "@/lib/toast";
-import { cn } from "@/lib/utils";
 
 import { downloadTextFile } from "./download-text-file";
 import {
@@ -92,7 +91,6 @@ import {
 import {
   EmptyState,
   KbStatsStrip,
-  mutedControlClassName,
   OwnerCell,
   RelatedLinks,
   ReportStatusBadge,
@@ -196,7 +194,7 @@ function ReportFilterControl({
         <Button
           variant="outline"
           size="sm"
-          className={cn("relative h-9 gap-1.5 px-2.5", mutedControlClassName)}
+          className="relative h-9 gap-1.5 px-2.5"
         >
           <ListFilter className="size-3.5" />
           Filter
@@ -346,7 +344,9 @@ export function ReportsCenter() {
   const deferredSearchQuery = useDeferredValue(searchQuery);
 
   const activeFilterCount =
-    kindFilters.length + statusFilters.length + (sort !== "updated-desc" ? 1 : 0);
+    kindFilters.length +
+    statusFilters.length +
+    (sort !== "updated-desc" ? 1 : 0);
 
   const toggleKind = (kind: KbReportKind) => {
     setKindFilters((current) =>
@@ -572,12 +572,7 @@ export function ReportsCenter() {
               onSetSort={setSort}
               onClearFilters={resetFilters}
             />
-            <Button
-              variant="outline"
-              size="sm"
-              className={cn("h-9 gap-1.5", mutedControlClassName)}
-              asChild
-            >
+            <Button variant="outline" size="sm" className="h-9 gap-1.5" asChild>
               <Link href="/compliance">
                 <Scale className="size-3.5" />
                 <span className="hidden sm:inline">Compliance</span>
@@ -604,8 +599,8 @@ export function ReportsCenter() {
             <div className="flex min-w-0 flex-wrap items-center gap-2">
               <FileBarChart className="text-muted-foreground size-3.5 shrink-0" />
               <p className="text-muted-foreground text-xs">
-                Executive board pack is available as a one-click Markdown export.
-                Compliance activity also links{" "}
+                Executive board pack is available as a one-click Markdown
+                export. Compliance activity also links{" "}
                 <Link
                   href="/compliance"
                   className="text-foreground font-medium underline-offset-2 hover:underline"
@@ -618,7 +613,7 @@ export function ReportsCenter() {
             <Button
               size="sm"
               variant="outline"
-              className={cn("h-8 gap-1.5", mutedControlClassName)}
+              className="h-8 gap-1.5"
               onClick={() => {
                 const filename = downloadExecutiveBoardPack();
                 toast({
@@ -644,7 +639,7 @@ export function ReportsCenter() {
               }
             />
           ) : (
-            <div className="bg-card overflow-hidden rounded-lg border">
+            <div className="bg-card shadow-card overflow-hidden rounded-xl border">
               <Table>
                 <TableHeader>
                   <TableRow className="hover:bg-transparent">
@@ -909,7 +904,7 @@ export function ReportsCenter() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className={cn("gap-1.5", mutedControlClassName)}
+                    className="gap-1.5"
                     onClick={() => regenerateReport(selected)}
                   >
                     <RefreshCw className="size-3.5" />

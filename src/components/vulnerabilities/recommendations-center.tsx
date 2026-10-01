@@ -113,69 +113,75 @@ export function RecommendationsCenter() {
     >
       <StatsStrip stats={stats} />
 
-        <div className="bg-card overflow-hidden rounded-lg border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Title</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Weaknesses</TableHead>
-                <TableHead className="text-right">Exposed</TableHead>
-                <TableHead className="text-right">Impact</TableHead>
-                <TableHead>Scope</TableHead>
+      <div className="bg-card shadow-card overflow-hidden rounded-xl border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Title</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="hidden md:table-cell text-right">
+                Weaknesses
+              </TableHead>
+              <TableHead className="hidden sm:table-cell text-right">
+                Exposed
+              </TableHead>
+              <TableHead className="hidden md:table-cell text-right">
+                Impact
+              </TableHead>
+              <TableHead className="hidden lg:table-cell">Scope</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {rows.map((item) => (
+              <TableRow key={item.id}>
+                <TableCell>
+                  <Link
+                    href={`/vulnerabilities/work?q=${encodeURIComponent(item.id)}`}
+                    className="font-medium hover:underline"
+                  >
+                    {item.title}
+                  </Link>
+                  <p className="text-muted-foreground text-xs">
+                    {item.relatedComponent} · {item.osPlatform}
+                  </p>
+                </TableCell>
+                <TableCell>
+                  <RecommendationStatusBadge
+                    status={item.status as RecommendationStatus}
+                  />
+                  <span className="sr-only">
+                    {recommendationStatusLabels[item.status]}
+                  </span>
+                </TableCell>
+                <TableCell className="hidden md:table-cell text-right tabular-nums">
+                  {item.weaknessCount}
+                </TableCell>
+                <TableCell className="hidden sm:table-cell text-right tabular-nums">
+                  {item.exposedDevices}/{item.totalDevices}
+                </TableCell>
+                <TableCell className="hidden md:table-cell text-right tabular-nums">
+                  {item.impactScore}
+                </TableCell>
+                <TableCell className="hidden lg:table-cell">
+                  <Badge variant="outline" className="capitalize">
+                    {item.scope}
+                  </Badge>
+                </TableCell>
               </TableRow>
-            </TableHeader>
-            <TableBody>
-              {rows.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell>
-                    <Link
-                      href={`/vulnerabilities/work?q=${encodeURIComponent(item.id)}`}
-                      className="font-medium hover:underline"
-                    >
-                      {item.title}
-                    </Link>
-                    <p className="text-muted-foreground text-xs">
-                      {item.relatedComponent} · {item.osPlatform}
-                    </p>
-                  </TableCell>
-                  <TableCell>
-                    <RecommendationStatusBadge
-                      status={item.status as RecommendationStatus}
-                    />
-                    <span className="sr-only">
-                      {recommendationStatusLabels[item.status]}
-                    </span>
-                  </TableCell>
-                  <TableCell className="text-right tabular-nums">
-                    {item.weaknessCount}
-                  </TableCell>
-                  <TableCell className="text-right tabular-nums">
-                    {item.exposedDevices}/{item.totalDevices}
-                  </TableCell>
-                  <TableCell className="text-right tabular-nums">
-                    {item.impactScore}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className="capitalize">
-                      {item.scope}
-                    </Badge>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-          <ListPagination
-            page={page}
-            pageSize={pageSize}
-            total={filtered.length}
-            onPageChange={setPage}
-            onPageSizeChange={(size) => {
-              setPageSize(size);
-              setPage(1);
-            }}
-          />
-        </div>
+            ))}
+          </TableBody>
+        </Table>
+        <ListPagination
+          page={page}
+          pageSize={pageSize}
+          total={filtered.length}
+          onPageChange={setPage}
+          onPageSizeChange={(size) => {
+            setPageSize(size);
+            setPage(1);
+          }}
+        />
+      </div>
     </ModuleShell>
   );
 }

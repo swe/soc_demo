@@ -28,6 +28,12 @@ import { useDeferredValue, useEffect, useMemo, useState } from "react";
 
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { ListPagination, paginateItems } from "@/components/list-pagination";
+import {
+  ModuleTabsList,
+  ModuleTabsTrigger,
+  TabCount,
+} from "@/components/soc/module-tabs";
+import { ToolbarToggle } from "@/components/soc/toolbar-toggle";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -74,7 +80,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
 import {
   Table,
   TableBody,
@@ -83,7 +88,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import {
   Tooltip,
   TooltipContent,
@@ -130,12 +135,6 @@ type InviteDraft = {
   role: InviteRole;
   teamIds: string[];
 };
-
-const mutedControlClassName =
-  "border-border bg-background text-foreground hover:bg-accent hover:text-accent-foreground";
-
-const tabTriggerClassName =
-  "data-[state=active]:border-foreground shrink-0 gap-2 rounded-none border-b-2 border-transparent px-0 pb-3 text-sm shadow-none data-[state=active]:bg-transparent data-[state=active]:shadow-none sm:pb-4";
 
 const sortLabels: Record<UserSort, string> = {
   "name-asc": "Name A-Z",
@@ -332,10 +331,7 @@ function UserFilterControl({
         <Button
           variant="outline"
           size="sm"
-          className={cn(
-            "relative h-9 shrink-0 justify-center gap-1.5 px-2.5",
-            mutedControlClassName,
-          )}
+          className={cn("relative h-9 shrink-0 justify-center gap-1.5 px-2.5")}
         >
           <ListFilter className="size-3.5" />
           Filter
@@ -599,7 +595,7 @@ function MembersTable({
   const hasSelection = selectedVisibleCount > 0;
 
   return (
-    <div className="bg-card overflow-hidden rounded-lg border">
+    <div className="bg-card shadow-card overflow-hidden rounded-xl border">
       <Table>
         <TableHeader>
           {hasSelection ? (
@@ -623,19 +619,11 @@ function MembersTable({
                     {selectedVisibleCount} selected
                   </span>
                   <div className="ml-auto flex flex-wrap items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className={cn("h-8", mutedControlClassName)}
-                    >
+                    <Button variant="outline" size="sm" className="h-8">
                       <Shield className="size-3.5" />
                       Change role
                     </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className={cn("h-8", mutedControlClassName)}
-                    >
+                    <Button variant="outline" size="sm" className="h-8">
                       <ShieldCheck className="size-3.5" />
                       Require MFA
                     </Button>
@@ -700,9 +688,7 @@ function MembersTable({
                     !selectedIds.includes(user.id) &&
                     "bg-destructive/[0.03]",
                 )}
-                onClick={() =>
-                  router.push(`/administration/users/${user.id}`)
-                }
+                onClick={() => router.push(`/administration/users/${user.id}`)}
               >
                 <TableCell
                   className="px-4"
@@ -836,7 +822,7 @@ function InvitationsTable({
   const hasSelection = selectedVisibleCount > 0;
 
   return (
-    <div className="bg-card overflow-hidden rounded-lg border">
+    <div className="bg-card shadow-card overflow-hidden rounded-xl border">
       <Table>
         <TableHeader>
           {hasSelection ? (
@@ -860,11 +846,7 @@ function InvitationsTable({
                     {selectedVisibleCount} selected
                   </span>
                   <div className="ml-auto flex flex-wrap items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className={cn("h-8", mutedControlClassName)}
-                    >
+                    <Button variant="outline" size="sm" className="h-8">
                       <MailPlus className="size-3.5" />
                       Resend
                     </Button>
@@ -1131,7 +1113,7 @@ function InviteDialog({
             <Button
               variant="outline"
               size="sm"
-              className={cn("h-9", mutedControlClassName)}
+              className="h-9"
               onClick={onAddDraft}
             >
               <Plus className="size-3.5" />
@@ -1300,7 +1282,13 @@ export function AdministrationUserManagement() {
             return a.email.localeCompare(b.email);
         }
       });
-  }, [administrationInvitations, normalizedQuery, roleFilters, sort, teamFilters]);
+  }, [
+    administrationInvitations,
+    normalizedQuery,
+    roleFilters,
+    sort,
+    teamFilters,
+  ]);
 
   useEffect(() => {
     setMemberPage(1);
@@ -1579,21 +1567,18 @@ export function AdministrationUserManagement() {
           <div className="flex min-w-0 flex-wrap items-center gap-2 lg:justify-end">
             {onMembersTab ? (
               <>
-                <label className="border-border bg-background hover:bg-accent flex h-9 cursor-pointer items-center gap-2 rounded-md border px-2.5 text-sm">
-                  <Switch
-                    checked={riskUsersOnly}
-                    onCheckedChange={setRiskUsersOnly}
-                    aria-label="Show risk users only"
-                  />
-                  <span className="whitespace-nowrap">Risk users</span>
-                </label>
+                <ToolbarToggle
+                  checked={riskUsersOnly}
+                  onCheckedChange={setRiskUsersOnly}
+                  aria-label="Show risk users only"
+                  label="Risk users"
+                />
 
                 <Button
                   variant="outline"
                   size="sm"
                   className={cn(
                     "h-9 gap-1.5",
-                    mutedControlClassName,
                     selectedUserIds.length === 0 && "opacity-60",
                   )}
                   disabled={selectedUserIds.length === 0}
@@ -1622,7 +1607,7 @@ export function AdministrationUserManagement() {
             <Button
               size="sm"
               variant="outline"
-              className={cn("h-9 gap-1.5", mutedControlClassName)}
+              className="h-9 gap-1.5"
               onClick={() => setIdpOpen(true)}
             >
               <Shield className="size-3.5" />
@@ -1650,22 +1635,16 @@ export function AdministrationUserManagement() {
             onValueChange={(value) => setActiveTab(value as UserTab)}
             className="flex flex-col gap-4"
           >
-            <div className="overflow-x-auto border-b">
-              <TabsList className="inline-flex h-auto min-w-max justify-start gap-7 rounded-none bg-transparent p-0 sm:gap-8">
-                <TabsTrigger value="members" className={tabTriggerClassName}>
-                  Team Members
-                  <span className="bg-muted text-muted-foreground rounded-md px-1.5 py-0.5 text-xs">
-                    {administrationUsers.length}
-                  </span>
-                </TabsTrigger>
-                <TabsTrigger value="pending" className={tabTriggerClassName}>
-                  Pending Invitations
-                  <span className="bg-muted text-muted-foreground rounded-md px-1.5 py-0.5 text-xs">
-                    {administrationInvitations.length}
-                  </span>
-                </TabsTrigger>
-              </TabsList>
-            </div>
+            <ModuleTabsList>
+              <ModuleTabsTrigger value="members">
+                Team Members
+                <TabCount>{administrationUsers.length}</TabCount>
+              </ModuleTabsTrigger>
+              <ModuleTabsTrigger value="pending">
+                Pending Invitations
+                <TabCount>{administrationInvitations.length}</TabCount>
+              </ModuleTabsTrigger>
+            </ModuleTabsList>
 
             <TabsContent value="members" className="mt-0">
               {visibleUsers.length > 0 ? (
@@ -1711,7 +1690,7 @@ export function AdministrationUserManagement() {
                     <Button
                       variant="outline"
                       size="sm"
-                      className={cn("h-8", mutedControlClassName)}
+                      className="h-8"
                       onClick={resetFilters}
                     >
                       Reset filters

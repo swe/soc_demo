@@ -23,10 +23,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 
-import {
-  type SocIncident,
-  type WarRoomMessage,
-} from "./incidents-data";
+import { type SocIncident, type WarRoomMessage } from "./incidents-data";
 import { useIncidentsSession } from "./incidents-session";
 
 function userHandle(user: AdministrationUser) {
@@ -75,7 +72,9 @@ function renderBody(body: string) {
             "font-medium",
             resolved ? "text-primary" : "text-muted-foreground",
           )}
-          title={resolved ? `${resolved.name} · ${resolved.title}` : "Unknown user"}
+          title={
+            resolved ? `${resolved.name} · ${resolved.title}` : "Unknown user"
+          }
         >
           {part}
         </span>
@@ -270,7 +269,8 @@ export function IncidentWarRoom({ incident }: { incident: SocIncident }) {
       <div className="mb-4 max-h-64 space-y-3 overflow-y-auto pr-1">
         {(incident.warRoomMessages ?? []).length === 0 ? (
           <p className="text-muted-foreground text-sm">
-            No war room activity yet. Use @Name to notify teammates (writes audit).
+            No war room activity yet. Use @Name to notify teammates (writes
+            audit).
           </p>
         ) : (
           (incident.warRoomMessages ?? []).map((message) => (
@@ -279,8 +279,7 @@ export function IncidentWarRoom({ incident }: { incident: SocIncident }) {
               className={cn(
                 "rounded-md border px-3 py-2",
                 message.kind === "system" && "bg-muted/40",
-                message.kind === "handoff" &&
-                  "border-amber-500/30 bg-amber-500/5",
+                message.kind === "handoff" && "border-warning/30 bg-warning/5",
               )}
             >
               <div className="mb-1 flex flex-wrap items-center gap-2 text-xs">

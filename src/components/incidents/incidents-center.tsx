@@ -1,39 +1,31 @@
 "use client";
 
-import {
-  CheckIcon,
-  ChevronRight,
-  Download,
-  ListFilter,
-  Radar,
-  Search,
-  ShieldAlert,
-  Siren,
-} from "lucide-react";
+import { Download, Radar, Search, ShieldAlert, Siren } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 
 import { appendAuditLog } from "@/components/audit/audit-log-data";
 import { currentProfile } from "@/components/profile/profile-data";
-import { StatsStrip } from "@/components/soc/stats-strip";
-import { Button } from "@/components/ui/button";
+import { type FilterFacet, FilterMenu } from "@/components/soc/filter-menu";
 import {
-  Command,
-  CommandGroup,
-  CommandItem,
-  CommandList,
-  CommandSeparator,
-} from "@/components/ui/command";
+  ModuleShell,
+  ModuleToolbarActions,
+  ModuleToolbarSearch,
+} from "@/components/soc/module-shell";
+import {
+  ModuleTabsList,
+  ModuleTabsTrigger,
+  TabCount,
+} from "@/components/soc/module-tabs";
+import { SegmentedControl } from "@/components/soc/segmented-control";
+import { StatsStrip } from "@/components/soc/stats-strip";
+import { ToolbarToggle } from "@/components/soc/toolbar-toggle";
+import { Button } from "@/components/ui/button";
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupInput,
 } from "@/components/ui/input-group";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -41,11 +33,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs } from "@/components/ui/tabs";
 import { downloadCsv } from "@/lib/download-csv";
 import { toast } from "@/lib/toast";
-import { cn } from "@/lib/utils";
 
 import {
   currentAnalystId,
@@ -63,10 +53,6 @@ import {
   type SocIncident,
 } from "./incidents-data";
 import { IncidentsOverview } from "./incidents-overview";
-import {
-  mutedControlClassName,
-  tabTriggerClassName,
-} from "./incidents-primitives";
 import { queryIncidents } from "./incidents-query";
 import { useIncidentsSession } from "./incidents-session";
 import { IncidentsTable } from "./incidents-table";
@@ -81,8 +67,6 @@ import {
   parseIncidentsListSearchParams,
 } from "./incidents-url";
 
-type FilterPanel = "priority" | "phase" | "source" | "sort";
-
 function IncidentsStatsStrip({
   incidents,
 }: {
@@ -90,6 +74,8 @@ function IncidentsStatsStrip({
 }) {
   return <StatsStrip stats={getIncidentStatsWithHrefs(incidents)} />;
 }
+
+type ScopeMode = "mine" | "unassigned" | "analyst";
 
 function AssignedScopeControl({
   scope,
@@ -99,52 +85,34 @@ function AssignedScopeControl({
   onScopeChange: (scope: AssignedScope) => void;
 }) {
   const assignees = useMemo(() => getIncidentAssignees(), []);
-  const isAnalystScope = scope !== "mine" && scope !== "unassigned";
+  const mode: ScopeMode =
+    scope === "mine"
+      ? "mine"
+      : scope === "unassigned"
+        ? "unassigned"
+        : "analyst";
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <div className="bg-muted/60 inline-flex rounded-md border p-0.5">
-        {(
-          [
-            { value: "mine" as const, label: "Mine" },
-            { value: "unassigned" as const, label: "Unassigned" },
-          ] as const
-        ).map((option) => {
-          const active = scope === option.value;
-          return (
-            <button
-              key={option.value}
-              type="button"
-              onClick={() => onScopeChange(option.value)}
-              className={
-                active
-                  ? "bg-background text-foreground rounded-sm px-2.5 py-1 text-xs font-medium shadow-sm"
-                  : "text-muted-foreground hover:text-foreground rounded-sm px-2.5 py-1 text-xs font-medium"
-              }
-            >
-              {option.label}
-            </button>
-          );
-        })}
-        <button
-          type="button"
-          onClick={() => {
-            if (!isAnalystScope) {
+      <SegmentedControl<ScopeMode>
+        aria-label="Assignment scope"
+        value={mode}
+        onChange={(next) => {
+          if (next === "analyst") {
+            if (mode !== "analyst") {
               onScopeChange(assignees[0]?.id ?? currentAnalystId);
             }
-          }}
-          className={
-            isAnalystScope
-              ? "bg-background text-foreground rounded-sm px-2.5 py-1 text-xs font-medium shadow-sm"
-              : "text-muted-foreground hover:text-foreground rounded-sm px-2.5 py-1 text-xs font-medium"
-          }
-        >
-          By analyst
-        </button>
-      </div>
-      {isAnalystScope ? (
+          } else onScopeChange(next);
+        }}
+        options={[
+          { value: "mine", label: "Mine" },
+          { value: "unassigned", label: "Unassigned" },
+          { value: "analyst", label: "By analyst" },
+        ]}
+      />
+      {mode === "analyst" ? (
         <Select value={scope} onValueChange={(value) => onScopeChange(value)}>
-          <SelectTrigger className={cn("h-8 w-[180px]", mutedControlClassName)}>
+          <SelectTrigger className="h-8 w-[180px]" aria-label="Analyst">
             <SelectValue placeholder="Select analyst" />
           </SelectTrigger>
           <SelectContent>
@@ -156,28 +124,6 @@ function AssignedScopeControl({
           </SelectContent>
         </Select>
       ) : null}
-    </div>
-  );
-}
-
-function FilterPanelHeader({
-  title,
-  onBack,
-}: {
-  title: string;
-  onBack: () => void;
-}) {
-  return (
-    <div className="flex items-center border-b p-2">
-      <Button
-        variant="ghost"
-        size="sm"
-        className="h-7 gap-1 px-2 text-xs"
-        onClick={onBack}
-      >
-        <ChevronRight className="size-3.5 rotate-180" />
-        {title}
-      </Button>
     </div>
   );
 }
@@ -199,231 +145,68 @@ function IncidentFilterControl({
   sourceIdFilters: string[];
   sort: IncidentSort;
   activeFilterCount: number;
-  onTogglePriority: (priority: IncidentPriority) => void;
+  onTogglePriority: (severity: IncidentPriority) => void;
   onToggleStatus: (status: IncidentStatus) => void;
   onToggleSourceId: (sourceId: string) => void;
   onSetSort: (sort: IncidentSort) => void;
   onClearFilters: () => void;
 }) {
-  const [open, setOpen] = useState(false);
-  const [panel, setPanel] = useState<FilterPanel | null>(null);
-  const closePanel = () => setPanel(null);
+  const facets: FilterFacet[] = [
+    {
+      id: "priority",
+      label: "Priority",
+      icon: ShieldAlert,
+      options: incidentPriorities.map((value) => ({
+        value,
+        label: incidentPriorityLabels[value],
+      })),
+      selected: priorityFilters,
+      onToggle: (value) => onTogglePriority(value as IncidentPriority),
+    },
+    {
+      id: "phase",
+      label: "Response phase",
+      icon: Radar,
+      options: incidentStatuses.map((value) => ({
+        value,
+        label: incidentStatusLabels[value],
+      })),
+      selected: statusFilters,
+      onToggle: (value) => onToggleStatus(value as IncidentStatus),
+    },
+    {
+      id: "source",
+      label: "Source",
+      icon: Siren,
+      options: incidentSourceOptions.map((source) => ({
+        value: source.sourceId,
+        label: source.sourceName,
+      })),
+      selected: sourceIdFilters,
+      onToggle: onToggleSourceId,
+    },
+    {
+      id: "sort",
+      label: "Sort",
+      single: true,
+      hideCount: true,
+      options: (Object.keys(incidentSortLabels) as IncidentSort[]).map(
+        (value) => ({
+          value,
+          label: incidentSortLabels[value],
+        }),
+      ),
+      selected: [sort],
+      onToggle: (value) => onSetSort(value as IncidentSort),
+    },
+  ];
 
   return (
-    <Popover
-      open={open}
-      onOpenChange={(next) => {
-        setOpen(next);
-        if (!next) setPanel(null);
-      }}
-    >
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          className={cn("relative h-9 gap-1.5 px-2.5", mutedControlClassName)}
-        >
-          <ListFilter className="size-3.5" />
-          Filter
-          {activeFilterCount > 0 ? (
-            <span className="bg-primary text-primary-foreground absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full text-xs font-semibold">
-              {activeFilterCount}
-            </span>
-          ) : null}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-64 p-0" align="end">
-        {panel === null ? (
-          <Command>
-            <CommandList>
-              <CommandGroup>
-                <CommandItem
-                  onSelect={() => setPanel("priority")}
-                  className="flex items-center justify-between"
-                >
-                  <span className="flex items-center gap-2">
-                    <ShieldAlert className="size-4 text-zinc-500" />
-                    Priority
-                  </span>
-                  <div className="flex items-center">
-                    {priorityFilters.length > 0 ? (
-                      <span className="mr-1 text-xs text-zinc-500">
-                        {priorityFilters.length}
-                      </span>
-                    ) : null}
-                    <ChevronRight className="size-4" />
-                  </div>
-                </CommandItem>
-                <CommandItem
-                  onSelect={() => setPanel("phase")}
-                  className="flex items-center justify-between"
-                >
-                  <span className="flex items-center gap-2">
-                    <Radar className="size-4 text-zinc-500" />
-                    Response phase
-                  </span>
-                  <div className="flex items-center">
-                    {statusFilters.length > 0 ? (
-                      <span className="mr-1 text-xs text-zinc-500">
-                        {statusFilters.length}
-                      </span>
-                    ) : null}
-                    <ChevronRight className="size-4" />
-                  </div>
-                </CommandItem>
-                <CommandItem
-                  onSelect={() => setPanel("source")}
-                  className="flex items-center justify-between"
-                >
-                  <span className="flex items-center gap-2">
-                    <Siren className="size-4 text-zinc-500" />
-                    Source
-                  </span>
-                  <div className="flex items-center">
-                    {sourceIdFilters.length > 0 ? (
-                      <span className="mr-1 text-xs text-zinc-500">
-                        {sourceIdFilters.length}
-                      </span>
-                    ) : null}
-                    <ChevronRight className="size-4" />
-                  </div>
-                </CommandItem>
-                <CommandItem
-                  onSelect={() => setPanel("sort")}
-                  className="flex items-center justify-between"
-                >
-                  <span className="flex items-center gap-2">
-                    <ListFilter className="size-4 text-zinc-500" />
-                    Sort
-                  </span>
-                  <ChevronRight className="size-4" />
-                </CommandItem>
-              </CommandGroup>
-              {activeFilterCount > 0 ? (
-                <>
-                  <CommandSeparator />
-                  <CommandGroup>
-                    <CommandItem
-                      onSelect={() => {
-                        onClearFilters();
-                        setOpen(false);
-                      }}
-                      className="text-destructive"
-                    >
-                      Clear filters
-                    </CommandItem>
-                  </CommandGroup>
-                </>
-              ) : null}
-            </CommandList>
-          </Command>
-        ) : null}
-
-        {panel === "priority" ? (
-          <div>
-            <FilterPanelHeader title="Priority" onBack={closePanel} />
-            <Command>
-              <CommandList>
-                <CommandGroup>
-                  {incidentPriorities.map((priority) => {
-                    const checked = priorityFilters.includes(priority);
-                    return (
-                      <CommandItem
-                        key={priority}
-                        onSelect={() => onTogglePriority(priority)}
-                        className="justify-between"
-                      >
-                        {incidentPriorityLabels[priority]}
-                        {checked ? <CheckIcon className="size-4" /> : null}
-                      </CommandItem>
-                    );
-                  })}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </div>
-        ) : null}
-
-        {panel === "phase" ? (
-          <div>
-            <FilterPanelHeader title="Response phase" onBack={closePanel} />
-            <Command>
-              <CommandList>
-                <CommandGroup>
-                  {incidentStatuses.map((status) => {
-                    const checked = statusFilters.includes(status);
-                    return (
-                      <CommandItem
-                        key={status}
-                        onSelect={() => onToggleStatus(status)}
-                        className="justify-between"
-                      >
-                        {incidentStatusLabels[status]}
-                        {checked ? <CheckIcon className="size-4" /> : null}
-                      </CommandItem>
-                    );
-                  })}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </div>
-        ) : null}
-
-        {panel === "source" ? (
-          <div>
-            <FilterPanelHeader title="Source" onBack={closePanel} />
-            <Command>
-              <CommandList>
-                <CommandGroup>
-                  {incidentSourceOptions.map((source) => {
-                    const checked = sourceIdFilters.includes(source.sourceId);
-                    return (
-                      <CommandItem
-                        key={source.sourceId}
-                        onSelect={() => onToggleSourceId(source.sourceId)}
-                        className="justify-between"
-                      >
-                        {source.sourceName}
-                        {checked ? <CheckIcon className="size-4" /> : null}
-                      </CommandItem>
-                    );
-                  })}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </div>
-        ) : null}
-
-        {panel === "sort" ? (
-          <div>
-            <FilterPanelHeader title="Sort" onBack={closePanel} />
-            <Command>
-              <CommandList>
-                <CommandGroup>
-                  {(Object.keys(incidentSortLabels) as IncidentSort[]).map(
-                    (option) => (
-                      <CommandItem
-                        key={option}
-                        onSelect={() => {
-                          onSetSort(option);
-                          closePanel();
-                        }}
-                        className="justify-between"
-                      >
-                        {incidentSortLabels[option]}
-                        {sort === option ? (
-                          <CheckIcon className="size-4" />
-                        ) : null}
-                      </CommandItem>
-                    ),
-                  )}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </div>
-        ) : null}
-      </PopoverContent>
-    </Popover>
+    <FilterMenu
+      facets={facets}
+      activeCount={activeFilterCount}
+      onClear={onClearFilters}
+    />
   );
 }
 
@@ -432,8 +215,11 @@ export type IncidentsView = "overview" | "list" | "assigned";
 export function IncidentsCenter({ view }: { view: IncidentsView }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { incidents: incidentList, getIncident, patchIncidents } =
-    useIncidentsSession();
+  const {
+    incidents: incidentList,
+    getIncident,
+    patchIncidents,
+  } = useIncidentsSession();
 
   const urlFilters = useMemo(
     () => parseIncidentsListSearchParams(searchParams),
@@ -456,8 +242,7 @@ export function IncidentsCenter({ view }: { view: IncidentsView }) {
   );
   const [sort, setSort] = useState<IncidentSort>(urlFilters.sort);
   const [p1P2Only, setP1P2Only] = useState(urlFilters.p1P2Only);
-  const [assignedScope, setAssignedScope] =
-    useState<AssignedScope>(urlScope);
+  const [assignedScope, setAssignedScope] = useState<AssignedScope>(urlScope);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(25);
@@ -695,15 +480,12 @@ export function IncidentsCenter({ view }: { view: IncidentsView }) {
   };
 
   return (
-    <main
-      id="main-content"
-      className="bg-background flex min-h-0 flex-1 flex-col overflow-hidden"
-    >
-      {showFilterBar ? (
-        <div className="bg-background shrink-0 border-b">
-          <div className="flex flex-col gap-2 px-4 py-3 sm:px-6 lg:min-h-14 lg:flex-row lg:items-center lg:justify-between lg:gap-4 lg:py-2">
-            <div className="min-w-0 flex-1">
-              <InputGroup className="h-9 w-full lg:max-w-sm">
+    <ModuleShell
+      toolbar={
+        showFilterBar ? (
+          <>
+            <ModuleToolbarSearch>
+              <InputGroup className="h-9 w-full">
                 <InputGroupAddon>
                   <Search />
                 </InputGroupAddon>
@@ -713,17 +495,14 @@ export function IncidentsCenter({ view }: { view: IncidentsView }) {
                   onChange={(event) => setSearchQuery(event.target.value)}
                 />
               </InputGroup>
-            </div>
-
-            <div className="flex min-w-0 flex-wrap items-center gap-2 lg:justify-end">
-              <label className="border-border bg-background hover:bg-accent flex h-9 cursor-pointer items-center gap-2 rounded-md border px-2.5 text-sm">
-                <Switch
-                  id="p1-p2-incidents"
-                  checked={p1P2Only}
-                  onCheckedChange={setP1P2Only}
-                />
-                <span>P1 & P2</span>
-              </label>
+            </ModuleToolbarSearch>
+            <ModuleToolbarActions>
+              <ToolbarToggle
+                id="p1-p2-incidents"
+                checked={p1P2Only}
+                onCheckedChange={setP1P2Only}
+                label="P1 & P2"
+              />
 
               <IncidentFilterControl
                 priorityFilters={priorityFilters}
@@ -741,6 +520,7 @@ export function IncidentsCenter({ view }: { view: IncidentsView }) {
               <Button
                 size="sm"
                 className="h-9 gap-1.5"
+                aria-label="Export incidents as CSV"
                 onClick={() => {
                   const exportResult = queryIncidents(incidentList, {
                     page: 1,
@@ -801,109 +581,97 @@ export function IncidentsCenter({ view }: { view: IncidentsView }) {
                 <Download className="size-3.5" />
                 <span className="hidden sm:inline">Export</span>
               </Button>
-            </div>
-          </div>
-        </div>
+            </ModuleToolbarActions>
+          </>
+        ) : undefined
+      }
+    >
+      {view === "overview" ? (
+        <IncidentsStatsStrip incidents={incidentList} />
       ) : null}
 
-      <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6">
-        <div className="mx-auto flex w-full flex-col gap-4">
-          {view === "overview" ? (
-            <IncidentsStatsStrip incidents={incidentList} />
-          ) : null}
+      <Tabs
+        value={view}
+        onValueChange={(value) => {
+          if (value === "overview") router.push("/incidents/overview");
+          else if (value === "assigned") {
+            router.push(buildIncidentsAssignedHref({ scope: "mine" }));
+          } else router.push("/incidents/list");
+        }}
+        className="flex flex-col gap-4"
+      >
+        <ModuleTabsList>
+          <ModuleTabsTrigger value="overview">Overview</ModuleTabsTrigger>
+          <ModuleTabsTrigger value="assigned">
+            Assigned
+            <TabCount>{mineOpenCount.toLocaleString("en-US")}</TabCount>
+          </ModuleTabsTrigger>
+          <ModuleTabsTrigger value="list">
+            Active cases
+            <TabCount>{allOpenCount.toLocaleString("en-US")}</TabCount>
+          </ModuleTabsTrigger>
+        </ModuleTabsList>
 
-          <Tabs
-            value={view}
-            onValueChange={(value) => {
-              if (value === "overview") router.push("/incidents/overview");
-              else if (value === "assigned") {
-                router.push(buildIncidentsAssignedHref({ scope: "mine" }));
-              } else router.push("/incidents/list");
-            }}
-            className="flex flex-col gap-4"
-          >
-            <div className="overflow-x-auto border-b">
-              <TabsList className="inline-flex h-auto min-w-max justify-start gap-7 rounded-none bg-transparent p-0 sm:gap-8">
-                <TabsTrigger value="overview" className={tabTriggerClassName}>
-                  Overview
-                </TabsTrigger>
-                <TabsTrigger value="assigned" className={tabTriggerClassName}>
-                  Assigned
-                  <span className="bg-muted text-muted-foreground rounded-md px-1.5 py-0.5 text-xs">
-                    {mineOpenCount.toLocaleString("en-US")}
-                  </span>
-                </TabsTrigger>
-                <TabsTrigger value="list" className={tabTriggerClassName}>
-                  Active cases
-                  <span className="bg-muted text-muted-foreground rounded-md px-1.5 py-0.5 text-xs">
-                    {allOpenCount.toLocaleString("en-US")}
-                  </span>
-                </TabsTrigger>
-              </TabsList>
-            </div>
-
-            {view === "overview" ? (
-              <IncidentsOverview
-                incidents={incidentList}
-                onFilter={openOverviewFilter}
+        {view === "overview" ? (
+          <IncidentsOverview
+            incidents={incidentList}
+            onFilter={openOverviewFilter}
+          />
+        ) : (
+          <div className="flex flex-col gap-3">
+            {view === "assigned" ? (
+              <AssignedScopeControl
+                scope={assignedScope}
+                onScopeChange={changeAssignedScope}
               />
-            ) : (
-              <div className="flex flex-col gap-3">
-                {view === "assigned" ? (
-                  <AssignedScopeControl
-                    scope={assignedScope}
-                    onScopeChange={changeAssignedScope}
-                  />
-                ) : null}
-                <IncidentsTable
-                  items={queryResult.items}
-                  total={queryResult.total}
-                  page={queryResult.page}
-                  pageSize={pageSize}
-                  sort={sort}
-                  selectedIds={selectedIds}
-                  activeFilterCount={activeFilterCount}
-                  onPageChange={setPage}
-                  onPageSizeChange={setPageSize}
-                  onSortChange={setSort}
-                  onToggleSelectAllPage={toggleSelectAllPage}
-                  onToggleSelect={toggleSelect}
-                  onClearSelection={() => setSelectedIds(new Set())}
-                  onBulkAssignToMe={() => bulkAssign(currentAnalystId)}
-                  onBulkContain={() => bulkSetStatus("contained")}
-                  onBulkResolve={() => bulkSetStatus("resolved")}
-                  onBulkClose={() => bulkSetStatus("closed")}
-                  onAssignToMe={(id) => {
-                    const incident = getIncident(id);
-                    if (!incident) return;
-                    patchIncidents([id], {
-                      assigneeId: currentAnalystId,
-                      status:
-                        incident.status === "new"
-                          ? "investigating"
-                          : incident.status,
-                    });
-                    toast({ title: "Assigned to you", description: id });
-                  }}
-                  onContain={(id) => {
-                    patchIncidents([id], { status: "contained" });
-                    toast({ title: "Marked contained", description: id });
-                  }}
-                  onResolve={(id) => {
-                    patchIncidents([id], { status: "resolved" });
-                    toast({ title: "Incident resolved", description: id });
-                  }}
-                  onClose={(id) => {
-                    patchIncidents([id], { status: "closed" });
-                    toast({ title: "Incident closed", description: id });
-                  }}
-                  onClearFilters={resetFilters}
-                />
-              </div>
-            )}
-          </Tabs>
-        </div>
-      </div>
-    </main>
+            ) : null}
+            <IncidentsTable
+              items={queryResult.items}
+              total={queryResult.total}
+              page={queryResult.page}
+              pageSize={pageSize}
+              sort={sort}
+              selectedIds={selectedIds}
+              activeFilterCount={activeFilterCount}
+              onPageChange={setPage}
+              onPageSizeChange={setPageSize}
+              onSortChange={setSort}
+              onToggleSelectAllPage={toggleSelectAllPage}
+              onToggleSelect={toggleSelect}
+              onClearSelection={() => setSelectedIds(new Set())}
+              onBulkAssignToMe={() => bulkAssign(currentAnalystId)}
+              onBulkContain={() => bulkSetStatus("contained")}
+              onBulkResolve={() => bulkSetStatus("resolved")}
+              onBulkClose={() => bulkSetStatus("closed")}
+              onAssignToMe={(id) => {
+                const incident = getIncident(id);
+                if (!incident) return;
+                patchIncidents([id], {
+                  assigneeId: currentAnalystId,
+                  status:
+                    incident.status === "new"
+                      ? "investigating"
+                      : incident.status,
+                });
+                toast({ title: "Assigned to you", description: id });
+              }}
+              onContain={(id) => {
+                patchIncidents([id], { status: "contained" });
+                toast({ title: "Marked contained", description: id });
+              }}
+              onResolve={(id) => {
+                patchIncidents([id], { status: "resolved" });
+                toast({ title: "Incident resolved", description: id });
+              }}
+              onClose={(id) => {
+                patchIncidents([id], { status: "closed" });
+                toast({ title: "Incident closed", description: id });
+              }}
+              onClearFilters={resetFilters}
+            />
+          </div>
+        )}
+      </Tabs>
+    </ModuleShell>
   );
 }

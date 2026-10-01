@@ -23,13 +23,13 @@ import { cn } from "@/lib/utils";
 function severityTone(severity: UebaAnomaly["severity"]) {
   switch (severity) {
     case "critical":
-      return "border-red-500/40 bg-red-500/10 text-red-700 dark:text-red-300";
+      return "border-destructive/40 bg-destructive/10 text-destructive-text";
     case "high":
-      return "border-orange-500/40 bg-orange-500/10 text-orange-700 dark:text-orange-300";
+      return "border-severity-high/40 bg-severity-high/10 text-severity-high-text";
     case "medium":
-      return "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300";
+      return "border-warning/40 bg-warning/10 text-warning-text";
     default:
-      return "border-blue-500/40 bg-blue-500/10 text-blue-700 dark:text-blue-300";
+      return "border-info/40 bg-info/10 text-info-text";
   }
 }
 
@@ -199,10 +199,7 @@ export function IdentityBehaviorPanel({
         ) : (
           <ul className="space-y-2.5">
             {anomalies.map((anomaly) => (
-              <li
-                key={anomaly.id}
-                className="space-y-2 rounded-lg border p-3"
-              >
+              <li key={anomaly.id} className="space-y-2 rounded-lg border p-3">
                 <div className="flex flex-wrap items-center gap-1.5">
                   <Badge
                     variant="outline"
@@ -210,7 +207,10 @@ export function IdentityBehaviorPanel({
                   >
                     {anomaly.severity}
                   </Badge>
-                  <Badge variant="secondary" className="rounded-full font-normal">
+                  <Badge
+                    variant="secondary"
+                    className="rounded-full font-normal"
+                  >
                     {uebaAnomalyLabels[anomaly.kind]}
                   </Badge>
                   <span className="text-muted-foreground ml-auto text-xs">

@@ -37,9 +37,6 @@ import {
 
 export { AlertSeverityBadge as SeverityBadge };
 
-export const mutedControlClassName =
-  "border-border bg-background text-foreground hover:bg-accent hover:text-accent-foreground";
-
 export function SheetDetailRow({
   label,
   children,
@@ -148,8 +145,7 @@ export function ConfidenceBadge({
 
 const huntStatusTones: Record<HuntStatus, string> = {
   draft: "border-border bg-muted text-muted-foreground",
-  running:
-    "border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-400",
+  running: "border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-400",
   closed:
     "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
 };
@@ -205,10 +201,8 @@ export function FeedStatusBadge({ status }: { status: ThreatFeed["status"] }) {
 }
 
 const campaignStatusTones: Record<ThreatCampaign["status"], string> = {
-  active:
-    "border-rose-500/30 bg-rose-500/10 text-rose-700 dark:text-rose-400",
-  monitoring:
-    "border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-400",
+  active: "border-rose-500/30 bg-rose-500/10 text-rose-700 dark:text-rose-400",
+  monitoring: "border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-400",
   concluded: "border-border bg-muted text-muted-foreground",
 };
 

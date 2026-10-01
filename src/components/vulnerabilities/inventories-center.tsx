@@ -113,78 +113,84 @@ export function InventoriesCenter() {
     >
       <StatsStrip stats={stats} />
 
-        <div className="bg-card overflow-hidden rounded-lg border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Package</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Platform</TableHead>
-                <TableHead className="text-right">Weaknesses</TableHead>
-                <TableHead className="text-right">Exposed</TableHead>
-                <TableHead>Flags</TableHead>
+      <div className="bg-card shadow-card overflow-hidden rounded-xl border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Package</TableHead>
+              <TableHead className="hidden md:table-cell">Category</TableHead>
+              <TableHead className="hidden lg:table-cell">Platform</TableHead>
+              <TableHead className="hidden sm:table-cell text-right">
+                Weaknesses
+              </TableHead>
+              <TableHead className="hidden md:table-cell text-right">
+                Exposed
+              </TableHead>
+              <TableHead className="hidden lg:table-cell">Flags</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {rows.map((item) => (
+              <TableRow key={item.id}>
+                <TableCell>
+                  <Link
+                    href={`/vulnerabilities/findings?q=${encodeURIComponent(item.name)}`}
+                    className="font-medium hover:underline"
+                  >
+                    {item.name}
+                  </Link>
+                  <p className="text-muted-foreground text-xs">
+                    {item.vendor} · {item.vulnerableVersions}
+                  </p>
+                </TableCell>
+                <TableCell className="hidden md:table-cell">
+                  <Badge variant="outline">
+                    {softwareCategoryLabels[item.category]}
+                  </Badge>
+                </TableCell>
+                <TableCell className="hidden lg:table-cell text-sm">
+                  {item.osPlatform}
+                </TableCell>
+                <TableCell className="hidden sm:table-cell text-right tabular-nums">
+                  {item.weaknessCount}
+                </TableCell>
+                <TableCell className="hidden md:table-cell text-right tabular-nums">
+                  {item.exposedDevices}/{item.totalDevices}
+                </TableCell>
+                <TableCell className="hidden lg:table-cell">
+                  <div className="flex flex-wrap gap-1">
+                    {item.eol ? (
+                      <Badge variant="destructive" className="text-xs">
+                        EOL
+                      </Badge>
+                    ) : null}
+                    {item.outdated ? (
+                      <Badge variant="outline" className="text-xs">
+                        Outdated
+                      </Badge>
+                    ) : null}
+                    {item.internetFacing ? (
+                      <Badge variant="secondary" className="text-xs">
+                        Internet
+                      </Badge>
+                    ) : null}
+                  </div>
+                </TableCell>
               </TableRow>
-            </TableHeader>
-            <TableBody>
-              {rows.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell>
-                    <Link
-                      href={`/vulnerabilities/findings?q=${encodeURIComponent(item.name)}`}
-                      className="font-medium hover:underline"
-                    >
-                      {item.name}
-                    </Link>
-                    <p className="text-muted-foreground text-xs">
-                      {item.vendor} · {item.vulnerableVersions}
-                    </p>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline">
-                      {softwareCategoryLabels[item.category]}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-sm">{item.osPlatform}</TableCell>
-                  <TableCell className="text-right tabular-nums">
-                    {item.weaknessCount}
-                  </TableCell>
-                  <TableCell className="text-right tabular-nums">
-                    {item.exposedDevices}/{item.totalDevices}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-wrap gap-1">
-                      {item.eol ? (
-                        <Badge variant="destructive" className="text-xs">
-                          EOL
-                        </Badge>
-                      ) : null}
-                      {item.outdated ? (
-                        <Badge variant="outline" className="text-xs">
-                          Outdated
-                        </Badge>
-                      ) : null}
-                      {item.internetFacing ? (
-                        <Badge variant="secondary" className="text-xs">
-                          Internet
-                        </Badge>
-                      ) : null}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-          <ListPagination
-            page={page}
-            pageSize={pageSize}
-            total={filtered.length}
-            onPageChange={setPage}
-            onPageSizeChange={(size) => {
-              setPageSize(size);
-              setPage(1);
-            }}
-          />
-        </div>
+            ))}
+          </TableBody>
+        </Table>
+        <ListPagination
+          page={page}
+          pageSize={pageSize}
+          total={filtered.length}
+          onPageChange={setPage}
+          onPageSizeChange={(size) => {
+            setPageSize(size);
+            setPage(1);
+          }}
+        />
+      </div>
     </ModuleShell>
   );
 }

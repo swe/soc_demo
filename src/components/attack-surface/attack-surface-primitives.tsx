@@ -10,15 +10,10 @@ import {
   assetEnvironmentLabels,
 } from "./attack-surface-data";
 
-export const mutedControlClassName =
-  "border-border bg-background text-foreground hover:bg-accent hover:text-accent-foreground";
-
 const criticalityTones: Record<AssetCriticality, string> = {
-  critical:
-    "border-destructive/30 bg-destructive/10 text-destructive dark:text-red-400",
-  high: "border-orange-500/30 bg-orange-500/10 text-orange-700 dark:text-orange-400",
-  medium:
-    "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400",
+  critical: "border-destructive/30 bg-destructive/10 text-destructive-text",
+  high: "border-severity-high/30 bg-severity-high/10 text-severity-high-text",
+  medium: "border-warning/30 bg-warning/10 text-warning-text",
   low: "border-border bg-muted text-muted-foreground",
 };
 
@@ -52,10 +47,10 @@ export function EnvironmentBadge({
 export function ExposureScoreBadge({ score }: { score: number }) {
   const tone =
     score >= 80
-      ? "border-destructive/30 bg-destructive/10 text-destructive dark:text-red-400"
+      ? "border-destructive/30 bg-destructive/10 text-destructive-text"
       : score >= 55
-        ? "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400"
-        : "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400";
+        ? "border-warning/30 bg-warning/10 text-warning-text"
+        : "border-success/30 bg-success/10 text-success-text";
 
   return (
     <Badge

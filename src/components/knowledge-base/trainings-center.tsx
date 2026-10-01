@@ -87,7 +87,6 @@ import {
 import {
   EmptyState,
   KbStatsStrip,
-  mutedControlClassName,
   OwnerCell,
   percentTextClass,
   ProgressTrack,
@@ -169,7 +168,7 @@ function TrainingFilterControl({
         <Button
           variant="outline"
           size="sm"
-          className={cn("relative h-9 gap-1.5 px-2.5", mutedControlClassName)}
+          className="relative h-9 gap-1.5 px-2.5"
         >
           <ListFilter className="size-3.5" />
           Filter
@@ -792,10 +791,7 @@ export function TrainingsCenter() {
 
     return trainings
       .filter((training) => {
-        if (
-          levelFilters.length > 0 &&
-          !levelFilters.includes(training.level)
-        ) {
+        if (levelFilters.length > 0 && !levelFilters.includes(training.level)) {
           return false;
         }
         if (
@@ -869,7 +865,7 @@ export function TrainingsCenter() {
             <Button
               variant="outline"
               size="sm"
-              className={cn("h-9 gap-1.5", mutedControlClassName)}
+              className="h-9 gap-1.5"
               onClick={() => openAssign()}
             >
               <Users className="size-3.5" />
@@ -879,7 +875,7 @@ export function TrainingsCenter() {
             <Button
               variant="outline"
               size="sm"
-              className={cn("h-9 gap-1.5", mutedControlClassName)}
+              className="h-9 gap-1.5"
               disabled={lmsBusy}
               onClick={() => void handleLmsSync()}
             >
@@ -978,9 +974,7 @@ export function TrainingsCenter() {
               <Label>Level</Label>
               <Select
                 value={newLevel}
-                onValueChange={(value) =>
-                  setNewLevel(value as KbTrainingLevel)
-                }
+                onValueChange={(value) => setNewLevel(value as KbTrainingLevel)}
               >
                 <SelectTrigger className="w-full">
                   <SelectValue />
@@ -1089,7 +1083,7 @@ export function TrainingsCenter() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className={cn("gap-1.5", mutedControlClassName)}
+                    className="gap-1.5"
                     onClick={() => openAssign(selected)}
                   >
                     <UserPlus className="size-3.5" />

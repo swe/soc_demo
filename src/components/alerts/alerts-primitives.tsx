@@ -23,34 +23,12 @@ import {
   getAlertAssignee,
 } from "./alerts-data";
 
-export const mutedControlClassName =
-  "border-border bg-background text-foreground hover:bg-accent hover:text-accent-foreground";
-
-export const tabTriggerClassName =
-  "data-[state=active]:border-foreground shrink-0 gap-2 rounded-none border-b-2 border-transparent px-0 pb-3 text-sm shadow-none data-[state=active]:bg-transparent data-[state=active]:shadow-none sm:pb-4";
-
 export const percentFormatter = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 1,
 });
 
-const severityTones: Record<AlertSeverity, string> = {
-  critical:
-    "border-destructive/30 bg-destructive/10 text-destructive dark:text-red-400",
-  high: "border-orange-500/30 bg-orange-500/10 text-orange-700 dark:text-orange-400",
-  medium:
-    "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400",
-  low: "border-border bg-muted text-muted-foreground",
-};
-
 export function SeverityBadge({ severity }: { severity: AlertSeverity }) {
-  return (
-    <Badge
-      variant="outline"
-      className={cn("rounded-full font-medium", severityTones[severity])}
-    >
-      {alertSeverityLabels[severity]}
-    </Badge>
-  );
+  return <Badge variant={severity}>{alertSeverityLabels[severity]}</Badge>;
 }
 
 const statusDetails: Record<
@@ -58,11 +36,11 @@ const statusDetails: Record<
   { className: string; icon: LucideIcon }
 > = {
   new: {
-    className: "text-blue-600 dark:text-blue-400",
+    className: "text-info-text",
     icon: Siren,
   },
   triaging: {
-    className: "text-amber-600 dark:text-amber-400",
+    className: "text-warning-text",
     icon: Radar,
   },
   investigating: {
@@ -70,15 +48,15 @@ const statusDetails: Record<
     icon: CircleDashed,
   },
   escalated: {
-    className: "text-destructive dark:text-red-400",
+    className: "text-destructive-text",
     icon: ShieldAlert,
   },
   closed: {
-    className: "text-emerald-600 dark:text-emerald-400",
+    className: "text-success-text",
     icon: ShieldCheck,
   },
   "false-positive": {
-    className: "text-zinc-500",
+    className: "text-muted-foreground",
     icon: CircleSlash,
   },
 };
@@ -90,11 +68,7 @@ export function StatusBadge({ status }: { status: AlertStatus }) {
   return (
     <Badge
       variant="outline"
-      className={cn(
-        "gap-1 rounded-full font-medium",
-        "border-border/70 bg-background",
-        detail.className,
-      )}
+      className={cn("border-border/70 bg-card", detail.className)}
     >
       <Icon className="size-3" />
       {alertStatusLabels[status]}
@@ -155,15 +129,12 @@ export function SourceCategoryChip({
 }
 
 const sourceBadgeTone: Record<string, string> = {
-  siem: "border-blue-500/35 bg-blue-500/10 text-blue-800 dark:text-blue-300",
-  endpoint:
-    "border-orange-500/35 bg-orange-500/10 text-orange-800 dark:text-orange-300",
+  siem: "border-transparent bg-info/10 text-info-text",
+  endpoint: "border-transparent bg-severity-high/10 text-severity-high-text",
   identity:
-    "border-violet-500/35 bg-violet-500/10 text-violet-800 dark:text-violet-300",
-  network:
-    "border-cyan-500/35 bg-cyan-500/10 text-cyan-800 dark:text-cyan-300",
-  cloud:
-    "border-teal-500/35 bg-teal-500/10 text-teal-800 dark:text-teal-300",
+    "border-transparent bg-violet-500/10 text-violet-800 dark:text-violet-300",
+  network: "border-transparent bg-cyan-500/10 text-cyan-800 dark:text-cyan-300",
+  cloud: "border-transparent bg-teal-500/10 text-teal-800 dark:text-teal-300",
 };
 
 function shortAlertSourceName(sourceName: string): string {
@@ -193,13 +164,13 @@ export function SourceBadge({
 }) {
   const tone =
     (sourceCategory && sourceBadgeTone[sourceCategory]) ||
-    "border-border bg-muted/60 text-foreground";
+    "border-transparent bg-muted text-foreground";
 
   return (
     <Badge
       variant="outline"
       className={cn(
-        "rounded-md px-1.5 py-0 text-xs font-semibold tracking-tight",
+        "rounded-md px-1.5 font-semibold tracking-tight",
         tone,
         className,
       )}
@@ -211,20 +182,14 @@ export function SourceBadge({
 }
 
 export function RiskScoreBadge({ score }: { score: number }) {
-  const tone =
-    score >= 80
-      ? "border-destructive/30 bg-destructive/10 text-destructive dark:text-red-400"
-      : score >= 55
-        ? "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400"
-        : "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400";
+  const variant =
+    score >= 80 ? "critical" : score >= 55 ? "warning" : "success";
 
   return (
     <Badge
-      variant="outline"
-      className={cn(
-        "min-w-8 justify-center rounded-md px-1.5 py-0 font-mono text-xs font-semibold tabular-nums",
-        tone,
-      )}
+      variant={variant}
+      className="min-w-8 justify-center rounded-md px-1.5 font-mono font-semibold"
+      aria-label={`Risk score ${score}`}
     >
       {score}
     </Badge>

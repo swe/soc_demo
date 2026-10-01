@@ -1,40 +1,32 @@
 "use client";
 
-import {
-  CheckIcon,
-  ChevronRight,
-  Download,
-  ListFilter,
-  Radar,
-  Search,
-  ShieldAlert,
-  Siren,
-} from "lucide-react";
+import { Download, Radar, Search, ShieldAlert, Siren } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 
 import { appendAuditLog } from "@/components/audit/audit-log-data";
 import { createIncidentFromAlerts } from "@/components/incidents/incidents-session";
 import { currentProfile } from "@/components/profile/profile-data";
-import { StatsStrip } from "@/components/soc/stats-strip";
-import { Button } from "@/components/ui/button";
+import { type FilterFacet, FilterMenu } from "@/components/soc/filter-menu";
 import {
-  Command,
-  CommandGroup,
-  CommandItem,
-  CommandList,
-  CommandSeparator,
-} from "@/components/ui/command";
+  ModuleShell,
+  ModuleToolbarActions,
+  ModuleToolbarSearch,
+} from "@/components/soc/module-shell";
+import {
+  ModuleTabsList,
+  ModuleTabsTrigger,
+  TabCount,
+} from "@/components/soc/module-tabs";
+import { SegmentedControl } from "@/components/soc/segmented-control";
+import { StatsStrip } from "@/components/soc/stats-strip";
+import { ToolbarToggle } from "@/components/soc/toolbar-toggle";
+import { Button } from "@/components/ui/button";
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupInput,
 } from "@/components/ui/input-group";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -42,11 +34,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs } from "@/components/ui/tabs";
 import { downloadCsv } from "@/lib/download-csv";
 import { toast } from "@/lib/toast";
-import { cn } from "@/lib/utils";
 
 import {
   alertSeverities,
@@ -64,10 +54,6 @@ import {
   type SocAlert,
 } from "./alerts-data";
 import { AlertsOverview } from "./alerts-overview";
-import {
-  mutedControlClassName,
-  tabTriggerClassName,
-} from "./alerts-primitives";
 import { queryAlerts } from "./alerts-query";
 import { useAlertsSession } from "./alerts-session";
 import { AlertsTable } from "./alerts-table";
@@ -82,11 +68,11 @@ import {
   parseAssignedScope,
 } from "./alerts-url";
 
-type FilterPanel = "severity" | "status" | "source" | "sort";
-
 function AlertsStatsStrip({ alerts }: { alerts: Iterable<SocAlert> }) {
   return <StatsStrip stats={getAlertStatsWithHrefs(alerts)} />;
 }
+
+type ScopeMode = "mine" | "unassigned" | "analyst";
 
 function AssignedScopeControl({
   scope,
@@ -96,52 +82,34 @@ function AssignedScopeControl({
   onScopeChange: (scope: AssignedScope) => void;
 }) {
   const assignees = useMemo(() => getAlertAssignees(), []);
-  const isAnalystScope = scope !== "mine" && scope !== "unassigned";
+  const mode: ScopeMode =
+    scope === "mine"
+      ? "mine"
+      : scope === "unassigned"
+        ? "unassigned"
+        : "analyst";
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <div className="bg-muted/60 inline-flex rounded-md border p-0.5">
-        {(
-          [
-            { value: "mine" as const, label: "Mine" },
-            { value: "unassigned" as const, label: "Unassigned" },
-          ] as const
-        ).map((option) => {
-          const active = scope === option.value;
-          return (
-            <button
-              key={option.value}
-              type="button"
-              onClick={() => onScopeChange(option.value)}
-              className={
-                active
-                  ? "bg-background text-foreground rounded-sm px-2.5 py-1 text-xs font-medium shadow-sm"
-                  : "text-muted-foreground hover:text-foreground rounded-sm px-2.5 py-1 text-xs font-medium"
-              }
-            >
-              {option.label}
-            </button>
-          );
-        })}
-        <button
-          type="button"
-          onClick={() => {
-            if (!isAnalystScope) {
+      <SegmentedControl<ScopeMode>
+        aria-label="Assignment scope"
+        value={mode}
+        onChange={(next) => {
+          if (next === "analyst") {
+            if (mode !== "analyst") {
               onScopeChange(assignees[0]?.id ?? currentAnalystId);
             }
-          }}
-          className={
-            isAnalystScope
-              ? "bg-background text-foreground rounded-sm px-2.5 py-1 text-xs font-medium shadow-sm"
-              : "text-muted-foreground hover:text-foreground rounded-sm px-2.5 py-1 text-xs font-medium"
-          }
-        >
-          By analyst
-        </button>
-      </div>
-      {isAnalystScope ? (
+          } else onScopeChange(next);
+        }}
+        options={[
+          { value: "mine", label: "Mine" },
+          { value: "unassigned", label: "Unassigned" },
+          { value: "analyst", label: "By analyst" },
+        ]}
+      />
+      {mode === "analyst" ? (
         <Select value={scope} onValueChange={(value) => onScopeChange(value)}>
-          <SelectTrigger className={cn("h-8 w-[180px]", mutedControlClassName)}>
+          <SelectTrigger className="h-8 w-[180px]" aria-label="Analyst">
             <SelectValue placeholder="Select analyst" />
           </SelectTrigger>
           <SelectContent>
@@ -153,28 +121,6 @@ function AssignedScopeControl({
           </SelectContent>
         </Select>
       ) : null}
-    </div>
-  );
-}
-
-function FilterPanelHeader({
-  title,
-  onBack,
-}: {
-  title: string;
-  onBack: () => void;
-}) {
-  return (
-    <div className="flex items-center border-b p-2">
-      <Button
-        variant="ghost"
-        size="sm"
-        className="h-7 gap-1 px-2 text-xs"
-        onClick={onBack}
-      >
-        <ChevronRight className="size-3.5 rotate-180" />
-        {title}
-      </Button>
     </div>
   );
 }
@@ -202,225 +148,60 @@ function AlertFilterControl({
   onSetSort: (sort: AlertSort) => void;
   onClearFilters: () => void;
 }) {
-  const [open, setOpen] = useState(false);
-  const [panel, setPanel] = useState<FilterPanel | null>(null);
-  const closePanel = () => setPanel(null);
+  const facets: FilterFacet[] = [
+    {
+      id: "severity",
+      label: "Severity",
+      icon: ShieldAlert,
+      options: alertSeverities.map((value) => ({
+        value,
+        label: alertSeverityLabels[value],
+      })),
+      selected: severityFilters,
+      onToggle: (value) => onToggleSeverity(value as AlertSeverity),
+    },
+    {
+      id: "status",
+      label: "Status",
+      icon: Radar,
+      options: alertStatuses.map((value) => ({
+        value,
+        label: alertStatusLabels[value],
+      })),
+      selected: statusFilters,
+      onToggle: (value) => onToggleStatus(value as AlertStatus),
+    },
+    {
+      id: "source",
+      label: "Source",
+      icon: Siren,
+      options: alertSourceOptions.map((source) => ({
+        value: source.sourceId,
+        label: source.sourceName,
+      })),
+      selected: sourceIdFilters,
+      onToggle: onToggleSourceId,
+    },
+    {
+      id: "sort",
+      label: "Sort",
+      single: true,
+      hideCount: true,
+      options: (Object.keys(alertSortLabels) as AlertSort[]).map((value) => ({
+        value,
+        label: alertSortLabels[value],
+      })),
+      selected: [sort],
+      onToggle: (value) => onSetSort(value as AlertSort),
+    },
+  ];
 
   return (
-    <Popover
-      open={open}
-      onOpenChange={(next) => {
-        setOpen(next);
-        if (!next) setPanel(null);
-      }}
-    >
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          className={cn("relative h-9 gap-1.5 px-2.5", mutedControlClassName)}
-        >
-          <ListFilter className="size-3.5" />
-          Filter
-          {activeFilterCount > 0 ? (
-            <span className="bg-primary text-primary-foreground absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full text-xs font-semibold">
-              {activeFilterCount}
-            </span>
-          ) : null}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-64 p-0" align="end">
-        {panel === null ? (
-          <Command>
-            <CommandList>
-              <CommandGroup>
-                <CommandItem
-                  onSelect={() => setPanel("severity")}
-                  className="flex items-center justify-between"
-                >
-                  <span className="flex items-center gap-2">
-                    <ShieldAlert className="size-4 text-zinc-500" />
-                    Severity
-                  </span>
-                  <div className="flex items-center">
-                    {severityFilters.length > 0 ? (
-                      <span className="mr-1 text-xs text-zinc-500">
-                        {severityFilters.length}
-                      </span>
-                    ) : null}
-                    <ChevronRight className="size-4" />
-                  </div>
-                </CommandItem>
-                <CommandItem
-                  onSelect={() => setPanel("status")}
-                  className="flex items-center justify-between"
-                >
-                  <span className="flex items-center gap-2">
-                    <Radar className="size-4 text-zinc-500" />
-                    Status
-                  </span>
-                  <div className="flex items-center">
-                    {statusFilters.length > 0 ? (
-                      <span className="mr-1 text-xs text-zinc-500">
-                        {statusFilters.length}
-                      </span>
-                    ) : null}
-                    <ChevronRight className="size-4" />
-                  </div>
-                </CommandItem>
-                <CommandItem
-                  onSelect={() => setPanel("source")}
-                  className="flex items-center justify-between"
-                >
-                  <span className="flex items-center gap-2">
-                    <Siren className="size-4 text-zinc-500" />
-                    Source
-                  </span>
-                  <div className="flex items-center">
-                    {sourceIdFilters.length > 0 ? (
-                      <span className="mr-1 text-xs text-zinc-500">
-                        {sourceIdFilters.length}
-                      </span>
-                    ) : null}
-                    <ChevronRight className="size-4" />
-                  </div>
-                </CommandItem>
-                <CommandItem
-                  onSelect={() => setPanel("sort")}
-                  className="flex items-center justify-between"
-                >
-                  <span className="flex items-center gap-2">
-                    <ListFilter className="size-4 text-zinc-500" />
-                    Sort
-                  </span>
-                  <ChevronRight className="size-4" />
-                </CommandItem>
-              </CommandGroup>
-              {activeFilterCount > 0 ? (
-                <>
-                  <CommandSeparator />
-                  <CommandGroup>
-                    <CommandItem
-                      onSelect={() => {
-                        onClearFilters();
-                        setOpen(false);
-                      }}
-                      className="text-destructive"
-                    >
-                      Clear filters
-                    </CommandItem>
-                  </CommandGroup>
-                </>
-              ) : null}
-            </CommandList>
-          </Command>
-        ) : null}
-
-        {panel === "severity" ? (
-          <div>
-            <FilterPanelHeader title="Severity" onBack={closePanel} />
-            <Command>
-              <CommandList>
-                <CommandGroup>
-                  {alertSeverities.map((severity) => {
-                    const checked = severityFilters.includes(severity);
-                    return (
-                      <CommandItem
-                        key={severity}
-                        onSelect={() => onToggleSeverity(severity)}
-                        className="justify-between"
-                      >
-                        {alertSeverityLabels[severity]}
-                        {checked ? <CheckIcon className="size-4" /> : null}
-                      </CommandItem>
-                    );
-                  })}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </div>
-        ) : null}
-
-        {panel === "status" ? (
-          <div>
-            <FilterPanelHeader title="Status" onBack={closePanel} />
-            <Command>
-              <CommandList>
-                <CommandGroup>
-                  {alertStatuses.map((status) => {
-                    const checked = statusFilters.includes(status);
-                    return (
-                      <CommandItem
-                        key={status}
-                        onSelect={() => onToggleStatus(status)}
-                        className="justify-between"
-                      >
-                        {alertStatusLabels[status]}
-                        {checked ? <CheckIcon className="size-4" /> : null}
-                      </CommandItem>
-                    );
-                  })}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </div>
-        ) : null}
-
-        {panel === "source" ? (
-          <div>
-            <FilterPanelHeader title="Source" onBack={closePanel} />
-            <Command>
-              <CommandList>
-                <CommandGroup>
-                  {alertSourceOptions.map((source) => {
-                    const checked = sourceIdFilters.includes(source.sourceId);
-                    return (
-                      <CommandItem
-                        key={source.sourceId}
-                        onSelect={() => onToggleSourceId(source.sourceId)}
-                        className="justify-between"
-                      >
-                        {source.sourceName}
-                        {checked ? <CheckIcon className="size-4" /> : null}
-                      </CommandItem>
-                    );
-                  })}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </div>
-        ) : null}
-
-        {panel === "sort" ? (
-          <div>
-            <FilterPanelHeader title="Sort" onBack={closePanel} />
-            <Command>
-              <CommandList>
-                <CommandGroup>
-                  {(Object.keys(alertSortLabels) as AlertSort[]).map(
-                    (option) => (
-                      <CommandItem
-                        key={option}
-                        onSelect={() => {
-                          onSetSort(option);
-                          closePanel();
-                        }}
-                        className="justify-between"
-                      >
-                        {alertSortLabels[option]}
-                        {sort === option ? (
-                          <CheckIcon className="size-4" />
-                        ) : null}
-                      </CommandItem>
-                    ),
-                  )}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </div>
-        ) : null}
-      </PopoverContent>
-    </Popover>
+    <FilterMenu
+      facets={facets}
+      activeCount={activeFilterCount}
+      onClear={onClearFilters}
+    />
   );
 }
 
@@ -454,8 +235,7 @@ export function AlertsCenter({ view }: { view: AlertsView }) {
   const [criticalHighOnly, setCriticalHighOnly] = useState(
     urlFilters.criticalHighOnly,
   );
-  const [assignedScope, setAssignedScope] =
-    useState<AssignedScope>(urlScope);
+  const [assignedScope, setAssignedScope] = useState<AssignedScope>(urlScope);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(25);
@@ -728,15 +508,12 @@ export function AlertsCenter({ view }: { view: AlertsView }) {
   };
 
   return (
-    <main
-      id="main-content"
-      className="bg-background flex min-h-0 flex-1 flex-col overflow-hidden"
-    >
-      {showFilterBar ? (
-        <div className="bg-background shrink-0 border-b">
-          <div className="flex flex-col gap-2 px-4 py-3 sm:px-6 lg:min-h-14 lg:flex-row lg:items-center lg:justify-between lg:gap-4 lg:py-2">
-            <div className="min-w-0 flex-1">
-              <InputGroup className="h-9 w-full lg:max-w-sm">
+    <ModuleShell
+      toolbar={
+        showFilterBar ? (
+          <>
+            <ModuleToolbarSearch>
+              <InputGroup className="h-9 w-full">
                 <InputGroupAddon>
                   <Search />
                 </InputGroupAddon>
@@ -746,17 +523,14 @@ export function AlertsCenter({ view }: { view: AlertsView }) {
                   onChange={(event) => setSearchQuery(event.target.value)}
                 />
               </InputGroup>
-            </div>
-
-            <div className="flex min-w-0 flex-wrap items-center gap-2 lg:justify-end">
-              <label className="border-border bg-background hover:bg-accent flex h-9 cursor-pointer items-center gap-2 rounded-md border px-2.5 text-sm">
-                <Switch
-                  id="critical-high"
-                  checked={criticalHighOnly}
-                  onCheckedChange={setCriticalHighOnly}
-                />
-                <span>Critical & high</span>
-              </label>
+            </ModuleToolbarSearch>
+            <ModuleToolbarActions>
+              <ToolbarToggle
+                id="critical-high"
+                checked={criticalHighOnly}
+                onCheckedChange={setCriticalHighOnly}
+                label="Critical & high"
+              />
 
               <AlertFilterControl
                 severityFilters={severityFilters}
@@ -774,6 +548,7 @@ export function AlertsCenter({ view }: { view: AlertsView }) {
               <Button
                 size="sm"
                 className="h-9 gap-1.5"
+                aria-label="Export alerts as CSV"
                 onClick={() => {
                   const exportResult = queryAlerts(alertList, {
                     page: 1,
@@ -834,107 +609,89 @@ export function AlertsCenter({ view }: { view: AlertsView }) {
                 <Download className="size-3.5" />
                 <span className="hidden sm:inline">Export</span>
               </Button>
-            </div>
-          </div>
-        </div>
-      ) : null}
+            </ModuleToolbarActions>
+          </>
+        ) : undefined
+      }
+    >
+      {view === "overview" ? <AlertsStatsStrip alerts={alertList} /> : null}
 
-      <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6">
-        <div className="mx-auto flex w-full flex-col gap-4">
-          {view === "overview" ? (
-            <AlertsStatsStrip alerts={alertList} />
-          ) : null}
+      <Tabs
+        value={view}
+        onValueChange={(value) => {
+          if (value === "overview") router.push("/alerts/overview");
+          else if (value === "assigned") {
+            router.push(buildAlertsAssignedHref({ scope: "mine" }));
+          } else router.push("/alerts/list");
+        }}
+        className="flex flex-col gap-4"
+      >
+        <ModuleTabsList>
+          <ModuleTabsTrigger value="overview">Overview</ModuleTabsTrigger>
+          <ModuleTabsTrigger value="assigned">
+            Assigned
+            <TabCount>{mineOpenCount.toLocaleString("en-US")}</TabCount>
+          </ModuleTabsTrigger>
+          <ModuleTabsTrigger value="list">
+            All Alerts
+            <TabCount>{allOpenCount.toLocaleString("en-US")}</TabCount>
+          </ModuleTabsTrigger>
+        </ModuleTabsList>
 
-          <Tabs
-            value={view}
-            onValueChange={(value) => {
-              if (value === "overview") router.push("/alerts/overview");
-              else if (value === "assigned") {
-                router.push(buildAlertsAssignedHref({ scope: "mine" }));
-              } else router.push("/alerts/list");
-            }}
-            className="flex flex-col gap-4"
-          >
-            <div className="overflow-x-auto border-b">
-              <TabsList className="inline-flex h-auto min-w-max justify-start gap-7 rounded-none bg-transparent p-0 sm:gap-8">
-                <TabsTrigger value="overview" className={tabTriggerClassName}>
-                  Overview
-                </TabsTrigger>
-                <TabsTrigger value="assigned" className={tabTriggerClassName}>
-                  Assigned
-                  <span className="bg-muted text-muted-foreground rounded-md px-1.5 py-0.5 text-xs">
-                    {mineOpenCount.toLocaleString("en-US")}
-                  </span>
-                </TabsTrigger>
-                <TabsTrigger value="list" className={tabTriggerClassName}>
-                  All Alerts
-                  <span className="bg-muted text-muted-foreground rounded-md px-1.5 py-0.5 text-xs">
-                    {allOpenCount.toLocaleString("en-US")}
-                  </span>
-                </TabsTrigger>
-              </TabsList>
-            </div>
-
-            {view === "overview" ? (
-              <AlertsOverview
-                alerts={alertList}
-                onFilter={openOverviewFilter}
+        {view === "overview" ? (
+          <AlertsOverview alerts={alertList} onFilter={openOverviewFilter} />
+        ) : (
+          <div className="flex flex-col gap-3">
+            {view === "assigned" ? (
+              <AssignedScopeControl
+                scope={assignedScope}
+                onScopeChange={changeAssignedScope}
               />
-            ) : (
-              <div className="flex flex-col gap-3">
-                {view === "assigned" ? (
-                  <AssignedScopeControl
-                    scope={assignedScope}
-                    onScopeChange={changeAssignedScope}
-                  />
-                ) : null}
-                <AlertsTable
-                  items={queryResult.items}
-                  total={queryResult.total}
-                  page={queryResult.page}
-                  pageSize={pageSize}
-                  sort={sort}
-                  selectedIds={selectedIds}
-                  activeFilterCount={activeFilterCount}
-                  onPageChange={setPage}
-                  onPageSizeChange={setPageSize}
-                  onSortChange={setSort}
-                  onToggleSelectAllPage={toggleSelectAllPage}
-                  onToggleSelect={toggleSelect}
-                  onClearSelection={() => setSelectedIds(new Set())}
-                  onBulkAssignToMe={() => bulkAssign(currentAnalystId)}
-                  onBulkEscalate={bulkEscalate}
-                  onBulkClose={() => bulkSetStatus("closed")}
-                  onBulkFalsePositive={() => bulkSetStatus("false-positive")}
-                  onAssignToMe={(id) => {
-                    const alert = getAlert(id);
-                    if (!alert) return;
-                    patchAlerts([id], {
-                      assigneeId: currentAnalystId,
-                      status:
-                        alert.status === "new" ? "triaging" : alert.status,
-                    });
-                    toast({ title: "Assigned to you", description: id });
-                  }}
-                  onEscalate={handleEscalate}
-                  onMarkFalsePositive={(id) => {
-                    patchAlerts([id], { status: "false-positive" });
-                    toast({
-                      title: "Marked false positive",
-                      description: id,
-                    });
-                  }}
-                  onClose={(id) => {
-                    patchAlerts([id], { status: "closed" });
-                    toast({ title: "Alert closed", description: id });
-                  }}
-                  onClearFilters={resetFilters}
-                />
-              </div>
-            )}
-          </Tabs>
-        </div>
-      </div>
-    </main>
+            ) : null}
+            <AlertsTable
+              items={queryResult.items}
+              total={queryResult.total}
+              page={queryResult.page}
+              pageSize={pageSize}
+              sort={sort}
+              selectedIds={selectedIds}
+              activeFilterCount={activeFilterCount}
+              onPageChange={setPage}
+              onPageSizeChange={setPageSize}
+              onSortChange={setSort}
+              onToggleSelectAllPage={toggleSelectAllPage}
+              onToggleSelect={toggleSelect}
+              onClearSelection={() => setSelectedIds(new Set())}
+              onBulkAssignToMe={() => bulkAssign(currentAnalystId)}
+              onBulkEscalate={bulkEscalate}
+              onBulkClose={() => bulkSetStatus("closed")}
+              onBulkFalsePositive={() => bulkSetStatus("false-positive")}
+              onAssignToMe={(id) => {
+                const alert = getAlert(id);
+                if (!alert) return;
+                patchAlerts([id], {
+                  assigneeId: currentAnalystId,
+                  status: alert.status === "new" ? "triaging" : alert.status,
+                });
+                toast({ title: "Assigned to you", description: id });
+              }}
+              onEscalate={handleEscalate}
+              onMarkFalsePositive={(id) => {
+                patchAlerts([id], { status: "false-positive" });
+                toast({
+                  title: "Marked false positive",
+                  description: id,
+                });
+              }}
+              onClose={(id) => {
+                patchAlerts([id], { status: "closed" });
+                toast({ title: "Alert closed", description: id });
+              }}
+              onClearFilters={resetFilters}
+            />
+          </div>
+        )}
+      </Tabs>
+    </ModuleShell>
   );
 }

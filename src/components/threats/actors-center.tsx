@@ -38,7 +38,6 @@ import {
   ActorAvatar,
   CampaignStatusBadge,
   ConfidenceBadge,
-  mutedControlClassName,
   SeverityBadge,
   SheetDetailRow,
 } from "./threat-shared-primitives";
@@ -177,7 +176,7 @@ function ActorDetailSheet({
                 asChild
                 variant="outline"
                 size="sm"
-                className={cn("justify-start", mutedControlClassName)}
+                className="justify-start"
               >
                 <Link href="/threat-hunting/analytics">
                   Open in threat analytics
@@ -188,11 +187,9 @@ function ActorDetailSheet({
                 asChild
                 variant="outline"
                 size="sm"
-                className={cn("justify-start", mutedControlClassName)}
+                className="justify-start"
               >
-                <Link
-                  href={`/threat-hunting/hunts?actor=${actor.id}`}
-                >
+                <Link href={`/threat-hunting/hunts?actor=${actor.id}`}>
                   Related hunts
                   <ExternalLink className="ml-1.5 size-3" />
                 </Link>
@@ -370,7 +367,7 @@ export function ActorsCenter({
           <h2 className="text-muted-foreground text-sm font-medium tracking-wide uppercase">
             Campaigns
           </h2>
-          <div className="bg-card overflow-hidden rounded-lg border">
+          <div className="bg-card shadow-card overflow-hidden rounded-xl border">
             <ul className="divide-y">
               {filteredCampaigns.map((campaign: ThreatCampaign) => {
                 const actor = threatActorProfiles.find(
@@ -406,7 +403,7 @@ export function ActorsCenter({
                         asChild
                         variant="outline"
                         size="sm"
-                        className={cn("shrink-0", mutedControlClassName)}
+                        className="shrink-0"
                       >
                         <Link
                           href={`/threat-intelligence?indicator=${campaign.indicatorIds[0] ?? ""}`}

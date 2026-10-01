@@ -1,19 +1,12 @@
 "use client";
 
-import {
-  CheckIcon,
-  ChevronRight,
-  Cloud,
-  ExternalLink,
-  ListFilter,
-  Search,
-  ShieldAlert,
-} from "lucide-react";
+import { Cloud, ExternalLink, Search, ShieldAlert } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
 
 import { ListPagination, paginateItems } from "@/components/list-pagination";
+import { type FilterFacet, FilterMenu } from "@/components/soc/filter-menu";
 import {
   ModuleShell,
   ModuleToolbarActions,
@@ -23,22 +16,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
-  Command,
-  CommandGroup,
-  CommandItem,
-  CommandList,
-  CommandSeparator,
-} from "@/components/ui/command";
-import {
   InputGroup,
   InputGroupAddon,
   InputGroupInput,
 } from "@/components/ui/input-group";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import {
   Sheet,
   SheetContent,
@@ -78,28 +59,19 @@ import { useCloudPostureSession } from "./cloud-posture-session";
 
 const COLUMN_COUNT = 7;
 
-const mutedControlClassName =
-  "border-border bg-background text-foreground hover:bg-accent hover:text-accent-foreground";
-
 const severityTones: Record<CloudFindingSeverity, string> = {
-  critical:
-    "border-destructive/30 bg-destructive/10 text-destructive dark:text-red-400",
-  high: "border-orange-500/30 bg-orange-500/10 text-orange-700 dark:text-orange-400",
-  medium:
-    "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400",
+  critical: "border-destructive/30 bg-destructive/10 text-destructive-text",
+  high: "border-severity-high/30 bg-severity-high/10 text-severity-high-text",
+  medium: "border-warning/30 bg-warning/10 text-warning-text",
   low: "border-border bg-muted text-muted-foreground",
 };
 
 const statusTones: Record<CloudFindingStatus, string> = {
-  open: "border-rose-500/30 bg-rose-500/10 text-rose-700 dark:text-rose-400",
-  in_progress:
-    "border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-400",
-  resolved:
-    "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
+  open: "border-destructive/30 bg-destructive/10 text-destructive-text",
+  in_progress: "border-info/30 bg-info/10 text-info-text",
+  resolved: "border-success/30 bg-success/10 text-success-text",
   accepted: "border-border bg-muted text-muted-foreground",
 };
-
-type FilterPanel = "provider" | "severity" | "status";
 
 /** Official cloud vendor mark — brand color never follows parent button/text. */
 function ProviderIcon({
@@ -174,28 +146,6 @@ function StatusBadge({ status }: { status: CloudFindingStatus }) {
   );
 }
 
-function FilterPanelHeader({
-  title,
-  onBack,
-}: {
-  title: string;
-  onBack: () => void;
-}) {
-  return (
-    <div className="flex items-center border-b p-2">
-      <Button
-        variant="ghost"
-        size="sm"
-        className="h-7 gap-1 px-2 text-xs"
-        onClick={onBack}
-      >
-        <ChevronRight className="size-3.5 rotate-180" />
-        {title}
-      </Button>
-    </div>
-  );
-}
-
 function FindingsFilterControl({
   providers,
   severities,
@@ -215,198 +165,52 @@ function FindingsFilterControl({
   onToggleStatus: (s: CloudFindingStatus) => void;
   onClear: () => void;
 }) {
-  const [open, setOpen] = useState(false);
-  const [panel, setPanel] = useState<FilterPanel | null>(null);
+  const facets: FilterFacet[] = [
+    {
+      id: "provider",
+      label: "Provider",
+      icon: Cloud,
+      options: cloudProviders.map((value) => ({
+        value,
+        label: (
+          <span className="flex items-center gap-2">
+            <ProviderIcon provider={value} />
+            {cloudProviderLabels[value]}
+          </span>
+        ),
+      })),
+      selected: providers,
+      onToggle: (value) => onToggleProvider(value as CloudProvider),
+    },
+    {
+      id: "severity",
+      label: "Severity",
+      icon: ShieldAlert,
+      options: cloudSeverities.map((value) => ({
+        value,
+        label: cloudSeverityLabels[value],
+      })),
+      selected: severities,
+      onToggle: (value) => onToggleSeverity(value as CloudFindingSeverity),
+    },
+    {
+      id: "status",
+      label: "Status",
+      options: cloudStatuses.map((value) => ({
+        value,
+        label: cloudStatusLabels[value],
+      })),
+      selected: statuses,
+      onToggle: (value) => onToggleStatus(value as CloudFindingStatus),
+    },
+  ];
 
   return (
-    <Popover
-      open={open}
-      onOpenChange={(next) => {
-        setOpen(next);
-        if (!next) setPanel(null);
-      }}
-    >
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          className={cn("relative h-9 gap-1.5 px-2.5", mutedControlClassName)}
-        >
-          <ListFilter className="size-3.5" />
-          Filter
-          {activeFilterCount > 0 ? (
-            <span className="bg-primary text-primary-foreground absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full text-xs font-semibold">
-              {activeFilterCount}
-            </span>
-          ) : null}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-64 p-0" align="end">
-        {panel === null ? (
-          <Command>
-            <CommandList>
-              <CommandGroup>
-                <CommandItem
-                  onSelect={() => setPanel("provider")}
-                  className="flex items-center justify-between"
-                >
-                  <span className="flex items-center gap-2">
-                    <Cloud className="size-4 text-zinc-500" />
-                    Provider
-                  </span>
-                  <div className="flex items-center">
-                    {providers.length > 0 ? (
-                      <span className="mr-1 text-xs text-zinc-500">
-                        {providers.length}
-                      </span>
-                    ) : null}
-                    <ChevronRight className="size-4" />
-                  </div>
-                </CommandItem>
-                <CommandItem
-                  onSelect={() => setPanel("severity")}
-                  className="flex items-center justify-between"
-                >
-                  <span className="flex items-center gap-2">
-                    <ShieldAlert className="size-4 text-zinc-500" />
-                    Severity
-                  </span>
-                  <div className="flex items-center">
-                    {severities.length > 0 ? (
-                      <span className="mr-1 text-xs text-zinc-500">
-                        {severities.length}
-                      </span>
-                    ) : null}
-                    <ChevronRight className="size-4" />
-                  </div>
-                </CommandItem>
-                <CommandItem
-                  onSelect={() => setPanel("status")}
-                  className="flex items-center justify-between"
-                >
-                  <span className="flex items-center gap-2">
-                    <ListFilter className="size-4 text-zinc-500" />
-                    Status
-                  </span>
-                  <div className="flex items-center">
-                    {statuses.length > 0 ? (
-                      <span className="mr-1 text-xs text-zinc-500">
-                        {statuses.length}
-                      </span>
-                    ) : null}
-                    <ChevronRight className="size-4" />
-                  </div>
-                </CommandItem>
-              </CommandGroup>
-              {activeFilterCount > 0 ? (
-                <>
-                  <CommandSeparator />
-                  <CommandGroup>
-                    <CommandItem
-                      onSelect={() => {
-                        onClear();
-                        setOpen(false);
-                      }}
-                      className="text-muted-foreground"
-                    >
-                      Clear filters
-                    </CommandItem>
-                  </CommandGroup>
-                </>
-              ) : null}
-            </CommandList>
-          </Command>
-        ) : null}
-
-        {panel === "provider" ? (
-          <>
-            <FilterPanelHeader title="Provider" onBack={() => setPanel(null)} />
-            <Command>
-              <CommandList>
-                <CommandGroup>
-                  {cloudProviders.map((provider) => {
-                    const selected = providers.includes(provider);
-                    return (
-                      <CommandItem
-                        key={provider}
-                        onSelect={() => onToggleProvider(provider)}
-                      >
-                        <CheckIcon
-                          className={cn(
-                            "mr-2 size-4",
-                            selected ? "opacity-100" : "opacity-0",
-                          )}
-                        />
-                        <ProviderIcon provider={provider} className="mr-2" />
-                        {cloudProviderLabels[provider]}
-                      </CommandItem>
-                    );
-                  })}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </>
-        ) : null}
-
-        {panel === "severity" ? (
-          <>
-            <FilterPanelHeader title="Severity" onBack={() => setPanel(null)} />
-            <Command>
-              <CommandList>
-                <CommandGroup>
-                  {cloudSeverities.map((severity) => {
-                    const selected = severities.includes(severity);
-                    return (
-                      <CommandItem
-                        key={severity}
-                        onSelect={() => onToggleSeverity(severity)}
-                      >
-                        <CheckIcon
-                          className={cn(
-                            "mr-2 size-4",
-                            selected ? "opacity-100" : "opacity-0",
-                          )}
-                        />
-                        {cloudSeverityLabels[severity]}
-                      </CommandItem>
-                    );
-                  })}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </>
-        ) : null}
-
-        {panel === "status" ? (
-          <>
-            <FilterPanelHeader title="Status" onBack={() => setPanel(null)} />
-            <Command>
-              <CommandList>
-                <CommandGroup>
-                  {cloudStatuses.map((status) => {
-                    const selected = statuses.includes(status);
-                    return (
-                      <CommandItem
-                        key={status}
-                        onSelect={() => onToggleStatus(status)}
-                      >
-                        <CheckIcon
-                          className={cn(
-                            "mr-2 size-4",
-                            selected ? "opacity-100" : "opacity-0",
-                          )}
-                        />
-                        {cloudStatusLabels[status]}
-                      </CommandItem>
-                    );
-                  })}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </>
-        ) : null}
-      </PopoverContent>
-    </Popover>
+    <FilterMenu
+      facets={facets}
+      activeCount={activeFilterCount}
+      onClear={onClear}
+    />
   );
 }
 
@@ -489,7 +293,9 @@ function FindingDetailSheet({
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-muted-foreground text-xs">First seen</dt>
+                    <dt className="text-muted-foreground text-xs">
+                      First seen
+                    </dt>
                     <dd className="mt-0.5 font-mono text-xs">
                       {finding.firstSeen.slice(0, 10)}
                     </dd>
@@ -558,7 +364,12 @@ function FindingDetailSheet({
                   </Button>
                 ) : null}
                 {finding.investigateQuery ? (
-                  <Button asChild size="sm" variant="outline" className="justify-start gap-1.5">
+                  <Button
+                    asChild
+                    size="sm"
+                    variant="outline"
+                    className="justify-start gap-1.5"
+                  >
                     <Link
                       href={`/investigate?q=${encodeURIComponent(finding.investigateQuery)}`}
                     >
@@ -572,9 +383,7 @@ function FindingDetailSheet({
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() =>
-                        onStatusChange(finding.id, "in_progress")
-                      }
+                      onClick={() => onStatusChange(finding.id, "in_progress")}
                     >
                       Mark in progress
                     </Button>
@@ -624,8 +433,8 @@ export function CloudPostureCenter() {
   });
   const [statuses, setStatuses] = useState<CloudFindingStatus[]>([]);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [activeId, setActiveId] = useState<string | null>(
-    () => searchParams.get("id"),
+  const [activeId, setActiveId] = useState<string | null>(() =>
+    searchParams.get("id"),
   );
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(25);
@@ -754,7 +563,6 @@ export function CloudPostureCenter() {
                     variant="outline"
                     className={cn(
                       "h-8 gap-1.5 rounded-md text-xs",
-                      mutedControlClassName,
                       active && "border-foreground/30 bg-muted/40",
                     )}
                     onClick={() =>
@@ -835,7 +643,7 @@ export function CloudPostureCenter() {
                         <Button
                           variant="outline"
                           size="sm"
-                          className={cn("h-8", mutedControlClassName)}
+                          className="h-8"
                           onClick={() => handleBulk("in_progress")}
                         >
                           Mark in progress
@@ -843,7 +651,7 @@ export function CloudPostureCenter() {
                         <Button
                           variant="outline"
                           size="sm"
-                          className={cn("h-8", mutedControlClassName)}
+                          className="h-8"
                           onClick={() => handleBulk("accepted")}
                         >
                           Accept
@@ -870,9 +678,13 @@ export function CloudPostureCenter() {
                     />
                   </TableHead>
                   <TableHead>Finding</TableHead>
-                  <TableHead className="hidden md:table-cell">Provider</TableHead>
+                  <TableHead className="hidden md:table-cell">
+                    Provider
+                  </TableHead>
                   <TableHead>Severity</TableHead>
-                  <TableHead className="hidden lg:table-cell">Resource</TableHead>
+                  <TableHead className="hidden lg:table-cell">
+                    Resource
+                  </TableHead>
                   <TableHead className="hidden sm:table-cell">Region</TableHead>
                   <TableHead>Status</TableHead>
                 </TableRow>

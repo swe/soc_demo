@@ -39,12 +39,6 @@ import {
   kbTrainingStatusLabels,
 } from "./knowledge-base-data";
 
-export const mutedControlClassName =
-  "border-border bg-background text-foreground hover:bg-accent hover:text-accent-foreground";
-
-export const tabTriggerClassName =
-  "data-[state=active]:border-foreground shrink-0 gap-2 rounded-none border-b-2 border-transparent px-0 pb-3 text-sm shadow-none data-[state=active]:bg-transparent data-[state=active]:shadow-none sm:pb-4";
-
 export const percentFormatter = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 1,
 });
@@ -164,10 +158,7 @@ export function ProcedureStatusBadge({
   return (
     <Badge
       variant="outline"
-      className={cn(
-        "rounded-full font-medium",
-        procedureStatusTones[status],
-      )}
+      className={cn("rounded-full font-medium", procedureStatusTones[status])}
     >
       {kbProcedureStatusLabels[status]}
     </Badge>
@@ -205,15 +196,14 @@ const trainingStatusTones: Record<KbTrainingStatus, string> = {
     "border-destructive/30 bg-destructive/10 text-destructive dark:text-red-400",
 };
 
-export function TrainingStatusBadge({
-  status,
-}: {
-  status: KbTrainingStatus;
-}) {
+export function TrainingStatusBadge({ status }: { status: KbTrainingStatus }) {
   return (
     <Badge
       variant="outline"
-      className={cn("gap-1 rounded-full font-medium", trainingStatusTones[status])}
+      className={cn(
+        "gap-1 rounded-full font-medium",
+        trainingStatusTones[status],
+      )}
     >
       {status === "overdue" ? <FileWarning className="size-3" /> : null}
       {status === "in-progress" ? <Clock3 className="size-3" /> : null}
@@ -234,13 +224,7 @@ export function TrainingLevelBadge({ level }: { level: KbTrainingLevel }) {
 /*                                   People                                   */
 /* -------------------------------------------------------------------------- */
 
-export function OwnerCell({
-  userId,
-  href,
-}: {
-  userId: string;
-  href?: string;
-}) {
+export function OwnerCell({ userId, href }: { userId: string; href?: string }) {
   const user = getKbUser(userId);
 
   if (!user) {

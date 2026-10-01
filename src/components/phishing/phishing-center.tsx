@@ -22,7 +22,6 @@ import {
   useState,
 } from "react";
 
-import { tabTriggerClassName } from "@/components/alerts/alerts-primitives";
 import { buildInvestigateHref } from "@/components/investigate/investigate-data";
 import {
   buildPhishingHref,
@@ -35,6 +34,11 @@ import {
   ModuleToolbarActions,
   ModuleToolbarSearch,
 } from "@/components/soc/module-shell";
+import {
+  ModuleTabsList,
+  ModuleTabsTrigger,
+  TabCount,
+} from "@/components/soc/module-tabs";
 import { Panel, PanelHeading } from "@/components/soc/panel";
 import { type SocStat, StatsStrip } from "@/components/soc/stats-strip";
 import { Badge } from "@/components/ui/badge";
@@ -67,7 +71,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import {
   PHISH_CAMPAIGNS,
   PHISH_SOURCES,
@@ -126,11 +130,11 @@ function verdictTone(verdict: PhishVerdict) {
   switch (verdict) {
     case "malicious":
     case "bec_likely":
-      return "border-destructive/30 bg-destructive/10 text-destructive";
+      return "border-destructive/30 bg-destructive/10 text-destructive-text";
     case "suspicious":
-      return "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400";
+      return "border-warning/30 bg-warning/10 text-warning-text";
     case "benign":
-      return "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400";
+      return "border-success/30 bg-success/10 text-success-text";
     default:
       return "";
   }
@@ -536,19 +540,13 @@ export function PhishingCenter() {
           onValueChange={(value) => setTab(value as PhishingTab)}
           className="flex flex-col gap-4"
         >
-          <div className="overflow-x-auto border-b">
-            <TabsList className="inline-flex h-auto min-w-max justify-start gap-7 rounded-none bg-transparent p-0 sm:gap-8">
-              <TabsTrigger value="overview" className={tabTriggerClassName}>
-                Overview
-              </TabsTrigger>
-              <TabsTrigger value="queue" className={tabTriggerClassName}>
-                Queue
-                <span className="bg-muted text-muted-foreground rounded-md px-1.5 py-0.5 text-xs">
-                  {messages.length.toLocaleString("en-US")}
-                </span>
-              </TabsTrigger>
-            </TabsList>
-          </div>
+          <ModuleTabsList>
+            <ModuleTabsTrigger value="overview">Overview</ModuleTabsTrigger>
+            <ModuleTabsTrigger value="queue">
+              Queue
+              <TabCount>{messages.length.toLocaleString("en-US")}</TabCount>
+            </ModuleTabsTrigger>
+          </ModuleTabsList>
 
           <TabsContent value="overview" className="mt-0 space-y-4">
             <StatsStrip stats={stats} />
@@ -568,9 +566,13 @@ export function PhishingCenter() {
                       <TableRow>
                         <TableHead>Campaign</TableHead>
                         <TableHead className="text-right">Messages</TableHead>
-                        <TableHead className="text-right">Open</TableHead>
+                        <TableHead className="hidden md:table-cell text-right">
+                          Open
+                        </TableHead>
                         <TableHead className="text-right">Malicious</TableHead>
-                        <TableHead className="text-right">BEC</TableHead>
+                        <TableHead className="hidden sm:table-cell text-right">
+                          BEC
+                        </TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -595,14 +597,14 @@ export function PhishingCenter() {
                           <TableCell className="text-right tabular-nums">
                             {campaign.count}
                           </TableCell>
-                          <TableCell className="text-right tabular-nums">
+                          <TableCell className="hidden md:table-cell text-right tabular-nums">
                             {campaign.open}
                           </TableCell>
                           <TableCell className="text-right">
                             {campaign.malicious > 0 ? (
                               <Badge
                                 variant="outline"
-                                className="border-destructive/30 bg-destructive/10 text-destructive rounded-full text-xs font-normal"
+                                className="border-destructive/30 bg-destructive/10 text-destructive-text rounded-full text-xs font-normal"
                               >
                                 {campaign.malicious}
                               </Badge>
@@ -612,7 +614,7 @@ export function PhishingCenter() {
                               </span>
                             )}
                           </TableCell>
-                          <TableCell className="text-right tabular-nums">
+                          <TableCell className="hidden sm:table-cell text-right tabular-nums">
                             {campaign.bec}
                           </TableCell>
                         </TableRow>
@@ -710,7 +712,7 @@ export function PhishingCenter() {
               </Badge>
             </div>
 
-            <div className="bg-card overflow-hidden rounded-lg border">
+            <div className="bg-card shadow-card overflow-hidden rounded-xl border">
               <Table>
                 <TableHeader>
                   {hasSelection ? (
@@ -794,11 +796,19 @@ export function PhishingCenter() {
                         />
                       </TableHead>
                       <TableHead>Subject</TableHead>
-                      <TableHead>Campaign</TableHead>
-                      <TableHead>From</TableHead>
-                      <TableHead>Status</TableHead>
+                      <TableHead className="hidden lg:table-cell">
+                        Campaign
+                      </TableHead>
+                      <TableHead className="hidden md:table-cell">
+                        From
+                      </TableHead>
+                      <TableHead className="hidden sm:table-cell">
+                        Status
+                      </TableHead>
                       <TableHead>Verdict</TableHead>
-                      <TableHead className="text-right">Received</TableHead>
+                      <TableHead className="hidden text-right md:table-cell">
+                        Received
+                      </TableHead>
                     </TableRow>
                   )}
                 </TableHeader>
@@ -846,9 +856,9 @@ export function PhishingCenter() {
                               onCheckedChange={() => toggleSelect(message.id)}
                             />
                           </TableCell>
-                          <TableCell className="max-w-[240px]">
+                          <TableCell className="md:max-w-[240px]">
                             <div className="flex flex-col gap-1">
-                              <span className="truncate font-medium">
+                              <span className="line-clamp-2 font-medium md:line-clamp-1">
                                 {message.subject}
                               </span>
                               <div className="flex flex-wrap gap-1">
@@ -874,15 +884,15 @@ export function PhishingCenter() {
                               </div>
                             </div>
                           </TableCell>
-                          <TableCell className="max-w-[160px]">
+                          <TableCell className="hidden max-w-[160px] lg:table-cell">
                             <span className="line-clamp-2 text-xs">
                               {message.campaignName}
                             </span>
                           </TableCell>
-                          <TableCell className="max-w-[180px] truncate text-sm">
+                          <TableCell className="hidden max-w-[180px] truncate text-sm md:table-cell">
                             {message.from}
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="hidden sm:table-cell">
                             <Badge
                               variant="outline"
                               className="rounded-full font-normal capitalize"
@@ -901,7 +911,7 @@ export function PhishingCenter() {
                               {message.verdict.replaceAll("_", " ")}
                             </Badge>
                           </TableCell>
-                          <TableCell className="text-muted-foreground text-right text-xs tabular-nums">
+                          <TableCell className="text-muted-foreground hidden text-right text-xs tabular-nums md:table-cell">
                             {formatWhen(message.receivedAt)}
                           </TableCell>
                         </TableRow>
@@ -973,7 +983,9 @@ export function PhishingCenter() {
                   </p>
                   {selected.reportedBy ? (
                     <p>
-                      <span className="text-muted-foreground">Reported by </span>
+                      <span className="text-muted-foreground">
+                        Reported by{" "}
+                      </span>
                       {selected.reportedBy}
                     </p>
                   ) : null}
@@ -1062,8 +1074,7 @@ export function PhishingCenter() {
                       size="sm"
                       variant="outline"
                       disabled={
-                        busyAction !== null ||
-                        verdictDraft === selected.verdict
+                        busyAction !== null || verdictDraft === selected.verdict
                       }
                       onClick={() =>
                         void setAnalystVerdict(selected.id, verdictDraft)
@@ -1112,9 +1123,7 @@ export function PhishingCenter() {
                               className="h-7 gap-1 px-2 text-xs"
                             >
                               <Link
-                                href={buildInvestigateHref(
-                                  `url:"${url.url}"`,
-                                )}
+                                href={buildInvestigateHref(`url:"${url.url}"`)}
                               >
                                 Investigate
                                 <ExternalLink className="size-3" />

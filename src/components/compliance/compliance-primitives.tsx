@@ -45,12 +45,6 @@ import {
   getUser,
 } from "./compliance-data";
 
-export const mutedControlClassName =
-  "border-border bg-background text-foreground hover:bg-accent hover:text-accent-foreground";
-
-export const tabTriggerClassName =
-  "data-[state=active]:border-foreground shrink-0 gap-2 rounded-none border-b-2 border-transparent px-0 pb-3 text-sm shadow-none data-[state=active]:bg-transparent data-[state=active]:shadow-none sm:pb-4";
-
 export const percentFormatter = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 1,
 });

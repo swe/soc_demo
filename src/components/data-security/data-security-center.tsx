@@ -41,11 +41,10 @@ import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 
 const severityTone: Record<string, string> = {
-  critical: "border-red-500/40 bg-red-500/10 text-red-700 dark:text-red-300",
-  high: "border-orange-500/40 bg-orange-500/10 text-orange-700 dark:text-orange-300",
-  medium:
-    "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300",
-  low: "border-blue-500/40 bg-blue-500/10 text-blue-700 dark:text-blue-300",
+  critical: "border-destructive/40 bg-destructive/10 text-destructive-text",
+  high: "border-severity-high/40 bg-severity-high/10 text-severity-high-text",
+  medium: "border-warning/40 bg-warning/10 text-warning-text",
+  low: "border-info/40 bg-info/10 text-info-text",
 };
 
 export function DataSecurityCenter() {
@@ -260,9 +259,13 @@ export function DataSecurityCenter() {
                 <TableRow>
                   <TableHead>Finding</TableHead>
                   <TableHead>Severity</TableHead>
-                  <TableHead>Identity</TableHead>
-                  <TableHead>Source</TableHead>
-                  <TableHead>Incident</TableHead>
+                  <TableHead className="hidden md:table-cell">
+                    Identity
+                  </TableHead>
+                  <TableHead className="hidden lg:table-cell">Source</TableHead>
+                  <TableHead className="hidden lg:table-cell">
+                    Incident
+                  </TableHead>
                   <TableHead className="text-right">Action</TableHead>
                 </TableRow>
               </TableHeader>
@@ -292,7 +295,7 @@ export function DataSecurityCenter() {
                         {row.severity}
                       </Badge>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden md:table-cell">
                       <Link
                         href={`/assets/identities?q=${encodeURIComponent(row.identityLabel)}`}
                         className="text-xs hover:underline"
@@ -300,10 +303,10 @@ export function DataSecurityCenter() {
                         {row.identityLabel}
                       </Link>
                     </TableCell>
-                    <TableCell className="text-muted-foreground text-xs">
+                    <TableCell className="hidden lg:table-cell text-muted-foreground text-xs">
                       {row.sourceName}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden lg:table-cell">
                       {row.openIncidentId ? (
                         <Link
                           href={`/incidents/${row.openIncidentId}`}
@@ -320,7 +323,9 @@ export function DataSecurityCenter() {
                         size="sm"
                         variant="outline"
                         className="h-7"
-                        disabled={busyId !== null || Boolean(row.openIncidentId)}
+                        disabled={
+                          busyId !== null || Boolean(row.openIncidentId)
+                        }
                         onClick={() => void openIncident(row.id)}
                       >
                         {busyId === row.id ? "Opening…" : "Open incident"}
@@ -340,10 +345,12 @@ export function DataSecurityCenter() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Policy</TableHead>
-                  <TableHead>Kind</TableHead>
+                  <TableHead className="hidden sm:table-cell">Kind</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Upstream</TableHead>
-                  <TableHead>Hits</TableHead>
+                  <TableHead className="hidden md:table-cell">
+                    Upstream
+                  </TableHead>
+                  <TableHead className="hidden sm:table-cell">Hits</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -355,7 +362,9 @@ export function DataSecurityCenter() {
                         {p.summary}
                       </p>
                     </TableCell>
-                    <TableCell className="text-xs uppercase">{p.kind}</TableCell>
+                    <TableCell className="hidden sm:table-cell text-xs uppercase">
+                      {p.kind}
+                    </TableCell>
                     <TableCell>
                       <Badge
                         variant="outline"
@@ -364,10 +373,10 @@ export function DataSecurityCenter() {
                         {p.status}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-muted-foreground font-mono text-xs">
+                    <TableCell className="hidden md:table-cell text-muted-foreground font-mono text-xs">
                       {p.upstreamRef}
                     </TableCell>
-                    <TableCell className="tabular-nums text-sm">
+                    <TableCell className="hidden sm:table-cell tabular-nums text-sm">
                       {p.findingCount}
                     </TableCell>
                   </TableRow>
@@ -384,10 +393,12 @@ export function DataSecurityCenter() {
               <TableHeader>
                 <TableRow>
                   <TableHead>App</TableHead>
-                  <TableHead>Sanction</TableHead>
+                  <TableHead className="hidden sm:table-cell">
+                    Sanction
+                  </TableHead>
                   <TableHead>Risk</TableHead>
-                  <TableHead>Users</TableHead>
-                  <TableHead>Source</TableHead>
+                  <TableHead className="hidden md:table-cell">Users</TableHead>
+                  <TableHead className="hidden lg:table-cell">Source</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -399,13 +410,13 @@ export function DataSecurityCenter() {
                         {app.category}
                       </p>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden sm:table-cell">
                       <Badge
                         variant="outline"
                         className={cn(
                           "rounded-full capitalize",
                           app.sanction === "shadow" &&
-                            "border-orange-500/40 text-orange-700",
+                            "border-severity-high/40 text-severity-high-text",
                         )}
                       >
                         {app.sanction}
@@ -422,10 +433,10 @@ export function DataSecurityCenter() {
                         {app.risk}
                       </Badge>
                     </TableCell>
-                    <TableCell className="tabular-nums text-sm">
+                    <TableCell className="hidden md:table-cell tabular-nums text-sm">
                       {app.users}
                     </TableCell>
-                    <TableCell className="text-muted-foreground text-xs">
+                    <TableCell className="hidden lg:table-cell text-muted-foreground text-xs">
                       {app.sourceName}
                     </TableCell>
                   </TableRow>
@@ -443,9 +454,15 @@ export function DataSecurityCenter() {
                 <TableRow>
                   <TableHead>When</TableHead>
                   <TableHead>Event</TableHead>
-                  <TableHead>Identity</TableHead>
-                  <TableHead>Finding</TableHead>
-                  <TableHead>Destination</TableHead>
+                  <TableHead className="hidden md:table-cell">
+                    Identity
+                  </TableHead>
+                  <TableHead className="hidden sm:table-cell">
+                    Finding
+                  </TableHead>
+                  <TableHead className="hidden lg:table-cell">
+                    Destination
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -461,11 +478,13 @@ export function DataSecurityCenter() {
                         {ev.bytesLabel ? ` · ${ev.bytesLabel}` : ""}
                       </p>
                     </TableCell>
-                    <TableCell className="text-xs">{ev.identityLabel}</TableCell>
-                    <TableCell className="font-mono text-xs">
+                    <TableCell className="hidden md:table-cell text-xs">
+                      {ev.identityLabel}
+                    </TableCell>
+                    <TableCell className="hidden sm:table-cell font-mono text-xs">
                       {ev.findingId}
                     </TableCell>
-                    <TableCell className="text-muted-foreground text-xs">
+                    <TableCell className="hidden lg:table-cell text-muted-foreground text-xs">
                       {ev.destination ?? ev.channel}
                     </TableCell>
                   </TableRow>

@@ -2,13 +2,10 @@
 
 import {
   Bot,
-  CheckIcon,
-  ChevronRight,
   CircleX,
   Ellipsis,
   KeyRound,
   Laptop,
-  ListFilter,
   type LucideIcon,
   MapPin,
   Plus,
@@ -27,18 +24,22 @@ import { useSearchParams } from "next/navigation";
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
 
 import { ListPagination, paginateItems } from "@/components/list-pagination";
-import { type SocStat,StatsStrip } from "@/components/soc/stats-strip";
+import { type FilterFacet, FilterMenu } from "@/components/soc/filter-menu";
+import {
+  ModuleShell,
+  ModuleToolbarSearch,
+} from "@/components/soc/module-shell";
+import {
+  ModuleTabsList,
+  ModuleTabsTrigger,
+  TabCount,
+} from "@/components/soc/module-tabs";
+import { type SocStat, StatsStrip } from "@/components/soc/stats-strip";
+import { ToolbarToggle } from "@/components/soc/toolbar-toggle";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Command,
-  CommandGroup,
-  CommandItem,
-  CommandList,
-  CommandSeparator,
-} from "@/components/ui/command";
 import {
   Dialog,
   DialogContent,
@@ -60,11 +61,6 @@ import {
   InputGroupAddon,
   InputGroupInput,
 } from "@/components/ui/input-group";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Select,
@@ -82,7 +78,6 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { Switch } from "@/components/ui/switch";
 import {
   Table,
   TableBody,
@@ -127,7 +122,6 @@ type IdentitySort =
   | "seen-asc"
   | "risk-desc"
   | "risk-asc";
-type FilterPanel = "status" | "source" | "sort";
 type OnboardMethod = "directory" | "invite" | "manual";
 type OnboardStep = 1 | 2 | 3;
 
@@ -144,12 +138,6 @@ type OnboardState = {
   owner: string;
   privileged: boolean;
 };
-
-const mutedControlClassName =
-  "border-border bg-background text-foreground hover:bg-accent hover:text-accent-foreground";
-
-const tabTriggerClassName =
-  "data-[state=active]:border-foreground shrink-0 gap-2 rounded-none border-b-2 border-transparent px-0 pb-3 text-sm shadow-none data-[state=active]:bg-transparent data-[state=active]:shadow-none sm:pb-4";
 
 const sortLabels: Record<IdentitySort, string> = {
   "name-asc": "Name A-Z",
@@ -172,22 +160,22 @@ const statusDetails: Record<
 > = {
   active: {
     label: "Active",
-    className: "text-green-600 dark:text-green-400",
+    className: "text-success-text",
     icon: ShieldCheck,
   },
   disabled: {
     label: "Disabled",
-    className: "text-zinc-500",
+    className: "text-muted-foreground",
     icon: CircleX,
   },
   locked: {
     label: "Locked",
-    className: "text-destructive dark:text-red-400",
+    className: "text-destructive-text",
     icon: ShieldAlert,
   },
   stale: {
     label: "Stale",
-    className: "text-amber-600 dark:text-amber-400",
+    className: "text-warning-text",
     icon: KeyRound,
   },
 };
@@ -235,7 +223,7 @@ function PrivilegedBadge() {
           <button
             type="button"
             aria-label="Privileged"
-            className="inline-flex size-6 shrink-0 items-center justify-center rounded-full border border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400"
+            className="inline-flex size-6 shrink-0 items-center justify-center rounded-full border border-warning/40 bg-warning/10 text-warning-text"
           >
             <ShieldAlert className="size-3.5" />
           </button>
@@ -276,9 +264,7 @@ function MfaStatus({ enabled }: { enabled: boolean | null }) {
     <span
       className={cn(
         "inline-flex items-center gap-1.5 text-xs font-medium",
-        enabled
-          ? "text-green-600 dark:text-green-500"
-          : "text-destructive dark:text-red-400",
+        enabled ? "text-success-text" : "text-destructive-text",
       )}
     >
       {enabled ? (
@@ -294,10 +280,10 @@ function MfaStatus({ enabled }: { enabled: boolean | null }) {
 function RiskBadge({ score }: { score: number }) {
   const tone =
     score >= 70
-      ? "border-destructive/30 bg-destructive/10 text-destructive dark:text-red-400"
+      ? "border-destructive/30 bg-destructive/10 text-destructive-text"
       : score >= 40
-        ? "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400"
-        : "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400";
+        ? "border-warning/30 bg-warning/10 text-warning-text"
+        : "border-success/30 bg-success/10 text-success-text";
 
   return (
     <Badge variant="outline" className={cn("rounded-full tabular-nums", tone)}>
@@ -312,8 +298,7 @@ function AttentionFlags({ identity }: { identity: AssetIdentity }) {
   if (identity.mfaEnabled === false) {
     flags.push({
       label: "MFA gap",
-      className:
-        "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400",
+      className: "border-warning/30 bg-warning/10 text-warning-text",
     });
   }
 
@@ -324,7 +309,7 @@ function AttentionFlags({ identity }: { identity: AssetIdentity }) {
     flags.push({
       label: "Dormant admin",
       className:
-        "border-destructive/30 bg-destructive/10 text-destructive dark:text-red-400",
+        "border-destructive/30 bg-destructive/10 text-destructive-text",
     });
   }
 
@@ -401,7 +386,7 @@ function IdentityAttentionFilters({
                       isActive
                         ? "bg-background/20 text-background"
                         : count > 0
-                          ? "bg-amber-500/15 text-amber-700 dark:text-amber-400"
+                          ? "bg-warning/15 text-warning-text"
                           : "bg-muted text-muted-foreground",
                     )}
                   >
@@ -476,8 +461,8 @@ function IdentityDetailSheet({
             </SheetHeader>
 
             {identity.notes ? (
-              <div className="border-amber-500/30 bg-amber-500/5 mb-4 flex items-start gap-2 rounded-lg border p-3">
-                <StickyNote className="mt-0.5 size-3.5 shrink-0 text-amber-700 dark:text-amber-400" />
+              <div className="border-warning/30 bg-warning/5 mb-4 flex items-start gap-2 rounded-lg border p-3">
+                <StickyNote className="mt-0.5 size-3.5 shrink-0 text-warning-text" />
                 <p className="text-sm">{identity.notes}</p>
               </div>
             ) : null}
@@ -526,11 +511,15 @@ function IdentityDetailSheet({
                   <h3 className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
                     Ownership
                   </h3>
-                  <SheetDetailRow label="Owner">{identity.owner}</SheetDetailRow>
+                  <SheetDetailRow label="Owner">
+                    {identity.owner}
+                  </SheetDetailRow>
                   <SheetDetailRow label="Department">
                     {identity.department}
                   </SheetDetailRow>
-                  <SheetDetailRow label="Title">{identity.title}</SheetDetailRow>
+                  <SheetDetailRow label="Title">
+                    {identity.title}
+                  </SheetDetailRow>
                 </section>
 
                 <Separator />
@@ -549,7 +538,9 @@ function IdentityDetailSheet({
                     </span>
                   </SheetDetailRow>
                   <div className="flex flex-col gap-1.5 text-sm">
-                    <span className="text-muted-foreground">Linked devices</span>
+                    <span className="text-muted-foreground">
+                      Linked devices
+                    </span>
                     {identity.linkedDevices.length > 0 ? (
                       <div className="flex flex-wrap gap-1.5">
                         {identity.linkedDevices.map((device) => (
@@ -581,7 +572,7 @@ function IdentityDetailSheet({
                 <Button
                   variant="outline"
                   size="sm"
-                  className={cn("h-8", mutedControlClassName)}
+                  className="h-8"
                   disabled={identity.mfaEnabled === null}
                   onClick={() => onRequireMfa(identity)}
                 >
@@ -591,18 +582,13 @@ function IdentityDetailSheet({
                 <Button
                   variant="outline"
                   size="sm"
-                  className={cn("h-8", mutedControlClassName)}
+                  className="h-8"
                   onClick={() => onForceLogout(identity)}
                 >
                   <KeyRound className="size-3.5" />
                   Force logout
                 </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className={cn("h-8", mutedControlClassName)}
-                  asChild
-                >
+                <Button variant="outline" size="sm" className="h-8" asChild>
                   <Link href="/incidents/list">
                     <Shield className="size-3.5" />
                     Investigate
@@ -611,7 +597,7 @@ function IdentityDetailSheet({
                 <Button
                   variant="outline"
                   size="sm"
-                  className="text-destructive hover:text-destructive h-8"
+                  className="text-destructive-text hover:text-destructive-text h-8"
                   onClick={() => onDisable(identity)}
                 >
                   <CircleX className="size-3.5" />
@@ -647,28 +633,6 @@ function IdentityAvatar({ identity }: { identity: AssetIdentity }) {
   );
 }
 
-function FilterPanelHeader({
-  title,
-  onBack,
-}: {
-  title: string;
-  onBack: () => void;
-}) {
-  return (
-    <div className="flex items-center border-b p-2">
-      <Button
-        variant="ghost"
-        size="sm"
-        className="size-6 p-0"
-        onClick={onBack}
-      >
-        <ChevronRight className="size-4 rotate-180" />
-      </Button>
-      <span className="ml-2 text-sm font-medium">{title}</span>
-    </div>
-  );
-}
-
 function IdentityFilterControl({
   statusFilters,
   sourceFilters,
@@ -688,186 +652,51 @@ function IdentityFilterControl({
   onSetSort: (sort: IdentitySort) => void;
   onClearFilters: () => void;
 }) {
-  const [open, setOpen] = useState(false);
-  const [panel, setPanel] = useState<FilterPanel | null>(null);
-  const closePanel = () => setPanel(null);
+  const facets: FilterFacet[] = [
+    {
+      id: "status",
+      label: "Status",
+      icon: ShieldCheck,
+      options: (Object.keys(identityStatusLabels) as IdentityStatus[]).map(
+        (value) => ({ value, label: identityStatusLabels[value] }),
+      ),
+      selected: statusFilters,
+      onToggle: (value) => onToggleStatus(value as IdentityStatus),
+    },
+    {
+      id: "source",
+      label: "Source",
+      icon: KeyRound,
+      options: identitySources.map((value) => ({ value, label: value })),
+      selected: sourceFilters,
+      onToggle: (value) => onToggleSource(value as IdentitySource),
+    },
+    {
+      id: "sort",
+      label: "Sort by",
+      single: true,
+      hideCount: true,
+      options: (
+        [
+          "name-asc",
+          "name-desc",
+          "seen-desc",
+          "seen-asc",
+          "risk-desc",
+          "risk-asc",
+        ] as const
+      ).map((value) => ({ value, label: sortLabels[value] })),
+      selected: [sort],
+      onToggle: (value) => onSetSort(value as IdentitySort),
+    },
+  ];
 
   return (
-    <Popover
-      open={open}
-      onOpenChange={(next) => {
-        setOpen(next);
-        if (!next) {
-          setPanel(null);
-        }
-      }}
-    >
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          className={cn("relative h-9 gap-1.5 px-2.5", mutedControlClassName)}
-        >
-          <ListFilter className="size-3.5" />
-          Filter
-          {activeFilterCount > 0 ? (
-            <span className="bg-primary text-primary-foreground absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full text-xs font-semibold">
-              {activeFilterCount}
-            </span>
-          ) : null}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-60 p-0" align="end">
-        {panel === null ? (
-          <Command>
-            <CommandList>
-              <CommandGroup>
-                <CommandItem
-                  onSelect={() => setPanel("status")}
-                  className="flex items-center justify-between"
-                >
-                  <span className="flex items-center gap-2">
-                    <ShieldCheck className="size-4 text-zinc-500" />
-                    Status
-                  </span>
-                  <div className="flex items-center">
-                    {statusFilters.length > 0 ? (
-                      <span className="mr-1 text-xs text-zinc-500">
-                        {statusFilters.length}
-                      </span>
-                    ) : null}
-                    <ChevronRight className="size-4" />
-                  </div>
-                </CommandItem>
-                <CommandItem
-                  onSelect={() => setPanel("source")}
-                  className="flex items-center justify-between"
-                >
-                  <span className="flex items-center gap-2">
-                    <KeyRound className="size-4 text-zinc-500" />
-                    Source
-                  </span>
-                  <div className="flex items-center">
-                    {sourceFilters.length > 0 ? (
-                      <span className="mr-1 text-xs text-zinc-500">
-                        {sourceFilters.length}
-                      </span>
-                    ) : null}
-                    <ChevronRight className="size-4" />
-                  </div>
-                </CommandItem>
-                <CommandItem
-                  onSelect={() => setPanel("sort")}
-                  className="flex items-center justify-between"
-                >
-                  <span className="flex items-center gap-2">
-                    <ListFilter className="size-4 text-zinc-500" />
-                    Sort by
-                  </span>
-                  <ChevronRight className="size-4" />
-                </CommandItem>
-              </CommandGroup>
-              {activeFilterCount > 0 ? (
-                <>
-                  <CommandSeparator />
-                  <CommandGroup>
-                    <CommandItem onSelect={onClearFilters}>
-                      Clear all filters
-                    </CommandItem>
-                  </CommandGroup>
-                </>
-              ) : null}
-            </CommandList>
-          </Command>
-        ) : panel === "status" ? (
-          <Command>
-            <FilterPanelHeader title="Status" onBack={closePanel} />
-            <CommandList>
-              <CommandGroup>
-                {(Object.keys(identityStatusLabels) as IdentityStatus[]).map(
-                  (status) => (
-                    <CommandItem
-                      key={status}
-                      onSelect={() => onToggleStatus(status)}
-                      className="flex items-center justify-between"
-                    >
-                      {identityStatusLabels[status]}
-                      {statusFilters.includes(status) ? (
-                        <CheckIcon className="size-4" />
-                      ) : null}
-                    </CommandItem>
-                  ),
-                )}
-              </CommandGroup>
-            </CommandList>
-          </Command>
-        ) : panel === "source" ? (
-          <Command>
-            <FilterPanelHeader title="Source" onBack={closePanel} />
-            <CommandList>
-              <CommandGroup>
-                {identitySources.map((source) => (
-                  <CommandItem
-                    key={source}
-                    onSelect={() => onToggleSource(source)}
-                    className="flex items-center justify-between"
-                  >
-                    {source}
-                    {sourceFilters.includes(source) ? (
-                      <CheckIcon className="size-4" />
-                    ) : null}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </CommandList>
-          </Command>
-        ) : (
-          <Command>
-            <FilterPanelHeader title="Sort by" onBack={closePanel} />
-            <CommandList>
-              <CommandGroup heading="Name">
-                {(["name-asc", "name-desc"] as const).map((option) => (
-                  <CommandItem
-                    key={option}
-                    onSelect={() => onSetSort(option)}
-                    className="flex items-center justify-between"
-                  >
-                    {sortLabels[option]}
-                    {sort === option ? <CheckIcon className="size-4" /> : null}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-              <CommandSeparator />
-              <CommandGroup heading="Activity">
-                {(["seen-desc", "seen-asc"] as const).map((option) => (
-                  <CommandItem
-                    key={option}
-                    onSelect={() => onSetSort(option)}
-                    className="flex items-center justify-between"
-                  >
-                    {sortLabels[option]}
-                    {sort === option ? <CheckIcon className="size-4" /> : null}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-              <CommandSeparator />
-              <CommandGroup heading="Risk">
-                {(["risk-desc", "risk-asc"] as const).map((option) => (
-                  <CommandItem
-                    key={option}
-                    onSelect={() => onSetSort(option)}
-                    className="flex items-center justify-between"
-                  >
-                    {sortLabels[option]}
-                    {sort === option ? <CheckIcon className="size-4" /> : null}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </CommandList>
-          </Command>
-        )}
-      </PopoverContent>
-    </Popover>
+    <FilterMenu
+      facets={facets}
+      activeCount={activeFilterCount}
+      onClear={onClearFilters}
+    />
   );
 }
 
@@ -952,8 +781,8 @@ function IdentitiesTable({
   const hasSelection = selectedVisibleCount > 0;
 
   return (
-    <div className="bg-card overflow-hidden rounded-lg border">
-      <Table>
+    <div className="bg-card shadow-card overflow-hidden rounded-xl border">
+      <Table className="max-md:table-fixed">
         <TableHeader>
           {hasSelection ? (
             <TableRow className="hover:bg-transparent">
@@ -979,7 +808,7 @@ function IdentitiesTable({
                     <Button
                       variant="outline"
                       size="sm"
-                      className={cn("h-8", mutedControlClassName)}
+                      className="h-8"
                       onClick={onBulkRequireMfa}
                     >
                       <ShieldCheck className="size-3.5" />
@@ -988,7 +817,7 @@ function IdentitiesTable({
                     <Button
                       variant="outline"
                       size="sm"
-                      className={cn("h-8", mutedControlClassName)}
+                      className="h-8"
                       onClick={onBulkInvestigate}
                     >
                       <Shield className="size-3.5" />
@@ -997,7 +826,7 @@ function IdentitiesTable({
                     <Button
                       variant="outline"
                       size="sm"
-                      className="text-destructive hover:text-destructive h-8"
+                      className="text-destructive-text hover:text-destructive-text h-8"
                       onClick={onBulkDisable}
                     >
                       <CircleX className="size-3.5" />
@@ -1024,16 +853,20 @@ function IdentitiesTable({
                   onCheckedChange={onToggleAll}
                 />
               </TableHead>
-              <TableHead className="min-w-64">Identity</TableHead>
+              <TableHead className="min-w-44 sm:min-w-64">Identity</TableHead>
               <TableHead className="hidden w-40 md:table-cell">Type</TableHead>
-              <TableHead className="hidden w-32 lg:table-cell">Source</TableHead>
-              <TableHead className="hidden w-32 md:table-cell">Status</TableHead>
-              <TableHead className="hidden w-24 xl:table-cell">MFA</TableHead>
+              <TableHead className="hidden w-32 lg:table-cell">
+                Source
+              </TableHead>
+              <TableHead className="hidden w-32 md:table-cell">
+                Status
+              </TableHead>
+              <TableHead className="hidden w-24 2xl:table-cell">MFA</TableHead>
               <TableHead className="hidden w-40 xl:table-cell">Owner</TableHead>
-              <TableHead className="hidden w-28 xl:table-cell">
+              <TableHead className="hidden w-28 2xl:table-cell">
                 Last seen
               </TableHead>
-              <TableHead className="w-20 text-center">Risk</TableHead>
+              <TableHead className="w-14 text-center sm:w-20">Risk</TableHead>
               <TableHead className="w-12">
                 <span className="sr-only">Actions</span>
               </TableHead>
@@ -1105,7 +938,7 @@ function IdentitiesTable({
                   <StatusCell status={identity.status} />
                 </TableCell>
 
-                <TableCell className="hidden xl:table-cell">
+                <TableCell className="hidden 2xl:table-cell">
                   <MfaStatus enabled={identity.mfaEnabled} />
                 </TableCell>
 
@@ -1118,7 +951,7 @@ function IdentitiesTable({
                   </div>
                 </TableCell>
 
-                <TableCell className="text-muted-foreground hidden text-xs xl:table-cell">
+                <TableCell className="text-muted-foreground hidden text-xs 2xl:table-cell">
                   {identity.lastSeenLabel}
                 </TableCell>
 
@@ -1156,7 +989,7 @@ function IdentitiesTable({
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
-                          className="text-destructive focus:text-destructive"
+                          className="text-destructive-text focus:text-destructive-text"
                           onClick={() => onDisable(identity)}
                         >
                           Disable identity
@@ -1225,8 +1058,7 @@ function OnboardIdentityDialog({
     state.step === 1 ||
     (state.step === 2 &&
       (state.method === "directory" ||
-        (state.method === "invite" &&
-          state.inviteEmail.trim().includes("@")) ||
+        (state.method === "invite" && state.inviteEmail.trim().includes("@")) ||
         (state.method === "manual" &&
           state.displayName.trim().length > 0 &&
           state.principal.trim().length > 0)));
@@ -1511,7 +1343,10 @@ function OnboardIdentityDialog({
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button onClick={goNext} disabled={state.step === 2 && !canContinue}>
+            <Button
+              onClick={goNext}
+              disabled={state.step === 2 && !canContinue}
+            >
               {state.step === 3 ? (
                 <>
                   <Plus className="size-3.5" />
@@ -1546,24 +1381,22 @@ export function AssetsIdentityList() {
   const [sourceFilters, setSourceFilters] = useState<IdentitySource[]>([]);
   const [sort, setSort] = useState<IdentitySort>("name-asc");
   const [atRiskOnly, setAtRiskOnly] = useState(false);
-  const [attention, setAttention] = useState<IdentityAttentionKey | null>(
-    null,
-  );
+  const [attention, setAttention] = useState<IdentityAttentionKey | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [detailIdentityId, setDetailIdentityId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(25);
   const [onboardOpen, setOnboardOpen] = useState(false);
-  const [onboardState, setOnboardState] = useState<OnboardState>(
-    emptyOnboardState(),
-  );
+  const [onboardState, setOnboardState] =
+    useState<OnboardState>(emptyOnboardState());
   const searchParams = useSearchParams();
 
   const detailIdentity = useMemo(
     () =>
       detailIdentityId
-        ? (assetIdentities.find((identity) => identity.id === detailIdentityId) ??
-          null)
+        ? (assetIdentities.find(
+            (identity) => identity.id === detailIdentityId,
+          ) ?? null)
         : null,
     [assetIdentities, detailIdentityId],
   );
@@ -1592,11 +1425,9 @@ export function AssetsIdentityList() {
     return getIdentitiesByTab(assetIdentities, activeTab)
       .filter((identity) => {
         const matchesStatus =
-          statusFilters.length === 0 ||
-          statusFilters.includes(identity.status);
+          statusFilters.length === 0 || statusFilters.includes(identity.status);
         const matchesSource =
-          sourceFilters.length === 0 ||
-          sourceFilters.includes(identity.source);
+          sourceFilters.length === 0 || sourceFilters.includes(identity.source);
         const matchesRisk = !atRiskOnly || isRiskIdentity(identity);
         const matchesAttention =
           attention === null ||
@@ -1670,9 +1501,7 @@ export function AssetsIdentityList() {
   );
 
   const activeFilterCount =
-    statusFilters.length +
-    sourceFilters.length +
-    (sort === "name-asc" ? 0 : 1);
+    statusFilters.length + sourceFilters.length + (sort === "name-asc" ? 0 : 1);
 
   const resetFilters = () => {
     setStatusFilters([]);
@@ -1767,14 +1596,11 @@ export function AssetsIdentityList() {
   };
 
   return (
-    <main
-      id="main-content"
-      className="bg-background flex min-h-0 flex-1 flex-col overflow-hidden"
-    >
-      <div className="bg-background shrink-0 border-b">
-        <div className="flex flex-col gap-2 px-4 py-3 sm:px-6 xl:min-h-14 xl:flex-row xl:items-center xl:gap-4 xl:py-2">
-          <div className="flex min-w-0 flex-1 items-center gap-2">
-            <InputGroup className="h-9 min-w-0 flex-1 xl:max-w-sm">
+    <ModuleShell
+      toolbar={
+        <>
+          <ModuleToolbarSearch className="flex items-center gap-2 lg:max-w-xl">
+            <InputGroup className="h-9 min-w-0 flex-1">
               <InputGroupAddon>
                 <Search />
               </InputGroupAddon>
@@ -1807,21 +1633,20 @@ export function AssetsIdentityList() {
                 <span className="sm:hidden">Onboard</span>
               </Button>
             </div>
-          </div>
+          </ModuleToolbarSearch>
 
           <div
             role="group"
             aria-label="Quick filters"
-            className="no-scrollbar -mx-4 flex min-w-0 items-center gap-2 overflow-x-auto px-4 pb-0.5 sm:-mx-6 sm:px-6 xl:mx-0 xl:overflow-visible xl:px-0 xl:pb-0"
+            className="no-scrollbar -mx-gutter px-gutter relative flex min-w-0 items-center gap-2 overflow-x-auto pb-0.5 lg:mx-0 lg:overflow-visible lg:px-0 lg:pb-0"
           >
-            <label className="border-border bg-background hover:bg-accent flex h-9 shrink-0 cursor-pointer items-center gap-2 rounded-md border px-2.5 text-sm">
-              <Switch
-                checked={atRiskOnly}
-                onCheckedChange={setAtRiskOnly}
-                aria-label="Show at-risk identities only"
-              />
-              <span className="whitespace-nowrap">At risk only</span>
-            </label>
+            <ToolbarToggle
+              checked={atRiskOnly}
+              onCheckedChange={setAtRiskOnly}
+              aria-label="Show at-risk identities only"
+              label="At risk only"
+              className="shrink-0"
+            />
 
             <IdentityAttentionFilters
               active={attention}
@@ -1829,159 +1654,140 @@ export function AssetsIdentityList() {
               onSelect={toggleAttention}
             />
           </div>
-        </div>
-      </div>
+        </>
+      }
+    >
+      <IdentityStatsStrip identities={assetIdentities} />
 
-      <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6 lg:px-6">
-        <div className="mx-auto flex w-full flex-col gap-4">
-          <IdentityStatsStrip identities={assetIdentities} />
+      <Tabs
+        value={activeTab}
+        onValueChange={(value) => {
+          setActiveTab(value as IdentityTab);
+          setAttention(null);
+        }}
+        className="flex flex-col gap-4"
+      >
+        <ModuleTabsList>
+          <ModuleTabsTrigger value="all">
+            All users
+            <TabCount>{tabCounts.all}</TabCount>
+          </ModuleTabsTrigger>
+          <ModuleTabsTrigger value="service">
+            Service accounts
+            <TabCount>{tabCounts.service}</TabCount>
+          </ModuleTabsTrigger>
+          <ModuleTabsTrigger value="privileged">
+            Privileged users
+            <TabCount>{tabCounts.privileged}</TabCount>
+          </ModuleTabsTrigger>
+          <ModuleTabsTrigger value="guest">
+            Guest users
+            <TabCount>{tabCounts.guest}</TabCount>
+          </ModuleTabsTrigger>
+        </ModuleTabsList>
 
-          <Tabs
-            value={activeTab}
-            onValueChange={(value) => {
-              setActiveTab(value as IdentityTab);
-              setAttention(null);
-            }}
-            className="flex flex-col gap-4"
-          >
-            <div className="overflow-x-auto border-b">
-              <TabsList className="inline-flex h-auto min-w-max justify-start gap-7 rounded-none bg-transparent p-0 sm:gap-8">
-                <TabsTrigger value="all" className={tabTriggerClassName}>
-                  All users
-                  <span className="bg-muted text-muted-foreground rounded-md px-1.5 py-0.5 text-xs">
-                    {tabCounts.all}
-                  </span>
-                </TabsTrigger>
-                <TabsTrigger value="service" className={tabTriggerClassName}>
-                  Service accounts
-                  <span className="bg-muted text-muted-foreground rounded-md px-1.5 py-0.5 text-xs">
-                    {tabCounts.service}
-                  </span>
-                </TabsTrigger>
-                <TabsTrigger
-                  value="privileged"
-                  className={tabTriggerClassName}
-                >
-                  Privileged users
-                  <span className="bg-muted text-muted-foreground rounded-md px-1.5 py-0.5 text-xs">
-                    {tabCounts.privileged}
-                  </span>
-                </TabsTrigger>
-                <TabsTrigger value="guest" className={tabTriggerClassName}>
-                  Guest users
-                  <span className="bg-muted text-muted-foreground rounded-md px-1.5 py-0.5 text-xs">
-                    {tabCounts.guest}
-                  </span>
-                </TabsTrigger>
-              </TabsList>
-            </div>
-
-            {(
-              ["all", "service", "privileged", "guest"] as const
-            ).map((tab) => (
-              <TabsContent key={tab} value={tab} className="mt-0">
-                {visibleIdentities.length > 0 ? (
-                  <IdentitiesTable
-                    identities={pagedIdentities}
-                    selectedIds={selectedIds}
-                    onToggleIdentity={toggleSelection}
-                    onToggleAll={toggleAllSelection}
-                    onClearSelection={() => setSelectedIds([])}
-                    onDisable={(identity) => {
-                      disableIdentity(identity.id);
-                      toast({
-                        title: "Identity disabled",
-                        description: `${identity.displayName} is now disabled.`,
-                        variant: "destructive",
-                      });
-                    }}
-                    onRequireMfa={(identity) => {
-                      requireIdentityMfa(identity.id);
-                      toast({
-                        title: "MFA required",
-                        description: `${identity.displayName} must enroll MFA on next sign-in.`,
-                      });
-                    }}
-                    onResetMfa={(identity) => {
-                      resetIdentityMfa(identity.id);
-                      toast({
-                        title: "MFA reset",
-                        description: `Challenge reset for ${identity.displayName} — re-enrollment required.`,
-                      });
-                    }}
-                    onForceLogout={(identity) => {
-                      forceIdentityLogout(identity.id);
-                      toast({
-                        title: "Sessions revoked",
-                        description: `Active sessions cleared for ${identity.principal}.`,
-                      });
-                    }}
-                    onBulkRequireMfa={() => {
-                      const count = requireIdentityMfaBulk(selectedIds);
-                      toast({
-                        title: "MFA required",
-                        description: `${count} identit${count === 1 ? "y" : "ies"} updated.`,
-                      });
-                      setSelectedIds([]);
-                    }}
-                    onBulkInvestigate={() => {
-                      const count = flagIdentitiesForReview(selectedIds);
-                      toast({
-                        title: "Tagged for review",
-                        description: `${count} identit${count === 1 ? "y" : "ies"} flagged for investigation.`,
-                      });
-                      setSelectedIds([]);
-                    }}
-                    onBulkDisable={() => {
-                      const count = disableIdentities(selectedIds);
-                      toast({
-                        title: "Identities disabled",
-                        description: `${count} identit${count === 1 ? "y" : "ies"} disabled.`,
-                        variant: "destructive",
-                      });
-                      setSelectedIds([]);
-                    }}
-                    onView={(identity) => setDetailIdentityId(identity.id)}
-                    footer={
-                      <ListPagination
-                        page={page}
-                        pageSize={pageSize}
-                        total={visibleIdentities.length}
-                        onPageChange={setPage}
-                        onPageSizeChange={setPageSize}
-                      />
-                    }
+        {(["all", "service", "privileged", "guest"] as const).map((tab) => (
+          <TabsContent key={tab} value={tab} className="mt-0">
+            {visibleIdentities.length > 0 ? (
+              <IdentitiesTable
+                identities={pagedIdentities}
+                selectedIds={selectedIds}
+                onToggleIdentity={toggleSelection}
+                onToggleAll={toggleAllSelection}
+                onClearSelection={() => setSelectedIds([])}
+                onDisable={(identity) => {
+                  disableIdentity(identity.id);
+                  toast({
+                    title: "Identity disabled",
+                    description: `${identity.displayName} is now disabled.`,
+                    variant: "destructive",
+                  });
+                }}
+                onRequireMfa={(identity) => {
+                  requireIdentityMfa(identity.id);
+                  toast({
+                    title: "MFA required",
+                    description: `${identity.displayName} must enroll MFA on next sign-in.`,
+                  });
+                }}
+                onResetMfa={(identity) => {
+                  resetIdentityMfa(identity.id);
+                  toast({
+                    title: "MFA reset",
+                    description: `Challenge reset for ${identity.displayName} — re-enrollment required.`,
+                  });
+                }}
+                onForceLogout={(identity) => {
+                  forceIdentityLogout(identity.id);
+                  toast({
+                    title: "Sessions revoked",
+                    description: `Active sessions cleared for ${identity.principal}.`,
+                  });
+                }}
+                onBulkRequireMfa={() => {
+                  const count = requireIdentityMfaBulk(selectedIds);
+                  toast({
+                    title: "MFA required",
+                    description: `${count} identit${count === 1 ? "y" : "ies"} updated.`,
+                  });
+                  setSelectedIds([]);
+                }}
+                onBulkInvestigate={() => {
+                  const count = flagIdentitiesForReview(selectedIds);
+                  toast({
+                    title: "Tagged for review",
+                    description: `${count} identit${count === 1 ? "y" : "ies"} flagged for investigation.`,
+                  });
+                  setSelectedIds([]);
+                }}
+                onBulkDisable={() => {
+                  const count = disableIdentities(selectedIds);
+                  toast({
+                    title: "Identities disabled",
+                    description: `${count} identit${count === 1 ? "y" : "ies"} disabled.`,
+                    variant: "destructive",
+                  });
+                  setSelectedIds([]);
+                }}
+                onView={(identity) => setDetailIdentityId(identity.id)}
+                footer={
+                  <ListPagination
+                    page={page}
+                    pageSize={pageSize}
+                    total={visibleIdentities.length}
+                    onPageChange={setPage}
+                    onPageSizeChange={setPageSize}
                   />
-                ) : (
-                  <EmptyState
-                    icon={atRiskOnly ? ShieldAlert : Users}
-                    title={
-                      atRiskOnly
-                        ? "No at-risk identities match"
-                        : "No identities match the current filters"
-                    }
-                    description={
-                      atRiskOnly
-                        ? "At-risk includes elevated risk scores, stale/locked accounts, and privileged MFA gaps."
-                        : "Adjust search or filters to bring identities back into view."
-                    }
-                    action={
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className={cn("h-8", mutedControlClassName)}
-                        onClick={resetFilters}
-                      >
-                        Reset filters
-                      </Button>
-                    }
-                  />
-                )}
-              </TabsContent>
-            ))}
-          </Tabs>
-        </div>
-      </div>
+                }
+              />
+            ) : (
+              <EmptyState
+                icon={atRiskOnly ? ShieldAlert : Users}
+                title={
+                  atRiskOnly
+                    ? "No at-risk identities match"
+                    : "No identities match the current filters"
+                }
+                description={
+                  atRiskOnly
+                    ? "At-risk includes elevated risk scores, stale/locked accounts, and privileged MFA gaps."
+                    : "Adjust search or filters to bring identities back into view."
+                }
+                action={
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8"
+                    onClick={resetFilters}
+                  >
+                    Reset filters
+                  </Button>
+                }
+              />
+            )}
+          </TabsContent>
+        ))}
+      </Tabs>
 
       <IdentityDetailSheet
         identity={detailIdentity}
@@ -2024,6 +1830,6 @@ export function AssetsIdentityList() {
         }
         onSubmit={submitOnboard}
       />
-    </main>
+    </ModuleShell>
   );
 }

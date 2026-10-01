@@ -1,14 +1,11 @@
 "use client";
 
 import {
-  CheckIcon,
-  ChevronRight,
   CircleDotDashed,
   Copy,
   Download,
   Ellipsis,
   HardDrive,
-  ListFilter,
   type LucideIcon,
   Monitor,
   Network,
@@ -27,17 +24,22 @@ import { useSearchParams } from "next/navigation";
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
 
 import { ListPagination, paginateItems } from "@/components/list-pagination";
-import { type SocStat,StatsStrip } from "@/components/soc/stats-strip";
+import { type FilterFacet, FilterMenu } from "@/components/soc/filter-menu";
+import {
+  ModuleShell,
+  ModuleToolbarActions,
+  ModuleToolbarSearch,
+} from "@/components/soc/module-shell";
+import {
+  ModuleTabsList,
+  ModuleTabsTrigger,
+  TabCount,
+} from "@/components/soc/module-tabs";
+import { type SocStat, StatsStrip } from "@/components/soc/stats-strip";
+import { ToolbarToggle } from "@/components/soc/toolbar-toggle";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Command,
-  CommandGroup,
-  CommandItem,
-  CommandList,
-  CommandSeparator,
-} from "@/components/ui/command";
 import {
   Dialog,
   DialogContent,
@@ -59,11 +61,6 @@ import {
   InputGroupAddon,
   InputGroupInput,
 } from "@/components/ui/input-group";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Select,
@@ -81,7 +78,6 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { Switch } from "@/components/ui/switch";
 import {
   Table,
   TableBody,
@@ -90,7 +86,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 
@@ -114,7 +110,6 @@ type DeviceSort =
   | "seen-asc"
   | "risk-desc"
   | "risk-asc";
-type FilterPanel = "status" | "platform" | "sort";
 type OnboardMethod = "sensor" | "discovery" | "manual";
 type OnboardStep = 1 | 2 | 3;
 type SensorOs = "windows" | "macos" | "linux";
@@ -131,12 +126,6 @@ type OnboardState = {
   ipAddress: string;
   owner: string;
 };
-
-const mutedControlClassName =
-  "border-border bg-background text-foreground hover:bg-accent hover:text-accent-foreground";
-
-const tabTriggerClassName =
-  "data-[state=active]:border-foreground shrink-0 gap-2 rounded-none border-b-2 border-transparent px-0 pb-3 text-sm shadow-none data-[state=active]:bg-transparent data-[state=active]:shadow-none sm:pb-4";
 
 const sortLabels: Record<DeviceSort, string> = {
   "name-asc": "Name A-Z",
@@ -160,22 +149,22 @@ const statusDetails: Record<
 > = {
   online: {
     label: "Online",
-    className: "text-green-600 dark:text-green-400",
+    className: "text-success-text",
     icon: ShieldCheck,
   },
   offline: {
     label: "Offline",
-    className: "text-zinc-500",
+    className: "text-muted-foreground",
     icon: CircleDotDashed,
   },
   "at-risk": {
     label: "At risk",
-    className: "text-amber-600 dark:text-amber-400",
+    className: "text-warning-text",
     icon: ShieldAlert,
   },
   pending: {
     label: "Pending",
-    className: "text-blue-600 dark:text-blue-400",
+    className: "text-info-text",
     icon: HardDrive,
   },
 };
@@ -245,10 +234,10 @@ function StatusCell({ status }: { status: DeviceStatus }) {
 function RiskBadge({ score }: { score: number }) {
   const tone =
     score >= 70
-      ? "border-destructive/30 bg-destructive/10 text-destructive dark:text-red-400"
+      ? "border-destructive/30 bg-destructive/10 text-destructive-text"
       : score >= 40
-        ? "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400"
-        : "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400";
+        ? "border-warning/30 bg-warning/10 text-warning-text"
+        : "border-success/30 bg-success/10 text-success-text";
 
   return (
     <Badge variant="outline" className={cn("rounded-full tabular-nums", tone)}>
@@ -374,7 +363,7 @@ function DeviceDetailSheet({
                 <Button
                   variant="outline"
                   size="sm"
-                  className={cn("h-8", mutedControlClassName)}
+                  className="h-8"
                   onClick={() =>
                     toast({
                       title: "Scan started",
@@ -388,7 +377,7 @@ function DeviceDetailSheet({
                 <Button
                   variant="outline"
                   size="sm"
-                  className="text-destructive hover:text-destructive h-8"
+                  className="text-destructive-text hover:text-destructive-text h-8"
                   onClick={() => onIsolate(device)}
                 >
                   <ShieldAlert className="size-3.5" />
@@ -400,28 +389,6 @@ function DeviceDetailSheet({
         ) : null}
       </SheetContent>
     </Sheet>
-  );
-}
-
-function FilterPanelHeader({
-  title,
-  onBack,
-}: {
-  title: string;
-  onBack: () => void;
-}) {
-  return (
-    <div className="flex items-center border-b p-2">
-      <Button
-        variant="ghost"
-        size="sm"
-        className="size-6 p-0"
-        onClick={onBack}
-      >
-        <ChevronRight className="size-4 rotate-180" />
-      </Button>
-      <span className="ml-2 text-sm font-medium">{title}</span>
-    </div>
   );
 }
 
@@ -444,186 +411,51 @@ function DeviceFilterControl({
   onSetSort: (sort: DeviceSort) => void;
   onClearFilters: () => void;
 }) {
-  const [open, setOpen] = useState(false);
-  const [panel, setPanel] = useState<FilterPanel | null>(null);
-  const closePanel = () => setPanel(null);
+  const facets: FilterFacet[] = [
+    {
+      id: "status",
+      label: "Status",
+      icon: ShieldCheck,
+      options: (Object.keys(deviceStatusLabels) as DeviceStatus[]).map(
+        (value) => ({ value, label: deviceStatusLabels[value] }),
+      ),
+      selected: statusFilters,
+      onToggle: (value) => onToggleStatus(value as DeviceStatus),
+    },
+    {
+      id: "platform",
+      label: "Platform",
+      icon: HardDrive,
+      options: platforms.map((value) => ({ value, label: value })),
+      selected: platformFilters,
+      onToggle: onTogglePlatform,
+    },
+    {
+      id: "sort",
+      label: "Sort by",
+      single: true,
+      hideCount: true,
+      options: (
+        [
+          "name-asc",
+          "name-desc",
+          "seen-desc",
+          "seen-asc",
+          "risk-desc",
+          "risk-asc",
+        ] as const
+      ).map((value) => ({ value, label: sortLabels[value] })),
+      selected: [sort],
+      onToggle: (value) => onSetSort(value as DeviceSort),
+    },
+  ];
 
   return (
-    <Popover
-      open={open}
-      onOpenChange={(next) => {
-        setOpen(next);
-        if (!next) {
-          setPanel(null);
-        }
-      }}
-    >
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          className={cn("relative h-9 gap-1.5 px-2.5", mutedControlClassName)}
-        >
-          <ListFilter className="size-3.5" />
-          Filter
-          {activeFilterCount > 0 ? (
-            <span className="bg-primary text-primary-foreground absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full text-xs font-semibold">
-              {activeFilterCount}
-            </span>
-          ) : null}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-60 p-0" align="end">
-        {panel === null ? (
-          <Command>
-            <CommandList>
-              <CommandGroup>
-                <CommandItem
-                  onSelect={() => setPanel("status")}
-                  className="flex items-center justify-between"
-                >
-                  <span className="flex items-center gap-2">
-                    <ShieldCheck className="size-4 text-zinc-500" />
-                    Status
-                  </span>
-                  <div className="flex items-center">
-                    {statusFilters.length > 0 ? (
-                      <span className="mr-1 text-xs text-zinc-500">
-                        {statusFilters.length}
-                      </span>
-                    ) : null}
-                    <ChevronRight className="size-4" />
-                  </div>
-                </CommandItem>
-                <CommandItem
-                  onSelect={() => setPanel("platform")}
-                  className="flex items-center justify-between"
-                >
-                  <span className="flex items-center gap-2">
-                    <HardDrive className="size-4 text-zinc-500" />
-                    Platform
-                  </span>
-                  <div className="flex items-center">
-                    {platformFilters.length > 0 ? (
-                      <span className="mr-1 text-xs text-zinc-500">
-                        {platformFilters.length}
-                      </span>
-                    ) : null}
-                    <ChevronRight className="size-4" />
-                  </div>
-                </CommandItem>
-                <CommandItem
-                  onSelect={() => setPanel("sort")}
-                  className="flex items-center justify-between"
-                >
-                  <span className="flex items-center gap-2">
-                    <ListFilter className="size-4 text-zinc-500" />
-                    Sort by
-                  </span>
-                  <ChevronRight className="size-4" />
-                </CommandItem>
-              </CommandGroup>
-              {activeFilterCount > 0 ? (
-                <>
-                  <CommandSeparator />
-                  <CommandGroup>
-                    <CommandItem onSelect={onClearFilters}>
-                      Clear all filters
-                    </CommandItem>
-                  </CommandGroup>
-                </>
-              ) : null}
-            </CommandList>
-          </Command>
-        ) : panel === "status" ? (
-          <Command>
-            <FilterPanelHeader title="Status" onBack={closePanel} />
-            <CommandList>
-              <CommandGroup>
-                {(Object.keys(deviceStatusLabels) as DeviceStatus[]).map(
-                  (status) => (
-                    <CommandItem
-                      key={status}
-                      onSelect={() => onToggleStatus(status)}
-                      className="flex items-center justify-between"
-                    >
-                      {deviceStatusLabels[status]}
-                      {statusFilters.includes(status) ? (
-                        <CheckIcon className="size-4" />
-                      ) : null}
-                    </CommandItem>
-                  ),
-                )}
-              </CommandGroup>
-            </CommandList>
-          </Command>
-        ) : panel === "platform" ? (
-          <Command>
-            <FilterPanelHeader title="Platform" onBack={closePanel} />
-            <CommandList>
-              <CommandGroup>
-                {platforms.map((platform) => (
-                  <CommandItem
-                    key={platform}
-                    onSelect={() => onTogglePlatform(platform)}
-                    className="flex items-center justify-between"
-                  >
-                    {platform}
-                    {platformFilters.includes(platform) ? (
-                      <CheckIcon className="size-4" />
-                    ) : null}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </CommandList>
-          </Command>
-        ) : (
-          <Command>
-            <FilterPanelHeader title="Sort by" onBack={closePanel} />
-            <CommandList>
-              <CommandGroup heading="Name">
-                {(["name-asc", "name-desc"] as const).map((option) => (
-                  <CommandItem
-                    key={option}
-                    onSelect={() => onSetSort(option)}
-                    className="flex items-center justify-between"
-                  >
-                    {sortLabels[option]}
-                    {sort === option ? <CheckIcon className="size-4" /> : null}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-              <CommandSeparator />
-              <CommandGroup heading="Activity">
-                {(["seen-desc", "seen-asc"] as const).map((option) => (
-                  <CommandItem
-                    key={option}
-                    onSelect={() => onSetSort(option)}
-                    className="flex items-center justify-between"
-                  >
-                    {sortLabels[option]}
-                    {sort === option ? <CheckIcon className="size-4" /> : null}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-              <CommandSeparator />
-              <CommandGroup heading="Risk">
-                {(["risk-desc", "risk-asc"] as const).map((option) => (
-                  <CommandItem
-                    key={option}
-                    onSelect={() => onSetSort(option)}
-                    className="flex items-center justify-between"
-                  >
-                    {sortLabels[option]}
-                    {sort === option ? <CheckIcon className="size-4" /> : null}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </CommandList>
-          </Command>
-        )}
-      </PopoverContent>
-    </Popover>
+    <FilterMenu
+      facets={facets}
+      activeCount={activeFilterCount}
+      onClear={onClearFilters}
+    />
   );
 }
 
@@ -708,8 +540,8 @@ function DevicesTable({
   const hasSelection = selectedVisibleCount > 0;
 
   return (
-    <div className="bg-card overflow-hidden rounded-lg border">
-      <Table>
+    <div className="bg-card shadow-card overflow-hidden rounded-xl border">
+      <Table className="max-md:table-fixed">
         <TableHeader>
           {hasSelection ? (
             <TableRow className="hover:bg-transparent">
@@ -735,7 +567,7 @@ function DevicesTable({
                     <Button
                       variant="outline"
                       size="sm"
-                      className={cn("h-8", mutedControlClassName)}
+                      className="h-8"
                       onClick={() =>
                         toast({
                           title: "Scan queued",
@@ -749,7 +581,7 @@ function DevicesTable({
                     <Button
                       variant="outline"
                       size="sm"
-                      className={cn("h-8", mutedControlClassName)}
+                      className="h-8"
                       onClick={() =>
                         toast({
                           title: "Tags updated",
@@ -763,7 +595,7 @@ function DevicesTable({
                     <Button
                       variant="outline"
                       size="sm"
-                      className="text-destructive hover:text-destructive h-8"
+                      className="text-destructive-text hover:text-destructive-text h-8"
                       onClick={() => {
                         const ids = devices
                           .filter((device) => selectedIds.includes(device.id))
@@ -796,17 +628,19 @@ function DevicesTable({
                   onCheckedChange={onToggleAll}
                 />
               </TableHead>
-              <TableHead className="min-w-64">Device</TableHead>
+              <TableHead className="min-w-44 sm:min-w-64">Device</TableHead>
               <TableHead className="hidden w-36 md:table-cell">Type</TableHead>
               <TableHead className="hidden w-32 lg:table-cell">
                 Platform
               </TableHead>
-              <TableHead className="hidden w-32 md:table-cell">Status</TableHead>
+              <TableHead className="hidden w-32 md:table-cell">
+                Status
+              </TableHead>
               <TableHead className="hidden w-40 xl:table-cell">Owner</TableHead>
               <TableHead className="hidden w-28 xl:table-cell">
                 Last seen
               </TableHead>
-              <TableHead className="w-20 text-center">Risk</TableHead>
+              <TableHead className="w-14 text-center sm:w-20">Risk</TableHead>
               <TableHead className="w-12">
                 <span className="sr-only">Actions</span>
               </TableHead>
@@ -832,7 +666,10 @@ function DevicesTable({
                 )}
                 onClick={() => onView(device)}
               >
-                <TableCell className="px-4" onClick={(event) => event.stopPropagation()}>
+                <TableCell
+                  className="px-4"
+                  onClick={(event) => event.stopPropagation()}
+                >
                   <Checkbox
                     aria-label={`Select ${device.name}`}
                     checked={selectedIds.includes(device.id)}
@@ -918,7 +755,7 @@ function DevicesTable({
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
-                          className="text-destructive focus:text-destructive"
+                          className="text-destructive-text focus:text-destructive-text"
                           onClick={() => onIsolate(device)}
                         >
                           Isolate device
@@ -970,13 +807,7 @@ function MethodCard({
   );
 }
 
-function CodeBlock({
-  value,
-  onCopy,
-}: {
-  value: string;
-  onCopy: () => void;
-}) {
+function CodeBlock({ value, onCopy }: { value: string; onCopy: () => void }) {
   return (
     <div className="bg-muted/50 relative rounded-lg border p-3">
       <pre className="text-muted-foreground overflow-x-auto pr-10 font-mono text-xs break-all whitespace-pre-wrap">
@@ -1161,8 +992,8 @@ function OnboardDeviceDialog({
                 }
               />
               <p className="text-muted-foreground text-xs">
-                Run this on the target host. The device appears in inventory once
-                the sensor checks in.
+                Run this on the target host. The device appears in inventory
+                once the sensor checks in.
               </p>
             </Field>
           </div>
@@ -1177,9 +1008,7 @@ function OnboardDeviceDialog({
                   id="onboard-subnet"
                   value={state.subnet}
                   placeholder="10.0.0.0/16"
-                  onChange={(event) =>
-                    onChange({ subnet: event.target.value })
-                  }
+                  onChange={(event) => onChange({ subnet: event.target.value })}
                 />
               </InputGroup>
             </Field>
@@ -1357,7 +1186,10 @@ function OnboardDeviceDialog({
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button onClick={goNext} disabled={state.step === 2 && !canContinue}>
+            <Button
+              onClick={goNext}
+              disabled={state.step === 2 && !canContinue}
+            >
               {state.step === 3 ? (
                 <>
                   <Plus className="size-3.5" />
@@ -1392,9 +1224,8 @@ export function AssetsDeviceList() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(25);
   const [onboardOpen, setOnboardOpen] = useState(false);
-  const [onboardState, setOnboardState] = useState<OnboardState>(
-    emptyOnboardState(),
-  );
+  const [onboardState, setOnboardState] =
+    useState<OnboardState>(emptyOnboardState());
   const [detailDevice, setDetailDevice] = useState<AssetDevice | null>(null);
 
   useEffect(() => {
@@ -1433,17 +1264,14 @@ export function AssetsDeviceList() {
   const visibleDevices = useMemo(() => {
     return assetDevices
       .filter((device) => {
-        const matchesTab =
-          activeTab === "all" || device.category === activeTab;
+        const matchesTab = activeTab === "all" || device.category === activeTab;
         const matchesStatus =
           statusFilters.length === 0 || statusFilters.includes(device.status);
         const matchesPlatform =
           platformFilters.length === 0 ||
           platformFilters.includes(device.platform);
         const matchesRisk =
-          !atRiskOnly ||
-          device.status === "at-risk" ||
-          device.riskScore >= 70;
+          !atRiskOnly || device.status === "at-risk" || device.riskScore >= 70;
         const matchesSearch =
           !normalizedQuery ||
           [
@@ -1576,9 +1404,7 @@ export function AssetsDeviceList() {
         title: "Sensor enrollment ready",
         description: `Install the ${onboardState.sensorOs} package with the enrollment token. ${device.hostname} is Pending.`,
       });
-      setActiveTab(
-        onboardState.sensorOs === "linux" ? "server" : "endpoint",
-      );
+      setActiveTab(onboardState.sensorOs === "linux" ? "server" : "endpoint");
     } else if (onboardState.method === "discovery") {
       toast({
         title: "Discovery scan started",
@@ -1600,7 +1426,9 @@ export function AssetsDeviceList() {
   const isolateDevice = (device: AssetDevice) => {
     setDeviceIsolated(device.id, true);
     setDetailDevice((current) =>
-      current?.id === device.id ? { ...current, isolated: true, status: "at-risk" } : current,
+      current?.id === device.id
+        ? { ...current, isolated: true, status: "at-risk" }
+        : current,
     );
     toast({
       title: "Isolation requested",
@@ -1610,14 +1438,11 @@ export function AssetsDeviceList() {
   };
 
   return (
-    <main
-      id="main-content"
-      className="bg-background flex min-h-0 flex-1 flex-col overflow-hidden"
-    >
-      <div className="bg-background shrink-0 border-b">
-        <div className="flex flex-col gap-2 px-4 py-3 sm:px-6 lg:min-h-14 lg:flex-row lg:items-center lg:justify-between lg:gap-4 lg:py-2">
-          <div className="min-w-0 flex-1">
-            <InputGroup className="h-9 w-full lg:max-w-sm">
+    <ModuleShell
+      toolbar={
+        <>
+          <ModuleToolbarSearch>
+            <InputGroup className="h-9 w-full">
               <InputGroupAddon>
                 <Search />
               </InputGroupAddon>
@@ -1627,17 +1452,15 @@ export function AssetsDeviceList() {
                 onChange={(event) => setSearchQuery(event.target.value)}
               />
             </InputGroup>
-          </div>
+          </ModuleToolbarSearch>
 
-          <div className="flex min-w-0 flex-wrap items-center gap-2 lg:justify-end">
-            <label className="border-border bg-background hover:bg-accent flex h-9 cursor-pointer items-center gap-2 rounded-md border px-2.5 text-sm">
-              <Switch
-                checked={atRiskOnly}
-                onCheckedChange={setAtRiskOnly}
-                aria-label="Show at-risk devices only"
-              />
-              <span className="whitespace-nowrap">At risk only</span>
-            </label>
+          <ModuleToolbarActions>
+            <ToolbarToggle
+              checked={atRiskOnly}
+              onCheckedChange={setAtRiskOnly}
+              aria-label="Show at-risk devices only"
+              label="At risk only"
+            />
 
             <DeviceFilterControl
               statusFilters={statusFilters}
@@ -1659,115 +1482,99 @@ export function AssetsDeviceList() {
               <span className="hidden sm:inline">Onboard device</span>
               <span className="sm:hidden">Onboard</span>
             </Button>
-          </div>
-        </div>
-      </div>
+          </ModuleToolbarActions>
+        </>
+      }
+    >
+      <DeviceStatsStrip devices={assetDevices} />
 
-      <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6 lg:px-6">
-        <div className="mx-auto flex w-full flex-col gap-4">
-          <DeviceStatsStrip devices={assetDevices} />
+      <Tabs
+        value={activeTab}
+        onValueChange={(value) => setActiveTab(value as DeviceTab)}
+        className="flex flex-col gap-4"
+      >
+        <ModuleTabsList>
+          <ModuleTabsTrigger value="all">
+            All devices
+            <TabCount>{tabCounts.all}</TabCount>
+          </ModuleTabsTrigger>
+          <ModuleTabsTrigger value="endpoint">
+            Endpoints
+            <TabCount>{tabCounts.endpoint}</TabCount>
+          </ModuleTabsTrigger>
+          <ModuleTabsTrigger value="server">
+            Servers
+            <TabCount>{tabCounts.server}</TabCount>
+          </ModuleTabsTrigger>
+          <ModuleTabsTrigger value="network">
+            Network devices
+            <TabCount>{tabCounts.network}</TabCount>
+          </ModuleTabsTrigger>
+          <ModuleTabsTrigger value="iot">
+            IoT
+            <TabCount>{tabCounts.iot}</TabCount>
+          </ModuleTabsTrigger>
+        </ModuleTabsList>
 
-          <Tabs
-            value={activeTab}
-            onValueChange={(value) => setActiveTab(value as DeviceTab)}
-            className="flex flex-col gap-4"
-          >
-            <div className="overflow-x-auto border-b">
-              <TabsList className="inline-flex h-auto min-w-max justify-start gap-7 rounded-none bg-transparent p-0 sm:gap-8">
-                <TabsTrigger value="all" className={tabTriggerClassName}>
-                  All devices
-                  <span className="bg-muted text-muted-foreground rounded-md px-1.5 py-0.5 text-xs">
-                    {tabCounts.all}
-                  </span>
-                </TabsTrigger>
-                <TabsTrigger value="endpoint" className={tabTriggerClassName}>
-                  Endpoints
-                  <span className="bg-muted text-muted-foreground rounded-md px-1.5 py-0.5 text-xs">
-                    {tabCounts.endpoint}
-                  </span>
-                </TabsTrigger>
-                <TabsTrigger value="server" className={tabTriggerClassName}>
-                  Servers
-                  <span className="bg-muted text-muted-foreground rounded-md px-1.5 py-0.5 text-xs">
-                    {tabCounts.server}
-                  </span>
-                </TabsTrigger>
-                <TabsTrigger value="network" className={tabTriggerClassName}>
-                  Network devices
-                  <span className="bg-muted text-muted-foreground rounded-md px-1.5 py-0.5 text-xs">
-                    {tabCounts.network}
-                  </span>
-                </TabsTrigger>
-                <TabsTrigger value="iot" className={tabTriggerClassName}>
-                  IoT
-                  <span className="bg-muted text-muted-foreground rounded-md px-1.5 py-0.5 text-xs">
-                    {tabCounts.iot}
-                  </span>
-                </TabsTrigger>
-              </TabsList>
-            </div>
-
-            {(
-              ["all", "endpoint", "server", "network", "iot"] as const
-            ).map((tab) => (
-              <TabsContent key={tab} value={tab} className="mt-0">
-                {visibleDevices.length > 0 ? (
-                  <DevicesTable
-                    devices={pagedDevices}
-                    selectedIds={selectedIds}
-                    onToggleDevice={toggleSelection}
-                    onToggleAll={toggleAllSelection}
-                    onClearSelection={() => setSelectedIds([])}
-                    footer={
-                      <ListPagination
-                        page={page}
-                        pageSize={pageSize}
-                        total={visibleDevices.length}
-                        onPageChange={setPage}
-                        onPageSizeChange={setPageSize}
-                      />
-                    }
-                    onIsolate={isolateDevice}
-                    onBulkIsolate={(ids) => {
-                      const count = isolateDevices(ids);
-                      toast({
-                        title: "Isolation requested",
-                        description: `${count} device${count === 1 ? "" : "s"} isolated from the network.`,
-                        variant: "destructive",
-                      });
-                    }}
-                    onView={setDetailDevice}
-                  />
-                ) : (
-                  <EmptyState
-                    icon={atRiskOnly ? ShieldAlert : HardDrive}
-                    title={
-                      atRiskOnly
-                        ? "No at-risk devices match"
-                        : "No devices match the current filters"
-                    }
-                    description={
-                      atRiskOnly
-                        ? "At-risk includes elevated risk scores and flagged statuses."
-                        : "Adjust search or filters to bring devices back into view."
-                    }
-                    action={
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className={cn("h-8", mutedControlClassName)}
-                        onClick={resetFilters}
-                      >
-                        Reset filters
-                      </Button>
-                    }
-                  />
-                )}
-              </TabsContent>
-            ))}
-          </Tabs>
-        </div>
-      </div>
+        {(["all", "endpoint", "server", "network", "iot"] as const).map(
+          (tab) => (
+            <TabsContent key={tab} value={tab} className="mt-0">
+              {visibleDevices.length > 0 ? (
+                <DevicesTable
+                  devices={pagedDevices}
+                  selectedIds={selectedIds}
+                  onToggleDevice={toggleSelection}
+                  onToggleAll={toggleAllSelection}
+                  onClearSelection={() => setSelectedIds([])}
+                  footer={
+                    <ListPagination
+                      page={page}
+                      pageSize={pageSize}
+                      total={visibleDevices.length}
+                      onPageChange={setPage}
+                      onPageSizeChange={setPageSize}
+                    />
+                  }
+                  onIsolate={isolateDevice}
+                  onBulkIsolate={(ids) => {
+                    const count = isolateDevices(ids);
+                    toast({
+                      title: "Isolation requested",
+                      description: `${count} device${count === 1 ? "" : "s"} isolated from the network.`,
+                      variant: "destructive",
+                    });
+                  }}
+                  onView={setDetailDevice}
+                />
+              ) : (
+                <EmptyState
+                  icon={atRiskOnly ? ShieldAlert : HardDrive}
+                  title={
+                    atRiskOnly
+                      ? "No at-risk devices match"
+                      : "No devices match the current filters"
+                  }
+                  description={
+                    atRiskOnly
+                      ? "At-risk includes elevated risk scores and flagged statuses."
+                      : "Adjust search or filters to bring devices back into view."
+                  }
+                  action={
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8"
+                      onClick={resetFilters}
+                    >
+                      Reset filters
+                    </Button>
+                  }
+                />
+              )}
+            </TabsContent>
+          ),
+        )}
+      </Tabs>
 
       <OnboardDeviceDialog
         open={onboardOpen}
@@ -1786,6 +1593,6 @@ export function AssetsDeviceList() {
         }}
         onIsolate={isolateDevice}
       />
-    </main>
+    </ModuleShell>
   );
 }

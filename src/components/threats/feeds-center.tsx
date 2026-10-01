@@ -14,13 +14,8 @@ import { cn } from "@/lib/utils";
 
 import { StixTaxiiPanel } from "./stix-taxii-panel";
 import { useThreatSession } from "./threat-session";
-import {
-  indicatorTypeLabels,
-} from "./threat-shared-data";
-import {
-  FeedStatusBadge,
-  mutedControlClassName,
-} from "./threat-shared-primitives";
+import { indicatorTypeLabels } from "./threat-shared-data";
+import { FeedStatusBadge } from "./threat-shared-primitives";
 
 function feedAgeTone(status: string, ageLabel: string) {
   if (status === "paused") return "text-muted-foreground";
@@ -144,7 +139,6 @@ export function FeedsCenter() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className={mutedControlClassName}
                     onClick={() => {
                       const next = toggleFeedPause(feed.id);
                       if (!next) return;
@@ -164,13 +158,13 @@ export function FeedsCenter() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className={mutedControlClassName}
                     onClick={() => {
                       const result = pushFeedIocsToDetection(feed.id);
                       if (!result) {
                         toast({
                           title: "Push failed",
-                          description: "Feed could not be linked to a detection.",
+                          description:
+                            "Feed could not be linked to a detection.",
                           variant: "destructive",
                         });
                         return;
@@ -184,12 +178,7 @@ export function FeedsCenter() {
                     <ShieldPlus className="size-3.5" />
                     Push IOC to detection
                   </Button>
-                  <Button
-                    asChild
-                    variant="outline"
-                    size="sm"
-                    className={mutedControlClassName}
-                  >
+                  <Button asChild variant="outline" size="sm">
                     <Link href="/threat-intelligence">
                       Open indicators
                       <ExternalLink className="ml-1.5 size-3" />
@@ -203,28 +192,13 @@ export function FeedsCenter() {
       </div>
 
       <div className="flex flex-wrap gap-2">
-        <Button
-          asChild
-          variant="outline"
-          size="sm"
-          className={mutedControlClassName}
-        >
+        <Button asChild variant="outline" size="sm">
           <Link href="/administration/integrations">Integrations health</Link>
         </Button>
-        <Button
-          asChild
-          variant="outline"
-          size="sm"
-          className={mutedControlClassName}
-        >
+        <Button asChild variant="outline" size="sm">
           <Link href="/threat-intelligence/dark-web">Dark web source</Link>
         </Button>
-        <Button
-          asChild
-          variant="outline"
-          size="sm"
-          className={mutedControlClassName}
-        >
+        <Button asChild variant="outline" size="sm">
           <Link href="/threat-hunting/detections">Detection catalog</Link>
         </Button>
       </div>

@@ -97,62 +97,68 @@ export function WeaknessesCenter() {
     >
       <StatsStrip stats={stats} />
 
-        <div className="bg-card overflow-hidden rounded-lg border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>CVE</TableHead>
-                <TableHead>Severity</TableHead>
-                <TableHead className="text-right">CVSS</TableHead>
-                <TableHead className="text-right">Priority</TableHead>
-                <TableHead className="text-right">Devices</TableHead>
-                <TableHead>CWEs</TableHead>
+      <div className="bg-card shadow-card overflow-hidden rounded-xl border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>CVE</TableHead>
+              <TableHead>Severity</TableHead>
+              <TableHead className="hidden sm:table-cell text-right">
+                CVSS
+              </TableHead>
+              <TableHead className="hidden md:table-cell text-right">
+                Priority
+              </TableHead>
+              <TableHead className="hidden md:table-cell text-right">
+                Devices
+              </TableHead>
+              <TableHead className="hidden lg:table-cell">CWEs</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {rows.slice(0, 100).map((item) => (
+              <TableRow key={item.id}>
+                <TableCell>
+                  <Link
+                    href={`/vulnerabilities/findings?q=${encodeURIComponent(item.cve)}`}
+                    className="font-mono text-sm font-medium hover:underline"
+                  >
+                    {item.cve}
+                  </Link>
+                  <p className="text-muted-foreground line-clamp-1 text-xs">
+                    {item.title}
+                  </p>
+                </TableCell>
+                <TableCell>
+                  <SeverityBadge severity={item.severity} />
+                </TableCell>
+                <TableCell className="hidden sm:table-cell text-right tabular-nums">
+                  {item.cvss.toFixed(1)}
+                </TableCell>
+                <TableCell className="hidden md:table-cell text-right tabular-nums">
+                  {item.socPriority}
+                </TableCell>
+                <TableCell className="hidden md:table-cell text-right tabular-nums">
+                  {item.exposedDeviceCount}
+                </TableCell>
+                <TableCell className="hidden lg:table-cell">
+                  <div className="flex flex-wrap gap-1">
+                    {item.cweIds.slice(0, 2).map((cwe) => (
+                      <Badge
+                        key={cwe}
+                        variant="outline"
+                        className="font-mono text-xs"
+                      >
+                        {cwe}
+                      </Badge>
+                    ))}
+                  </div>
+                </TableCell>
               </TableRow>
-            </TableHeader>
-            <TableBody>
-              {rows.slice(0, 100).map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell>
-                    <Link
-                      href={`/vulnerabilities/findings?q=${encodeURIComponent(item.cve)}`}
-                      className="font-mono text-sm font-medium hover:underline"
-                    >
-                      {item.cve}
-                    </Link>
-                    <p className="text-muted-foreground line-clamp-1 text-xs">
-                      {item.title}
-                    </p>
-                  </TableCell>
-                  <TableCell>
-                    <SeverityBadge severity={item.severity} />
-                  </TableCell>
-                  <TableCell className="text-right tabular-nums">
-                    {item.cvss.toFixed(1)}
-                  </TableCell>
-                  <TableCell className="text-right tabular-nums">
-                    {item.socPriority}
-                  </TableCell>
-                  <TableCell className="text-right tabular-nums">
-                    {item.exposedDeviceCount}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-wrap gap-1">
-                      {item.cweIds.slice(0, 2).map((cwe) => (
-                        <Badge
-                          key={cwe}
-                          variant="outline"
-                          className="font-mono text-xs"
-                        >
-                          {cwe}
-                        </Badge>
-                      ))}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
     </ModuleShell>
   );
 }

@@ -49,7 +49,11 @@ export function ModuleToolbarSearch({
   children: React.ReactNode;
   className?: string;
 }) {
-  return <div className={cn("min-w-0 flex-1 lg:max-w-md", className)}>{children}</div>;
+  return (
+    <div className={cn("min-w-0 flex-1 lg:min-w-64 lg:max-w-md", className)}>
+      {children}
+    </div>
+  );
 }
 
 /** Right slot of the toolbar — filters and actions. Wraps rather than overflows. */

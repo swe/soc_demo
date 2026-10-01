@@ -21,22 +21,14 @@ import {
 
 export { Panel, PanelHeading };
 
-export const mutedControlClassName =
-  "border-border bg-background text-foreground hover:bg-accent hover:text-accent-foreground";
-
-export const tabTriggerClassName =
-  "data-[state=active]:border-foreground shrink-0 gap-2 rounded-none border-b-2 border-transparent px-0 pb-3 text-sm shadow-none data-[state=active]:bg-transparent data-[state=active]:shadow-none sm:pb-4";
-
 export const percentFormatter = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 1,
 });
 
 const severityTones: Record<VulnSeverity, string> = {
-  critical:
-    "border-destructive/30 bg-destructive/10 text-destructive dark:text-red-400",
-  high: "border-orange-500/30 bg-orange-500/10 text-orange-700 dark:text-orange-400",
-  medium:
-    "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400",
+  critical: "border-destructive/30 bg-destructive/10 text-destructive-text",
+  high: "border-severity-high/30 bg-severity-high/10 text-severity-high-text",
+  medium: "border-warning/30 bg-warning/10 text-warning-text",
   low: "border-border bg-muted text-muted-foreground",
 };
 
@@ -71,7 +63,7 @@ export function ThreatBadge({ threats }: { threats: VulnThreatType[] }) {
         <Badge
           key={t}
           variant="outline"
-          className="border-destructive/30 bg-destructive/10 text-destructive rounded-full font-medium dark:text-red-400"
+          className="border-destructive/30 bg-destructive/10 text-destructive-text rounded-full font-medium"
         >
           {labels[t]}
         </Badge>
@@ -105,10 +97,10 @@ export function TagList({ tags }: { tags: string[] }) {
 export function PriorityBadge({ score }: { score: number }) {
   const tone =
     score >= 80
-      ? "border-destructive/30 bg-destructive/10 text-destructive dark:text-red-400"
+      ? "border-destructive/30 bg-destructive/10 text-destructive-text"
       : score >= 55
-        ? "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400"
-        : "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400";
+        ? "border-warning/30 bg-warning/10 text-warning-text"
+        : "border-success/30 bg-success/10 text-success-text";
 
   return (
     <Badge
@@ -207,10 +199,10 @@ export function RecommendationStatusBadge({
   status: RecommendationStatus;
 }) {
   const tones: Record<RecommendationStatus, string> = {
-    active: "text-blue-600 dark:text-blue-400",
-    "in-progress": "text-amber-600 dark:text-amber-400",
-    completed: "text-emerald-600 dark:text-emerald-400",
-    exception: "text-zinc-500",
+    active: "text-info-text",
+    "in-progress": "text-warning-text",
+    completed: "text-success-text",
+    exception: "text-muted-foreground",
     deferred: "text-violet-600 dark:text-violet-400",
   };
   return (
@@ -232,11 +224,11 @@ export function RemediationStatusBadge({
   status: RemediationStatus;
 }) {
   const tones: Record<RemediationStatus, string> = {
-    pending: "text-blue-600 dark:text-blue-400",
-    in_progress: "text-amber-600 dark:text-amber-400",
-    completed: "text-emerald-600 dark:text-emerald-400",
-    failed: "text-destructive dark:text-red-400",
-    exception: "text-zinc-500",
+    pending: "text-info-text",
+    in_progress: "text-warning-text",
+    completed: "text-success-text",
+    failed: "text-destructive-text",
+    exception: "text-muted-foreground",
   };
   return (
     <Badge

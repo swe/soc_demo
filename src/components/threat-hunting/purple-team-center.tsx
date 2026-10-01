@@ -252,7 +252,13 @@ const basCampaignExtras: Array<{
   },
 ];
 
-const scheduleCycle: BasSchedule[] = ["daily", "hourly", "weekly", "manual", "daily"];
+const scheduleCycle: BasSchedule[] = [
+  "daily",
+  "hourly",
+  "weekly",
+  "manual",
+  "daily",
+];
 const lastRunCycle = [
   "1h ago",
   "3h ago",
@@ -532,7 +538,7 @@ export function PurpleTeamCenter() {
         </div>
       ) : null}
 
-      <div className="bg-card overflow-hidden rounded-lg border">
+      <div className="bg-card shadow-card overflow-hidden rounded-xl border">
         <Table>
           <TableHeader>
             <TableRow>

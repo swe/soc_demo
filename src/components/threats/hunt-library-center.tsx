@@ -65,7 +65,6 @@ import {
 import {
   HuntOutcomeBadge,
   HuntStatusBadge,
-  mutedControlClassName,
   SeverityBadge,
   SheetDetailRow,
 } from "./threat-shared-primitives";
@@ -373,7 +372,7 @@ function HuntDetailSheet({
                 <Button
                   size="sm"
                   variant="outline"
-                  className={cn("justify-start", mutedControlClassName)}
+                  className="justify-start"
                   disabled={running}
                   onClick={() => onRun(hunt)}
                 >
@@ -390,7 +389,7 @@ function HuntDetailSheet({
                       key={outcome}
                       size="sm"
                       variant="outline"
-                      className={cn("justify-start", mutedControlClassName)}
+                      className="justify-start"
                       onClick={() => onClose(hunt, outcome)}
                     >
                       Close · {huntOutcomeLabels[outcome]}
@@ -402,7 +401,7 @@ function HuntDetailSheet({
                 asChild
                 variant="outline"
                 size="sm"
-                className={cn("justify-start", mutedControlClassName)}
+                className="justify-start"
               >
                 <Link href={investigateHref}>
                   Open in Investigate
@@ -413,7 +412,7 @@ function HuntDetailSheet({
                 asChild
                 variant="outline"
                 size="sm"
-                className={cn("justify-start", mutedControlClassName)}
+                className="justify-start"
               >
                 <Link href="/threat-hunting/analytics">
                   Open threat analytics
@@ -425,7 +424,7 @@ function HuntDetailSheet({
                   asChild
                   variant="outline"
                   size="sm"
-                  className={cn("justify-start", mutedControlClassName)}
+                  className="justify-start"
                 >
                   <Link href="/threat-hunting/detections">
                     Open detections
@@ -530,10 +529,7 @@ export function HuntLibraryCenter({
                     type="button"
                     size="sm"
                     variant={active ? "default" : "outline"}
-                    className={cn(
-                      "h-8 rounded-md text-xs",
-                      !active && mutedControlClassName,
-                    )}
+                    className={cn("h-8 rounded-md text-xs")}
                     onClick={() => toggleStatus(status)}
                   >
                     {huntStatusLabels[status]}
@@ -571,7 +567,7 @@ export function HuntLibraryCenter({
           </div>
         )}
 
-        <div className="bg-card overflow-hidden rounded-lg border">
+        <div className="bg-card shadow-card overflow-hidden rounded-xl border">
           <Table className="table-fixed">
             <TableHeader>
               <TableRow>
@@ -607,7 +603,9 @@ export function HuntLibraryCenter({
                     data-state={selectedId === hunt.id ? "selected" : undefined}
                     onClick={() => setSelectedId(hunt.id)}
                   >
-                    <TableCell className="font-mono text-xs">{hunt.id}</TableCell>
+                    <TableCell className="font-mono text-xs">
+                      {hunt.id}
+                    </TableCell>
                     <TableCell>
                       <div className="min-w-0">
                         <p className="truncate text-sm font-medium">

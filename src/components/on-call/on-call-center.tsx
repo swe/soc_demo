@@ -112,7 +112,8 @@ export function OnCallCenter() {
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return criticalQueue.filter((incident) => {
-      if (filter === "critical" && incident.severity !== "critical") return false;
+      if (filter === "critical" && incident.severity !== "critical")
+        return false;
       if (filter === "high" && incident.severity !== "high") return false;
       const acked = ackedIds.has(incident.id);
       if (filter === "acked" && !acked) return false;
@@ -138,8 +139,9 @@ export function OnCallCenter() {
     null;
 
   const stats: SocStat[] = useMemo(() => {
-    const critical = criticalQueue.filter((i) => i.severity === "critical")
-      .length;
+    const critical = criticalQueue.filter(
+      (i) => i.severity === "critical",
+    ).length;
     const unacked = criticalQueue.filter((i) => !ackedIds.has(i.id)).length;
     return [
       {
@@ -368,7 +370,7 @@ export function OnCallCenter() {
       </div>
 
       <div className="grid min-h-0 gap-4 xl:grid-cols-[minmax(0,1.6fr)_minmax(280px,1fr)]">
-        <div className="bg-card overflow-hidden rounded-lg border">
+        <div className="bg-card shadow-card overflow-hidden rounded-xl border">
           <Table>
             <TableHeader>
               <TableRow>
@@ -396,10 +398,7 @@ export function OnCallCenter() {
                   return (
                     <TableRow
                       key={incident.id}
-                      className={cn(
-                        "cursor-pointer",
-                        active && "bg-accent/40",
-                      )}
+                      className={cn("cursor-pointer", active && "bg-accent/40")}
                       onClick={() => setSelectedId(incident.id)}
                     >
                       <TableCell>

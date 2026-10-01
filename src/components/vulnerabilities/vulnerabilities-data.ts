@@ -468,8 +468,7 @@ const vulnSeeds: Array<
     severity: "high",
     cvss: 8.1,
     cvssVersion: "3.1",
-    cvssVector:
-      "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H/E:U/RL:O/RC:C",
+    cvssVector: "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H/E:U/RL:O/RC:C",
     epss: 0.05,
     ageLabel: "2 months",
     ageDays: 61,
@@ -955,7 +954,12 @@ const vulnSeeds: Array<
     updateStatus: "available",
     exposedDeviceCount: 6,
     tags: ["Mail", "Internet facing", "High priority"],
-    threats: ["exploit-verified", "active-threat", "exploit-public", "ransomware"],
+    threats: [
+      "exploit-verified",
+      "active-threat",
+      "exploit-public",
+      "ransomware",
+    ],
     cweIds: ["CWE-918"],
     recommendationId: "rec-patch-exchange",
     scope: "endpoint",
@@ -1069,7 +1073,13 @@ const vulnSeeds: Array<
     updateStatus: "available",
     exposedDeviceCount: 28,
     tags: ["Legacy", "Build pipeline"],
-    threats: ["exploit-verified", "exploit-kit", "ransomware", "active-threat", "exploit-public"],
+    threats: [
+      "exploit-verified",
+      "exploit-kit",
+      "ransomware",
+      "active-threat",
+      "exploit-public",
+    ],
     cweIds: ["CWE-502", "CWE-917"],
     recommendationId: "rec-eradicate-log4j",
     scope: "endpoint",
@@ -1447,9 +1457,7 @@ function buildAffectedSoftware(names: string[]): AffectedSoftware[] {
       i === 0
         ? `${name} versions including current builds prior to latest patch`
         : `${name} vulnerable builds (see vendor advisory)`,
-    updateStatus: (i % 5 === 0
-      ? "scheduled"
-      : "available") as VulnUpdateStatus,
+    updateStatus: (i % 5 === 0 ? "scheduled" : "available") as VulnUpdateStatus,
   }));
 }
 
@@ -1458,7 +1466,10 @@ const socFindingLinks: Record<
   string,
   { alerts: string[]; incidents: string[] }
 > = {
-  "vuln-adcs-eop": { alerts: ["ALT-2143", "ALT-2141"], incidents: ["INC-2400"] },
+  "vuln-adcs-eop": {
+    alerts: ["ALT-2143", "ALT-2141"],
+    incidents: ["INC-2400"],
+  },
   "vuln-chrome-sbx": {
     alerts: ["ALT-2148", "ALT-2145"],
     incidents: ["INC-2401"],
@@ -1471,16 +1482,25 @@ const socFindingLinks: Record<
     alerts: ["ALT-2146", "ALT-2139"],
     incidents: ["INC-2403"],
   },
-  "vuln-ivanti-vpn": { alerts: ["ALT-2144", "ALT-2138"], incidents: ["INC-2404"] },
+  "vuln-ivanti-vpn": {
+    alerts: ["ALT-2144", "ALT-2138"],
+    incidents: ["INC-2404"],
+  },
   "vuln-word-rce": { alerts: ["ALT-2142"], incidents: ["INC-2405"] },
-  "vuln-outlook-eop": { alerts: ["ALT-2137", "ALT-2136"], incidents: ["INC-2406"] },
+  "vuln-outlook-eop": {
+    alerts: ["ALT-2137", "ALT-2136"],
+    incidents: ["INC-2406"],
+  },
   "vuln-apache-log4j-residual": {
     alerts: ["ALT-2135", "ALT-2134"],
     incidents: ["INC-2407"],
   },
   "vuln-openssl-uaf": { alerts: ["ALT-2133"], incidents: [] },
   "vuln-teams-rce": { alerts: ["ALT-2132"], incidents: [] },
-  "vuln-ntlm-relay": { alerts: ["ALT-2131", "ALT-2130"], incidents: ["INC-2408"] },
+  "vuln-ntlm-relay": {
+    alerts: ["ALT-2131", "ALT-2130"],
+    incidents: ["INC-2408"],
+  },
   "vuln-npm-supply": { alerts: ["ALT-2129"], incidents: ["INC-2409"] },
   "vuln-aks-escape": { alerts: ["ALT-2128"], incidents: [] },
   "vuln-aws-imds": { alerts: ["ALT-2127"], incidents: [] },
@@ -1631,12 +1651,12 @@ function buildGeneratedVulnerabilities(
           : 0.02 + ((index * 3) % 25) / 100;
     const cvss =
       severity === "critical"
-        ? 9 + ((index % 10) / 10)
+        ? 9 + (index % 10) / 10
         : severity === "high"
-          ? 7 + ((index % 20) / 10)
+          ? 7 + (index % 20) / 10
           : severity === "medium"
-            ? 4 + ((index % 30) / 10)
-            : 1 + ((index % 25) / 10);
+            ? 4 + (index % 30) / 10
+            : 1 + (index % 25) / 10;
     const ageDays = 3 + ((index * 11) % 900);
     const exposedDeviceCount =
       severity === "critical"
@@ -1649,8 +1669,7 @@ function buildGeneratedVulnerabilities(
     const id = `vuln-synth-${String(index + 1).padStart(3, "0")}`;
     const softwareNames = template.affectedSoftware.map((s) => s.name);
     const controlA = controlCodePool[index % controlCodePool.length]!;
-    const controlB =
-      controlCodePool[(index + 3) % controlCodePool.length]!;
+    const controlB = controlCodePool[(index + 3) % controlCodePool.length]!;
 
     const seed: VulnSeed = {
       id,
@@ -1766,9 +1785,7 @@ export function buildWorkQueue(
       : (rec?.vulnerabilityIds ?? []);
     const linkedAlertIds = Array.from(
       new Set(
-        vulnIds.flatMap(
-          (id) => getVulnerability(id)?.linkedAlertIds ?? [],
-        ),
+        vulnIds.flatMap((id) => getVulnerability(id)?.linkedAlertIds ?? []),
       ),
     );
     return {
@@ -1895,10 +1912,14 @@ export function getDeviceExposureRollup(): DeviceExposure[] {
     );
 }
 
-export function getFindingOverviewStats(items: Iterable<Vulnerability> = vulnerabilities): VulnStat[] {
+export function getFindingOverviewStats(
+  items: Iterable<Vulnerability> = vulnerabilities,
+): VulnStat[] {
   const list = Array.from(items);
   const withAlerts = list.filter((v) => v.linkedAlertIds.length > 0).length;
-  const withIncidents = list.filter((v) => v.linkedIncidentIds.length > 0).length;
+  const withIncidents = list.filter(
+    (v) => v.linkedIncidentIds.length > 0,
+  ).length;
   const exploitable = list.filter((v) => v.exploitable).length;
   const criticalOpen = list.filter((v) => v.severity === "critical").length;
   const avgPriority =
@@ -1967,15 +1988,15 @@ export function getDecisionOverviewStats(
   const exposure = getDeviceExposureRollup();
   const criticalAssets = exposure.filter(
     (d) =>
-      d.internetFacing ||
-      d.maxCriticality === "critical" ||
-      d.riskScore >= 70,
+      d.internetFacing || d.maxCriticality === "critical" || d.riskScore >= 70,
   ).length;
   const openRem = remItems.filter(
     (r) => r.status === "pending" || r.status === "in_progress",
   );
   const now = Date.now();
-  const overdue = openRem.filter((r) => new Date(r.dueAt).getTime() < now).length;
+  const overdue = openRem.filter(
+    (r) => new Date(r.dueAt).getTime() < now,
+  ).length;
 
   return [
     {
@@ -2089,7 +2110,8 @@ export function getVulnerabilityByCve(cve: string) {
 const recommendationSeeds: Recommendation[] = [
   {
     id: "rec-block-exe-asr",
-    title: "Block executable files from running unless they meet prevalence, age, or trusted list criteria",
+    title:
+      "Block executable files from running unless they meet prevalence, age, or trusted list criteria",
     description:
       "Enable Attack Surface Reduction rule to block untrusted executables on endpoints, reducing malware execution paths.",
     osPlatform: "Windows",
@@ -2653,7 +2675,10 @@ function buildGeneratedRecommendations(
         exposedDevices,
         Math.max(0, template.exposedCriticalDevices + (index % 4) - 1),
       ),
-      status: recommendationStatusesCycle[index % recommendationStatusesCycle.length]!,
+      status:
+        recommendationStatusesCycle[
+          index % recommendationStatusesCycle.length
+        ]!,
       impactScore: Math.min(
         9.9,
         Math.round((template.impactScore + ((index % 9) - 4) * 0.15) * 10) / 10,
@@ -3394,9 +3419,7 @@ const softwareInventorySeeds: SoftwareInventoryItem[] = [
     outdated: false,
     internetFacing: false,
     vulnerabilityIds: [],
-    versionBreakdown: [
-      { version: "1.59.0", devices: 980, vulnerable: false },
-    ],
+    versionBreakdown: [{ version: "1.59.0", devices: 980, vulnerable: false }],
   },
   {
     id: "sw-win11",
@@ -3671,7 +3694,11 @@ const softwareNameVariants = [
   { name: "1Password", vendor: "1Password", category: "extension" as const },
   { name: "Notion", vendor: "Notion", category: "software" as const },
   { name: "Postman", vendor: "Postman", category: "software" as const },
-  { name: "VLC media player", vendor: "VideoLAN", category: "software" as const },
+  {
+    name: "VLC media player",
+    vendor: "VideoLAN",
+    category: "software" as const,
+  },
 ];
 const lastSeenLabels = [
   "Just now",
@@ -3759,7 +3786,8 @@ const vulnEventSeeds: VulnEvent[] = [
     at: "2026-07-26T08:00:00.000Z",
     dateLabel: "Jul 26, 2026 8:00 AM",
     type: "new-cves",
-    summary: "Mozilla Firefox has 60 new vulnerabilities affecting your organization",
+    summary:
+      "Mozilla Firefox has 60 new vulnerabilities affecting your organization",
     impactedDevices: 2060,
     impactedPercent: 74,
     relatedCveIds: ["vuln-firefox-mem"],
@@ -3795,7 +3823,8 @@ const vulnEventSeeds: VulnEvent[] = [
     at: "2026-07-15T10:00:00.000Z",
     dateLabel: "Jul 15, 2026 10:00 AM",
     type: "new-cves",
-    summary: "Microsoft Teams has 6 new vulnerabilities affecting your organization",
+    summary:
+      "Microsoft Teams has 6 new vulnerabilities affecting your organization",
     impactedDevices: 2240,
     impactedPercent: 100,
     relatedCveIds: ["vuln-teams-rce"],
@@ -3831,7 +3860,8 @@ const vulnEventSeeds: VulnEvent[] = [
     at: "2026-07-12T15:00:00.000Z",
     dateLabel: "Jul 12, 2026 3:00 PM",
     type: "exception-granted",
-    summary: "Exception granted for legacy Java on ERP servers (expires Oct 2026)",
+    summary:
+      "Exception granted for legacy Java on ERP servers (expires Oct 2026)",
     impactedDevices: 40,
     impactedPercent: 8,
     relatedCveIds: ["vuln-oracle-compat"],
@@ -3879,7 +3909,8 @@ const vulnEventSeeds: VulnEvent[] = [
     at: "2026-07-07T11:00:00.000Z",
     dateLabel: "Jul 7, 2026 11:00 AM",
     type: "new-cves",
-    summary: "Azure RBAC privilege escalation patterns identified in 128 assignments",
+    summary:
+      "Azure RBAC privilege escalation patterns identified in 128 assignments",
     impactedDevices: 128,
     impactedPercent: 38,
     relatedCveIds: ["vuln-azure-rbac"],
@@ -4032,9 +4063,9 @@ function buildGeneratedVulnEvents(
     const impactedDevices =
       type === "score-change"
         ? 0
-        : Math.max(1, Math.round(40 + (index * 37) % 1800));
+        : Math.max(1, Math.round(40 + ((index * 37) % 1800)));
     const impactedPercent =
-      type === "score-change" ? 0 : Math.min(100, 8 + (index * 11) % 90);
+      type === "score-change" ? 0 : Math.min(100, 8 + ((index * 11) % 90));
     generated.push({
       ...template,
       id: `ve-${String(n).padStart(3, "0")}`,
@@ -4132,7 +4163,9 @@ export function getWeaknessStats(
   const exploitable = list.filter((v) => v.exploitable).length;
   const critical = list.filter((v) => v.severity === "critical").length;
   const zeroDay = list.filter((v) => v.zeroDay).length;
-  const noUpdate = list.filter((v) => v.updateStatus === "not-available").length;
+  const noUpdate = list.filter(
+    (v) => v.updateStatus === "not-available",
+  ).length;
   const partial = list.filter(
     (v) => v.updateStatus === "partial" || v.updateStatus === "scheduled",
   ).length;
@@ -4204,20 +4237,24 @@ export function getVulnerabilityInsights(scope: VulnScope = "endpoint") {
     {
       key: "exploitable",
       label: "Exploitable vulnerabilities",
-      value: list.filter((v) => v.exploitable).length * (scope === "endpoint" ? 88 : 12),
+      value:
+        list.filter((v) => v.exploitable).length *
+        (scope === "endpoint" ? 88 : 12),
       color: "bg-foreground/55",
     },
     {
       key: "critical",
       label: "Critical vulnerabilities",
-      value: list.filter((v) => v.severity === "critical").length * (scope === "endpoint" ? 76 : 8),
+      value:
+        list.filter((v) => v.severity === "critical").length *
+        (scope === "endpoint" ? 76 : 8),
       color: "bg-destructive/80",
     },
     {
       key: "zero-day",
       label: "Zero-day vulnerabilities",
       value: list.filter((v) => v.zeroDay).length,
-      color: "bg-amber-500/80",
+      color: "bg-warning/80",
     },
   ];
 }

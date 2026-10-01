@@ -100,114 +100,116 @@ export function SocPerformancePanel() {
   return (
     <Panel>
       <TooltipProvider>
-      <PanelHeading
-        title="SOC performance"
-        description={
-          <span className="inline-flex items-center gap-1.5">
-            Estimated cost avoided{" "}
-            {money.format(snapshot.playbookCostAvoidedUsd)}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  type="button"
-                  className="text-muted-foreground hover:text-foreground inline-flex"
-                  aria-label="How estimated cost avoided is calculated"
-                >
-                  <Info className="size-3.5" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent className="max-w-xs text-xs leading-relaxed">
-                {COST_METHODOLOGY}
-              </TooltipContent>
-            </Tooltip>
-          </span>
-        }
-      />
+        <PanelHeading
+          title="SOC performance"
+          description={
+            <span className="inline-flex items-center gap-1.5">
+              Estimated cost avoided{" "}
+              {money.format(snapshot.playbookCostAvoidedUsd)}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    className="text-muted-foreground hover:text-foreground inline-flex"
+                    aria-label="How estimated cost avoided is calculated"
+                  >
+                    <Info className="size-3.5" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs text-xs leading-relaxed">
+                  {COST_METHODOLOGY}
+                </TooltipContent>
+              </Tooltip>
+            </span>
+          }
+        />
 
-      <MetricTiles
-        className="mb-5 grid-cols-2 sm:grid-cols-2 xl:grid-cols-4"
-        tiles={metrics.map((metric) => ({
-          key: metric.key,
-          label: metric.title,
-          value: metric.value,
-          context: metric.context,
-        }))}
-      />
+        <MetricTiles
+          className="mb-5 grid-cols-2 sm:grid-cols-2 xl:grid-cols-4"
+          tiles={metrics.map((metric) => ({
+            key: metric.key,
+            label: metric.title,
+            value: metric.value,
+            context: metric.context,
+          }))}
+        />
 
-      <PanelGrid columns={2}>
-        <div className="min-w-0">
-          <h3 className="text-callout mb-2 font-semibold">By team</h3>
-          <div className="overflow-hidden rounded-lg border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Team</TableHead>
-                  <TableHead>MTTA</TableHead>
-                  <TableHead>MTTC</TableHead>
-                  <TableHead className="text-right">FP%</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {snapshot.byTeam.map((team) => (
-                  <TableRow key={team.teamId}>
-                    <TableCell>
-                      <p className="font-medium">{team.teamName}</p>
-                      <p className="text-muted-foreground text-xs">
-                        {team.alertCount} alerts · {team.incidentCount}{" "}
-                        incidents
-                      </p>
-                    </TableCell>
-                    <TableCell className="tabular-nums">
-                      {team.mttaLabel}
-                    </TableCell>
-                    <TableCell className="tabular-nums">
-                      {team.mttcLabel}
-                    </TableCell>
-                    <TableCell className="text-right tabular-nums">
-                      {(team.falsePositiveRate * 100).toFixed(0)}%
-                    </TableCell>
+        <PanelGrid columns={2}>
+          <div className="min-w-0">
+            <h3 className="text-callout mb-2 font-semibold">By team</h3>
+            <div className="overflow-hidden rounded-lg border">
+              <Table className="max-sm:table-fixed">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Team</TableHead>
+                    <TableHead className="w-16 sm:w-auto">MTTA</TableHead>
+                    <TableHead className="w-16 sm:w-auto">MTTC</TableHead>
+                    <TableHead className="w-14 text-right sm:w-auto">
+                      FP%
+                    </TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {snapshot.byTeam.map((team) => (
+                    <TableRow key={team.teamId}>
+                      <TableCell className="whitespace-normal">
+                        <p className="truncate font-medium">{team.teamName}</p>
+                        <p className="text-muted-foreground text-xs">
+                          {team.alertCount} alerts · {team.incidentCount}{" "}
+                          incidents
+                        </p>
+                      </TableCell>
+                      <TableCell className="tabular-nums">
+                        {team.mttaLabel}
+                      </TableCell>
+                      <TableCell className="tabular-nums">
+                        {team.mttcLabel}
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums">
+                        {(team.falsePositiveRate * 100).toFixed(0)}%
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </div>
-        </div>
 
-        <div className="min-w-0">
-          <h3 className="text-callout mb-2 font-semibold">
-            Estimated cost avoided
-          </h3>
-          <ul className="divide-separator divide-y rounded-lg border">
-            {snapshot.playbookRoi.length === 0 ? (
-              <li className="text-muted-foreground px-3 py-3 text-sm">
-                No playbook runs recorded yet.
-              </li>
-            ) : (
-              snapshot.playbookRoi.map((pb) => (
-                <li
-                  key={pb.playbookId}
-                  className="flex items-start justify-between gap-3 px-3 py-2.5"
-                >
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium">{pb.name}</p>
-                    <p className="text-muted-foreground text-xs">
-                      {pb.code} · {pb.runs} runs · {pb.hoursSaved}h saved ·{" "}
-                      {(pb.containmentSuccessRate * 100).toFixed(0)}% success
-                    </p>
-                  </div>
-                  <Badge variant="success">
-                    {money.format(pb.estimatedCostAvoidedUsd)}
-                  </Badge>
+          <div className="min-w-0">
+            <h3 className="text-callout mb-2 font-semibold">
+              Estimated cost avoided
+            </h3>
+            <ul className="divide-separator divide-y rounded-lg border">
+              {snapshot.playbookRoi.length === 0 ? (
+                <li className="text-muted-foreground px-3 py-3 text-sm">
+                  No playbook runs recorded yet.
                 </li>
-              ))
-            )}
-          </ul>
-          <p className="text-muted-foreground mt-2 text-xs leading-relaxed">
-            Model estimate from run counts and severity weights — not an
-            accounting export.
-          </p>
-        </div>
-      </PanelGrid>
+              ) : (
+                snapshot.playbookRoi.map((pb) => (
+                  <li
+                    key={pb.playbookId}
+                    className="flex items-start justify-between gap-3 px-3 py-2.5"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium">{pb.name}</p>
+                      <p className="text-muted-foreground text-xs">
+                        {pb.code} · {pb.runs} runs · {pb.hoursSaved}h saved ·{" "}
+                        {(pb.containmentSuccessRate * 100).toFixed(0)}% success
+                      </p>
+                    </div>
+                    <Badge variant="success">
+                      {money.format(pb.estimatedCostAvoidedUsd)}
+                    </Badge>
+                  </li>
+                ))
+              )}
+            </ul>
+            <p className="text-muted-foreground mt-2 text-xs leading-relaxed">
+              Model estimate from run counts and severity weights — not an
+              accounting export.
+            </p>
+          </div>
+        </PanelGrid>
       </TooltipProvider>
     </Panel>
   );

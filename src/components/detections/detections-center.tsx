@@ -35,6 +35,11 @@ import {
   ModuleToolbarActions,
   ModuleToolbarSearch,
 } from "@/components/soc/module-shell";
+import {
+  ModuleTabsList,
+  ModuleTabsTrigger,
+  TabCount,
+} from "@/components/soc/module-tabs";
 import { type SocStat, StatsStrip } from "@/components/soc/stats-strip";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -65,15 +70,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { detectionsApi } from "@/lib/mock-api/detections";
 import { getTelemetrySource } from "@/lib/source-registry";
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
-
-const tabTriggerClassName =
-  "data-[state=active]:border-foreground shrink-0 gap-2 rounded-none border-b-2 border-transparent px-0 pb-3 text-sm shadow-none data-[state=active]:bg-transparent data-[state=active]:shadow-none sm:pb-4";
 
 function SeverityBadge({ severity }: { severity: DetectionRule["severity"] }) {
   const tones: Record<DetectionRule["severity"], string> = {
@@ -298,8 +300,7 @@ export function DetectionsCenter() {
     }
   };
 
-  const deploySourceId =
-    selected?.enabledSourceIds[0] ?? "int-splunk-core";
+  const deploySourceId = selected?.enabledSourceIds[0] ?? "int-splunk-core";
 
   const handleStageDeploy = async () => {
     if (!selected) return;
@@ -310,7 +311,8 @@ export function DetectionsCenter() {
         deploySourceId,
       );
       toast({
-        title: receipt.outcome === "failed" ? "Stage failed" : "Staged for SIEM",
+        title:
+          receipt.outcome === "failed" ? "Stage failed" : "Staged for SIEM",
         description: `${receipt.message} · ${receipt.id}`,
         variant: receipt.outcome === "failed" ? "destructive" : "default",
       });
@@ -326,8 +328,7 @@ export function DetectionsCenter() {
       const { hits, receipt } = await detectionsApi.validateDeploy(selected.id);
       if (hits.length) setTestHits(hits);
       toast({
-        title:
-          receipt.outcome === "failed" ? "Validate failed" : "Validated",
+        title: receipt.outcome === "failed" ? "Validate failed" : "Validated",
         description: `${receipt.message} · ${receipt.id}`,
         variant: receipt.outcome === "failed" ? "destructive" : "default",
       });
@@ -493,19 +494,15 @@ export function DetectionsCenter() {
             setView(value as "library" | "marketplace");
           }}
         >
-          <div className="overflow-x-auto">
-            <TabsList className="inline-flex h-auto min-w-max justify-start gap-7 rounded-none bg-transparent p-0 sm:gap-8">
-              <TabsTrigger value="library" className={tabTriggerClassName}>
-                Library
-                <span className="bg-muted text-muted-foreground rounded-md px-1.5 py-0.5 text-xs">
-                  {stats.total}
-                </span>
-              </TabsTrigger>
-              <TabsTrigger value="marketplace" className={tabTriggerClassName}>
-                Marketplace
-              </TabsTrigger>
-            </TabsList>
-          </div>
+          <ModuleTabsList>
+            <ModuleTabsTrigger value="library">
+              Library
+              <TabCount>{stats.total}</TabCount>
+            </ModuleTabsTrigger>
+            <ModuleTabsTrigger value="marketplace">
+              Marketplace
+            </ModuleTabsTrigger>
+          </ModuleTabsList>
 
           <TabsContent value="library" className="mt-4">
             <div className="overflow-hidden rounded-lg border">
@@ -690,14 +687,19 @@ export function DetectionsCenter() {
                 <div className="border-border/70 space-y-3 rounded-lg border border-dashed p-3">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div>
-                      <p className="text-sm font-medium">SIEM deploy pipeline</p>
+                      <p className="text-sm font-medium">
+                        SIEM deploy pipeline
+                      </p>
                       <p className="text-muted-foreground text-xs">
                         Stage → validate (corpus) → push to{" "}
                         {getTelemetrySource(deploySourceId)?.shortName ??
                           deploySourceId}
                       </p>
                     </div>
-                    <Badge variant="secondary" className="rounded-full font-normal">
+                    <Badge
+                      variant="secondary"
+                      className="rounded-full font-normal"
+                    >
                       {detectionDeployStateLabels[selected.deployState]}
                       {selected.deployVersion > 0
                         ? ` · v${selected.deployVersion}`
@@ -784,7 +786,9 @@ export function DetectionsCenter() {
 
                 <div className="space-y-2">
                   <div className="flex items-center justify-between gap-2">
-                    <p className="text-sm font-medium">Rule body · Heimdall QL</p>
+                    <p className="text-sm font-medium">
+                      Rule body · Heimdall QL
+                    </p>
                     {draftBody !== null ? (
                       <Button
                         size="sm"
@@ -966,7 +970,6 @@ export function DetectionsCenter() {
           ) : null}
         </SheetContent>
       </Sheet>
-
     </>
   );
 }

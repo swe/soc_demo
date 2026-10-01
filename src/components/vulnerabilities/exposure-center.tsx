@@ -6,6 +6,12 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
 
 import { ListPagination, paginateItems } from "@/components/list-pagination";
+import {
+  ModuleShell,
+  ModuleToolbarActions,
+  ModuleToolbarSearch,
+} from "@/components/soc/module-shell";
+import { ToolbarToggle } from "@/components/soc/toolbar-toggle";
 import { Badge } from "@/components/ui/badge";
 import {
   InputGroup,
@@ -21,7 +27,6 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { Switch } from "@/components/ui/switch";
 import {
   Table,
   TableBody,
@@ -137,7 +142,7 @@ function ExposureDetailSheet({
                 {device.internetFacing ? (
                   <Badge
                     variant="outline"
-                    className="border-amber-500/30 bg-amber-500/10 text-amber-700 rounded-full font-medium dark:text-amber-400"
+                    className="border-warning/30 bg-warning/10 text-warning-text rounded-full font-medium"
                   >
                     Internet-facing
                   </Badge>
@@ -145,7 +150,7 @@ function ExposureDetailSheet({
                 {device.hasActiveThreat ? (
                   <Badge
                     variant="outline"
-                    className="border-destructive/30 bg-destructive/10 text-destructive rounded-full font-medium dark:text-red-400"
+                    className="border-destructive/30 bg-destructive/10 text-destructive-text rounded-full font-medium"
                   >
                     Active threat
                   </Badge>
@@ -322,14 +327,11 @@ export function ExposureCenter() {
     null;
 
   return (
-    <main
-      id="main-content"
-      className="bg-background flex min-h-0 flex-1 flex-col overflow-hidden"
-    >
-      <div className="bg-background shrink-0 border-b">
-        <div className="flex flex-col gap-2 px-4 py-3 sm:px-6 lg:min-h-14 lg:flex-row lg:items-center lg:justify-between lg:gap-4 lg:py-2">
-          <div className="min-w-0 flex-1">
-            <InputGroup className="h-9 w-full lg:max-w-sm">
+    <ModuleShell
+      toolbar={
+        <>
+          <ModuleToolbarSearch>
+            <InputGroup className="h-9 w-full">
               <InputGroupAddon>
                 <Search />
               </InputGroupAddon>
@@ -339,130 +341,130 @@ export function ExposureCenter() {
                 onChange={(event) => setSearchQuery(event.target.value)}
               />
             </InputGroup>
-          </div>
-          <div className="flex min-w-0 flex-wrap items-center gap-2 lg:justify-end">
-            <label className="border-border bg-background hover:bg-accent flex h-9 cursor-pointer items-center gap-2 rounded-md border px-2.5 text-sm">
-              <Switch
-                checked={internetFacingOnly}
-                onCheckedChange={setInternetFacingOnly}
-                aria-label="Internet-facing only"
-              />
-              <span className="whitespace-nowrap">Internet-facing</span>
-            </label>
-            <label className="border-border bg-background hover:bg-accent flex h-9 cursor-pointer items-center gap-2 rounded-md border px-2.5 text-sm">
-              <Switch
-                checked={highCriticalityOnly}
-                onCheckedChange={setHighCriticalityOnly}
-                aria-label="High criticality only"
-              />
-              <span className="whitespace-nowrap">High criticality</span>
-            </label>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6">
-        <div className="mx-auto flex w-full flex-col gap-4">
-          <VulnStatsStrip stats={stats} />
-
-          <div className="bg-card overflow-hidden rounded-lg border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Hostname</TableHead>
-                  <TableHead>Platform</TableHead>
-                  <TableHead>Risk</TableHead>
-                  <TableHead>Criticality</TableHead>
-                  <TableHead>Findings</TableHead>
-                  <TableHead>Max priority</TableHead>
-                  <TableHead>Exposure</TableHead>
-                  <TableHead>Threat</TableHead>
-                  <TableHead>Linked alerts</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {pageItems.map((d) => (
-                  <TableRow
-                    key={d.deviceId}
-                    className="cursor-pointer"
-                    onClick={() => setSelectedId(d.deviceId)}
-                  >
-                    <TableCell onClick={(e) => e.stopPropagation()}>
-                      <Link
-                        href={`/assets/devices?id=${encodeURIComponent(d.deviceId)}`}
-                        className="text-primary text-sm font-medium hover:underline"
-                      >
-                        {d.hostname}
-                      </Link>
-                    </TableCell>
-                    <TableCell className="text-sm">{d.platform}</TableCell>
-                    <TableCell>
-                      <PriorityBadge score={d.riskScore} />
-                    </TableCell>
-                    <TableCell>
-                      <SeverityBadge severity={d.maxCriticality} />
-                    </TableCell>
-                    <TableCell className="tabular-nums">
-                      {formatCompact(d.vulnerabilityCount)}
-                    </TableCell>
-                    <TableCell>
-                      <PriorityBadge score={d.maxPriority} />
-                    </TableCell>
-                    <TableCell>
-                      {d.internetFacing ? (
-                        <Badge
-                          variant="outline"
-                          className="border-amber-500/30 bg-amber-500/10 text-amber-700 rounded-full font-medium dark:text-amber-400"
-                        >
-                          Internet
-                        </Badge>
-                      ) : (
-                        <span className="text-muted-foreground text-xs">—</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {d.hasActiveThreat ? (
-                        <Badge
-                          variant="outline"
-                          className={cn(
-                            "border-destructive/30 bg-destructive/10 text-destructive rounded-full font-medium dark:text-red-400",
-                          )}
-                        >
-                          Active
-                        </Badge>
-                      ) : (
-                        <span className="text-muted-foreground text-xs">—</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="tabular-nums">
-                      {formatCompact(d.linkedAlertCount)}
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {pageItems.length === 0 ? (
-                  <TableRow>
-                    <TableCell
-                      colSpan={9}
-                      className="text-muted-foreground h-24 text-center"
-                    >
-                      No exposed devices match these filters.
-                    </TableCell>
-                  </TableRow>
-                ) : null}
-              </TableBody>
-            </Table>
-            <ListPagination
-              page={safePage}
-              pageSize={pageSize}
-              total={filtered.length}
-              onPageChange={setPage}
-              onPageSizeChange={(size) => {
-                setPageSize(size);
-                setPage(1);
-              }}
+          </ModuleToolbarSearch>
+          <ModuleToolbarActions>
+            <ToolbarToggle
+              checked={internetFacingOnly}
+              onCheckedChange={setInternetFacingOnly}
+              aria-label="Internet-facing only"
+              label="Internet-facing"
             />
-          </div>
-        </div>
+            <ToolbarToggle
+              checked={highCriticalityOnly}
+              onCheckedChange={setHighCriticalityOnly}
+              aria-label="High criticality only"
+              label="High criticality"
+            />
+          </ModuleToolbarActions>
+        </>
+      }
+    >
+      <VulnStatsStrip stats={stats} />
+
+      <div className="bg-card shadow-card overflow-hidden rounded-xl border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Hostname</TableHead>
+              <TableHead className="hidden md:table-cell">Platform</TableHead>
+              <TableHead>Risk</TableHead>
+              <TableHead className="hidden sm:table-cell">
+                Criticality
+              </TableHead>
+              <TableHead className="hidden lg:table-cell">Findings</TableHead>
+              <TableHead className="hidden lg:table-cell">
+                Max priority
+              </TableHead>
+              <TableHead className="hidden md:table-cell">Exposure</TableHead>
+              <TableHead className="hidden xl:table-cell">Threat</TableHead>
+              <TableHead className="hidden xl:table-cell">
+                Linked alerts
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {pageItems.map((d) => (
+              <TableRow
+                key={d.deviceId}
+                className="cursor-pointer"
+                onClick={() => setSelectedId(d.deviceId)}
+              >
+                <TableCell onClick={(e) => e.stopPropagation()}>
+                  <Link
+                    href={`/assets/devices?id=${encodeURIComponent(d.deviceId)}`}
+                    className="text-primary text-sm font-medium hover:underline"
+                  >
+                    {d.hostname}
+                  </Link>
+                </TableCell>
+                <TableCell className="hidden md:table-cell text-sm">
+                  {d.platform}
+                </TableCell>
+                <TableCell>
+                  <PriorityBadge score={d.riskScore} />
+                </TableCell>
+                <TableCell className="hidden sm:table-cell">
+                  <SeverityBadge severity={d.maxCriticality} />
+                </TableCell>
+                <TableCell className="hidden lg:table-cell tabular-nums">
+                  {formatCompact(d.vulnerabilityCount)}
+                </TableCell>
+                <TableCell className="hidden lg:table-cell">
+                  <PriorityBadge score={d.maxPriority} />
+                </TableCell>
+                <TableCell className="hidden md:table-cell">
+                  {d.internetFacing ? (
+                    <Badge
+                      variant="outline"
+                      className="border-warning/30 bg-warning/10 text-warning-text rounded-full font-medium"
+                    >
+                      Internet
+                    </Badge>
+                  ) : (
+                    <span className="text-muted-foreground text-xs">—</span>
+                  )}
+                </TableCell>
+                <TableCell className="hidden xl:table-cell">
+                  {d.hasActiveThreat ? (
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        "border-destructive/30 bg-destructive/10 text-destructive-text rounded-full font-medium",
+                      )}
+                    >
+                      Active
+                    </Badge>
+                  ) : (
+                    <span className="text-muted-foreground text-xs">—</span>
+                  )}
+                </TableCell>
+                <TableCell className="hidden xl:table-cell tabular-nums">
+                  {formatCompact(d.linkedAlertCount)}
+                </TableCell>
+              </TableRow>
+            ))}
+            {pageItems.length === 0 ? (
+              <TableRow>
+                <TableCell
+                  colSpan={9}
+                  className="text-muted-foreground h-24 text-center"
+                >
+                  No exposed devices match these filters.
+                </TableCell>
+              </TableRow>
+            ) : null}
+          </TableBody>
+        </Table>
+        <ListPagination
+          page={safePage}
+          pageSize={pageSize}
+          total={filtered.length}
+          onPageChange={setPage}
+          onPageSizeChange={(size) => {
+            setPageSize(size);
+            setPage(1);
+          }}
+        />
       </div>
 
       <ExposureDetailSheet
@@ -471,6 +473,6 @@ export function ExposureCenter() {
           if (!open) setSelectedId(null);
         }}
       />
-    </main>
+    </ModuleShell>
   );
 }

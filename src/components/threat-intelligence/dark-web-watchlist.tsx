@@ -37,7 +37,6 @@ import {
   type WatchlistKind,
   watchlistKindLabels,
 } from "./dark-web-data";
-import { mutedControlClassName } from "./dark-web-primitives";
 
 export function DarkWebWatchlist({
   watchlist,
@@ -90,17 +89,13 @@ export function DarkWebWatchlist({
           Domains, emails, brands, and VIP principals matched against dark web
           sources.
         </p>
-        <Button
-          size="sm"
-          className="h-9 gap-1.5"
-          onClick={() => setOpen(true)}
-        >
+        <Button size="sm" className="h-9 gap-1.5" onClick={() => setOpen(true)}>
           <Plus className="size-3.5" />
           Add monitor
         </Button>
       </div>
 
-      <div className="bg-card overflow-hidden rounded-lg border">
+      <div className="bg-card shadow-card overflow-hidden rounded-xl border">
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-transparent">
@@ -126,7 +121,6 @@ export function DarkWebWatchlist({
                     <Button
                       variant="outline"
                       size="sm"
-                      className={mutedControlClassName}
                       onClick={() => setOpen(true)}
                     >
                       Add first domain
@@ -239,13 +233,13 @@ export function DarkWebWatchlist({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {(
-                    Object.keys(watchlistKindLabels) as WatchlistKind[]
-                  ).map((option) => (
-                    <SelectItem key={option} value={option}>
-                      {watchlistKindLabels[option]}
-                    </SelectItem>
-                  ))}
+                  {(Object.keys(watchlistKindLabels) as WatchlistKind[]).map(
+                    (option) => (
+                      <SelectItem key={option} value={option}>
+                        {watchlistKindLabels[option]}
+                      </SelectItem>
+                    ),
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -275,11 +269,7 @@ export function DarkWebWatchlist({
             </div>
           </div>
           <DialogFooter>
-            <Button
-              variant="outline"
-              className={mutedControlClassName}
-              onClick={() => setOpen(false)}
-            >
+            <Button variant="outline" onClick={() => setOpen(false)}>
               Cancel
             </Button>
             <Button onClick={submit}>Add</Button>

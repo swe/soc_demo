@@ -113,71 +113,73 @@ export function RemediationsCenter() {
     >
       <StatsStrip stats={stats} />
 
-        <div className="bg-card overflow-hidden rounded-lg border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Title</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Owner</TableHead>
-                <TableHead>Ticket</TableHead>
-                <TableHead className="text-right">Devices</TableHead>
-                <TableHead>Due</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {rows.map((item) => {
-                const owner = getVulnOwner(item.ownerId);
-                return (
-                  <TableRow key={item.id}>
-                    <TableCell>
-                      <Link
-                        href={`/vulnerabilities/work?q=${encodeURIComponent(item.id)}`}
-                        className="font-medium hover:underline"
-                      >
-                        {item.title}
-                      </Link>
-                      <p className="text-muted-foreground text-xs">{item.id}</p>
-                    </TableCell>
-                    <TableCell>
-                      <RemediationStatusBadge
-                        status={item.status as RemediationStatus}
-                      />
-                      <span className="sr-only">
-                        {remediationStatusLabels[item.status]}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-sm">
-                      {owner?.name ?? (
-                        <span className="text-muted-foreground">Unassigned</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="font-mono text-xs">
-                      {item.ticketRef}
-                    </TableCell>
-                    <TableCell className="text-right tabular-nums">
-                      {item.devicesTotal - item.devicesRemaining}/
-                      {item.devicesTotal}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground text-xs">
-                      {item.dueLabel}
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-          <ListPagination
-            page={page}
-            pageSize={pageSize}
-            total={filtered.length}
-            onPageChange={setPage}
-            onPageSizeChange={(size) => {
-              setPageSize(size);
-              setPage(1);
-            }}
-          />
-        </div>
+      <div className="bg-card shadow-card overflow-hidden rounded-xl border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Title</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="hidden md:table-cell">Owner</TableHead>
+              <TableHead className="hidden lg:table-cell">Ticket</TableHead>
+              <TableHead className="hidden sm:table-cell text-right">
+                Devices
+              </TableHead>
+              <TableHead className="hidden md:table-cell">Due</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {rows.map((item) => {
+              const owner = getVulnOwner(item.ownerId);
+              return (
+                <TableRow key={item.id}>
+                  <TableCell>
+                    <Link
+                      href={`/vulnerabilities/work?q=${encodeURIComponent(item.id)}`}
+                      className="font-medium hover:underline"
+                    >
+                      {item.title}
+                    </Link>
+                    <p className="text-muted-foreground text-xs">{item.id}</p>
+                  </TableCell>
+                  <TableCell>
+                    <RemediationStatusBadge
+                      status={item.status as RemediationStatus}
+                    />
+                    <span className="sr-only">
+                      {remediationStatusLabels[item.status]}
+                    </span>
+                  </TableCell>
+                  <TableCell className="hidden md:table-cell text-sm">
+                    {owner?.name ?? (
+                      <span className="text-muted-foreground">Unassigned</span>
+                    )}
+                  </TableCell>
+                  <TableCell className="hidden lg:table-cell font-mono text-xs">
+                    {item.ticketRef}
+                  </TableCell>
+                  <TableCell className="hidden sm:table-cell text-right tabular-nums">
+                    {item.devicesTotal - item.devicesRemaining}/
+                    {item.devicesTotal}
+                  </TableCell>
+                  <TableCell className="hidden md:table-cell text-muted-foreground text-xs">
+                    {item.dueLabel}
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+        <ListPagination
+          page={page}
+          pageSize={pageSize}
+          total={filtered.length}
+          onPageChange={setPage}
+          onPageSizeChange={(size) => {
+            setPageSize(size);
+            setPage(1);
+          }}
+        />
+      </div>
     </ModuleShell>
   );
 }

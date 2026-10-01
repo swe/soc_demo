@@ -15,16 +15,12 @@ import {
 } from "./unified-timeline-data";
 
 const kindTone: Record<UnifiedTimelineKind, string> = {
-  alert:
-    "border-blue-500/30 bg-blue-500/10 text-blue-700 dark:text-blue-400",
+  alert: "border-info/30 bg-info/10 text-info-text",
   identity:
     "border-violet-500/30 bg-violet-500/10 text-violet-700 dark:text-violet-400",
-  device:
-    "border-orange-500/30 bg-orange-500/10 text-orange-700 dark:text-orange-400",
-  cloud:
-    "border-cyan-500/30 bg-cyan-500/10 text-cyan-700 dark:text-cyan-400",
-  playbook:
-    "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
+  device: "border-severity-high/30 bg-severity-high/10 text-severity-high-text",
+  cloud: "border-cyan-500/30 bg-cyan-500/10 text-cyan-700 dark:text-cyan-400",
+  playbook: "border-success/30 bg-success/10 text-success-text",
   note: "border-border bg-muted text-muted-foreground",
 };
 
@@ -73,10 +69,7 @@ export function UnifiedTimeline({
       ) : (
         <ol className="relative space-y-0">
           {entries.map((entry, index) => (
-            <li
-              key={entry.id}
-              className="relative flex gap-3 pb-4 last:pb-0"
-            >
+            <li key={entry.id} className="relative flex gap-3 pb-4 last:pb-0">
               <div className="flex w-[7.5rem] shrink-0 flex-col pt-0.5 sm:w-32">
                 <span className="text-muted-foreground font-mono text-xs tabular-nums">
                   {formatTimelineStamp(entry.at)}
@@ -109,7 +102,9 @@ export function UnifiedTimeline({
                     {unifiedTimelineKindLabels[entry.kind]}
                   </Badge>
                 </div>
-                <p className="text-sm leading-snug font-medium">{entry.title}</p>
+                <p className="text-sm leading-snug font-medium">
+                  {entry.title}
+                </p>
                 <p className="text-muted-foreground text-xs leading-relaxed">
                   {entry.detail}
                 </p>

@@ -29,11 +29,11 @@ function statusTone(status: ItsmTicketLink["status"]) {
   switch (status) {
     case "resolved":
     case "closed":
-      return "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400";
+      return "border-success/30 bg-success/10 text-success-text";
     case "pending":
-      return "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400";
+      return "border-warning/30 bg-warning/10 text-warning-text";
     case "in_progress":
-      return "border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-400";
+      return "border-info/30 bg-info/10 text-info-text";
     default:
       return "";
   }
@@ -59,7 +59,9 @@ export function ItsmLinksPanel({
       toast({
         title: "ITSM load failed",
         description:
-          error instanceof Error ? error.message : "Unable to list ticket links",
+          error instanceof Error
+            ? error.message
+            : "Unable to list ticket links",
         variant: "destructive",
       });
       setLinks([]);
@@ -81,7 +83,8 @@ export function ItsmLinksPanel({
     } catch (error) {
       toast({
         title: "Create failed",
-        description: error instanceof Error ? error.message : "Unable to create",
+        description:
+          error instanceof Error ? error.message : "Unable to create",
         variant: "destructive",
       });
     } finally {
@@ -180,7 +183,10 @@ export function ItsmLinksPanel({
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-1.5">
-                    <Badge variant="outline" className="rounded-full font-normal">
+                    <Badge
+                      variant="outline"
+                      className="rounded-full font-normal"
+                    >
                       {providerLabels[link.provider]}
                     </Badge>
                     <a

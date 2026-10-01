@@ -24,13 +24,7 @@ import {
   incidentStatusLabels,
 } from "./incidents-data";
 
-export { RiskScoreBadge,SeverityBadge };
-
-export const mutedControlClassName =
-  "border-border bg-background text-foreground hover:bg-accent hover:text-accent-foreground";
-
-export const tabTriggerClassName =
-  "data-[state=active]:border-foreground shrink-0 gap-2 rounded-none border-b-2 border-transparent px-0 pb-3 text-sm shadow-none data-[state=active]:bg-transparent data-[state=active]:shadow-none sm:pb-4";
+export { RiskScoreBadge, SeverityBadge };
 
 export const percentFormatter = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 1,
@@ -40,30 +34,15 @@ const statusDetails: Record<
   IncidentStatus,
   { className: string; icon: LucideIcon }
 > = {
-  new: {
-    className: "text-blue-600 dark:text-blue-400",
-    icon: Siren,
-  },
+  new: { className: "text-info-text", icon: Siren },
   investigating: {
-    className: "text-violet-600 dark:text-violet-400",
+    className: "text-violet-700 dark:text-violet-300",
     icon: CircleDashed,
   },
-  contained: {
-    className: "text-amber-600 dark:text-amber-400",
-    icon: Shield,
-  },
-  eradicated: {
-    className: "text-orange-600 dark:text-orange-400",
-    icon: ShieldAlert,
-  },
-  resolved: {
-    className: "text-emerald-600 dark:text-emerald-400",
-    icon: CircleCheck,
-  },
-  closed: {
-    className: "text-emerald-700 dark:text-emerald-500",
-    icon: ShieldCheck,
-  },
+  contained: { className: "text-warning-text", icon: Shield },
+  eradicated: { className: "text-severity-high-text", icon: ShieldAlert },
+  resolved: { className: "text-success-text", icon: CircleCheck },
+  closed: { className: "text-success-text", icon: ShieldCheck },
 };
 
 export function IncidentStatusBadge({ status }: { status: IncidentStatus }) {
@@ -73,11 +52,7 @@ export function IncidentStatusBadge({ status }: { status: IncidentStatus }) {
   return (
     <Badge
       variant="outline"
-      className={cn(
-        "gap-1 rounded-full font-medium",
-        "border-border/70 bg-background",
-        detail.className,
-      )}
+      className={cn("border-border/70 bg-card", detail.className)}
     >
       <Icon className="size-3" />
       {incidentStatusLabels[status]}
@@ -85,28 +60,30 @@ export function IncidentStatusBadge({ status }: { status: IncidentStatus }) {
   );
 }
 
-export function PriorityBadge({ priority }: { priority: string }) {
-  const tone =
-    priority === "P1"
-      ? "border-destructive/30 bg-destructive/10 text-destructive dark:text-red-400"
-      : priority === "P2"
-        ? "border-orange-500/30 bg-orange-500/10 text-orange-700 dark:text-orange-400"
-        : priority === "P3"
-          ? "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400"
-          : "border-border bg-muted text-muted-foreground";
+const priorityVariant = {
+  P1: "critical",
+  P2: "high",
+  P3: "medium",
+} as const;
 
+export function PriorityBadge({ priority }: { priority: string }) {
   return (
     <Badge
-      variant="outline"
-      className={cn(
-        "min-w-8 justify-center rounded-md px-1.5 py-0 font-mono text-xs font-semibold tabular-nums",
-        tone,
-      )}
+      variant={
+        priorityVariant[priority as keyof typeof priorityVariant] ?? "muted"
+      }
+      className="min-w-8 justify-center rounded-md px-1.5 font-mono font-semibold"
     >
       {priority}
     </Badge>
   );
 }
+
+const slaVariant = {
+  breached: "critical",
+  "at-risk": "warning",
+  ok: "success",
+} as const;
 
 export function SlaBadge({
   state,
@@ -115,21 +92,7 @@ export function SlaBadge({
   state: "ok" | "at-risk" | "breached";
   label: string;
 }) {
-  const tone =
-    state === "breached"
-      ? "border-destructive/30 bg-destructive/10 text-destructive dark:text-red-400"
-      : state === "at-risk"
-        ? "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400"
-        : "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400";
-
-  return (
-    <Badge
-      variant="outline"
-      className={cn("rounded-full font-medium whitespace-nowrap", tone)}
-    >
-      {label}
-    </Badge>
-  );
+  return <Badge variant={slaVariant[state]}>{label}</Badge>;
 }
 
 export function getInitials(name: string) {

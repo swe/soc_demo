@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  CheckIcon,
-  ChevronRight,
-  Download,
-  ListFilter,
-  Search,
-  ShieldAlert,
-} from "lucide-react";
+import { Download, Search, ShieldAlert } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
@@ -15,25 +8,24 @@ import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { appendAuditLog } from "@/components/audit/audit-log-data";
 import { ListPagination } from "@/components/list-pagination";
 import { currentProfile } from "@/components/profile/profile-data";
-import { Button } from "@/components/ui/button";
+import { FilterChip } from "@/components/soc/filter-chip";
+import { type FilterFacet, FilterMenu } from "@/components/soc/filter-menu";
 import {
-  Command,
-  CommandGroup,
-  CommandItem,
-  CommandList,
-  CommandSeparator,
-} from "@/components/ui/command";
+  ModuleShell,
+  ModuleToolbarActions,
+  ModuleToolbarSearch,
+} from "@/components/soc/module-shell";
+import {
+  ModuleTabsList,
+  ModuleTabsTrigger,
+  TabCount,
+} from "@/components/soc/module-tabs";
+import { Button } from "@/components/ui/button";
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupInput,
 } from "@/components/ui/input-group";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Switch } from "@/components/ui/switch";
 import {
   Table,
   TableBody,
@@ -42,7 +34,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs } from "@/components/ui/tabs";
 import { downloadCsv } from "@/lib/download-csv";
 import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
@@ -67,10 +59,8 @@ import {
   vulnPersonas,
 } from "./vulnerabilities-persona";
 import {
-  mutedControlClassName,
   PriorityBadge,
   SeverityBadge,
-  tabTriggerClassName,
   ThreatBadge,
 } from "./vulnerabilities-primitives";
 import { queryWeaknesses } from "./vulnerabilities-query";
@@ -83,30 +73,6 @@ import {
 import { VulnerabilityDetailSheet } from "./vulnerability-detail-sheet";
 
 export type VulnerabilitiesView = "overview" | "findings";
-
-type FilterPanel = "severity" | "sort" | "scope";
-
-function FilterPanelHeader({
-  title,
-  onBack,
-}: {
-  title: string;
-  onBack: () => void;
-}) {
-  return (
-    <div className="flex items-center border-b p-2">
-      <Button
-        variant="ghost"
-        size="sm"
-        className="h-7 gap-1 px-2 text-xs"
-        onClick={onBack}
-      >
-        <ChevronRight className="size-3.5 rotate-180" />
-        {title}
-      </Button>
-    </div>
-  );
-}
 
 function FindingsFilterControl({
   severityFilters,
@@ -127,189 +93,50 @@ function FindingsFilterControl({
   onSetScope: (scope: "endpoint" | "cloud" | "all") => void;
   onClearFilters: () => void;
 }) {
-  const [open, setOpen] = useState(false);
-  const [panel, setPanel] = useState<FilterPanel | null>(null);
-  const closePanel = () => setPanel(null);
+  const facets: FilterFacet[] = [
+    {
+      id: "severity",
+      label: "Severity",
+      icon: ShieldAlert,
+      options: vulnSeverities.map((value) => ({
+        value,
+        label: vulnSeverityLabels[value],
+      })),
+      selected: severityFilters,
+      onToggle: (value) => onToggleSeverity(value as VulnSeverity),
+    },
+    {
+      id: "scope",
+      label: "Scope",
+      single: true,
+      hideCount: true,
+      options: [
+        { value: "all", label: "All scopes" },
+        { value: "endpoint", label: "Endpoint" },
+        { value: "cloud", label: "Cloud" },
+      ],
+      selected: [scope],
+      onToggle: (value) => onSetScope(value as "endpoint" | "cloud" | "all"),
+    },
+    {
+      id: "sort",
+      label: "Sort",
+      single: true,
+      hideCount: true,
+      options: (Object.keys(findingSortLabels) as FindingSort[]).map(
+        (value) => ({ value, label: findingSortLabels[value] }),
+      ),
+      selected: [sort],
+      onToggle: (value) => onSetSort(value as FindingSort),
+    },
+  ];
 
   return (
-    <Popover
-      open={open}
-      onOpenChange={(next) => {
-        setOpen(next);
-        if (!next) setPanel(null);
-      }}
-    >
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          className={cn("relative h-9 gap-1.5 px-2.5", mutedControlClassName)}
-        >
-          <ListFilter className="size-3.5" />
-          Filter
-          {activeFilterCount > 0 ? (
-            <span className="bg-primary text-primary-foreground absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full text-xs font-semibold">
-              {activeFilterCount}
-            </span>
-          ) : null}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-64 p-0" align="end">
-        {panel === null ? (
-          <Command>
-            <CommandList>
-              <CommandGroup>
-                <CommandItem
-                  onSelect={() => setPanel("severity")}
-                  className="flex items-center justify-between"
-                >
-                  <span className="flex items-center gap-2">
-                    <ShieldAlert className="size-4 text-zinc-500" />
-                    Severity
-                  </span>
-                  <div className="flex items-center">
-                    {severityFilters.length > 0 ? (
-                      <span className="mr-1 text-xs text-zinc-500">
-                        {severityFilters.length}
-                      </span>
-                    ) : null}
-                    <ChevronRight className="size-4" />
-                  </div>
-                </CommandItem>
-                <CommandItem
-                  onSelect={() => setPanel("scope")}
-                  className="flex items-center justify-between"
-                >
-                  <span className="flex items-center gap-2">
-                    <ListFilter className="size-4 text-zinc-500" />
-                    Scope
-                  </span>
-                  <div className="flex items-center">
-                    {scope !== "all" ? (
-                      <span className="mr-1 text-xs text-zinc-500 capitalize">
-                        {scope}
-                      </span>
-                    ) : null}
-                    <ChevronRight className="size-4" />
-                  </div>
-                </CommandItem>
-                <CommandItem
-                  onSelect={() => setPanel("sort")}
-                  className="flex items-center justify-between"
-                >
-                  <span className="flex items-center gap-2">
-                    <ListFilter className="size-4 text-zinc-500" />
-                    Sort
-                  </span>
-                  <ChevronRight className="size-4" />
-                </CommandItem>
-              </CommandGroup>
-              {activeFilterCount > 0 ? (
-                <>
-                  <CommandSeparator />
-                  <CommandGroup>
-                    <CommandItem
-                      onSelect={() => {
-                        onClearFilters();
-                        setOpen(false);
-                      }}
-                      className="text-destructive"
-                    >
-                      Clear filters
-                    </CommandItem>
-                  </CommandGroup>
-                </>
-              ) : null}
-            </CommandList>
-          </Command>
-        ) : null}
-
-        {panel === "severity" ? (
-          <div>
-            <FilterPanelHeader title="Severity" onBack={closePanel} />
-            <Command>
-              <CommandList>
-                <CommandGroup>
-                  {vulnSeverities.map((severity) => {
-                    const checked = severityFilters.includes(severity);
-                    return (
-                      <CommandItem
-                        key={severity}
-                        onSelect={() => onToggleSeverity(severity)}
-                        className="justify-between"
-                      >
-                        {vulnSeverityLabels[severity]}
-                        {checked ? <CheckIcon className="size-4" /> : null}
-                      </CommandItem>
-                    );
-                  })}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </div>
-        ) : null}
-
-        {panel === "scope" ? (
-          <div>
-            <FilterPanelHeader title="Scope" onBack={closePanel} />
-            <Command>
-              <CommandList>
-                <CommandGroup>
-                  {(
-                    [
-                      ["all", "All scopes"],
-                      ["endpoint", "Endpoint"],
-                      ["cloud", "Cloud"],
-                    ] as const
-                  ).map(([value, label]) => (
-                    <CommandItem
-                      key={value}
-                      onSelect={() => {
-                        onSetScope(value);
-                        closePanel();
-                      }}
-                      className="justify-between"
-                    >
-                      {label}
-                      {scope === value ? <CheckIcon className="size-4" /> : null}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </div>
-        ) : null}
-
-        {panel === "sort" ? (
-          <div>
-            <FilterPanelHeader title="Sort" onBack={closePanel} />
-            <Command>
-              <CommandList>
-                <CommandGroup>
-                  {(Object.keys(findingSortLabels) as FindingSort[]).map(
-                    (option) => (
-                      <CommandItem
-                        key={option}
-                        onSelect={() => {
-                          onSetSort(option);
-                          closePanel();
-                        }}
-                        className="justify-between"
-                      >
-                        {findingSortLabels[option]}
-                        {sort === option ? (
-                          <CheckIcon className="size-4" />
-                        ) : null}
-                      </CommandItem>
-                    ),
-                  )}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </div>
-        ) : null}
-      </PopoverContent>
-    </Popover>
+    <FilterMenu
+      facets={facets}
+      activeCount={activeFilterCount}
+      onClear={onClearFilters}
+    />
   );
 }
 
@@ -325,22 +152,27 @@ function FindingRow({
       <TableCell>
         <PriorityBadge score={v.socPriority} />
       </TableCell>
-      <TableCell>
-        <button
-          type="button"
-          className="text-primary font-mono text-sm font-medium hover:underline"
-          onClick={onOpen}
-        >
+      <TableCell className="max-md:w-full">
+        <span className="text-primary font-mono text-sm font-medium whitespace-nowrap group-hover/row:underline">
           {v.cve}
-        </button>
+        </span>
+        <div className="mt-1 space-y-1 md:hidden">
+          <p className="line-clamp-2 text-sm">{v.title}</p>
+          <div className="flex flex-wrap items-center gap-1.5 sm:hidden">
+            <SeverityBadge severity={v.severity} />
+          </div>
+        </div>
       </TableCell>
-      <TableCell>
+      <TableCell className="hidden sm:table-cell">
         <SeverityBadge severity={v.severity} />
       </TableCell>
-      <TableCell className="max-w-[240px]">
+      <TableCell className="hidden max-w-[240px] md:table-cell">
         <span className="line-clamp-2 text-sm">{v.title}</span>
       </TableCell>
-      <TableCell onClick={(e) => e.stopPropagation()}>
+      <TableCell
+        className="hidden lg:table-cell"
+        onClick={(e) => e.stopPropagation()}
+      >
         {v.linkedAlertIds.length === 0 ? (
           <span className="text-muted-foreground text-xs">—</span>
         ) : (
@@ -349,7 +181,7 @@ function FindingRow({
               <Link
                 key={id}
                 href={`/alerts/${id}`}
-                className="text-primary font-mono text-xs hover:underline"
+                className="text-primary font-mono text-xs whitespace-nowrap hover:underline"
               >
                 {id}
               </Link>
@@ -357,7 +189,10 @@ function FindingRow({
           </div>
         )}
       </TableCell>
-      <TableCell onClick={(e) => e.stopPropagation()}>
+      <TableCell
+        className="hidden lg:table-cell"
+        onClick={(e) => e.stopPropagation()}
+      >
         {v.linkedIncidentIds.length === 0 ? (
           <span className="text-muted-foreground text-xs">—</span>
         ) : (
@@ -366,7 +201,7 @@ function FindingRow({
               <Link
                 key={id}
                 href={`/incidents/${id}`}
-                className="text-primary font-mono text-xs hover:underline"
+                className="text-primary font-mono text-xs whitespace-nowrap hover:underline"
               >
                 {id}
               </Link>
@@ -374,10 +209,10 @@ function FindingRow({
           </div>
         )}
       </TableCell>
-      <TableCell className="tabular-nums">
+      <TableCell className="hidden tabular-nums md:table-cell">
         {formatCompact(v.exposedDeviceCount)}
       </TableCell>
-      <TableCell>
+      <TableCell className="hidden xl:table-cell">
         <ThreatBadge threats={v.threats} />
       </TableCell>
     </TableRow>
@@ -581,15 +416,12 @@ export function VulnerabilitiesCenter({ view }: { view: VulnerabilitiesView }) {
     null;
 
   return (
-    <main
-      id="main-content"
-      className="bg-background flex min-h-0 flex-1 flex-col overflow-hidden"
-    >
-      {view === "findings" ? (
-        <div className="bg-background shrink-0 border-b">
-          <div className="flex flex-col gap-2 px-4 py-3 sm:px-6 lg:min-h-14 lg:flex-row lg:items-center lg:justify-between lg:gap-4 lg:py-2">
-            <div className="min-w-0 flex-1">
-              <InputGroup className="h-9 w-full lg:max-w-sm">
+    <ModuleShell
+      toolbar={
+        view === "findings" ? (
+          <>
+            <ModuleToolbarSearch>
+              <InputGroup className="h-9 w-full">
                 <InputGroupAddon>
                   <Search />
                 </InputGroupAddon>
@@ -599,68 +431,70 @@ export function VulnerabilitiesCenter({ view }: { view: VulnerabilitiesView }) {
                   onChange={(event) => setSearchQuery(event.target.value)}
                 />
               </InputGroup>
-            </div>
+            </ModuleToolbarSearch>
 
-            <div className="flex min-w-0 flex-wrap items-center gap-2 lg:justify-end">
-              <div className="flex flex-wrap items-center gap-1">
+            <ModuleToolbarActions>
+              <div
+                role="group"
+                aria-label="Persona presets"
+                className="flex flex-wrap items-center gap-1.5"
+              >
                 {vulnPersonas
                   .filter((p) => p !== "ciso")
                   .map((p) => {
                     const active = personaPresetChipActive(p, currentFilters);
                     return (
-                      <Button
+                      <FilterChip
                         key={p}
-                        type="button"
-                        variant={active ? "default" : "outline"}
-                        size="sm"
+                        pressed={active}
                         className={cn(
-                          "h-8 px-2.5 text-xs",
-                          !active && mutedControlClassName,
-                          p === persona && !active && "ring-foreground/20 ring-1",
+                          p === persona && !active && "border-foreground/25",
                         )}
                         onClick={() => applyPersonaPreset(p)}
                       >
                         {vulnPersonaLabels[p].replace(" Analyst", "")}
-                      </Button>
+                      </FilterChip>
                     );
                   })}
               </div>
 
-              <label className="border-border bg-background hover:bg-accent flex h-9 cursor-pointer items-center gap-2 rounded-md border px-2.5 text-sm">
-                <Switch
-                  checked={exploitableOnly}
-                  onCheckedChange={setExploitableOnly}
-                  aria-label="Exploitable only"
-                />
-                <span className="whitespace-nowrap">Exploitable</span>
-              </label>
+              <div
+                role="group"
+                aria-label="Quick filters"
+                className="flex flex-wrap items-center gap-1.5"
+              >
+                <FilterChip
+                  pressed={exploitableOnly}
+                  onClick={() => setExploitableOnly(!exploitableOnly)}
+                  title="Exploitable only"
+                >
+                  Exploitable
+                </FilterChip>
 
-              <label className="border-border bg-background hover:bg-accent flex h-9 cursor-pointer items-center gap-2 rounded-md border px-2.5 text-sm">
-                <Switch
-                  checked={withAlertsOnly}
-                  onCheckedChange={setWithAlertsOnly}
-                  aria-label="Linked alerts only"
-                />
-                <span className="whitespace-nowrap">Linked alerts</span>
-              </label>
+                <FilterChip
+                  pressed={withAlertsOnly}
+                  onClick={() => setWithAlertsOnly(!withAlertsOnly)}
+                  title="Linked alerts only"
+                >
+                  Linked alerts
+                </FilterChip>
 
-              <label className="border-border bg-background hover:bg-accent flex h-9 cursor-pointer items-center gap-2 rounded-md border px-2.5 text-sm">
-                <Switch
-                  checked={zeroDayOnly}
-                  onCheckedChange={setZeroDayOnly}
-                  aria-label="Zero-day only"
-                />
-                <span className="whitespace-nowrap">Zero-day</span>
-              </label>
+                <FilterChip
+                  pressed={zeroDayOnly}
+                  onClick={() => setZeroDayOnly(!zeroDayOnly)}
+                  title="Zero-day only"
+                >
+                  Zero-day
+                </FilterChip>
 
-              <label className="border-border bg-background hover:bg-accent flex h-9 cursor-pointer items-center gap-2 rounded-md border px-2.5 text-sm">
-                <Switch
-                  checked={withIncidentsOnly}
-                  onCheckedChange={setWithIncidentsOnly}
-                  aria-label="Linked incidents only"
-                />
-                <span className="whitespace-nowrap">Incidents</span>
-              </label>
+                <FilterChip
+                  pressed={withIncidentsOnly}
+                  onClick={() => setWithIncidentsOnly(!withIncidentsOnly)}
+                  title="Linked incidents only"
+                >
+                  Incidents
+                </FilterChip>
+              </div>
 
               <FindingsFilterControl
                 severityFilters={severityFilters}
@@ -733,90 +567,90 @@ export function VulnerabilitiesCenter({ view }: { view: VulnerabilitiesView }) {
                 <Download className="size-3.5" />
                 <span className="hidden sm:inline">Export</span>
               </Button>
-            </div>
+            </ModuleToolbarActions>
+          </>
+        ) : undefined
+      }
+    >
+      <Tabs
+        value={view}
+        onValueChange={(value) =>
+          router.push(
+            value === "overview"
+              ? "/vulnerabilities"
+              : "/vulnerabilities/findings",
+          )
+        }
+        className="flex flex-col gap-4"
+      >
+        <ModuleTabsList>
+          <ModuleTabsTrigger value="overview">Overview</ModuleTabsTrigger>
+          <ModuleTabsTrigger value="findings">
+            Findings
+            <TabCount>{queryResult.total.toLocaleString("en-US")}</TabCount>
+          </ModuleTabsTrigger>
+        </ModuleTabsList>
+
+        {view === "overview" ? (
+          <VulnerabilitiesOverview />
+        ) : (
+          <div className="bg-card shadow-card overflow-hidden rounded-xl border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-16">Priority</TableHead>
+                  <TableHead>CVE</TableHead>
+                  <TableHead className="hidden sm:table-cell">
+                    Severity
+                  </TableHead>
+                  <TableHead className="hidden md:table-cell">Title</TableHead>
+                  <TableHead className="hidden lg:table-cell">
+                    Linked alerts
+                  </TableHead>
+                  <TableHead className="hidden lg:table-cell">
+                    Incidents
+                  </TableHead>
+                  <TableHead className="hidden md:table-cell">
+                    Exposed devices
+                  </TableHead>
+                  <TableHead className="hidden xl:table-cell">
+                    Threats
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {queryResult.items.map((v) => (
+                  <FindingRow
+                    key={v.id}
+                    vulnerability={v}
+                    onOpen={() => setSelectedId(v.id)}
+                  />
+                ))}
+                {queryResult.items.length === 0 ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={8}
+                      className="text-muted-foreground h-24 text-center"
+                    >
+                      No findings match these filters.
+                    </TableCell>
+                  </TableRow>
+                ) : null}
+              </TableBody>
+            </Table>
+            <ListPagination
+              page={queryResult.page}
+              pageSize={pageSize}
+              total={queryResult.total}
+              onPageChange={setPage}
+              onPageSizeChange={(size) => {
+                setPageSize(size);
+                setPage(1);
+              }}
+            />
           </div>
-        </div>
-      ) : null}
-
-      <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6">
-        <div className="mx-auto flex w-full flex-col gap-4">
-          <Tabs
-            value={view}
-            onValueChange={(value) =>
-              router.push(
-                value === "overview"
-                  ? "/vulnerabilities"
-                  : "/vulnerabilities/findings",
-              )
-            }
-            className="flex flex-col gap-4"
-          >
-            <div className="overflow-x-auto border-b">
-              <TabsList className="inline-flex h-auto min-w-max justify-start gap-7 rounded-none bg-transparent p-0 sm:gap-8">
-                <TabsTrigger value="overview" className={tabTriggerClassName}>
-                  Overview
-                </TabsTrigger>
-                <TabsTrigger value="findings" className={tabTriggerClassName}>
-                  Findings
-                  <span className="bg-muted text-muted-foreground rounded-md px-1.5 py-0.5 text-xs">
-                    {queryResult.total.toLocaleString("en-US")}
-                  </span>
-                </TabsTrigger>
-              </TabsList>
-            </div>
-
-            {view === "overview" ? (
-              <VulnerabilitiesOverview />
-            ) : (
-              <div className="bg-card overflow-hidden rounded-lg border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Priority</TableHead>
-                      <TableHead>CVE</TableHead>
-                      <TableHead>Severity</TableHead>
-                      <TableHead>Title</TableHead>
-                      <TableHead>Linked alerts</TableHead>
-                      <TableHead>Incidents</TableHead>
-                      <TableHead>Exposed devices</TableHead>
-                      <TableHead>Threats</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {queryResult.items.map((v) => (
-                      <FindingRow
-                        key={v.id}
-                        vulnerability={v}
-                        onOpen={() => setSelectedId(v.id)}
-                      />
-                    ))}
-                    {queryResult.items.length === 0 ? (
-                      <TableRow>
-                        <TableCell
-                          colSpan={8}
-                          className="text-muted-foreground h-24 text-center"
-                        >
-                          No findings match these filters.
-                        </TableCell>
-                      </TableRow>
-                    ) : null}
-                  </TableBody>
-                </Table>
-                <ListPagination
-                  page={queryResult.page}
-                  pageSize={pageSize}
-                  total={queryResult.total}
-                  onPageChange={setPage}
-                  onPageSizeChange={(size) => {
-                    setPageSize(size);
-                    setPage(1);
-                  }}
-                />
-              </div>
-            )}
-          </Tabs>
-        </div>
-      </div>
+        )}
+      </Tabs>
 
       <VulnerabilityDetailSheet
         vulnerability={selected}
@@ -826,6 +660,6 @@ export function VulnerabilitiesCenter({ view }: { view: VulnerabilitiesView }) {
         }}
         onNavigate={(id) => setSelectedId(id)}
       />
-    </main>
+    </ModuleShell>
   );
 }

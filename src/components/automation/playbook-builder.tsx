@@ -33,12 +33,7 @@ import {
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTheme } from "next-themes";
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useSocRole } from "@/components/auth/soc-role-provider";
 import {
@@ -70,9 +65,6 @@ import {
   type PlaybookNodeType,
   playbookNodeTypeLabels,
 } from "./playbooks-data";
-
-const mutedControlClassName =
-  "border-border bg-background text-foreground hover:bg-accent hover:text-accent-foreground";
 
 const nodeStyles: Record<
   PlaybookNodeType,
@@ -160,7 +152,9 @@ const nodeTypes = {
   end: BuilderNodeCard,
 };
 
-const actionKinds = Object.keys(playbookActionKindLabels) as PlaybookActionKind[];
+const actionKinds = Object.keys(
+  playbookActionKindLabels,
+) as PlaybookActionKind[];
 
 function NodeInspector({
   node,
@@ -235,9 +229,7 @@ function NodeInspector({
 
       {configEntries.length > 0 ? (
         <div className="space-y-3">
-          <p className="text-xs font-medium tracking-wide uppercase">
-            Config
-          </p>
+          <p className="text-xs font-medium tracking-wide uppercase">Config</p>
           {configEntries.map(([key, value]) => (
             <div key={key} className="space-y-1.5">
               <Label htmlFor={`cfg-${key}`} className="font-mono text-xs">
@@ -329,7 +321,14 @@ function BuilderCanvas({
     setSelectedId(null);
     const t = window.setTimeout(() => fitView({ padding: 0.2 }), 50);
     return () => window.clearTimeout(t);
-  }, [playbook.id, playbook.graph.nodes, initialEdges, setNodes, setEdges, fitView]);
+  }, [
+    playbook.id,
+    playbook.graph.nodes,
+    initialEdges,
+    setNodes,
+    setEdges,
+    fitView,
+  ]);
 
   useEffect(() => {
     onDirty(nodes as PlaybookFlowNode[], edges as PlaybookFlowEdge[]);
@@ -391,11 +390,20 @@ function BuilderCanvas({
         nodeType,
         description: `New ${playbookNodeTypeLabels[nodeType].toLowerCase()} step`,
         ...(nodeType === "action"
-          ? { actionKind: "isolate_host" as PlaybookActionKind, config: { connector: "int-defender-endpoint" } }
+          ? {
+              actionKind: "isolate_host" as PlaybookActionKind,
+              config: { connector: "int-defender-endpoint" },
+            }
           : nodeType === "notify"
-            ? { actionKind: "slack" as PlaybookActionKind, config: { channel: "#soc-ops" } }
+            ? {
+                actionKind: "slack" as PlaybookActionKind,
+                config: { channel: "#soc-ops" },
+              }
             : nodeType === "enrich"
-              ? { actionKind: "enrich_ti" as PlaybookActionKind, config: { depth: "standard" } }
+              ? {
+                  actionKind: "enrich_ti" as PlaybookActionKind,
+                  config: { depth: "standard" },
+                }
               : { config: {} }),
       },
     };
@@ -482,8 +490,13 @@ export function PlaybookBuilder() {
   const router = useRouter();
   const requestedId = searchParams.get("id");
   const { effectiveRole } = useSocRole();
-  const { playbooks, getPlaybook, savePlaybookGraph, runPlaybookMock, createPlaybook } =
-    useAutomationSession();
+  const {
+    playbooks,
+    getPlaybook,
+    savePlaybookGraph,
+    runPlaybookMock,
+    createPlaybook,
+  } = useAutomationSession();
 
   const selectedId = requestedId ?? playbooks[0]?.id ?? null;
   const playbook = selectedId ? getPlaybook(selectedId) : null;
@@ -578,9 +591,7 @@ export function PlaybookBuilder() {
           </div>
           <p className="text-muted-foreground text-xs">
             Builder · {playbook.steps} steps · last run {playbook.lastRunLabel}
-            {isT1
-              ? " · T1 can view and edit"
-              : " · session save"}
+            {isT1 ? " · T1 can view and edit" : " · session save"}
           </p>
         </div>
 
@@ -591,7 +602,7 @@ export function PlaybookBuilder() {
               router.push(`/automation/builder?id=${id}`);
             }}
           >
-            <SelectTrigger className={cn("h-9 w-[220px]", mutedControlClassName)}>
+            <SelectTrigger className="h-9 w-[220px]">
               <SelectValue placeholder="Select playbook" />
             </SelectTrigger>
             <SelectContent>
@@ -605,7 +616,7 @@ export function PlaybookBuilder() {
           <Button
             variant="outline"
             size="sm"
-            className={cn("h-9 gap-1.5", mutedControlClassName)}
+            className="h-9 gap-1.5"
             onClick={handleSave}
           >
             <Save className="size-3.5" />
@@ -627,7 +638,11 @@ export function PlaybookBuilder() {
       </div>
 
       <ReactFlowProvider>
-        <BuilderCanvas key={playbook.id} playbook={playbook} onDirty={onDirty} />
+        <BuilderCanvas
+          key={playbook.id}
+          playbook={playbook}
+          onDirty={onDirty}
+        />
       </ReactFlowProvider>
     </main>
   );

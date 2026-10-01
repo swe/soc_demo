@@ -28,7 +28,6 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { toast } from "@/lib/toast";
-import { cn } from "@/lib/utils";
 
 import {
   type DarkWebExposure,
@@ -40,7 +39,6 @@ import {
 import {
   ExposureStatusBadge,
   ExposureTypeBadge,
-  mutedControlClassName,
   RiskScoreBadge,
   SeverityBadge,
   SheetDetailRow,
@@ -111,7 +109,9 @@ export function DarkWebDetailSheet({
                 <h3 className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
                   Finding
                 </h3>
-                <SheetDetailRow label="Source">{exposure.source}</SheetDetailRow>
+                <SheetDetailRow label="Source">
+                  {exposure.source}
+                </SheetDetailRow>
                 <SheetDetailRow label="First seen">
                   {exposure.firstSeenLabel}
                 </SheetDetailRow>
@@ -177,13 +177,12 @@ export function DarkWebDetailSheet({
                           type="button"
                           variant="outline"
                           size="sm"
-                          className={cn("h-7 gap-1 px-2", mutedControlClassName)}
+                          className="h-7 gap-1 px-2"
                           onClick={() => {
                             if (!revealed) {
                               toast({
                                 title: "Secret revealed",
-                                description:
-                                  "Reveal is audited.",
+                                description: "Reveal is audited.",
                               });
                             }
                             setRevealed((current) => !current);
@@ -199,7 +198,8 @@ export function DarkWebDetailSheet({
                       ) : null}
                     </div>
                   </div>
-                  {exposure.passwordFlags && exposure.passwordFlags.length > 0 ? (
+                  {exposure.passwordFlags &&
+                  exposure.passwordFlags.length > 0 ? (
                     <div className="flex flex-wrap gap-1.5">
                       {exposure.passwordFlags.map((flag) => (
                         <span
@@ -315,7 +315,7 @@ export function DarkWebDetailSheet({
                     <Button
                       variant="outline"
                       size="sm"
-                      className={cn("justify-start", mutedControlClassName)}
+                      className="justify-start"
                       asChild
                     >
                       <Link
@@ -328,7 +328,7 @@ export function DarkWebDetailSheet({
                     <Button
                       variant="outline"
                       size="sm"
-                      className={cn("justify-start", mutedControlClassName)}
+                      className="justify-start"
                       asChild
                     >
                       <Link
@@ -347,7 +347,7 @@ export function DarkWebDetailSheet({
                   <Button
                     variant="outline"
                     size="sm"
-                    className={cn("justify-start", mutedControlClassName)}
+                    className="justify-start"
                     asChild
                   >
                     <Link href="/threat-intelligence">
@@ -366,7 +366,7 @@ export function DarkWebDetailSheet({
                   <Button
                     variant="outline"
                     size="sm"
-                    className={cn("justify-start", mutedControlClassName)}
+                    className="justify-start"
                     asChild
                   >
                     <Link href="/assets/identities">
@@ -376,7 +376,7 @@ export function DarkWebDetailSheet({
                   <Button
                     variant="outline"
                     size="sm"
-                    className={cn("justify-start", mutedControlClassName)}
+                    className="justify-start"
                     asChild
                   >
                     <Link href="/knowledge-base/trainings">
@@ -386,7 +386,7 @@ export function DarkWebDetailSheet({
                   <Button
                     variant="outline"
                     size="sm"
-                    className={cn("justify-start", mutedControlClassName)}
+                    className="justify-start"
                     asChild
                   >
                     <Link href="/incidents">Escalate via incidents</Link>
@@ -414,7 +414,7 @@ export function DarkWebDetailSheet({
                       type="button"
                       variant="outline"
                       size="sm"
-                      className={cn("h-8", mutedControlClassName)}
+                      className="h-8"
                       disabled={exposure.status === status}
                       onClick={() => {
                         onSetStatus(exposure.id, status);

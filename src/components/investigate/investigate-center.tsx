@@ -19,6 +19,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 import { AssistChat } from "@/components/assist/assist-chat";
+import { FilterChip } from "@/components/soc/filter-chip";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -66,23 +67,9 @@ import {
 } from "./investigate-data";
 import { useInvestigateSession } from "./investigate-session";
 
-const severityTones: Record<InvestigateSeverity, string> = {
-  critical:
-    "border-destructive/30 bg-destructive/10 text-destructive dark:text-red-400",
-  high: "border-orange-500/30 bg-orange-500/10 text-orange-700 dark:text-orange-400",
-  medium:
-    "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400",
-  low: "border-border bg-muted text-muted-foreground",
-};
-
 function SeverityBadge({ severity }: { severity: InvestigateSeverity }) {
   return (
-    <Badge
-      variant="outline"
-      className={cn("rounded-full font-medium", severityTones[severity])}
-    >
-      {investigateSeverityLabels[severity]}
-    </Badge>
+    <Badge variant={severity}>{investigateSeverityLabels[severity]}</Badge>
   );
 }
 
@@ -324,58 +311,58 @@ export function InvestigateCenter({
       id="main-content"
       className="bg-background flex min-h-0 flex-1 flex-col overflow-hidden"
     >
-      <div className="bg-background shrink-0 border-b px-4 py-3 sm:px-6">
+      <div className="bg-background border-separator px-gutter shrink-0 border-b py-2.5">
         <div className="flex flex-wrap items-center justify-end gap-2">
-            <AssistChat investigateQuery={query} />
-            <Button
-              variant={showSaved ? "secondary" : "outline"}
-              size="sm"
-              className="h-9 gap-1.5"
-              onClick={() => setShowSaved((v) => !v)}
-            >
-              <Bookmark className="size-3.5" />
-              Saved
-              <Badge variant="secondary" className="ml-0.5 rounded-full px-1.5">
-                {savedSearches.length}
-                {queryHistory.length > 0 ? ` · ${queryHistory.length}` : ""}
+          <AssistChat investigateQuery={query} />
+          <Button
+            variant={showSaved ? "secondary" : "outline"}
+            size="sm"
+            className="h-9 gap-1.5"
+            onClick={() => setShowSaved((v) => !v)}
+          >
+            <Bookmark className="size-3.5" />
+            Saved
+            <Badge variant="secondary" className="ml-0.5 rounded-full px-1.5">
+              {savedSearches.length}
+              {queryHistory.length > 0 ? ` · ${queryHistory.length}` : ""}
+            </Badge>
+            {queryHistory.length > 0 ? (
+              <Badge variant="outline" className="ml-0.5 rounded-full px-1.5">
+                <History className="mr-0.5 size-2.5" />
+                {queryHistory.length}
               </Badge>
-              {queryHistory.length > 0 ? (
-                <Badge variant="outline" className="ml-0.5 rounded-full px-1.5">
-                  <History className="mr-0.5 size-2.5" />
-                  {queryHistory.length}
-                </Badge>
-              ) : null}
-            </Button>
-            <Select
-              value={timeRange}
-              onValueChange={(value) => setTimeRange(value as TimeRangeValue)}
-            >
-              <SelectTrigger className="h-9 w-[160px]">
-                <SelectValue placeholder="Time range" />
-              </SelectTrigger>
-              <SelectContent>
-                {timeRangeOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button
-              size="sm"
-              className="h-9 gap-1.5"
-              disabled={running}
-              onClick={() => void runQuery()}
-            >
-              <Play className="size-3.5" />
-              {running ? "Running…" : "Run"}
-            </Button>
+            ) : null}
+          </Button>
+          <Select
+            value={timeRange}
+            onValueChange={(value) => setTimeRange(value as TimeRangeValue)}
+          >
+            <SelectTrigger className="h-9 w-[160px]">
+              <SelectValue placeholder="Time range" />
+            </SelectTrigger>
+            <SelectContent>
+              {timeRangeOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button
+            size="sm"
+            className="h-9 gap-1.5"
+            disabled={running}
+            onClick={() => void runQuery()}
+          >
+            <Play className="size-3.5" />
+            {running ? "Running…" : "Run"}
+          </Button>
         </div>
       </div>
 
       <div className="flex min-h-0 flex-1">
         {showSaved ? (
-          <aside className="border-border/70 bg-muted/20 hidden w-64 shrink-0 flex-col border-r md:flex lg:w-72">
+          <aside className="border-separator bg-canvas hidden w-64 shrink-0 flex-col border-r md:flex lg:w-72">
             <div className="flex items-center justify-between border-b px-3 py-2.5">
               <p className="text-sm font-medium">Saved searches</p>
               <Button
@@ -484,49 +471,45 @@ export function InvestigateCenter({
         ) : null}
 
         <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-          <section className="space-y-3 border-b px-4 py-3 sm:px-6">
+          <section className="border-separator px-gutter space-y-3 border-b py-3">
             <div className="space-y-2">
-              <div className="flex flex-wrap items-center gap-1.5">
-                <span className="text-muted-foreground mr-1 text-xs font-medium tracking-wide uppercase">
+              <div className="no-scrollbar max-md:-mx-gutter max-md:px-gutter relative flex items-center gap-1.5 max-md:overflow-x-auto md:flex-wrap">
+                <span className="text-muted-foreground mr-1 shrink-0 text-caption font-medium tracking-wide uppercase">
                   NDR / network
                 </span>
                 {queryTemplates
                   .filter((t) =>
-                    ["ndr-beacon", "fw-deny-spike", "dns-tunnel", "beaconing"].includes(
-                      t.id,
-                    ),
+                    [
+                      "ndr-beacon",
+                      "fw-deny-spike",
+                      "dns-tunnel",
+                      "beaconing",
+                    ].includes(t.id),
                   )
                   .map((template) => (
-                    <button
+                    <FilterChip
                       key={`ndr-${template.id}`}
-                      type="button"
+                      pressed={translation.template?.id === template.id}
                       onClick={() => applyTemplate(template.id)}
-                      className={cn(
-                        "border-border bg-background hover:bg-accent inline-flex h-7 items-center rounded-md border px-2 text-xs transition-colors",
-                        translation.template?.id === template.id &&
-                          "border-foreground/40 bg-muted",
-                      )}
                       title={template.description}
                     >
                       {template.name}
-                    </button>
+                    </FilterChip>
                   ))}
               </div>
-              <div className="flex flex-wrap gap-1.5">
+              <div className="no-scrollbar max-md:-mx-gutter max-md:px-gutter relative flex items-center gap-1.5 max-md:overflow-x-auto md:flex-wrap">
+                <span className="text-muted-foreground mr-1 shrink-0 text-caption font-medium tracking-wide uppercase">
+                  Templates
+                </span>
                 {queryTemplates.map((template) => (
-                  <button
+                  <FilterChip
                     key={template.id}
-                    type="button"
+                    pressed={translation.template?.id === template.id}
                     onClick={() => applyTemplate(template.id)}
-                    className={cn(
-                      "border-border bg-background hover:bg-accent inline-flex h-7 items-center rounded-md border px-2 text-xs transition-colors",
-                      translation.template?.id === template.id &&
-                        "border-foreground/40 bg-muted",
-                    )}
                     title={template.description}
                   >
                     {template.name}
-                  </button>
+                  </FilterChip>
                 ))}
               </div>
             </div>
@@ -565,12 +548,15 @@ export function InvestigateCenter({
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
                   onKeyDown={(event) => {
-                    if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
+                    if (
+                      (event.metaKey || event.ctrlKey) &&
+                      event.key === "Enter"
+                    ) {
                       event.preventDefault();
                       void runQuery();
                     }
                   }}
-                  placeholder='identity.login | where …  (⌘/Ctrl+Enter to run)'
+                  placeholder="identity.login | where …  (⌘/Ctrl+Enter to run)"
                   className="min-h-[96px] font-mono text-xs leading-relaxed md:text-xs"
                   spellCheck={false}
                 />
@@ -588,35 +574,30 @@ export function InvestigateCenter({
             </Tabs>
 
             <div className="space-y-1.5">
-              <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+              <p className="text-muted-foreground text-caption font-medium tracking-wide uppercase">
                 Sources
               </p>
               <div className="flex flex-wrap gap-1.5">
                 {investigateSourceOptions.map((source) => {
                   const active = sourceIds.includes(source.id);
                   return (
-                    <button
+                    <FilterChip
                       key={source.id}
-                      type="button"
+                      pressed={active}
                       onClick={() => toggleSource(source.id)}
-                      className={cn(
-                        "inline-flex h-7 items-center gap-1.5 rounded-md border px-2 text-xs transition-colors",
-                        active
-                          ? "border-foreground/40 bg-foreground text-background"
-                          : "border-border bg-background text-muted-foreground hover:bg-accent hover:text-accent-foreground",
-                      )}
                     >
                       <span
                         className={cn(
                           "size-1.5 rounded-full",
-                          source.health === "healthy" && "bg-emerald-500",
-                          source.health === "degraded" && "bg-amber-500",
-                          source.health === "failed" && "bg-red-500",
-                          source.health === "paused" && "bg-zinc-400",
+                          source.health === "healthy" && "bg-success",
+                          source.health === "degraded" && "bg-warning",
+                          source.health === "failed" && "bg-destructive",
+                          source.health === "paused" &&
+                            "bg-muted-foreground/50",
                         )}
                       />
                       {source.shortName}
-                    </button>
+                    </FilterChip>
                   );
                 })}
                 <button
@@ -639,7 +620,7 @@ export function InvestigateCenter({
             </div>
           </section>
 
-          <div className="flex flex-wrap items-center gap-2 border-b px-4 py-2 sm:px-6">
+          <div className="border-separator px-gutter flex flex-wrap items-center gap-2 border-b py-2">
             <div className="text-muted-foreground flex items-center gap-2 text-sm">
               <Search className="size-3.5" />
               {hasRun ? (
@@ -760,7 +741,9 @@ export function InvestigateCenter({
                       <TableRow
                         key={event.id}
                         data-state={
-                          selectedIds.includes(event.id) ? "selected" : undefined
+                          selectedIds.includes(event.id)
+                            ? "selected"
+                            : undefined
                         }
                         className="text-sm"
                       >
