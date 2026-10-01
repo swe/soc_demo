@@ -178,14 +178,14 @@ function HuntDetailSheet({
             <h3 className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
               Hunt query · Heimdall QL
             </h3>
-            <pre className="bg-muted/40 max-h-36 overflow-auto rounded-md border p-2.5 font-mono text-[10px] leading-relaxed whitespace-pre-wrap">
+            <pre className="bg-muted/40 max-h-36 overflow-auto rounded-md border p-2.5 font-mono text-xs leading-relaxed whitespace-pre-wrap">
               {investigateQuery}
             </pre>
             <div className="flex flex-wrap gap-1.5">
               {sourceIds.map((id) => (
                 <span
                   key={id}
-                  className="bg-muted text-muted-foreground rounded-full border px-2 py-0.5 text-[10px]"
+                  className="bg-muted text-muted-foreground rounded-full border px-2 py-0.5 text-xs"
                 >
                   {getTelemetrySource(id)?.shortName ?? id}
                 </span>
@@ -209,7 +209,7 @@ function HuntDetailSheet({
                   Last run · {runResult.hitCount} hit
                   {runResult.hitCount === 1 ? "" : "s"}
                 </h3>
-                <span className="text-muted-foreground font-mono text-[10px]">
+                <span className="text-muted-foreground font-mono text-xs">
                   {formatRunTime(runResult.ranAt)}
                 </span>
               </div>
@@ -224,7 +224,7 @@ function HuntDetailSheet({
                   <TableBody>
                     {runResult.hits.map((hit) => (
                       <TableRow key={hit.id}>
-                        <TableCell className="max-w-[180px] truncate font-mono text-[11px]">
+                        <TableCell className="max-w-[180px] truncate font-mono text-xs">
                           {hit.entity}
                         </TableCell>
                         <TableCell>
@@ -262,7 +262,7 @@ function HuntDetailSheet({
                           <span className="font-mono text-xs">
                             {indicator.id}
                           </span>
-                          <p className="mt-0.5 truncate font-mono text-[11px]">
+                          <p className="mt-0.5 truncate font-mono text-xs">
                             {indicator.value}
                           </p>
                         </div>

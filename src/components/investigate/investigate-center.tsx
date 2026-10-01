@@ -407,7 +407,7 @@ export function InvestigateCenter({
                         <p className="truncate text-sm font-medium">
                           {saved.name}
                         </p>
-                        <p className="text-muted-foreground mt-0.5 line-clamp-2 font-mono text-[10px]">
+                        <p className="text-muted-foreground mt-0.5 line-clamp-2 font-mono text-xs">
                           {saved.query}
                         </p>
                       </button>
@@ -428,14 +428,14 @@ export function InvestigateCenter({
 
                 {recentQueries.length > 0 ? (
                   <div className="pt-3">
-                    <p className="text-muted-foreground px-2 pb-1 text-[10px] font-medium tracking-wide uppercase">
+                    <p className="text-muted-foreground px-2 pb-1 text-xs font-medium tracking-wide uppercase">
                       Recent
                     </p>
                     {recentQueries.slice(0, 5).map((recent) => (
                       <button
                         key={recent}
                         type="button"
-                        className="hover:bg-muted/60 text-muted-foreground w-full truncate rounded-md px-2 py-1.5 text-left font-mono text-[10px]"
+                        className="hover:bg-muted/60 text-muted-foreground w-full truncate rounded-md px-2 py-1.5 text-left font-mono text-xs"
                         onClick={() => {
                           setQuery(recent);
                           void runQuery(recent);
@@ -449,7 +449,7 @@ export function InvestigateCenter({
 
                 {queryHistory.length > 0 ? (
                   <div className="pt-3">
-                    <p className="text-muted-foreground flex items-center gap-1 px-2 pb-1 text-[10px] font-medium tracking-wide uppercase">
+                    <p className="text-muted-foreground flex items-center gap-1 px-2 pb-1 text-xs font-medium tracking-wide uppercase">
                       <History className="size-3" />
                       Query history
                     </p>
@@ -464,10 +464,10 @@ export function InvestigateCenter({
                           void runQuery(entry.query, entry.sourceIds);
                         }}
                       >
-                        <p className="text-muted-foreground truncate font-mono text-[10px]">
+                        <p className="text-muted-foreground truncate font-mono text-xs">
                           {entry.query}
                         </p>
-                        <p className="text-muted-foreground mt-0.5 text-[10px] tabular-nums">
+                        <p className="text-muted-foreground mt-0.5 text-xs tabular-nums">
                           {entry.hitCount} hits · {entry.timeRange} ·{" "}
                           {new Date(entry.at).toLocaleTimeString(undefined, {
                             hour: "2-digit",
@@ -487,7 +487,7 @@ export function InvestigateCenter({
           <section className="space-y-3 border-b px-4 py-3 sm:px-6">
             <div className="space-y-2">
               <div className="flex flex-wrap items-center gap-1.5">
-                <span className="text-muted-foreground mr-1 text-[10px] font-medium tracking-wide uppercase">
+                <span className="text-muted-foreground mr-1 text-xs font-medium tracking-wide uppercase">
                   NDR / network
                 </span>
                 {queryTemplates
@@ -787,7 +787,7 @@ export function InvestigateCenter({
                           <p className="truncate" title={event.message}>
                             {event.message}
                           </p>
-                          <p className="text-muted-foreground font-mono text-[10px]">
+                          <p className="text-muted-foreground font-mono text-xs">
                             {event.id}
                           </p>
                         </TableCell>

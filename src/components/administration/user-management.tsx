@@ -340,7 +340,7 @@ function UserFilterControl({
           <ListFilter className="size-3.5" />
           Filter
           {activeFilterCount > 0 ? (
-            <span className="bg-primary text-primary-foreground absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full text-[10px] font-semibold">
+            <span className="bg-primary text-primary-foreground absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full text-xs font-semibold">
               {activeFilterCount}
             </span>
           ) : null}

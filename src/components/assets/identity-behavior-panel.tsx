@@ -213,7 +213,7 @@ export function IdentityBehaviorPanel({
                   <Badge variant="secondary" className="rounded-full font-normal">
                     {uebaAnomalyLabels[anomaly.kind]}
                   </Badge>
-                  <span className="text-muted-foreground ml-auto text-[10px]">
+                  <span className="text-muted-foreground ml-auto text-xs">
                     {anomaly.detectedAtLabel}
                   </span>
                 </div>
@@ -223,7 +223,7 @@ export function IdentityBehaviorPanel({
                 <p className="text-muted-foreground text-xs leading-relaxed">
                   {anomaly.summary}
                 </p>
-                <p className="text-muted-foreground border-border/60 rounded-md border border-dashed px-2 py-1.5 text-[11px] leading-relaxed">
+                <p className="text-muted-foreground border-border/60 rounded-md border border-dashed px-2 py-1.5 text-xs leading-relaxed">
                   Peer baseline · {anomaly.peerBaselineLabel}
                 </p>
                 <div className="flex flex-wrap items-center gap-1.5">
@@ -231,12 +231,12 @@ export function IdentityBehaviorPanel({
                     <Badge
                       key={tag}
                       variant="outline"
-                      className="rounded-full text-[10px] font-normal"
+                      className="rounded-full text-xs font-normal"
                     >
                       {tag}
                     </Badge>
                   ))}
-                  <span className="text-muted-foreground ml-auto font-mono text-[10px]">
+                  <span className="text-muted-foreground ml-auto font-mono text-xs">
                     +{anomaly.riskDelta} risk
                   </span>
                 </div>

@@ -153,7 +153,7 @@ function ActorDetailSheet({
                           <span className="font-mono text-xs">
                             {indicator.id}
                           </span>
-                          <p className="mt-0.5 truncate font-mono text-[11px]">
+                          <p className="mt-0.5 truncate font-mono text-xs">
                             {indicator.value}
                           </p>
                         </div>

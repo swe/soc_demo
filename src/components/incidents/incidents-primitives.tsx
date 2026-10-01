@@ -156,7 +156,7 @@ export function AssigneeCell({ assigneeId }: { assigneeId: string | null }) {
     <div className="flex min-w-0 items-center gap-2">
       <Avatar className="size-6">
         <AvatarImage src={user.avatar} alt={user.name} />
-        <AvatarFallback className="text-[10px]">
+        <AvatarFallback className="text-xs">
           {getInitials(user.name)}
         </AvatarFallback>
       </Avatar>

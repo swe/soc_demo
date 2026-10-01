@@ -90,7 +90,7 @@ export function DetectionMarketplace() {
                 ) : null}
               </div>
               <div className="flex items-center justify-between gap-2">
-                <span className="text-muted-foreground text-[11px]">
+                <span className="text-muted-foreground text-xs">
                   Updated {pack.updatedLabel}
                 </span>
                 <Button

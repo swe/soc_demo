@@ -591,7 +591,7 @@ export function PurpleTeamCenter() {
                           <Badge
                             key={tech}
                             variant="outline"
-                            className="font-mono text-[10px]"
+                            className="font-mono text-xs"
                           >
                             {tech}
                           </Badge>

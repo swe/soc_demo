@@ -201,7 +201,7 @@ function ReportFilterControl({
           <ListFilter className="size-3.5" />
           Filter
           {activeFilterCount > 0 ? (
-            <span className="bg-primary text-primary-foreground absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full text-[10px] font-semibold">
+            <span className="bg-primary text-primary-foreground absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full text-xs font-semibold">
               {activeFilterCount}
             </span>
           ) : null}
@@ -670,7 +670,7 @@ export function ReportsCenter() {
                     >
                       <TableCell>
                         <div className="min-w-0 space-y-1">
-                          <span className="text-muted-foreground font-mono text-[11px]">
+                          <span className="text-muted-foreground font-mono text-xs">
                             {report.code}
                           </span>
                           <p className="text-sm font-medium">{report.title}</p>
@@ -693,7 +693,7 @@ export function ReportsCenter() {
                       <TableCell className="hidden md:table-cell">
                         <div className="space-y-0.5">
                           <p className="text-sm">{report.periodLabel}</p>
-                          <p className="text-muted-foreground text-[11px]">
+                          <p className="text-muted-foreground text-xs">
                             {report.generatedLabel}
                           </p>
                         </div>

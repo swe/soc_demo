@@ -339,7 +339,7 @@ function AttentionFlags({ identity }: { identity: AssetIdentity }) {
           key={flag.label}
           variant="outline"
           className={cn(
-            "rounded-full px-1.5 py-0 text-[10px] font-medium",
+            "rounded-full px-1.5 py-0 text-xs font-medium",
             flag.className,
           )}
         >
@@ -397,7 +397,7 @@ function IdentityAttentionFilters({
                   </span>
                   <span
                     className={cn(
-                      "rounded-md px-1.5 py-0.5 text-[10px] font-semibold tabular-nums",
+                      "rounded-md px-1.5 py-0.5 text-xs font-semibold tabular-nums",
                       isActive
                         ? "bg-background/20 text-background"
                         : count > 0
@@ -711,7 +711,7 @@ function IdentityFilterControl({
           <ListFilter className="size-3.5" />
           Filter
           {activeFilterCount > 0 ? (
-            <span className="bg-primary text-primary-foreground absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full text-[10px] font-semibold">
+            <span className="bg-primary text-primary-foreground absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full text-xs font-semibold">
               {activeFilterCount}
             </span>
           ) : null}

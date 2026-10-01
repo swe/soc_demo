@@ -16,6 +16,7 @@ import {
 } from "recharts";
 
 import { OverviewSplit, Panel, PanelHeading } from "@/components/soc/panel";
+import { SegmentedControl } from "@/components/soc/segmented-control";
 import {
   type ChartConfig,
   ChartContainer,
@@ -115,25 +116,15 @@ function OverviewRangeControl({
   onChange: (range: AlertsOverviewRange) => void;
 }) {
   return (
-    <div className="bg-muted/60 inline-flex rounded-md border p-0.5">
-      {alertsOverviewRanges.map((range) => {
-        const active = value === range;
-        return (
-          <button
-            key={range}
-            type="button"
-            onClick={() => onChange(range)}
-            className={
-              active
-                ? "bg-background text-foreground rounded-sm px-2.5 py-1 text-xs font-medium shadow-sm"
-                : "text-muted-foreground hover:text-foreground rounded-sm px-2.5 py-1 text-xs font-medium"
-            }
-          >
-            {alertsOverviewRangeLabels[range]}
-          </button>
-        );
-      })}
-    </div>
+    <SegmentedControl
+      aria-label="Time range"
+      value={value}
+      onChange={onChange}
+      options={alertsOverviewRanges.map((range) => ({
+        value: range,
+        label: alertsOverviewRangeLabels[range],
+      }))}
+    />
   );
 }
 
@@ -154,7 +145,7 @@ function AlertsOverTimeCard({ range }: { range: AlertsOverviewRange }) {
             <p className="text-2xl leading-none font-semibold tabular-nums">
               {latestTotal}
             </p>
-            <p className="text-muted-foreground mt-1 text-[11px]">
+            <p className="text-muted-foreground mt-1 text-xs">
               latest day
             </p>
           </div>
@@ -346,7 +337,7 @@ function SeverityDistributionCard({
             <span className="text-2xl font-semibold tabular-nums">
               {compactNumber.format(total)}
             </span>
-            <span className="text-muted-foreground text-[11px]">alerts</span>
+            <span className="text-muted-foreground text-xs">alerts</span>
           </div>
         </div>
         <ul className="flex w-[108px] shrink-0 flex-col gap-2.5">
@@ -556,7 +547,7 @@ function TriageFocusCard({
           onClick={() => onFilter({ type: "critical-high-open" })}
           className="border-border hover:bg-accent rounded-md border px-2.5 py-2 text-left transition-colors"
         >
-          <p className="text-muted-foreground text-[11px]">Crit / high</p>
+          <p className="text-muted-foreground text-xs">Crit / high</p>
           <p className="mt-1 text-lg leading-none font-semibold tabular-nums">
             {criticalHighOpen}
           </p>
@@ -566,7 +557,7 @@ function TriageFocusCard({
           onClick={() => onFilter({ type: "assigned", scope: "unassigned" })}
           className="border-border hover:bg-accent rounded-md border px-2.5 py-2 text-left transition-colors"
         >
-          <p className="text-muted-foreground text-[11px]">Unassigned</p>
+          <p className="text-muted-foreground text-xs">Unassigned</p>
           <p className="text-destructive mt-1 text-lg leading-none font-semibold tabular-nums">
             {unassignedOpen}
           </p>
@@ -576,7 +567,7 @@ function TriageFocusCard({
           onClick={() => onFilter({ type: "assigned", scope: "mine" })}
           className="border-border hover:bg-accent rounded-md border px-2.5 py-2 text-left transition-colors"
         >
-          <p className="text-muted-foreground text-[11px]">Mine open</p>
+          <p className="text-muted-foreground text-xs">Mine open</p>
           <p className="mt-1 text-lg leading-none font-semibold tabular-nums">
             {mineOpen}
           </p>

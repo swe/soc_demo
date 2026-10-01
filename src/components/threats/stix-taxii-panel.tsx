@@ -135,7 +135,7 @@ export function StixTaxiiPanel() {
               <p className="text-muted-foreground text-xs">
                 {collection.description}
               </p>
-              <p className="text-muted-foreground mt-1 text-[11px]">
+              <p className="text-muted-foreground mt-1 text-xs">
                 {collection.objects.toLocaleString()} objects · last poll{" "}
                 {collection.lastPollLabel}
               </p>

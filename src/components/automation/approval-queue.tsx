@@ -193,20 +193,20 @@ export function ApprovalQueue() {
                     <TableRow key={item.id}>
                       <TableCell>
                         <p className="font-medium">{item.procedureTitle}</p>
-                        <p className="text-muted-foreground font-mono text-[11px]">
+                        <p className="text-muted-foreground font-mono text-xs">
                           {item.runId}
                         </p>
                       </TableCell>
                       <TableCell>
                         <p className="text-sm">{item.actionLabel}</p>
                         {item.actionId ? (
-                          <p className="text-muted-foreground font-mono text-[11px]">
+                          <p className="text-muted-foreground font-mono text-xs">
                             {item.actionId}
                           </p>
                         ) : null}
                       </TableCell>
                       <TableCell>
-                        <span className="text-muted-foreground inline-flex max-w-[180px] items-start gap-1 text-[11px] leading-snug">
+                        <span className="text-muted-foreground inline-flex max-w-[180px] items-start gap-1 text-xs leading-snug">
                           <GitBranch className="mt-0.5 size-3 shrink-0" />
                           {branchSummary}
                         </span>

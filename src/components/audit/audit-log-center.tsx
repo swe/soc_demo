@@ -184,7 +184,7 @@ export function AuditLogCenter() {
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-col gap-1">
-                      <Badge variant="outline" className="w-fit text-[10px]">
+                      <Badge variant="outline" className="w-fit text-xs">
                         {entry.targetType}
                       </Badge>
                       <span className="font-mono text-xs">

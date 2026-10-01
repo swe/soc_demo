@@ -134,7 +134,7 @@ function BuilderNodeCard({ data, selected }: NodeProps<PlaybookFlowNode>) {
         </span>
         <div className="min-w-0 flex-1">
           <p className="truncate text-xs font-medium">{data.label}</p>
-          <p className="text-muted-foreground mt-0.5 truncate text-[11px]">
+          <p className="text-muted-foreground mt-0.5 truncate text-xs">
             {playbookNodeTypeLabels[data.nodeType]}
             {data.actionKind
               ? ` · ${playbookActionKindLabels[data.actionKind]}`
@@ -422,7 +422,7 @@ function BuilderCanvas({
               type="button"
               size="sm"
               variant="ghost"
-              className="h-7 gap-1 px-2 text-[11px]"
+              className="h-7 gap-1 px-2 text-xs"
               onClick={() => addNode(type)}
             >
               <Plus className="size-3" />
@@ -566,13 +566,13 @@ export function PlaybookBuilder() {
             <h1 className="truncate text-lg font-semibold tracking-tight">
               {playbook.title}
             </h1>
-            <Badge variant="outline" className="font-mono text-[11px]">
+            <Badge variant="outline" className="font-mono text-xs">
               {playbook.code}
             </Badge>
-            <Badge variant="outline" className="rounded-full text-[11px]">
+            <Badge variant="outline" className="rounded-full text-xs">
               {kbProcedureStatusLabels[playbook.status]}
             </Badge>
-            <Badge variant="outline" className="rounded-full text-[11px]">
+            <Badge variant="outline" className="rounded-full text-xs">
               {kbProcedureSeverityLabels[playbook.severity]}
             </Badge>
           </div>

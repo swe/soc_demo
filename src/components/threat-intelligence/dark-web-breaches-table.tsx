@@ -87,7 +87,7 @@ export function DarkWebBreachesTable({
                       <Badge
                         key={cls}
                         variant="outline"
-                        className="rounded-md px-1.5 py-0 text-[10px] font-normal"
+                        className="rounded-md px-1.5 py-0 text-xs font-normal"
                       >
                         {breachDataClassLabels[cls]}
                       </Badge>
@@ -210,7 +210,7 @@ export function DarkWebBreachDetailSheet({
                             <p className="truncate text-sm font-medium">
                               {item.title}
                             </p>
-                            <p className="text-muted-foreground truncate text-[11px]">
+                            <p className="text-muted-foreground truncate text-xs">
                               {item.principal ?? item.domain ?? item.id}
                             </p>
                           </div>

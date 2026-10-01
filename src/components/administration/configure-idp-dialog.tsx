@@ -58,7 +58,7 @@ export function ConfigureIdpDialog({
         description: (
           <span className="inline-flex flex-col gap-1">
             <span>{receipt.message}</span>
-            <Badge variant="secondary" className="w-fit rounded-full text-[10px]">
+            <Badge variant="secondary" className="w-fit rounded-full text-xs">
               {receiptToneLabel(receipt.outcome)}
             </Badge>
           </span>

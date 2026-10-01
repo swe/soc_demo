@@ -16,6 +16,7 @@ import {
 } from "recharts";
 
 import { OverviewSplit, Panel, PanelHeading } from "@/components/soc/panel";
+import { SegmentedControl } from "@/components/soc/segmented-control";
 import {
   type ChartConfig,
   ChartContainer,
@@ -24,7 +25,6 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import { cn } from "@/lib/utils";
 
 import {
   currentAnalystId,
@@ -106,26 +106,15 @@ function OverviewRangeControl({
   onChange: (range: IncidentsOverviewRange) => void;
 }) {
   return (
-    <div className="bg-muted/60 inline-flex rounded-md border p-0.5">
-      {incidentsOverviewRanges.map((range) => {
-        const active = value === range;
-        return (
-          <button
-            key={range}
-            type="button"
-            onClick={() => onChange(range)}
-            className={cn(
-              "rounded-sm px-2.5 py-1 text-xs font-medium transition-colors",
-              active
-                ? "bg-background text-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground",
-            )}
-          >
-            {incidentsOverviewRangeLabels[range]}
-          </button>
-        );
-      })}
-    </div>
+    <SegmentedControl
+      aria-label="Time range"
+      value={value}
+      onChange={onChange}
+      options={incidentsOverviewRanges.map((range) => ({
+        value: range,
+        label: incidentsOverviewRangeLabels[range],
+      }))}
+    />
   );
 }
 
@@ -155,7 +144,7 @@ function CasesOpenedCard({
             <p className="text-2xl leading-none font-semibold tabular-nums">
               {latestTotal}
             </p>
-            <p className="text-muted-foreground mt-1 text-[11px]">
+            <p className="text-muted-foreground mt-1 text-xs">
               latest day
             </p>
           </div>
@@ -342,7 +331,7 @@ function PriorityDistributionCard({
             <span className="text-2xl font-semibold tabular-nums">
               {compactNumber.format(total)}
             </span>
-            <span className="text-muted-foreground text-[11px]">cases</span>
+            <span className="text-muted-foreground text-xs">cases</span>
           </div>
         </div>
         <ul className="flex w-[108px] shrink-0 flex-col gap-2.5">
@@ -579,7 +568,7 @@ function ContainmentFocusCard({
           onClick={() => onFilter({ type: "priority", priority: "P1" })}
           className="border-border hover:bg-accent rounded-md border px-2.5 py-2 text-left transition-colors"
         >
-          <p className="text-muted-foreground text-[11px]">P1 open</p>
+          <p className="text-muted-foreground text-xs">P1 open</p>
           <p className="mt-1 text-lg leading-none font-semibold tabular-nums">
             {p1Open}
           </p>
@@ -589,7 +578,7 @@ function ContainmentFocusCard({
           onClick={() => onFilter({ type: "p1p2" })}
           className="border-border hover:bg-accent rounded-md border px-2.5 py-2 text-left transition-colors"
         >
-          <p className="text-muted-foreground text-[11px]">SLA at risk</p>
+          <p className="text-muted-foreground text-xs">SLA at risk</p>
           <p className="mt-1 text-lg leading-none font-semibold tabular-nums text-amber-700 dark:text-amber-400">
             {atRisk}
           </p>
@@ -599,7 +588,7 @@ function ContainmentFocusCard({
           onClick={() => onFilter({ type: "p1p2" })}
           className="border-border hover:bg-accent rounded-md border px-2.5 py-2 text-left transition-colors"
         >
-          <p className="text-muted-foreground text-[11px]">SLA breached</p>
+          <p className="text-muted-foreground text-xs">SLA breached</p>
           <p className="text-destructive mt-1 text-lg leading-none font-semibold tabular-nums">
             {breached}
           </p>

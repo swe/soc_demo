@@ -136,7 +136,7 @@ export function SocPerformancePanel() {
           >
             <p className="text-muted-foreground text-xs">{metric.title}</p>
             <p className="text-lg font-semibold tabular-nums">{metric.value}</p>
-            <p className="text-muted-foreground text-[11px]">{metric.context}</p>
+            <p className="text-muted-foreground text-xs">{metric.context}</p>
           </div>
         ))}
       </div>
@@ -211,7 +211,7 @@ export function SocPerformancePanel() {
               ))
             )}
           </ul>
-          <p className="text-muted-foreground mt-2 text-[11px] leading-relaxed">
+          <p className="text-muted-foreground mt-2 text-xs leading-relaxed">
             Model estimate from run counts and severity weights — not an
             accounting export.
           </p>

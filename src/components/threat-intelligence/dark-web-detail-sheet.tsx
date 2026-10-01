@@ -135,7 +135,7 @@ export function DarkWebDetailSheet({
                 ) : null}
                 {exposure.snippet ? (
                   <div className="bg-muted/40 rounded-md border p-2.5">
-                    <p className="text-muted-foreground mb-1 text-[11px] uppercase">
+                    <p className="text-muted-foreground mb-1 text-xs uppercase">
                       Snippet
                     </p>
                     <p className="font-mono text-xs leading-relaxed break-all">
@@ -204,7 +204,7 @@ export function DarkWebDetailSheet({
                       {exposure.passwordFlags.map((flag) => (
                         <span
                           key={flag}
-                          className="border-border/70 bg-muted/40 text-muted-foreground inline-flex whitespace-nowrap rounded-md border px-1.5 py-0.5 text-[11px] font-medium capitalize"
+                          className="border-border/70 bg-muted/40 text-muted-foreground inline-flex whitespace-nowrap rounded-md border px-1.5 py-0.5 text-xs font-medium capitalize"
                         >
                           {flag}
                         </span>
@@ -302,7 +302,7 @@ export function DarkWebDetailSheet({
                             <span className="font-mono text-xs">
                               {indicator.id}
                             </span>
-                            <p className="mt-0.5 truncate font-mono text-[11px]">
+                            <p className="mt-0.5 truncate font-mono text-xs">
                               {indicator.value}
                             </p>
                           </div>

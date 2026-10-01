@@ -141,7 +141,7 @@ export function WeaknessesCenter() {
                         <Badge
                           key={cwe}
                           variant="outline"
-                          className="font-mono text-[10px]"
+                          className="font-mono text-xs"
                         >
                           {cwe}
                         </Badge>

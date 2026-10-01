@@ -20,6 +20,7 @@ import {
   PanelGrid,
   PanelHeading,
 } from "@/components/soc/panel";
+import { SegmentedControl } from "@/components/soc/segmented-control";
 import {
   type ChartConfig,
   ChartContainer,
@@ -28,7 +29,6 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import { cn } from "@/lib/utils";
 
 import {
   type DarkWebExposure,
@@ -100,26 +100,15 @@ function OverviewRangeControl({
   onChange: (range: DarkWebOverviewRange) => void;
 }) {
   return (
-    <div className="bg-muted/60 inline-flex rounded-md border p-0.5">
-      {darkWebOverviewRanges.map((range) => {
-        const active = value === range;
-        return (
-          <button
-            key={range}
-            type="button"
-            onClick={() => onChange(range)}
-            className={cn(
-              "rounded-sm px-2.5 py-1 text-xs font-medium transition-colors",
-              active
-                ? "bg-background text-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground",
-            )}
-          >
-            {darkWebOverviewRangeLabels[range]}
-          </button>
-        );
-      })}
-    </div>
+    <SegmentedControl
+      aria-label="Time range"
+      value={value}
+      onChange={onChange}
+      options={darkWebOverviewRanges.map((range) => ({
+        value: range,
+        label: darkWebOverviewRangeLabels[range],
+      }))}
+    />
   );
 }
 

@@ -174,7 +174,7 @@ function TrainingFilterControl({
           <ListFilter className="size-3.5" />
           Filter
           {activeFilterCount > 0 ? (
-            <span className="bg-primary text-primary-foreground absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full text-[10px] font-semibold">
+            <span className="bg-primary text-primary-foreground absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full text-xs font-semibold">
               {activeFilterCount}
             </span>
           ) : null}
@@ -450,7 +450,7 @@ function AssignUsersDialog({
                       />
                       <Avatar className="size-8">
                         <AvatarImage src={user.avatar} alt={user.name} />
-                        <AvatarFallback className="text-[11px]">
+                        <AvatarFallback className="text-xs">
                           {getKbInitials(user.name)}
                         </AvatarFallback>
                       </Avatar>
@@ -576,7 +576,7 @@ function TrainingCard({
         </div>
 
         <div className="min-w-0 space-y-1">
-          <p className="text-muted-foreground font-mono text-[11px] tracking-wide">
+          <p className="text-muted-foreground font-mono text-xs tracking-wide">
             {training.code}
           </p>
           <h3 className="line-clamp-2 text-sm leading-snug font-semibold">
@@ -617,7 +617,7 @@ function TrainingCard({
           userId={training.ownerId}
           href={`/administration/users/${training.ownerId}`}
         />
-        <div className="text-muted-foreground flex shrink-0 flex-col items-end gap-0.5 text-[11px]">
+        <div className="text-muted-foreground flex shrink-0 flex-col items-end gap-0.5 text-xs">
           <span className="inline-flex items-center gap-1">
             <Users className="size-3" />
             {training.enrolled}
@@ -903,7 +903,7 @@ export function TrainingsCenter() {
           </div>
         </div>
         {lmsConnected || lastLmsSyncAt ? (
-          <p className="text-muted-foreground px-4 pb-2 text-[11px] sm:px-6">
+          <p className="text-muted-foreground px-4 pb-2 text-xs sm:px-6">
             Workday Learning
             {lmsConnected ? " connected" : ""}
             {lastLmsSyncAt

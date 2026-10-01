@@ -52,17 +52,17 @@ function CandidateRow({
               {confidencePct(candidate.confidence)}%
             </Badge>
             {candidate.alertId ? (
-              <span className="text-muted-foreground font-mono text-[11px]">
+              <span className="text-muted-foreground font-mono text-xs">
                 {candidate.alertId}
               </span>
             ) : null}
             {candidate.incidentId ? (
-              <span className="text-muted-foreground font-mono text-[11px]">
+              <span className="text-muted-foreground font-mono text-xs">
                 {candidate.incidentId}
               </span>
             ) : null}
             {candidate.sourceName ? (
-              <span className="text-muted-foreground text-[11px]">
+              <span className="text-muted-foreground text-xs">
                 {candidate.sourceName}
               </span>
             ) : null}

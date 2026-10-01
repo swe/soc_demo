@@ -124,7 +124,7 @@ const severityWeight: Record<KbProcedureSeverity, number> = {
 const DEFAULT_RUN_INCIDENTS = ["INC-2400", "INC-2401", "INC-2402", "INC-2403"];
 
 const chipLinkClassName =
-  "border-border/70 bg-background hover:text-foreground text-muted-foreground cursor-pointer rounded-md border px-1.5 py-0.5 font-mono text-[11px] transition-colors";
+  "border-border/70 bg-background hover:text-foreground text-muted-foreground cursor-pointer rounded-md border px-1.5 py-0.5 font-mono text-xs transition-colors";
 
 const sheetChipLinkClassName =
   "border-border/70 bg-background hover:text-foreground text-muted-foreground cursor-pointer rounded-md border px-2 py-1 font-mono text-xs transition-colors";
@@ -222,7 +222,7 @@ function ProcedureFilterControl({
           <ListFilter className="size-3.5" />
           Filter
           {activeFilterCount > 0 ? (
-            <span className="bg-primary text-primary-foreground absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full text-[10px] font-semibold">
+            <span className="bg-primary text-primary-foreground absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full text-xs font-semibold">
               {activeFilterCount}
             </span>
           ) : null}
@@ -658,11 +658,11 @@ export function ProceduresCenter() {
                       <TableCell>
                         <div className="min-w-0 space-y-1">
                           <div className="flex flex-wrap items-center gap-2">
-                            <span className="text-muted-foreground font-mono text-[11px]">
+                            <span className="text-muted-foreground font-mono text-xs">
                               {procedure.code}
                             </span>
                             {procedure.mitreTactic ? (
-                              <span className="border-border/70 bg-background rounded-md border px-1.5 py-0.5 text-[11px] font-medium">
+                              <span className="border-border/70 bg-background rounded-md border px-1.5 py-0.5 text-xs font-medium">
                                 {procedure.mitreTactic}
                               </span>
                             ) : null}
@@ -727,7 +727,7 @@ export function ProceduresCenter() {
                           <p className="text-sm font-medium">
                             {procedure.runCount}
                           </p>
-                          <p className="text-muted-foreground text-[11px]">
+                          <p className="text-muted-foreground text-xs">
                             {procedure.lastRunLabel}
                           </p>
                         </div>

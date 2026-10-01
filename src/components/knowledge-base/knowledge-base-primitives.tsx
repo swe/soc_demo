@@ -251,7 +251,7 @@ export function OwnerCell({
     <div className="flex min-w-0 items-center gap-2">
       <Avatar className="size-7">
         <AvatarImage src={user.avatar} alt={user.name} />
-        <AvatarFallback className="text-[11px]">
+        <AvatarFallback className="text-xs">
           {getKbInitials(user.name)}
         </AvatarFallback>
       </Avatar>
@@ -337,7 +337,7 @@ export function RelatedLinks({
           key={`${link.href}-${link.label}`}
           href={link.href}
           onClick={(event) => event.stopPropagation()}
-          className="border-border/70 bg-background text-muted-foreground hover:text-foreground inline-flex cursor-pointer items-center whitespace-nowrap rounded-md border px-1.5 py-0.5 text-[11px] font-medium transition-colors"
+          className="border-border/70 bg-background text-muted-foreground hover:text-foreground inline-flex cursor-pointer items-center whitespace-nowrap rounded-md border px-1.5 py-0.5 text-xs font-medium transition-colors"
         >
           {link.label}
         </Link>

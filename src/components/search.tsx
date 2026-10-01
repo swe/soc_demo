@@ -29,7 +29,7 @@ export function Search({ className = "", placeholder = "Search" }: Props) {
         className="absolute top-1/2 left-1.5 -translate-y-1/2"
       />
       <span className="ml-3">{placeholder}</span>
-      <kbd className="bg-muted pointer-events-none absolute top-[0.3rem] right-[0.3rem] hidden h-5 items-center gap-1 rounded border px-1.5 font-mono text-[10px] font-medium opacity-100 select-none sm:flex">
+      <kbd className="bg-muted pointer-events-none absolute top-[0.3rem] right-[0.3rem] hidden h-5 items-center gap-1 rounded border px-1.5 font-mono text-xs font-medium opacity-100 select-none sm:flex">
         <span className="text-xs">⌘</span>K
       </kbd>
     </Button>

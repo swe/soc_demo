@@ -438,7 +438,7 @@ export function EvidenceLocker({ incidentId }: { incidentId: string }) {
                       <p className="text-sm font-medium">{item.title}</p>
                       <Badge
                         variant="outline"
-                        className="rounded-full px-1.5 py-0 text-[11px] font-normal"
+                        className="rounded-full px-1.5 py-0 text-xs font-normal"
                       >
                         {kindLabels[item.kind]}
                       </Badge>
@@ -446,7 +446,7 @@ export function EvidenceLocker({ incidentId }: { incidentId: string }) {
                     <p className="text-muted-foreground text-xs leading-relaxed">
                       {item.detail}
                     </p>
-                    <p className="text-muted-foreground text-[11px]">
+                    <p className="text-muted-foreground text-xs">
                       {item.sourceLabel} · {item.sizeLabel}
                       {item.href ? (
                         <>

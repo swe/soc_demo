@@ -74,7 +74,7 @@ export function Header({ title: titleProp }: HeaderProps) {
           aria-keyshortcuts="Meta+K Control+K"
         >
           <Search className="size-4 shrink-0" aria-hidden="true" />
-          <kbd className="bg-muted text-muted-foreground pointer-events-none hidden rounded-md border px-1.5 py-0.5 text-[10px] font-medium sm:inline-flex">
+          <kbd className="bg-muted text-muted-foreground pointer-events-none hidden rounded-md border px-1.5 py-0.5 text-xs font-medium sm:inline-flex">
             {"\u2318"}
             {"\u00a0"}K
           </kbd>

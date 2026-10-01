@@ -248,7 +248,7 @@ function AttentionStrip({
                   {detail.label}
                   <span
                     className={cn(
-                      "rounded-full px-1.5 py-0.5 text-[10px] font-semibold tabular-nums",
+                      "rounded-full px-1.5 py-0.5 text-xs font-semibold tabular-nums",
                       isActive
                         ? "bg-background/20 text-background"
                         : count > 0
@@ -335,7 +335,7 @@ function ControlFilterControl({
           <ListFilter className="size-3.5" />
           Filter
           {activeFilterCount > 0 ? (
-            <span className="bg-primary text-primary-foreground absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full text-[10px] font-semibold">
+            <span className="bg-primary text-primary-foreground absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full text-xs font-semibold">
               {activeFilterCount}
             </span>
           ) : null}
@@ -597,7 +597,7 @@ function FrameworkCard({
           <AvatarStack userIds={[framework.ownerId]} max={1} />
           <div className="min-w-0">
             <p className="truncate text-xs font-medium">{owner?.name}</p>
-            <p className="text-muted-foreground truncate text-[11px]">
+            <p className="text-muted-foreground truncate text-xs">
               Next · {framework.nextMilestoneDate}
             </p>
           </div>
@@ -714,13 +714,13 @@ function ControlDetailSheet({
                       {probe.gaps.map((gap) => (
                         <span
                           key={gap}
-                          className="border-border/70 bg-background truncate rounded-md border px-1.5 py-0.5 font-mono text-[11px]"
+                          className="border-border/70 bg-background truncate rounded-md border px-1.5 py-0.5 font-mono text-xs"
                         >
                           {gap}
                         </span>
                       ))}
                       {probe.total - probe.covered > probe.gaps.length ? (
-                        <span className="text-muted-foreground px-1 py-0.5 text-[11px]">
+                        <span className="text-muted-foreground px-1 py-0.5 text-xs">
                           +{probe.total - probe.covered - probe.gaps.length}{" "}
                           more
                         </span>
@@ -1062,7 +1062,7 @@ function ControlsTable({
                         </span>
                         <Badge
                           variant="secondary"
-                          className="rounded-full text-[10px] font-medium"
+                          className="rounded-full text-xs font-medium"
                         >
                           {controlCategoryLabels[control.category]}
                         </Badge>
@@ -1343,7 +1343,7 @@ function FindingsTable({
                     <p className="text-muted-foreground mt-1 line-clamp-1 text-xs">
                       {finding.detail}
                     </p>
-                    <p className="text-muted-foreground mt-1 text-[11px]">
+                    <p className="text-muted-foreground mt-1 text-xs">
                       {finding.source}
                     </p>
                   </div>
@@ -1407,7 +1407,7 @@ function FindingsTable({
                     {finding.dueLabel}
                   </span>
                   {finding.overdue ? (
-                    <p className="text-destructive mt-0.5 text-[11px]">
+                    <p className="text-destructive mt-0.5 text-xs">
                       Overdue
                     </p>
                   ) : null}
@@ -2072,7 +2072,7 @@ export function ComplianceCenter() {
                           <p className="text-sm font-medium">{collector.name}</p>
                           <Badge
                             variant="outline"
-                            className="rounded-full text-[10px] capitalize"
+                            className="rounded-full text-xs capitalize"
                           >
                             {collector.status}
                           </Badge>
@@ -2080,7 +2080,7 @@ export function ComplianceCenter() {
                         <p className="text-muted-foreground mt-1 text-xs">
                           {collector.sourceId} · {collector.schedule}
                         </p>
-                        <p className="text-muted-foreground mt-1 text-[11px]">
+                        <p className="text-muted-foreground mt-1 text-xs">
                           controlId={collector.controlId} · Last run{" "}
                           {collector.lastRunLabel} ·{" "}
                           {collector.controlCodes.join(", ")}

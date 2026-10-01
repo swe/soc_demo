@@ -13,15 +13,17 @@ const TooltipTrigger = TooltipPrimitive.Trigger
 const TooltipContent = React.forwardRef<
   React.ElementRef<typeof TooltipPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Content>
->(({ className, sideOffset = 4, ...props }, ref) => (
+>(({ className, sideOffset = 6, collisionPadding = 8, ...props }, ref) => (
   <TooltipPrimitive.Portal>
     <TooltipPrimitive.Content
       ref={ref}
       sideOffset={sideOffset}
+      collisionPadding={collisionPadding}
+      data-slot="tooltip-content"
       className={cn(
-        "bg-primary text-primary-foreground animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 overflow-hidden rounded-md px-3 py-1.5 text-xs shadow-md",
-        // Nested muted/secondary utilities must stay readable on primary fill.
-        "[&_.text-muted-foreground]:text-primary-foreground/80 [&_.text-secondary-foreground]:text-primary-foreground/85",
+        "bg-foreground text-background animate-in fade-in-0 zoom-in-[0.97] data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-[0.97] origin-(--radix-tooltip-content-transform-origin) z-50 max-w-xs overflow-hidden rounded-md px-2.5 py-1.5 text-xs leading-snug text-balance shadow-raised duration-100",
+        // Nested muted/secondary utilities must stay readable on the inverted fill.
+        "[&_.text-muted-foreground]:text-background/75 [&_.text-secondary-foreground]:text-background/85",
         className
       )}
       {...props}

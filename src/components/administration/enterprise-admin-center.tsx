@@ -244,7 +244,7 @@ export function EnterpriseAdminCenter() {
                     <Badge
                       key={scope}
                       variant="secondary"
-                      className="font-mono text-[10px]"
+                      className="font-mono text-xs"
                     >
                       {scope}
                     </Badge>
@@ -343,7 +343,7 @@ export function EnterpriseAdminCenter() {
                       <p className="text-muted-foreground text-xs">
                         {session.reason}
                       </p>
-                      <p className="text-muted-foreground mt-1 text-[11px]">
+                      <p className="text-muted-foreground mt-1 text-xs">
                         {session.started} → {session.expires}
                       </p>
                     </div>

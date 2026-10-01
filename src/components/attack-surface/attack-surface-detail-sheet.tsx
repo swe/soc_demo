@@ -86,7 +86,7 @@ export function AttackSurfaceDetailSheet({
                       <Badge
                         key={tag}
                         variant="outline"
-                        className="rounded-full text-[10px] font-medium"
+                        className="rounded-full text-xs font-medium"
                       >
                         {tag}
                       </Badge>

@@ -315,7 +315,7 @@ export function HeaderNotifications() {
         >
           <Bell className="size-4" aria-hidden="true" />
           {hydrated && unreadCount > 0 ? (
-            <span className="bg-destructive text-destructive-foreground absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-medium tabular-nums">
+            <span className="bg-destructive text-destructive-foreground absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-xs font-medium tabular-nums">
               {unreadCount > 9 ? "9+" : unreadCount}
             </span>
           ) : null}
@@ -380,7 +380,7 @@ export function HeaderNotifications() {
                         >
                           {n.title}
                         </p>
-                        <span className="text-muted-foreground shrink-0 text-[10px] whitespace-nowrap">
+                        <span className="text-muted-foreground shrink-0 text-xs whitespace-nowrap">
                           {n.time}
                         </span>
                       </div>
@@ -391,7 +391,7 @@ export function HeaderNotifications() {
                         <Badge
                           variant="outline"
                           className={cn(
-                            "h-5 rounded-full px-1.5 text-[10px] font-medium",
+                            "h-5 rounded-full px-1.5 text-xs font-medium",
                             meta.className,
                           )}
                         >
@@ -401,7 +401,7 @@ export function HeaderNotifications() {
                           <Badge
                             variant="outline"
                             className={cn(
-                              "h-5 rounded-full px-1.5 text-[10px] font-medium capitalize",
+                              "h-5 rounded-full px-1.5 text-xs font-medium capitalize",
                               severityClass[n.severity],
                             )}
                           >

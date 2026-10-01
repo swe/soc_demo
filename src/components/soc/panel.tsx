@@ -10,7 +10,13 @@ export function Panel({
   children: React.ReactNode;
 }) {
   return (
-    <section className={cn("bg-card rounded-lg border p-4", className)}>
+    <section
+      data-slot="panel"
+      className={cn(
+        "bg-card text-card-foreground shadow-card min-w-0 rounded-xl border p-4 sm:p-5",
+        className,
+      )}
+    >
       {children}
     </section>
   );
@@ -26,14 +32,16 @@ export function PanelHeading({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+    <div className="mb-4 flex flex-wrap items-start justify-between gap-x-3 gap-y-2">
       <div className="min-w-0">
-        <h2 className="text-sm font-semibold">{title}</h2>
+        <h2 className="text-headline">{title}</h2>
         {description ? (
-          <div className="text-muted-foreground mt-1 text-xs">{description}</div>
+          <div className="text-muted-foreground mt-0.5 text-callout">
+            {description}
+          </div>
         ) : null}
       </div>
-      {action}
+      {action ? <div className="flex min-w-0 flex-wrap items-center gap-2">{action}</div> : null}
     </div>
   );
 }
@@ -82,18 +90,18 @@ export function PanelGrid({
     columns === 1
       ? "sm:grid-cols-1 xl:grid-cols-1"
       : columns === 2
-        ? "sm:grid-cols-2 xl:grid-cols-2"
+        ? "md:grid-cols-2 xl:grid-cols-2"
         : columns === 3
-          ? "sm:grid-cols-2 xl:grid-cols-3"
+          ? "md:grid-cols-2 xl:grid-cols-3"
           : columns === 4
-            ? "sm:grid-cols-2 xl:grid-cols-4"
+            ? "md:grid-cols-2 xl:grid-cols-4"
             : undefined;
 
   return (
     <div
       className={cn(
         "grid items-start gap-4",
-        colClass ?? "sm:grid-cols-2 xl:grid-cols-3",
+        colClass ?? "md:grid-cols-2 xl:grid-cols-3",
         className,
       )}
     >

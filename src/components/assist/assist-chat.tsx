@@ -142,7 +142,7 @@ function InvestigatePlanSnippet({
           ) : null}
         </div>
       </div>
-      <p className="text-muted-foreground text-[11px] leading-relaxed">
+      <p className="text-muted-foreground text-xs leading-relaxed">
         {plan.summary}
       </p>
       <ol className="space-y-1.5">
@@ -166,7 +166,7 @@ function InvestigatePlanSnippet({
         ))}
       </ol>
       {plan.recommendedContain.length > 0 ? (
-        <p className="text-muted-foreground text-[11px]">
+        <p className="text-muted-foreground text-xs">
           Contain:{" "}
           {plan.recommendedContain
             .map((a) => a.label ?? a.actionId)
@@ -212,7 +212,7 @@ function MessageBubble({
             return (
               <code
                 key={i}
-                className="bg-background/50 rounded px-1 font-mono text-[11px]"
+                className="bg-background/50 rounded px-1 font-mono text-xs"
               >
                 {part.slice(1, -1)}
               </code>

@@ -555,7 +555,7 @@ export function ConnectIntegrationDialog({
                     .map(([sourceField, heimdallField]) => (
                       <div
                         key={sourceField}
-                        className="text-muted-foreground flex items-center justify-between gap-2 font-mono text-[11px]"
+                        className="text-muted-foreground flex items-center justify-between gap-2 font-mono text-xs"
                       >
                         <span className="truncate">{sourceField}</span>
                         <span className="shrink-0">→ {heimdallField}</span>

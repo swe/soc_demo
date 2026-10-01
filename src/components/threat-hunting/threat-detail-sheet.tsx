@@ -146,7 +146,7 @@ export function ThreatDetailSheet({
                                 <p className="truncate text-sm font-medium">
                                   {neighbor.node.label}
                                 </p>
-                                <p className="text-muted-foreground text-[11px]">
+                                <p className="text-muted-foreground text-xs">
                                   {threatRelationLabels[neighbor.relation]} ·{" "}
                                   {threatNodeKindLabels[neighbor.node.kind]}
                                 </p>

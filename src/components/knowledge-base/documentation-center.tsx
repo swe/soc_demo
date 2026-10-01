@@ -201,7 +201,7 @@ function DocFilterControl({
           <ListFilter className="size-3.5" />
           Filter
           {activeFilterCount > 0 ? (
-            <span className="bg-primary text-primary-foreground absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full text-[10px] font-semibold">
+            <span className="bg-primary text-primary-foreground absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full text-xs font-semibold">
               {activeFilterCount}
             </span>
           ) : null}
@@ -400,7 +400,7 @@ function DocumentCard({
         </div>
 
         <div className="min-w-0 space-y-1">
-          <p className="text-muted-foreground font-mono text-[11px] tracking-wide">
+          <p className="text-muted-foreground font-mono text-xs tracking-wide">
             {document.code}
           </p>
           <h3 className="line-clamp-2 text-sm leading-snug font-semibold">
@@ -424,7 +424,7 @@ function DocumentCard({
           userId={document.ownerId}
           href={`/administration/users/${document.ownerId}`}
         />
-        <span className="text-muted-foreground inline-flex shrink-0 items-center gap-1 text-[11px]">
+        <span className="text-muted-foreground inline-flex shrink-0 items-center gap-1 text-xs">
           <Clock3 className="size-3" />
           {document.readMinutes} min
         </span>

@@ -37,10 +37,10 @@ export function RelatedAcrossSourcesPanel({ alert }: { alert: SocAlert }) {
                 sourceName={event.sourceName}
                 sourceCategory={event.sourceCategory}
               />
-              <span className="text-muted-foreground text-[11px]">
+              <span className="text-muted-foreground text-xs">
                 {alertSourceCategoryLabels[event.sourceCategory]}
               </span>
-              <span className="text-muted-foreground font-mono text-[11px] tabular-nums">
+              <span className="text-muted-foreground font-mono text-xs tabular-nums">
                 · {event.ageLabel}
               </span>
             </div>

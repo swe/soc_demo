@@ -322,7 +322,7 @@ function CoverageMatrixCard({
               {domains.map((domain) => (
                 <th
                   key={domain}
-                  className="text-muted-foreground px-0.5 pb-1 text-center align-bottom text-[10px] font-medium"
+                  className="text-muted-foreground px-0.5 pb-1 text-center align-bottom text-xs font-medium"
                 >
                   <span className="mx-auto block truncate leading-tight">
                     {domainShortLabels[domain]}
@@ -345,7 +345,7 @@ function CoverageMatrixCard({
                     </span>
                     <span
                       className={cn(
-                        "ml-auto shrink-0 text-[10px] font-medium tabular-nums",
+                        "ml-auto shrink-0 text-xs font-medium tabular-nums",
                         percentTextClass(readiness),
                       )}
                     >
@@ -357,7 +357,7 @@ function CoverageMatrixCard({
                   <td key={cell.domain} className="p-0">
                     {cell.readiness === null ? (
                       <div className="grid h-9 w-full place-items-center rounded-md bg-muted/40">
-                        <span className="text-muted-foreground/40 text-[10px]">
+                        <span className="text-muted-foreground/40 text-xs">
                           —
                         </span>
                       </div>
@@ -369,7 +369,7 @@ function CoverageMatrixCard({
                               type="button"
                               onClick={onOpenControls}
                               className={cn(
-                                "grid h-9 w-full place-items-center rounded-md text-[11px] font-semibold tabular-nums transition-transform hover:scale-[1.06]",
+                                "grid h-9 w-full place-items-center rounded-md text-xs font-semibold tabular-nums transition-transform hover:scale-[1.06]",
                                 matrixCellClass(cell.readiness, cell.worst),
                               )}
                             >
@@ -397,7 +397,7 @@ function CoverageMatrixCard({
           </tbody>
         </table>
       </div>
-      <div className="text-muted-foreground mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11px]">
+      <div className="text-muted-foreground mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs">
         <span className="inline-flex items-center gap-1.5">
           <span className="size-2.5 rounded-sm bg-emerald-500/40" />≥ 90%
         </span>
@@ -858,7 +858,7 @@ export function ComplianceActivityTimeline({ limit }: { limit?: number }) {
             <span className="text-muted-foreground">{event.action}</span>
           </p>
           <p className="text-muted-foreground mt-0.5 text-xs">{event.detail}</p>
-          <p className="text-muted-foreground mt-1 text-[11px]">
+          <p className="text-muted-foreground mt-1 text-xs">
             {event.timeLabel}
           </p>
         </div>

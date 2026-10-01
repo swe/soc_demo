@@ -149,13 +149,13 @@ export function UnifiedRiskQueue({
           <Badge variant="secondary" className="tabular-nums">
             {counts.total}
           </Badge>
-          <Badge variant="outline" className="tabular-nums text-[11px]">
+          <Badge variant="outline" className="tabular-nums text-xs">
             {counts.vuln} CVE
           </Badge>
-          <Badge variant="outline" className="tabular-nums text-[11px]">
+          <Badge variant="outline" className="tabular-nums text-xs">
             {counts.cspm} CSPM
           </Badge>
-          <Badge variant="outline" className="tabular-nums text-[11px]">
+          <Badge variant="outline" className="tabular-nums text-xs">
             {counts.compliance} GRC
           </Badge>
         </div>
@@ -190,7 +190,7 @@ export function UnifiedRiskQueue({
                       </p>
                       <Badge
                         variant="outline"
-                        className="rounded-full px-1.5 py-0 text-[10px] font-normal"
+                        className="rounded-full px-1.5 py-0 text-xs font-normal"
                       >
                         {meta.label}
                       </Badge>

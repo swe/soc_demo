@@ -261,7 +261,7 @@ export function IncidentWarRoom({ incident }: { incident: SocIncident }) {
         <h2 className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
           War room
         </h2>
-        <Badge variant="outline" className="gap-1 text-[10px]">
+        <Badge variant="outline" className="gap-1 text-xs">
           <AtSign className="size-3" />
           Mentions audited
         </Badge>
@@ -289,12 +289,12 @@ export function IncidentWarRoom({ incident }: { incident: SocIncident }) {
                   {new Date(message.at).toLocaleString()}
                 </span>
                 {message.kind !== "message" ? (
-                  <Badge variant="secondary" className="text-[10px]">
+                  <Badge variant="secondary" className="text-xs">
                     {message.kind}
                   </Badge>
                 ) : null}
                 {message.mentionIds.length > 0 ? (
-                  <Badge variant="outline" className="gap-0.5 text-[10px]">
+                  <Badge variant="outline" className="gap-0.5 text-xs">
                     <AtSign className="size-2.5" />
                     {message.mentionIds.length}
                   </Badge>

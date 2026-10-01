@@ -161,7 +161,7 @@ function IndicatorDetailSheet({
                 {indicator.tags.map((tag) => (
                   <span
                     key={tag}
-                    className="border-border/70 bg-muted/40 text-muted-foreground inline-flex whitespace-nowrap rounded-md border px-1.5 py-0.5 text-[11px] font-medium"
+                    className="border-border/70 bg-muted/40 text-muted-foreground inline-flex whitespace-nowrap rounded-md border px-1.5 py-0.5 text-xs font-medium"
                   >
                     {tag}
                   </span>
@@ -186,7 +186,7 @@ function IndicatorDetailSheet({
                         <Fingerprint className="text-muted-foreground mt-0.5 size-3.5 shrink-0" />
                         <div className="min-w-0 flex-1">
                           <p className="text-sm font-medium">{actor.name}</p>
-                          <p className="text-muted-foreground text-[11px]">
+                          <p className="text-muted-foreground text-xs">
                             {actor.origin} · {actor.confidence} confidence
                           </p>
                         </div>
@@ -242,7 +242,7 @@ function IndicatorDetailSheet({
                         <p className="mt-1 line-clamp-2 text-xs">
                           {alert.title}
                         </p>
-                        <p className="text-muted-foreground mt-1 text-[10px]">
+                        <p className="text-muted-foreground mt-1 text-xs">
                           Tags overlap with indicator
                         </p>
                       </div>
@@ -270,7 +270,7 @@ function IndicatorDetailSheet({
                         <Crosshair className="text-muted-foreground mt-0.5 size-3.5 shrink-0" />
                         <div className="min-w-0 flex-1">
                           <p className="text-sm font-medium">{hunt.title}</p>
-                          <p className="text-muted-foreground font-mono text-[11px]">
+                          <p className="text-muted-foreground font-mono text-xs">
                             {hunt.id}
                           </p>
                         </div>

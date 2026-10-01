@@ -133,7 +133,7 @@ function SuggestedActionsStrip({
           </li>
         ))}
         {plan.hops.length > 3 ? (
-          <li className="text-muted-foreground text-[11px]">
+          <li className="text-muted-foreground text-xs">
             +{plan.hops.length - 3} more hops in Assist
           </li>
         ) : null}
@@ -350,7 +350,7 @@ export function AttackStoryPanel({
                   ))}
                 </SelectContent>
               </Select>
-              <p className="text-muted-foreground text-[11px] leading-snug">
+              <p className="text-muted-foreground text-xs leading-snug">
                 Actions return receipts and update session assets.
               </p>
             </div>

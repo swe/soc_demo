@@ -6,14 +6,16 @@ import { cn } from "@/lib/utils"
 
 const Tabs = TabsPrimitive.Root
 
+/** Segmented-control styling: a recessed track with a raised active pill. */
 const TabsList = React.forwardRef<
   React.ElementRef<typeof TabsPrimitive.List>,
   React.ComponentPropsWithoutRef<typeof TabsPrimitive.List>
 >(({ className, ...props }, ref) => (
   <TabsPrimitive.List
     ref={ref}
+    data-slot="tabs-list"
     className={cn(
-      "bg-muted text-muted-foreground inline-flex h-9 items-center justify-center rounded-lg p-1",
+      "bg-muted text-muted-foreground no-scrollbar inline-flex h-9 max-w-full items-center justify-start gap-0.5 overflow-x-auto rounded-[calc(var(--radius)-2px)] p-0.5 pointer-coarse:h-11",
       className
     )}
     {...props}
@@ -27,8 +29,9 @@ const TabsTrigger = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <TabsPrimitive.Trigger
     ref={ref}
+    data-slot="tabs-trigger"
     className={cn(
-      "data-[state=active]:bg-background data-[state=active]:text-foreground inline-flex cursor-pointer items-center justify-center rounded-md px-3 py-1 text-sm font-medium whitespace-nowrap transition-all focus-visible:border-ring focus-visible:outline-hidden disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm",
+      "hover:text-foreground data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-card dark:data-[state=active]:bg-secondary inline-flex h-full shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-[calc(var(--radius)-4px)] px-3 text-callout font-medium whitespace-nowrap outline-none transition-[color,background-color,box-shadow] duration-150 focus-visible:ring-[3px] focus-visible:ring-ring/35 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
       className
     )}
     {...props}
@@ -42,10 +45,8 @@ const TabsContent = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <TabsPrimitive.Content
     ref={ref}
-    className={cn(
-      "mt-2 focus-visible:outline-hidden",
-      className
-    )}
+    data-slot="tabs-content"
+    className={cn("mt-3 outline-none focus-visible:ring-[3px] focus-visible:ring-ring/35 rounded-md", className)}
     {...props}
   />
 ))

@@ -587,7 +587,7 @@ export function PhishingCenter() {
                               <p className="truncate text-sm font-medium">
                                 {campaign.campaignName}
                               </p>
-                              <p className="text-muted-foreground font-mono text-[11px]">
+                              <p className="text-muted-foreground font-mono text-xs">
                                 {campaign.campaignId}
                               </p>
                             </div>
@@ -602,7 +602,7 @@ export function PhishingCenter() {
                             {campaign.malicious > 0 ? (
                               <Badge
                                 variant="outline"
-                                className="border-destructive/30 bg-destructive/10 text-destructive rounded-full text-[10px] font-normal"
+                                className="border-destructive/30 bg-destructive/10 text-destructive rounded-full text-xs font-normal"
                               >
                                 {campaign.malicious}
                               </Badge>
@@ -855,7 +855,7 @@ export function PhishingCenter() {
                                 {message.isBec ? (
                                   <Badge
                                     variant="outline"
-                                    className="rounded-full text-[10px] font-normal"
+                                    className="rounded-full text-xs font-normal"
                                   >
                                     BEC
                                   </Badge>
@@ -863,12 +863,12 @@ export function PhishingCenter() {
                                 {message.isVip ? (
                                   <Badge
                                     variant="secondary"
-                                    className="rounded-full text-[10px] font-normal"
+                                    className="rounded-full text-xs font-normal"
                                   >
                                     VIP
                                   </Badge>
                                 ) : null}
-                                <span className="text-muted-foreground font-mono text-[11px]">
+                                <span className="text-muted-foreground font-mono text-xs">
                                   {message.id}
                                 </span>
                               </div>
@@ -1081,7 +1081,7 @@ export function PhishingCenter() {
                   <h3 className="text-muted-foreground mb-2 text-xs font-medium tracking-wide uppercase">
                     Headers
                   </h3>
-                  <pre className="bg-muted/40 max-h-36 overflow-auto rounded-md border p-3 font-mono text-[11px] leading-relaxed whitespace-pre-wrap">
+                  <pre className="bg-muted/40 max-h-36 overflow-auto rounded-md border p-3 font-mono text-xs leading-relaxed whitespace-pre-wrap">
                     {selected.headersPreview}
                   </pre>
                 </section>
@@ -1109,7 +1109,7 @@ export function PhishingCenter() {
                               asChild
                               size="sm"
                               variant="ghost"
-                              className="h-7 gap-1 px-2 text-[11px]"
+                              className="h-7 gap-1 px-2 text-xs"
                             >
                               <Link
                                 href={buildInvestigateHref(
@@ -1124,7 +1124,7 @@ export function PhishingCenter() {
                               asChild
                               size="sm"
                               variant="ghost"
-                              className="h-7 gap-1 px-2 text-[11px]"
+                              className="h-7 gap-1 px-2 text-xs"
                             >
                               <Link href="/threat-intelligence">
                                 Indicators
@@ -1169,7 +1169,7 @@ export function PhishingCenter() {
                               asChild
                               size="sm"
                               variant="ghost"
-                              className="h-7 gap-1 px-2 text-[11px]"
+                              className="h-7 gap-1 px-2 text-xs"
                             >
                               <Link
                                 href={buildInvestigateHref(
@@ -1184,7 +1184,7 @@ export function PhishingCenter() {
                               asChild
                               size="sm"
                               variant="ghost"
-                              className="h-7 gap-1 px-2 text-[11px]"
+                              className="h-7 gap-1 px-2 text-xs"
                             >
                               <Link href="/threat-intelligence">
                                 Indicators

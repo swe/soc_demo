@@ -200,7 +200,7 @@ export function ThreatMapCenter() {
                       </p>
                       <Badge
                         variant="outline"
-                        className="capitalize text-[10px]"
+                        className="capitalize text-xs"
                       >
                         {event.severity}
                       </Badge>
@@ -249,7 +249,7 @@ export function ThreatMapCenter() {
                           key={`${entity.kind}-${entity.value}`}
                           size="sm"
                           variant="secondary"
-                          className="h-7 gap-1 font-mono text-[11px]"
+                          className="h-7 gap-1 font-mono text-xs"
                           asChild
                         >
                           <Link href={investigateHrefForEntity(entity)}>

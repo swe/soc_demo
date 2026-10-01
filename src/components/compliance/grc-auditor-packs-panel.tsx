@@ -133,7 +133,7 @@ export function GrcAuditorPacksPanel() {
                       {probe.status}
                     </Badge>
                   </div>
-                  <p className="text-muted-foreground mt-0.5 font-mono text-[11px]">
+                  <p className="text-muted-foreground mt-0.5 font-mono text-xs">
                     controlId={probe.controlId}
                   </p>
                   <p className="text-muted-foreground text-xs">

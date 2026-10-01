@@ -168,7 +168,7 @@ function InvestigatePlanCard({
               className="min-w-0 rounded-md border px-3 py-2"
             >
               <div className="flex flex-wrap items-center gap-1.5">
-                <span className="text-muted-foreground font-mono text-[11px]">
+                <span className="text-muted-foreground font-mono text-xs">
                   Hop {index + 1}
                 </span>
                 <Badge
@@ -206,7 +206,7 @@ function InvestigatePlanCard({
         </ol>
         {plan.recommendedContain.length > 0 ? (
           <div className="border-border/60 space-y-1.5 border-t pt-3">
-            <p className="text-muted-foreground text-[11px] font-medium tracking-wide uppercase">
+            <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
               Recommended contain
             </p>
             <ul className="min-w-0 space-y-1">
@@ -220,7 +220,7 @@ function InvestigatePlanCard({
                     {" "}
                     · {action.targetLabel ?? action.targetId}
                   </span>
-                  <span className="text-muted-foreground block text-[11px] break-words">
+                  <span className="text-muted-foreground block text-xs break-words">
                     {action.reason} · via {action.connectorId}
                   </span>
                 </li>
@@ -322,7 +322,7 @@ function AssistBody({
           )}
           {suggestion.linkedProcedures.length > 0 ? (
             <div className="border-border/60 mt-3 space-y-2 border-t pt-3">
-              <p className="text-muted-foreground text-[11px] font-medium tracking-wide uppercase">
+              <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
                 Linked KB procedures
               </p>
               <ul className="space-y-1.5">
@@ -452,7 +452,7 @@ function AssistBody({
           </div>
         </CardHeader>
         <CardContent className="p-4 pt-0">
-          <pre className="bg-muted/40 max-h-56 overflow-auto rounded-md border p-3 font-mono text-[11px] leading-relaxed whitespace-pre-wrap">
+          <pre className="bg-muted/40 max-h-56 overflow-auto rounded-md border p-3 font-mono text-xs leading-relaxed whitespace-pre-wrap">
             {suggestion.draftNotes}
           </pre>
         </CardContent>
@@ -479,7 +479,7 @@ function AssistBody({
           </div>
         </CardHeader>
         <CardContent className="p-4 pt-0">
-          <pre className="bg-muted/40 max-h-48 overflow-auto rounded-md border p-3 font-mono text-[11px] leading-relaxed whitespace-pre-wrap">
+          <pre className="bg-muted/40 max-h-48 overflow-auto rounded-md border p-3 font-mono text-xs leading-relaxed whitespace-pre-wrap">
             {suggestion.investigationDraft}
           </pre>
         </CardContent>

@@ -99,7 +99,7 @@ function FindingsOverTimeCard() {
             <p className="text-2xl leading-none font-semibold tabular-nums">
               {compactNumber.format(latestTotal)}
             </p>
-            <p className="text-muted-foreground mt-1 text-[11px]">
+            <p className="text-muted-foreground mt-1 text-xs">
               latest day
             </p>
           </div>
@@ -224,7 +224,7 @@ function RiskNarrativePanel({
               <p className="text-muted-foreground mt-0.5 line-clamp-1 text-xs">
                 {item.title}
               </p>
-              <p className="text-muted-foreground mt-1 text-[11px] capitalize">
+              <p className="text-muted-foreground mt-1 text-xs capitalize">
                 {item.reason}
               </p>
             </div>

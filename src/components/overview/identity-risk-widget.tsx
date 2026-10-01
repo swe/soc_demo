@@ -67,14 +67,14 @@ export function IdentityRiskWidget({ className }: { className?: string }) {
                     </p>
                     <Badge
                       variant="outline"
-                      className="rounded-full font-mono text-[10px] tabular-nums"
+                      className="rounded-full font-mono text-xs tabular-nums"
                     >
                       {score}
                     </Badge>
                     {identity.privileged ? (
                       <Badge
                         variant="secondary"
-                        className="rounded-full text-[10px] font-normal"
+                        className="rounded-full text-xs font-normal"
                       >
                         privileged
                       </Badge>

@@ -126,7 +126,7 @@ export function AssigneeCell({ assigneeId }: { assigneeId: string | null }) {
     <div className="flex min-w-0 items-center gap-2">
       <Avatar className="size-6">
         <AvatarImage src={user.avatar} alt={user.name} />
-        <AvatarFallback className="text-[10px]">
+        <AvatarFallback className="text-xs">
           {getInitials(user.name)}
         </AvatarFallback>
       </Avatar>
@@ -145,7 +145,7 @@ export function SourceCategoryChip({
   return (
     <span
       className={cn(
-        "border-border/70 bg-muted/40 text-muted-foreground inline-flex whitespace-nowrap rounded-md border px-1.5 py-0.5 text-[11px] font-medium",
+        "border-border/70 bg-muted/40 text-muted-foreground inline-flex whitespace-nowrap rounded-md border px-1.5 py-0.5 text-xs font-medium",
         className,
       )}
     >
@@ -199,7 +199,7 @@ export function SourceBadge({
     <Badge
       variant="outline"
       className={cn(
-        "rounded-md px-1.5 py-0 text-[11px] font-semibold tracking-tight",
+        "rounded-md px-1.5 py-0 text-xs font-semibold tracking-tight",
         tone,
         className,
       )}

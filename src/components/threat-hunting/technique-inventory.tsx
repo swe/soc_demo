@@ -94,7 +94,7 @@ export function TechniqueInventory({
           </div>
         ) : (
           <table className="w-full min-w-[420px] border-collapse text-left text-sm">
-            <thead className="bg-muted/40 text-muted-foreground sticky top-0 z-10 text-[11px] tracking-wide uppercase">
+            <thead className="bg-muted/40 text-muted-foreground sticky top-0 z-10 text-xs tracking-wide uppercase">
               <tr className="border-b">
                 <th className="w-8 px-2 py-2 font-medium" />
                 <th className="px-2 py-2 font-medium">ID</th>
@@ -156,7 +156,7 @@ export function TechniqueInventory({
                       <td className="hidden px-2 py-2.5 xl:table-cell">
                         <Badge
                           variant="secondary"
-                          className="rounded-full text-[10px] font-normal"
+                          className="rounded-full text-xs font-normal"
                         >
                           {row.tactic}
                         </Badge>
@@ -178,7 +178,7 @@ export function TechniqueInventory({
                             {row.summary}
                           </p>
                           <div className="mt-2 flex flex-wrap items-center gap-2">
-                            <span className="text-muted-foreground text-[11px]">
+                            <span className="text-muted-foreground text-xs">
                               Last seen {row.lastSeen} · {row.openAlertCount}{" "}
                               open
                             </span>

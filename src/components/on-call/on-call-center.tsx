@@ -404,7 +404,7 @@ export function OnCallCenter() {
                     >
                       <TableCell>
                         <div className="min-w-0">
-                          <p className="font-mono text-[11px]">{incident.id}</p>
+                          <p className="font-mono text-xs">{incident.id}</p>
                           <p className="truncate text-sm font-medium">
                             {incident.title}
                           </p>

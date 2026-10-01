@@ -74,7 +74,7 @@ export function AttackSurfaceTable({
                   <TableCell>
                     <div className="min-w-0">
                       <p className="truncate font-medium">{asset.hostname}</p>
-                      <p className="text-muted-foreground font-mono text-[11px]">
+                      <p className="text-muted-foreground font-mono text-xs">
                         {asset.id}
                       </p>
                     </div>

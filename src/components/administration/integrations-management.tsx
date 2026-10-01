@@ -285,7 +285,7 @@ function IntegrationFilterControl({
           <ListFilter className="size-3.5" />
           Filter
           {count > 0 ? (
-            <span className="bg-foreground text-background rounded px-1.5 py-0.5 text-[10px] leading-none">
+            <span className="bg-foreground text-background rounded px-1.5 py-0.5 text-xs leading-none">
               {count}
             </span>
           ) : null}
@@ -567,13 +567,13 @@ function IntegrationsTable({
                   {integration.dataTypes.slice(0, 2).map((type) => (
                     <span
                       key={type}
-                      className="bg-muted text-muted-foreground rounded px-1.5 py-0.5 text-[11px]"
+                      className="bg-muted text-muted-foreground rounded px-1.5 py-0.5 text-xs"
                     >
                       {type}
                     </span>
                   ))}
                   {integration.dataTypes.length > 2 ? (
-                    <span className="text-muted-foreground px-1 py-0.5 text-[11px]">
+                    <span className="text-muted-foreground px-1 py-0.5 text-xs">
                       +{integration.dataTypes.length - 2}
                     </span>
                   ) : null}
@@ -782,7 +782,7 @@ function IntegrationDetailSheet({
                     {reason ? (
                       <Badge
                         variant="outline"
-                        className="rounded-full text-[10px] font-normal"
+                        className="rounded-full text-xs font-normal"
                       >
                         {degradedReasonLabels[reason.code]}
                       </Badge>
@@ -792,7 +792,7 @@ function IntegrationDetailSheet({
                     {reason?.detail ?? integration.errorMessage}
                   </p>
                   {reason?.since ? (
-                    <p className="text-muted-foreground mt-1.5 text-[11px]">
+                    <p className="text-muted-foreground mt-1.5 text-xs">
                       Since {reason.since}
                     </p>
                   ) : null}
@@ -857,7 +857,7 @@ function IntegrationDetailSheet({
             {connectorConfig &&
             Object.keys(connectorConfig.fieldMap).length > 0 ? (
               <div className="mt-3 rounded-lg border p-3">
-                <p className="text-muted-foreground text-[11px] uppercase">
+                <p className="text-muted-foreground text-xs uppercase">
                   Field map
                 </p>
                 <div className="mt-2 space-y-1.5">
@@ -866,7 +866,7 @@ function IntegrationDetailSheet({
                     .map(([sourceField, heimdallField]) => (
                       <div
                         key={sourceField}
-                        className="flex items-center justify-between gap-2 font-mono text-[11px]"
+                        className="flex items-center justify-between gap-2 font-mono text-xs"
                       >
                         <span className="text-muted-foreground truncate">
                           {sourceField}
@@ -886,7 +886,7 @@ function IntegrationDetailSheet({
             <div className="rounded-lg border">
               <div className="grid grid-cols-2 divide-x border-b sm:grid-cols-4">
                 <div className="px-3 py-3">
-                  <p className="text-muted-foreground text-[11px] uppercase">
+                  <p className="text-muted-foreground text-xs uppercase">
                     Throughput
                   </p>
                   <p className="mt-1 font-mono text-sm font-medium tabular-nums">
@@ -896,7 +896,7 @@ function IntegrationDetailSheet({
                   </p>
                 </div>
                 <div className="px-3 py-3">
-                  <p className="text-muted-foreground text-[11px] uppercase">
+                  <p className="text-muted-foreground text-xs uppercase">
                     Latency
                   </p>
                   <p className="mt-1 font-mono text-sm font-medium tabular-nums">
@@ -906,7 +906,7 @@ function IntegrationDetailSheet({
                   </p>
                 </div>
                 <div className="px-3 py-3">
-                  <p className="text-muted-foreground text-[11px] uppercase">
+                  <p className="text-muted-foreground text-xs uppercase">
                     Error rate
                   </p>
                   <p className="mt-1 font-mono text-sm font-medium tabular-nums">
@@ -916,7 +916,7 @@ function IntegrationDetailSheet({
                   </p>
                 </div>
                 <div className="px-3 py-3">
-                  <p className="text-muted-foreground text-[11px] uppercase">
+                  <p className="text-muted-foreground text-xs uppercase">
                     Coverage
                   </p>
                   <p className="mt-1 font-mono text-sm font-medium tabular-nums">
@@ -930,10 +930,10 @@ function IntegrationDetailSheet({
               {sparkData.length > 0 ? (
                 <div className="border-b p-3">
                   <div className="mb-2 flex items-center justify-between">
-                    <p className="text-muted-foreground text-[11px] uppercase">
+                    <p className="text-muted-foreground text-xs uppercase">
                       Volume · 24h
                     </p>
-                    <p className="text-muted-foreground text-[11px]">
+                    <p className="text-muted-foreground text-xs">
                       Last sync {integration.lastSync ?? "—"}
                     </p>
                   </div>
@@ -992,7 +992,7 @@ function IntegrationDetailSheet({
               ) : null}
 
               <div className="p-3">
-                <p className="text-muted-foreground text-[11px] uppercase">
+                <p className="text-muted-foreground text-xs uppercase">
                   Telemetry streams
                 </p>
                 <div className="mt-2 flex flex-wrap gap-1.5">
@@ -1045,16 +1045,16 @@ function IntegrationDetailSheet({
                   />
                   <div className="flex items-start justify-between gap-2">
                     <p className="text-xs font-medium">{event.title}</p>
-                    <span className="text-muted-foreground shrink-0 text-[11px]">
+                    <span className="text-muted-foreground shrink-0 text-xs">
                       {event.time}
                     </span>
                   </div>
-                  <p className="text-muted-foreground mt-0.5 text-[11px] leading-4">
+                  <p className="text-muted-foreground mt-0.5 text-xs leading-4">
                     {event.detail}
                   </p>
                   <Badge
                     variant="outline"
-                    className="mt-1.5 rounded-full text-[10px] font-normal capitalize"
+                    className="mt-1.5 rounded-full text-xs font-normal capitalize"
                   >
                     {event.kind}
                   </Badge>
@@ -1277,7 +1277,7 @@ export function IntegrationsManagement() {
         description: (
           <span className="inline-flex flex-col gap-1">
             <span>{receipt.message}</span>
-            <Badge variant="secondary" className="w-fit rounded-full text-[10px]">
+            <Badge variant="secondary" className="w-fit rounded-full text-xs">
               {receiptToneLabel(receipt.outcome)}
             </Badge>
           </span>
@@ -1357,7 +1357,7 @@ export function IntegrationsManagement() {
             <span>{receipt.message}</span>
             <Badge
               variant="secondary"
-              className="w-fit rounded-full text-[10px]"
+              className="w-fit rounded-full text-xs"
             >
               {receiptToneLabel(receipt.outcome)}
             </Badge>

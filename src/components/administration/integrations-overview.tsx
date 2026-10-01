@@ -77,7 +77,7 @@ function IngestPipelinePanel() {
                 )}
               />
             </div>
-            <p className="text-muted-foreground mt-1 text-[11px] leading-relaxed">
+            <p className="text-muted-foreground mt-1 text-xs leading-relaxed">
               {stage.description}
             </p>
             <p className="mt-2 text-xs font-medium tabular-nums">
@@ -89,7 +89,7 @@ function IngestPipelinePanel() {
       <div className="mt-4 overflow-hidden rounded-lg border">
         <div className="bg-muted/40 border-b px-3 py-2">
           <p className="text-xs font-medium">Field mapping preview</p>
-          <p className="text-muted-foreground text-[11px]">
+          <p className="text-muted-foreground text-xs">
             Vendor fields → Heimdall common schema
           </p>
         </div>
@@ -104,10 +104,10 @@ function IngestPipelinePanel() {
                 <span className="text-muted-foreground truncate">
                   {source?.shortName ?? row.sourceId}
                 </span>
-                <code className="truncate font-mono text-[11px]">
+                <code className="truncate font-mono text-xs">
                   {row.sourceField}
                 </code>
-                <code className="text-foreground truncate font-mono text-[11px]">
+                <code className="text-foreground truncate font-mono text-xs">
                   → {row.heimdallField}
                 </code>
                 <span className="text-muted-foreground truncate">
@@ -224,7 +224,7 @@ function IngestionVolumeCard() {
             <p className="text-2xl leading-none font-semibold tabular-nums">
               {compactNumber.format(currentK * 1000)}
             </p>
-            <p className="text-muted-foreground mt-1 text-[11px]">
+            <p className="text-muted-foreground mt-1 text-xs">
               current hour
             </p>
           </div>
@@ -648,7 +648,7 @@ function ActivityFeed({
                 <span className="min-w-0 flex-1">
                   <span className="flex items-start justify-between gap-2">
                     <span className="text-sm font-medium">{event.title}</span>
-                    <span className="text-muted-foreground shrink-0 text-[11px]">
+                    <span className="text-muted-foreground shrink-0 text-xs">
                       {event.time}
                     </span>
                   </span>
@@ -743,11 +743,11 @@ function AttentionPanel({
                           : "Review connector health.")}
                     </p>
                     {item.degradedReason ? (
-                      <p className="text-muted-foreground mt-1 line-clamp-2 text-[11px] leading-4">
+                      <p className="text-muted-foreground mt-1 line-clamp-2 text-xs leading-4">
                         {item.degradedReason.detail}
                       </p>
                     ) : null}
-                    <div className="text-muted-foreground mt-2 flex flex-wrap gap-x-3 gap-y-1 font-mono text-[11px] tabular-nums">
+                    <div className="text-muted-foreground mt-2 flex flex-wrap gap-x-3 gap-y-1 font-mono text-xs tabular-nums">
                       {item.latencyMs !== undefined ? (
                         <span>latency {item.latencyMs}ms</span>
                       ) : null}

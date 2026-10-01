@@ -77,13 +77,13 @@ function SourceChip({
           />
           <span className="text-xs font-medium">{source.shortName}</span>
         </div>
-        <span className="text-muted-foreground text-[10px] tabular-nums">
+        <span className="text-muted-foreground text-xs tabular-nums">
           {ageLabel}
         </span>
       </div>
       <div className="flex items-end justify-between gap-2">
         <div>
-          <p className="text-[10px] text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             {sourceFamilyLabels[source.family]}
           </p>
           <p className="text-xs font-medium tabular-nums">

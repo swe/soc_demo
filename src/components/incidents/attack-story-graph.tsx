@@ -124,13 +124,13 @@ function StoryFlowNodeCard({ data, selected }: NodeProps<StoryFlowNode>) {
         </span>
         <div className="min-w-0 flex-1">
           <p className="truncate text-xs font-medium">{entity.label}</p>
-          <p className="text-muted-foreground mt-0.5 truncate text-[11px]">
+          <p className="text-muted-foreground mt-0.5 truncate text-xs">
             {entity.subtitle ?? attackStoryNodeKindLabels[entity.kind]}
           </p>
         </div>
       </div>
       <div className="mt-2">
-        <span className="text-muted-foreground text-[10px] tracking-wide uppercase">
+        <span className="text-muted-foreground text-xs tracking-wide uppercase">
           {attackStoryNodeKindLabels[entity.kind]}
         </span>
       </div>

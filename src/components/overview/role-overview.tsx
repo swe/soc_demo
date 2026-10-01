@@ -210,7 +210,7 @@ function KpiCard({ kpi, index }: { kpi: OverviewKpi; index: number }) {
         <p className="text-xl font-semibold tracking-tight tabular-nums">
           {kpi.value}
         </p>
-        <p className="text-muted-foreground truncate text-[11px]">
+        <p className="text-muted-foreground truncate text-xs">
           {kpi.context}
         </p>
       </div>
@@ -292,7 +292,7 @@ function TrendChart({
                 ? latestAlertTotal
                 : latestIncidentTotal}
           </p>
-          <p className="text-muted-foreground mt-0.5 text-[10px]">
+          <p className="text-muted-foreground mt-0.5 text-xs">
             {kind === "compliance" ? "latest month" : "latest day"}
           </p>
         </div>
@@ -536,7 +536,7 @@ function BreakdownPanel({ breakdown }: { breakdown: OverviewBreakdown }) {
     <section className="bg-card flex flex-col rounded-lg border">
       <div className="flex items-center justify-between gap-2 border-b px-3 py-2.5 sm:px-4">
         <h3 className="text-sm font-medium leading-tight">{breakdown.title}</h3>
-        <p className="text-muted-foreground shrink-0 text-[11px] tabular-nums">
+        <p className="text-muted-foreground shrink-0 text-xs tabular-nums">
           {compactNumber.format(total)} total
         </p>
       </div>
@@ -571,7 +571,7 @@ function BreakdownPanel({ breakdown }: { breakdown: OverviewBreakdown }) {
             const pct = Math.round((item.value / total) * 100);
             return (
               <li key={item.key} className="min-w-0">
-                <div className="mb-0.5 flex items-center justify-between gap-2 text-[11px]">
+                <div className="mb-0.5 flex items-center justify-between gap-2 text-xs">
                   <span className="text-muted-foreground flex min-w-0 items-center gap-1.5 truncate capitalize">
                     <span
                       className="size-1.5 shrink-0 rounded-full"
@@ -630,7 +630,7 @@ function AttentionItem({ item }: { item: OverviewQueueItem }) {
             <Badge
               variant="outline"
               className={cn(
-                "h-5 shrink-0 rounded-full px-1.5 text-[10px] font-medium capitalize",
+                "h-5 shrink-0 rounded-full px-1.5 text-xs font-medium capitalize",
                 toneClass[item.tone],
               )}
             >
@@ -638,7 +638,7 @@ function AttentionItem({ item }: { item: OverviewQueueItem }) {
             </Badge>
           ) : null}
         </div>
-        <p className="text-muted-foreground truncate text-[11px]">
+        <p className="text-muted-foreground truncate text-xs">
           {item.meta}
           {item.subtitle ? ` · ${item.subtitle}` : ""}
         </p>
@@ -731,7 +731,7 @@ export function RoleOverview() {
         <div className="mx-auto flex w-full max-w-7xl flex-col gap-3 p-3 sm:gap-4 sm:p-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0">
-              <p className="text-muted-foreground text-[11px] font-medium tracking-wide uppercase">
+              <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
                 {hydrated ? roleLabel : "…"}
               </p>
               <h2 className="text-lg font-semibold tracking-tight sm:text-xl">

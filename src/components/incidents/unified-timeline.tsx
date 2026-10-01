@@ -78,7 +78,7 @@ export function UnifiedTimeline({
               className="relative flex gap-3 pb-4 last:pb-0"
             >
               <div className="flex w-[7.5rem] shrink-0 flex-col pt-0.5 sm:w-32">
-                <span className="text-muted-foreground font-mono text-[11px] tabular-nums">
+                <span className="text-muted-foreground font-mono text-xs tabular-nums">
                   {formatTimelineStamp(entry.at)}
                 </span>
               </div>
@@ -95,14 +95,14 @@ export function UnifiedTimeline({
                 <div className="flex flex-wrap items-center gap-1.5">
                   <Badge
                     variant="outline"
-                    className="rounded-md px-1.5 py-0 text-[11px] font-semibold"
+                    className="rounded-md px-1.5 py-0 text-xs font-semibold"
                   >
                     {shortSourceName(entry.sourceName)}
                   </Badge>
                   <Badge
                     variant="outline"
                     className={cn(
-                      "rounded-full px-1.5 py-0 text-[11px] font-medium",
+                      "rounded-full px-1.5 py-0 text-xs font-medium",
                       kindTone[entry.kind],
                     )}
                   >

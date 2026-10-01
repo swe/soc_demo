@@ -4,28 +4,30 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-hidden focus-visible:border-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "pressable inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium outline-none select-none focus-visible:ring-[3px] focus-visible:ring-ring/35 disabled:pointer-events-none disabled:opacity-45 aria-disabled:pointer-events-none aria-disabled:opacity-45 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
         default:
-          "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90",
+          "bg-primary text-primary-foreground shadow-card hover:bg-primary/90 active:bg-primary/85",
         destructive:
-          "bg-destructive text-destructive-foreground shadow-xs hover:bg-destructive/90",
+          "bg-destructive text-white shadow-card hover:bg-destructive/90 active:bg-destructive/85 focus-visible:ring-destructive/35",
         outline:
-          "border border-input bg-background shadow-xs hover:bg-accent hover:text-accent-foreground",
+          "border border-input bg-card text-foreground shadow-card hover:bg-muted active:bg-muted/80",
         secondary:
-          "bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
-        link: "text-primary underline-offset-4 hover:underline",
+          "bg-secondary text-secondary-foreground hover:bg-secondary/70 active:bg-secondary/60 dark:hover:bg-secondary/80",
+        ghost:
+          "text-foreground hover:bg-muted active:bg-muted/80",
+        link: "text-primary underline-offset-4 hover:underline active:opacity-80",
       },
       size: {
-        default: "h-9 px-4 py-2",
-        sm: "h-8 rounded-md px-3 text-xs",
-        lg: "h-10 rounded-md px-8",
-        icon: "h-9 w-9",
-        "icon-sm": "size-6",
-        "icon-lg": "size-10",
+        default: "h-9 px-4 pointer-coarse:h-11 pointer-coarse:px-5",
+        sm: "h-8 gap-1.5 px-3 text-callout pointer-coarse:h-10",
+        lg: "h-11 rounded-lg px-6 text-base",
+        icon: "size-9 pointer-coarse:size-11",
+        "icon-sm":
+          "relative size-7 rounded-sm after:absolute after:-inset-2 after:content-['']",
+        "icon-lg": "size-11 rounded-lg",
       },
     },
     defaultVariants: {
@@ -46,6 +48,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     const Comp = asChild ? SlotPrimitive.Slot : "button"
     return (
       <Comp
+        data-slot="button"
         className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
         {...props}

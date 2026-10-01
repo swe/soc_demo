@@ -121,13 +121,13 @@ function ThreatFlowNodeCard({ data, selected }: NodeProps<ThreatFlowNode>) {
         </span>
         <div className="min-w-0 flex-1">
           <p className="truncate text-xs font-medium">{threat.label}</p>
-          <p className="text-muted-foreground mt-0.5 truncate text-[11px]">
+          <p className="text-muted-foreground mt-0.5 truncate text-xs">
             {threat.subtitle ?? threatNodeKindLabels[threat.kind]}
           </p>
         </div>
       </div>
       <div className="mt-2 flex items-center gap-2">
-        <span className="text-muted-foreground text-[10px] tracking-wide uppercase">
+        <span className="text-muted-foreground text-xs tracking-wide uppercase">
           {threatNodeKindLabels[threat.kind]}
         </span>
         {threat.severity ? (
@@ -138,7 +138,7 @@ function ThreatFlowNodeCard({ data, selected }: NodeProps<ThreatFlowNode>) {
                 severityDot[threat.severity] ?? "bg-muted-foreground",
               )}
             />
-            <span className="text-muted-foreground text-[10px] capitalize">
+            <span className="text-muted-foreground text-xs capitalize">
               {threat.severity}
             </span>
           </span>
@@ -298,7 +298,7 @@ export function ThreatRelationshipMap({
   }, [isFullscreen, isMounted]);
 
   const flowLegend = (
-    <div className="text-muted-foreground flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[11px]">
+    <div className="text-muted-foreground flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs">
       {(
         [
           { kind: "actor" as const, swatch: "bg-violet-500" },
@@ -416,7 +416,7 @@ export function ThreatRelationshipMap({
         )}
       </div>
 
-      <div className="text-muted-foreground flex flex-wrap items-center gap-x-4 gap-y-1.5 border-t px-4 py-2.5 text-[11px]">
+      <div className="text-muted-foreground flex flex-wrap items-center gap-x-4 gap-y-1.5 border-t px-4 py-2.5 text-xs">
         <span className="flex items-center gap-2">
           <span className="inline-block h-px w-6 border-t border-dashed border-zinc-500" />
           Relation

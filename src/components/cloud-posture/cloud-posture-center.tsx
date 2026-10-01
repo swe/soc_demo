@@ -235,7 +235,7 @@ function FindingsFilterControl({
           <ListFilter className="size-3.5" />
           Filter
           {activeFilterCount > 0 ? (
-            <span className="bg-primary text-primary-foreground absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full text-[10px] font-semibold">
+            <span className="bg-primary text-primary-foreground absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full text-xs font-semibold">
               {activeFilterCount}
             </span>
           ) : null}
@@ -911,7 +911,7 @@ export function CloudPostureCenter() {
                     <TableCell>
                       <div className="min-w-0">
                         <p className="truncate font-medium">{finding.title}</p>
-                        <p className="text-muted-foreground font-mono text-[11px]">
+                        <p className="text-muted-foreground font-mono text-xs">
                           {finding.id} · {finding.category}
                         </p>
                       </div>

@@ -241,7 +241,7 @@ export function FrameworkChips({
         return (
           <span
             key={id}
-            className="border-border/70 bg-background inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[11px] font-medium whitespace-nowrap"
+            className="border-border/70 bg-background inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-xs font-medium whitespace-nowrap"
           >
             <span
               className="size-1.5 rounded-full"
@@ -255,7 +255,7 @@ export function FrameworkChips({
         <TooltipProvider>
           <Tooltip delayDuration={200}>
             <TooltipTrigger asChild>
-              <span className="bg-muted text-muted-foreground rounded-md px-1.5 py-0.5 text-[11px] font-medium">
+              <span className="bg-muted text-muted-foreground rounded-md px-1.5 py-0.5 text-xs font-medium">
                 +{overflow.length}
               </span>
             </TooltipTrigger>
@@ -286,7 +286,7 @@ export function OwnerCell({ userId }: { userId: string }) {
     <div className="flex min-w-0 items-center gap-2">
       <Avatar className="size-7">
         <AvatarImage src={user.avatar} alt={user.name} />
-        <AvatarFallback className="text-[11px]">
+        <AvatarFallback className="text-xs">
           {getInitials(user.name)}
         </AvatarFallback>
       </Avatar>
@@ -319,14 +319,14 @@ export function AvatarStack({
         return (
           <Avatar key={id} className="border-background size-7 border-2">
             <AvatarImage src={user.avatar} alt={user.name} />
-            <AvatarFallback className="text-[10px]">
+            <AvatarFallback className="text-xs">
               {getInitials(user.name)}
             </AvatarFallback>
           </Avatar>
         );
       })}
       {overflow > 0 ? (
-        <span className="border-background bg-muted text-muted-foreground grid size-7 place-items-center rounded-full border-2 text-[10px] font-medium">
+        <span className="border-background bg-muted text-muted-foreground grid size-7 place-items-center rounded-full border-2 text-xs font-medium">
           +{overflow}
         </span>
       ) : null}

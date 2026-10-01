@@ -3,13 +3,18 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const alertVariants = cva(
-  "relative w-full rounded-lg border px-4 py-3 text-sm [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground [&>svg~*]:pl-7",
+  "relative grid w-full grid-cols-[0_1fr] items-start gap-y-0.5 rounded-xl border px-4 py-3 text-sm has-[>svg]:grid-cols-[1rem_1fr] has-[>svg]:gap-x-3 [&>svg]:size-4 [&>svg]:translate-y-0.5 [&>svg]:text-current",
   {
     variants: {
       variant: {
-        default: "bg-background text-foreground",
+        default: "bg-card text-card-foreground [&>svg]:text-muted-foreground",
         destructive:
-          "border-destructive/50 text-destructive dark:border-destructive [&>svg]:text-destructive",
+          "border-destructive/25 bg-destructive/6 text-destructive-text [&_[data-slot=alert-description]]:text-destructive-text/85",
+        warning:
+          "border-warning/30 bg-warning/8 text-warning-text [&_[data-slot=alert-description]]:text-warning-text/85",
+        success:
+          "border-success/25 bg-success/6 text-success-text [&_[data-slot=alert-description]]:text-success-text/85",
+        info: "border-info/25 bg-info/6 text-info-text [&_[data-slot=alert-description]]:text-info-text/85",
       },
     },
     defaultVariants: {
@@ -25,6 +30,7 @@ const Alert = React.forwardRef<
   <div
     ref={ref}
     role="alert"
+    data-slot="alert"
     className={cn(alertVariants({ variant }), className)}
     {...props}
   />
@@ -37,7 +43,8 @@ const AlertTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <h5
     ref={ref}
-    className={cn("mb-1 leading-none font-medium tracking-tight", className)}
+    data-slot="alert-title"
+    className={cn("col-start-2 leading-snug font-medium", className)}
     {...props}
   />
 ))
@@ -49,7 +56,11 @@ const AlertDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("text-sm [&_p]:leading-relaxed", className)}
+    data-slot="alert-description"
+    className={cn(
+      "text-muted-foreground col-start-2 text-sm [&_p]:leading-relaxed",
+      className
+    )}
     {...props}
   />
 ))

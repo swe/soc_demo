@@ -162,7 +162,7 @@ function PlaybookFlowNodeCard({ data, selected }: NodeProps<PlaybookFlowNode>) {
         </span>
         <div className="min-w-0 flex-1">
           <p className="truncate text-xs font-medium">{data.label}</p>
-          <p className="text-muted-foreground mt-0.5 truncate text-[11px]">
+          <p className="text-muted-foreground mt-0.5 truncate text-xs">
             {data.description ?? playbookNodeTypeLabels[data.nodeType]}
           </p>
         </div>
@@ -477,7 +477,7 @@ export function PlaybooksCenter() {
                   <TableCell>
                     <div className="min-w-0">
                       <p className="truncate font-medium">{pb.title}</p>
-                      <p className="text-muted-foreground font-mono text-[11px]">
+                      <p className="text-muted-foreground font-mono text-xs">
                         {pb.code}
                         {pb.mitreTactic ? ` · ${pb.mitreTactic}` : ""}
                       </p>

@@ -555,7 +555,7 @@ export function DetectionsCenter() {
                                 <Badge
                                   key={tech}
                                   variant="outline"
-                                  className="font-mono text-[10px]"
+                                  className="font-mono text-xs"
                                 >
                                   {tech}
                                 </Badge>
@@ -578,7 +578,7 @@ export function DetectionsCenter() {
                           {rule.lineageSource ? (
                             <Badge
                               variant="outline"
-                              className="rounded-full text-[10px] font-normal capitalize"
+                              className="rounded-full text-xs font-normal capitalize"
                             >
                               {rule.lineageSource}
                             </Badge>
@@ -799,7 +799,7 @@ export function DetectionsCenter() {
                   <Textarea
                     value={bodyValue}
                     onChange={(event) => setDraftBody(event.target.value)}
-                    className="min-h-40 font-mono text-[11px] leading-relaxed"
+                    className="min-h-40 font-mono text-xs leading-relaxed"
                     spellCheck={false}
                   />
                 </div>
@@ -812,7 +812,7 @@ export function DetectionsCenter() {
                         <p className="text-muted-foreground text-xs uppercase">
                           SPL
                         </p>
-                        <pre className="bg-muted/30 max-h-28 overflow-auto rounded-md border p-2.5 font-mono text-[10px] leading-relaxed whitespace-pre-wrap">
+                        <pre className="bg-muted/30 max-h-28 overflow-auto rounded-md border p-2.5 font-mono text-xs leading-relaxed whitespace-pre-wrap">
                           {selected.splLineage}
                         </pre>
                       </div>
@@ -822,7 +822,7 @@ export function DetectionsCenter() {
                         <p className="text-muted-foreground text-xs uppercase">
                           KQL
                         </p>
-                        <pre className="bg-muted/30 max-h-28 overflow-auto rounded-md border p-2.5 font-mono text-[10px] leading-relaxed whitespace-pre-wrap">
+                        <pre className="bg-muted/30 max-h-28 overflow-auto rounded-md border p-2.5 font-mono text-xs leading-relaxed whitespace-pre-wrap">
                           {selected.kqlLineage}
                         </pre>
                       </div>
@@ -917,10 +917,10 @@ export function DetectionsCenter() {
                         <TableBody>
                           {testHits.map((hit) => (
                             <TableRow key={hit.id}>
-                              <TableCell className="text-muted-foreground font-mono text-[10px]">
+                              <TableCell className="text-muted-foreground font-mono text-xs">
                                 {formatHitTime(hit.timestamp)}
                               </TableCell>
-                              <TableCell className="max-w-[140px] truncate font-mono text-[11px]">
+                              <TableCell className="max-w-[140px] truncate font-mono text-xs">
                                 {hit.entity}
                               </TableCell>
                               <TableCell>

@@ -154,17 +154,17 @@ export function InventoriesCenter() {
                   <TableCell>
                     <div className="flex flex-wrap gap-1">
                       {item.eol ? (
-                        <Badge variant="destructive" className="text-[10px]">
+                        <Badge variant="destructive" className="text-xs">
                           EOL
                         </Badge>
                       ) : null}
                       {item.outdated ? (
-                        <Badge variant="outline" className="text-[10px]">
+                        <Badge variant="outline" className="text-xs">
                           Outdated
                         </Badge>
                       ) : null}
                       {item.internetFacing ? (
-                        <Badge variant="secondary" className="text-[10px]">
+                        <Badge variant="secondary" className="text-xs">
                           Internet
                         </Badge>
                       ) : null}
