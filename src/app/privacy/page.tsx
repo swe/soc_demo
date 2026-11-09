@@ -4,12 +4,16 @@ export default function PrivacyPage() {
   return (
     <LegalPage
       title="Privacy policy"
-      lead="Heimdall processes security telemetry and operator account data to deliver the SOC console. Contact your organization administrator for retention, access, and data-subject requests."
+      lead="This demo console uses sample data and local browser session state. Production Heimdall engagements are covered by Svalbard's privacy policy and contract documents."
     >
       <p>
-        Operational logs, alerts, and incident records are retained according to
-        your tenant&apos;s retention policy. Authentication and audit events are
-        kept for accountability. We do not sell personal data.
+        The public demo does not ingest live customer telemetry. Production retention,
+        access and data-subject requests are handled under your Svalbard agreement.
+        See{" "}
+        <a href="https://svalbard.ca/privacy" className="underline underline-offset-2">
+          svalbard.ca/privacy
+        </a>
+        .
       </p>
     </LegalPage>
   );

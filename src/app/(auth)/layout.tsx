@@ -25,9 +25,15 @@ export default function AuthLayout({ children }: Props) {
         {children}
       </main>
       <nav
-        aria-label="Legal"
+        aria-label="Footer"
         className="text-muted-foreground text-footnote mt-8 flex gap-4"
       >
+        <a
+          href="https://svalbard.ca/products/heimdall"
+          className="hover:text-foreground py-2"
+        >
+          About Heimdall
+        </a>
         <Link href="/privacy" className="hover:text-foreground py-2">
           Privacy
         </Link>

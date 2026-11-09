@@ -832,8 +832,9 @@ function InviteDialog({
         <DialogHeader>
           <DialogTitle>Invite users</DialogTitle>
           <DialogDescription>
-            Send workspace invitations by email and assign starting teams. Each
-            invite expires after seven days.
+            Draft workspace invitations and assign starting teams. This is a
+            demo workspace: invitations are recorded for this session only and
+            no email is sent.
           </DialogDescription>
         </DialogHeader>
 
@@ -1221,8 +1222,9 @@ export function AdministrationUserManagement() {
 
     addInvitations(drafts);
     toast({
-      title: `${drafts.length} invitation${drafts.length === 1 ? "" : "s"} sent`,
-      description: "Invitees will appear under Pending invitations.",
+      title: `${drafts.length} invitation${drafts.length === 1 ? "" : "s"} added`,
+      description:
+        "Shown under Pending invitations for this demo session. No email was sent.",
     });
 
     setInviteDrafts([createInviteDraft(1)]);
@@ -1233,19 +1235,15 @@ export function AdministrationUserManagement() {
   const resendInvitationAction = (invitation: AdministrationInvitation) => {
     resendInvitation(invitation.id);
     toast({
-      title: "Invitation resent",
-      description: `A new invite link was emailed to ${invitation.email}.`,
+      title: "Invitation refreshed",
+      description: `Demo only: no email was sent to ${invitation.email}.`,
     });
   };
 
   const copyInviteLink = (invitation: AdministrationInvitation) => {
-    const inviteLink = `https://app.svalbard.ca/invite/${invitation.id}`;
-
-    void navigator.clipboard?.writeText(inviteLink).catch(() => {});
-
     toast({
-      title: "Invite link copied",
-      description: `The invite link for ${invitation.email} was copied to your clipboard.`,
+      title: "Demo — invites are disabled",
+      description: `Invite links aren't issued in this demo, so nothing was copied for ${invitation.email}.`,
     });
   };
 

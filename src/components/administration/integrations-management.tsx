@@ -1616,7 +1616,7 @@ export function IntegrationsManagement() {
             const integration = integrations.find((item) => item.id === id);
             toast({
               title: "Integration connected",
-              description: `${integration?.name ?? "The data source"} passed access validation and is ready to ingest.`,
+              description: `${integration?.name ?? "The data source"} was marked connected in this demo session. No live ingest was started.`,
             });
           }, 1200);
         }}

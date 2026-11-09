@@ -1,8 +1,12 @@
 name: CI
 
+# Heimdall `dev` is a frontend demo console on the mock data plane: there is no
+# database, migrations or unit-test runner in this branch, so CI checks only what
+# exists — secrets, typecheck, lint, production build and Playwright.
+
 on:
   push:
-    branches: [master]
+    branches: [master, dev]
   pull_request:
 
 jobs:
@@ -18,8 +22,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   checks:
-    name: Typecheck, lint, unit tests
+    name: Typecheck, lint, build
     runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_HEIMDALL_DATA_PLANE: mock
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -30,68 +36,14 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm typecheck
       - run: pnpm lint
-      - run: pnpm test -- tests/unit
-
-  integration:
-    name: Integration tests + migration check
-    runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_USER: soc
-          POSTGRES_PASSWORD: soc
-          POSTGRES_DB: soc_test
-        ports:
-          - 5433:5432
-        options: >-
-          --health-cmd "pg_isready -U soc -d soc_test"
-          --health-interval 5s
-          --health-timeout 3s
-          --health-retries 10
-    env:
-      DATABASE_URL: postgres://soc:soc@localhost:5433/soc_test
-      AUTH_SECRET: ci-only-secret-ci-only-secret-ci-only-secret
-      AUTH_URL: http://localhost:3000
-      APP_URL: http://localhost:3000
-      NODE_ENV: test
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - name: Migrations apply cleanly from empty database
-        run: pnpm db:migrate
-      - name: Integration tests
-        run: pnpm test -- tests/integration
+      - run: pnpm build
 
   e2e:
-    name: Playwright M1 acceptance
+    name: Playwright (mock data plane)
     runs-on: ubuntu-latest
-    needs: [checks, integration]
-    services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_USER: soc
-          POSTGRES_PASSWORD: soc
-          POSTGRES_DB: soc_e2e
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U soc -d soc_e2e"
-          --health-interval 5s
-          --health-timeout 3s
-          --health-retries 10
+    needs: [checks]
     env:
-      DATABASE_URL: postgres://soc:soc@localhost:5432/soc_e2e
-      AUTH_SECRET: ci-only-secret-ci-only-secret-ci-only-secret
-      AUTH_URL: http://127.0.0.1:3100
-      APP_URL: http://127.0.0.1:3100
-      NODE_ENV: production
+      NEXT_PUBLIC_HEIMDALL_DATA_PLANE: mock
       E2E_PORT: "3100"
     steps:
       - uses: actions/checkout@v4
@@ -101,7 +53,12 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm db:migrate
       - run: pnpm build
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright-report
+          retention-days: 7

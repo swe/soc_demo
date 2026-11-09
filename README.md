@@ -58,14 +58,14 @@ pnpm run dev
 Мутирующие вызовы возвращают **`ActionReceipt`** и обычно пишут в **аудит-лог**. Containment в mock-режиме может сохранять чеки в `localStorage`.
 
 ```bash
-# .env.local — для локальных демо оставляйте mock
-HEIMDALL_DATA_PLANE=mock
-# HEIMDALL_DATA_PLANE=live
-# HEIMDALL_API_BASE_URL=https://api.example.com
+# .env.local — для локальных демо оставляйте mock (шаблон: .env.example)
+NEXT_PUBLIC_HEIMDALL_DATA_PLANE=mock
+# NEXT_PUBLIC_HEIMDALL_DATA_PLANE=live
+# NEXT_PUBLIC_HEIMDALL_API_BASE_URL=https://api.example.com
 # AI_GATEWAY_API_KEY=...   # опциональный путь Assist через Next BFF
 ```
 
-При `live` адаптеры ходят в `HEIMDALL_API_BASE_URL` + `/api/v1/...`. UI по-прежнему импортирует `*Api` из `src/lib/mock-api` — реализации меняются за клиентами без переписывания экранов.
+Браузерные клиенты читают только `NEXT_PUBLIC_*` (значения вшиваются при `next build`); `HEIMDALL_DATA_PLANE` / `HEIMDALL_API_BASE_URL` без префикса действуют лишь на серверные маршруты. При `live` адаптеры ходят в `NEXT_PUBLIC_HEIMDALL_API_BASE_URL` + `/api/v1/...`. UI по-прежнему импортирует `*Api` из `src/lib/mock-api` — реализации меняются за клиентами без переписывания экранов.
 
 ### Единый UI (модули)
 
@@ -480,6 +480,18 @@ type ConnectIntegrationInput = {
 - [ ] Каждый `ActionReceipt` + war-room `@mentions` → immutable audit
 - [ ] Retention / residency enforced на сервере
 - [ ] Секреты никогда в браузер
+
+### Переключение `dev` → live (шаги деплоя)
+
+Выполнять только когда пункты выше закрыты и Heimdall API доступен.
+
+1. В окружении Vercel задать `NEXT_PUBLIC_HEIMDALL_DATA_PLANE=live` и `NEXT_PUBLIC_HEIMDALL_API_BASE_URL=<origin API>` (и серверные `HEIMDALL_*` с теми же значениями), затем **пересобрать** — переменные вшиваются при сборке.
+2. Заменить демо-вход (`ava.reed@svalbard.ca` / `demodemo123`) на OIDC; убрать подсказку с учёткой со страницы входа.
+3. Убрать демо-баннер в `admin-shell.tsx` и демо-формулировки (Connect dialog, тосты интеграций, приглашения в `user-management.tsx`), когда соответствующие эндпоинты реально работают.
+4. Включить приглашения: эндпоинт `/invite/[id]`, отправка писем; до этого «Copy invite link» намеренно ничего не копирует.
+5. Обновить `/privacy` и `/terms` под реальную обработку данных клиента.
+6. Проверить `metadataBase` (`https://soc.ragnarok.com`) и ссылки на svalbard.ca.
+7. Прогнать `pnpm test:e2e` против live-стенда (`E2E_BASE_URL`), затем smoke по демо-сценарию ниже.
 
 ---
 

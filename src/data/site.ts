@@ -3,7 +3,7 @@ export const site = {
   /** Title next to the logo (sidebar header, auth header, default document title) */
   title: "Heimdall",
   description:
-    "Heimdall SOC — unified security operations across SIEM, EDR, identity, and cloud sources.",
+    "Heimdall — SOCaaS console by Svalbard Security. Preview of managed detection, triage and escalation over the tools you already run.",
   logoLightSrc: "/images/svalbard_logo.svg",
   logoDarkSrc: "/images/svalbard_logo_white.svg",
   logoAlt: "Heimdall",
@@ -16,7 +16,7 @@ export const site = {
     href: "https://svalbard.ca/",
   },
   /** One-line product promise shown on auth */
-  tagline: "Security operations across your connected stack.",
+  tagline: "Demo console for Heimdall SOCaaS by Svalbard Security.",
   /** Sticky bar title next to the sidebar trigger for known app shells */
   dashboardAppTitle: {
     administration: "Administration",

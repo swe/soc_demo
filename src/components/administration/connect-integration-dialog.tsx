@@ -469,8 +469,9 @@ export function ConnectIntegrationDialog({
               <div className="flex items-start gap-2 rounded-lg border border-dashed p-3">
                 <ShieldCheck className="mt-0.5 size-4 shrink-0 text-success-text" />
                 <p className="text-muted-foreground text-xs leading-5">
-                  Credentials are stored encrypted and used only by the
-                  connector. Read-only, least-privilege access is recommended.
+                  Demo only — credentials entered here are not persisted or
+                  sent to a live connector. Read-only, least-privilege access is
+                  recommended for production onboarding.
                 </p>
               </div>
             </div>

@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 const title = "Heimdall — Security operations by Svalbard Security";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://svalbard.ca"),
+  metadataBase: new URL("https://soc.ragnarok.com"),
   title: {
     default: title,
     template: `%s - ${site.title}`,

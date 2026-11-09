@@ -8,7 +8,7 @@ export default function LoginPage() {
       <div className="flex flex-col gap-1">
         <h1 className="text-title-2 font-semibold tracking-tight">Sign in</h1>
         <p className="text-muted-foreground text-callout">
-          Sign in with your organization credentials to access the SOC console.
+          Demo console — use the prefilled credentials to explore Heimdall. Production access is provisioned after a Svalbard coverage review.
         </p>
       </div>
       <UserAuthForm />
